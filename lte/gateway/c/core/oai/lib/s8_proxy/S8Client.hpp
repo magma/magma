@@ -13,15 +13,15 @@ limitations under the License.
 
 #pragma once
 
+#include <functional>
 #include <gmp.h>
 #include <grpc++/grpc++.h>
+#include <memory>
 #include <stdint.h>
 #include <string>
-#include <functional>
-#include <memory>
 
-#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 #include "feg/protos/s8_proxy.grpc.pb.h"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
@@ -41,34 +41,34 @@ using namespace feg;
  * rpc_response_loop method defined in the GRPCReceiver base class
  */
 class S8Client : public GRPCReceiver {
- public:
+public:
   // Send Create Session Request
   static void s8_create_session_request(
-      const CreateSessionRequestPgw& csr_req,
+      const CreateSessionRequestPgw &csr_req,
       std::function<void(grpc::Status, CreateSessionResponsePgw)> callback);
 
   // Send Delete Session Request
   static void s8_delete_session_request(
-      const DeleteSessionRequestPgw& dsr_req,
+      const DeleteSessionRequestPgw &dsr_req,
       std::function<void(grpc::Status, DeleteSessionResponsePgw)> callback);
 
   static void s8_create_bearer_response(
-      const CreateBearerResponsePgw& cbr_rsp,
+      const CreateBearerResponsePgw &cbr_rsp,
       std::function<void(grpc::Status, magma::orc8r::Void)> callback);
 
   static void s8_delete_bearer_response(
-      const DeleteBearerResponsePgw& db_rsp,
+      const DeleteBearerResponsePgw &db_rsp,
       std::function<void(grpc::Status, magma::orc8r::Void)> callback);
 
- public:
-  S8Client(S8Client const&) = delete;
-  void operator=(S8Client const&) = delete;
+public:
+  S8Client(S8Client const &) = delete;
+  void operator=(S8Client const &) = delete;
 
- private:
+private:
   S8Client();
-  static S8Client& get_instance();
+  static S8Client &get_instance();
   std::unique_ptr<S8Proxy::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 10; // seconds
 };
 
-}  // namespace magma
+} // namespace magma

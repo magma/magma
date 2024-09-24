@@ -22,15 +22,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_supported_codec_list(SupportedCodecList* supportedcodeclist,
-                                uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_supported_codec_list(SupportedCodecList *supportedcodeclist,
+                                uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0, indx = 0;
   uint8_t total_coded_len = 0, decoded_len;
@@ -68,9 +68,9 @@ int decode_supported_codec_list(SupportedCodecList* supportedcodeclist,
   return decoded;
 }
 
-int encode_supported_codec_list(SupportedCodecList* supportedcodeclist,
-                                uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+int encode_supported_codec_list(SupportedCodecList *supportedcodeclist,
+                                uint8_t iei, uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
   uint8_t indx = 0;
 
@@ -111,7 +111,7 @@ int encode_supported_codec_list(SupportedCodecList* supportedcodeclist,
   return encoded;
 }
 
-void dump_supported_codec_list_xml(SupportedCodecList* supportedcodeclist,
+void dump_supported_codec_list_xml(SupportedCodecList *supportedcodeclist,
                                    uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Supported Codec List>\n");
   uint8_t indx = 0;

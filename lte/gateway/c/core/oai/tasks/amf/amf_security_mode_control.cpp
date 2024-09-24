@@ -43,10 +43,10 @@ amf_as_data_t amf_data_sec_ctrl;
 
 //-----------------------------------------------------------------------------
 
-void format_plmn(amf_plmn_t* plmn) {
+void format_plmn(amf_plmn_t *plmn) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int loop = 0;
-  uint8_t* octet = (uint8_t*)plmn;
+  uint8_t *octet = (uint8_t *)plmn;
   /*TODO handle this better; for 2 digit mnc, the mnc_digit3 will be coming in
    * as 0xf. This has to be changed to 0x0 before being used to create SNNI.
    * When the PLMN value is used to form SNNI, the value is shifted such that
@@ -78,7 +78,7 @@ void format_plmn(amf_plmn_t* plmn) {
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg);
+static int security_mode_t3560_handler(zloop_t *loop, int timer_id, void *arg);
 
 /****************************************************************************
  **                                                                        **
@@ -88,12 +88,12 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg);
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
+nas_amf_smc_proc_t *nas5g_new_smc_procedure(amf_context_t *const amf_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
-  nas_amf_smc_proc_t* smc_proc = new (nas_amf_smc_proc_t)();
+  nas_amf_smc_proc_t *smc_proc = new (nas_amf_smc_proc_t)();
   smc_proc->amf_com_proc.amf_proc.base_proc.type = NAS_PROC_TYPE_AMF;
   smc_proc->amf_com_proc.amf_proc.type = NAS_AMF_PROC_TYPE_COMMON;
   smc_proc->amf_com_proc.type = AMF_COMM_PROC_SMC;
@@ -102,7 +102,7 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
   // smc_proc->T3460.id  = NAS5G_TIMER_INACTIVE_ID;
 
   // nas_amf_common_procedure_t* wrapper = calloc(1, sizeof(*wrapper));
-  nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t();
+  nas_amf_common_procedure_t *wrapper = new nas_amf_common_procedure_t();
   if (wrapper) {
     wrapper->proc = &smc_proc->amf_com_proc;
     LIST_INSERT_HEAD(&amf_context->amf_procedures->amf_common_procs, wrapper,
@@ -110,7 +110,7 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
     OAILOG_TRACE(LOG_NAS_EMM, "New EMM_COMM_PROC_AUTH\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, smc_proc);
   } else {
-    free_wrapper((void**)&smc_proc);
+    free_wrapper((void **)&smc_proc);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
 }
@@ -123,10 +123,10 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-static status_code_e amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
+static status_code_e amf_security_request(nas_amf_smc_proc_t *const smc_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctx = NULL;
+  ue_m5gmm_context_s *ue_mm_context = NULL;
+  amf_context_t *amf_ctx = NULL;
   amf_sap_t amf_sap = {};
   status_code_e rc = RETURNerror;
   smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
@@ -182,9 +182,9 @@ static status_code_e amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
 }
 
 /* Timer Expiry Handler for SECURITY COMMAND MODE Timer 3560 */
-static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
+static int security_mode_t3560_handler(zloop_t *loop, int timer_id, void *arg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t *amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
 
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
@@ -196,7 +196,7 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  ue_m5gmm_context_s* ue_amf_context =
+  ue_m5gmm_context_s *ue_amf_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
@@ -216,7 +216,7 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
+  nas_amf_smc_proc_t *smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
 
   if (smc_proc) {
     OAILOG_WARNING(
@@ -293,7 +293,7 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
  **                                                                        **
  ***************************************************************************/
 status_code_e amf_proc_security_mode_control(
-    amf_context_t* amf_ctx, nas_amf_specific_proc_t* amf_specific_proc,
+    amf_context_t *amf_ctx, nas_amf_specific_proc_t *amf_specific_proc,
     ksi_t ksi, success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   status_code_e rc = RETURNerror;
@@ -325,7 +325,7 @@ status_code_e amf_proc_security_mode_control(
 
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->amf_ue_ngap_id;
-  nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
+  nas_amf_smc_proc_t *smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
   if (!smc_proc) {
     smc_proc = nas5g_new_smc_procedure(amf_ctx);
     if (smc_proc) {
@@ -369,7 +369,7 @@ status_code_e amf_proc_security_mode_control(
           6);
 
       derive_5gkey_amf(
-          (uint8_t*)imsi, 15,
+          (uint8_t *)imsi, 15,
           amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
               .kseaf,
           amf_ctx->_security.kamf);
@@ -393,8 +393,8 @@ status_code_e amf_proc_security_mode_control(
 
   if (smc_proc) {
     // Setup ongoing AMF procedure callback functions
-    ((nas5g_base_proc_t*)smc_proc)->parent =
-        (nas5g_base_proc_t*)amf_specific_proc;
+    ((nas5g_base_proc_t *)smc_proc)->parent =
+        (nas5g_base_proc_t *)amf_specific_proc;
     smc_proc->amf_com_proc.amf_proc.delivered = NULL;
     smc_proc->amf_com_proc.amf_proc.base_proc.success_notif = success;
     smc_proc->amf_com_proc.amf_proc.base_proc.failure_notif = failure;
@@ -450,8 +450,8 @@ status_code_e amf_proc_security_mode_control(
  ***************************************************************************/
 status_code_e amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctx = NULL;
+  ue_m5gmm_context_s *ue_mm_context = NULL;
+  amf_context_t *amf_ctx = NULL;
   status_code_e rc = RETURNerror;
 
   OAILOG_WARNING(LOG_NAS_AMF,
@@ -468,7 +468,7 @@ status_code_e amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
+  nas_amf_smc_proc_t *smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
 
   if (smc_proc) {
     /*
@@ -521,8 +521,8 @@ status_code_e amf_proc_security_mode_reject(amf_ue_ngap_id_t ue_id) {
  ***************************************************************************/
 
 status_code_e m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
-                                             int* const amf_iaP,
-                                             int* const amf_eaP) {
+                                             int *const amf_iaP,
+                                             int *const amf_eaP) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int preference_index;
 
@@ -562,4 +562,4 @@ status_code_e m5g_security_select_algorithms(const int ue_iaP, const int ue_eaP,
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

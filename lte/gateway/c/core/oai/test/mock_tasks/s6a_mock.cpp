@@ -17,30 +17,30 @@ static std::shared_ptr<MockS6aHandler> s6a_handler_;
 
 void stop_mock_s6a_task();
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TERMINATE_MESSAGE: {
-      s6a_handler_.reset();
-      itti_free_msg_content(received_message_p);
-      free(received_message_p);
-      stop_mock_s6a_task();
-    } break;
-    case S6A_AUTH_INFO_REQ: {
-      s6a_handler_->s6a_viface_authentication_info_req();
-    } break;
-    case S6A_UPDATE_LOCATION_REQ: {
-      s6a_handler_->s6a_viface_update_location_req();
-    } break;
-    case S6A_PURGE_UE_REQ: {
-      s6a_handler_->s6a_viface_purge_ue();
-    } break;
-    case S6A_CANCEL_LOCATION_ANS: {
-      s6a_handler_->s6a_cancel_location_ans();
-    } break;
-    default: {
-    } break;
+  case TERMINATE_MESSAGE: {
+    s6a_handler_.reset();
+    itti_free_msg_content(received_message_p);
+    free(received_message_p);
+    stop_mock_s6a_task();
+  } break;
+  case S6A_AUTH_INFO_REQ: {
+    s6a_handler_->s6a_viface_authentication_info_req();
+  } break;
+  case S6A_UPDATE_LOCATION_REQ: {
+    s6a_handler_->s6a_viface_update_location_req();
+  } break;
+  case S6A_PURGE_UE_REQ: {
+    s6a_handler_->s6a_viface_purge_ue();
+  } break;
+  case S6A_CANCEL_LOCATION_ANS: {
+    s6a_handler_->s6a_cancel_location_ans();
+  } break;
+  default: {
+  } break;
   }
   itti_free_msg_content(received_message_p);
   free(received_message_p);

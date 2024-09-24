@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
+#include <memory>
 #include <sstream>
 #include <thread>
-#include <memory>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -51,21 +51,21 @@ using namespace magma;
 namespace magma5g {
 /*forward declaration*/
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
-static status_code_e amf_as_establish_req(amf_as_establish_t* msg,
-                                          int* amf_cause);
-static int amf_as_security_req(const amf_as_security_t* msg,
-                               m5g_dl_info_transfer_req_t* as_msg);
-static int amf_as_security_rej(const amf_as_security_t* msg,
-                               m5g_dl_info_transfer_req_t* as_msg);
-static int amf_as_establish_rej(const amf_as_establish_t* msg,
-                                nas5g_establish_rsp_t* as_msg);
+static status_code_e amf_as_establish_req(amf_as_establish_t *msg,
+                                          int *amf_cause);
+static int amf_as_security_req(const amf_as_security_t *msg,
+                               m5g_dl_info_transfer_req_t *as_msg);
+static int amf_as_security_rej(const amf_as_security_t *msg,
+                               m5g_dl_info_transfer_req_t *as_msg);
+static int amf_as_establish_rej(const amf_as_establish_t *msg,
+                                nas5g_establish_rsp_t *as_msg);
 // Setup the security header of the given NAS message
-static AMFMsg* amf_as_set_header(amf_nas_message_t* msg,
-                                 const amf_as_security_data_t* security);
-static int amf_service_rejectmsg(const amf_as_establish_t* msg,
-                                 ServiceRejectMsg* service_reject);
-static int amf_service_reject(const amf_as_data_t* msg,
-                              ServiceRejectMsg* service_reject);
+static AMFMsg *amf_as_set_header(amf_nas_message_t *msg,
+                                 const amf_as_security_data_t *security);
+static int amf_service_rejectmsg(const amf_as_establish_t *msg,
+                                 ServiceRejectMsg *service_reject);
+static int amf_service_reject(const amf_as_data_t *msg,
+                              ServiceRejectMsg *service_reject);
 /**************************************************************************
 **                                                                       **
 ** Name        : amf_as_send()                                           **
@@ -80,22 +80,22 @@ static int amf_service_reject(const amf_as_data_t* msg,
 **      Others : None                                                    **
 **                                                                       **
 **************************************************************************/
-status_code_e amf_as_send(amf_as_t* msg) {
+status_code_e amf_as_send(amf_as_t *msg) {
   status_code_e rc = RETURNok;
   int amf_cause = AMF_CAUSE_SUCCESS;
   amf_as_primitive_t primitive = msg->primitive;
   OAILOG_FUNC_IN(LOG_AMF_APP);
   switch (primitive) {
-    case _AMFAS_DATA_IND:
-    case _AMFAS_ESTABLISH_REQ:
-      // Process UE's establishment request
-      rc = amf_as_establish_req(&msg->u.establish, &amf_cause);
-      break;
-    case _AMFAS_RELEASE_IND:
-    default:
-      // Other primitives are forwarded to NGAP
-      rc = amf_as_send_ng(msg);
-      break;
+  case _AMFAS_DATA_IND:
+  case _AMFAS_ESTABLISH_REQ:
+    // Process UE's establishment request
+    rc = amf_as_establish_req(&msg->u.establish, &amf_cause);
+    break;
+  case _AMFAS_RELEASE_IND:
+  default:
+    // Other primitives are forwarded to NGAP
+    rc = amf_as_send_ng(msg);
+    break;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -121,17 +121,17 @@ status_code_e amf_as_send(amf_as_t* msg) {
 **      Others:    None                                                   **
 **                                                                        **
 ***************************************************************************/
-static status_code_e amf_as_establish_req(amf_as_establish_t* msg,
-                                          int* amf_cause) {
+static status_code_e amf_as_establish_req(amf_as_establish_t *msg,
+                                          int *amf_cause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_security_context_t* amf_security_context = NULL;
+  amf_security_context_t *amf_security_context = NULL;
   amf_nas_message_decode_status_t decode_status;
   memset(&decode_status, 0, sizeof(decode_status));
   int decoder_rc = 1;
   status_code_e rc = RETURNerror;
   tai_t originating_tai = {0};
   amf_nas_message_t nas_msg = {0};
-  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
+  ue_m5gmm_context_s *ue_m5gmm_context = NULL;
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (ue_m5gmm_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP,
@@ -140,7 +140,7 @@ static status_code_e amf_as_establish_req(amf_as_establish_t* msg,
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t *amf_ctx = NULL;
   amf_ctx = &ue_m5gmm_context->amf_context;
 
   if (amf_ctx) {
@@ -178,61 +178,61 @@ static status_code_e amf_as_establish_req(amf_as_establish_t* msg,
   }
 
   // Process initial NAS message
-  AMFMsg* amf_msg = &nas_msg.plain.amf;
+  AMFMsg *amf_msg = &nas_msg.plain.amf;
 
   switch (static_cast<M5GMessageType>(amf_msg->header.message_type)) {
-    case M5GMessageType::REG_REQUEST:
-      memcpy(&originating_tai, &msg->tai, sizeof(originating_tai));
-      rc = amf_handle_registration_request(
-          msg->ue_id, &originating_tai, &msg->ecgi,
-          &amf_msg->msg.registrationrequestmsg, msg->is_initial,
-          msg->is_amf_ctx_new, *amf_cause, decode_status);
-      break;
-    case M5GMessageType::M5G_SERVICE_REQUEST:
-      rc = amf_handle_service_request(msg->ue_id, &amf_msg->msg.service_request,
-                                      decode_status);
-      break;
-    case M5GMessageType::M5G_IDENTITY_RESPONSE:
-      rc = amf_handle_identity_response(
-          msg->ue_id, &amf_msg->msg.identityresponsemsg.m5gs_mobile_identity,
-          *amf_cause, decode_status);
-      break;
-    case M5GMessageType::AUTH_RESPONSE:
-      rc = amf_handle_authentication_response(
-          msg->ue_id, &amf_msg->msg.authenticationresponsemsg, *amf_cause,
-          decode_status);
-      break;
-    case M5GMessageType::AUTH_FAILURE:
-      rc = amf_handle_authentication_failure(
-          msg->ue_id, &amf_msg->msg.authenticationfailuremsg, *amf_cause,
-          decode_status);
-      break;
-    case M5GMessageType::SEC_MODE_COMPLETE:
-      rc = amf_handle_security_complete_response(msg->ue_id, decode_status);
-      break;
-    case M5GMessageType::SEC_MODE_REJECT:
-      rc = amf_handle_security_mode_reject(msg->ue_id,
-                                           &amf_msg->msg.securitymodereject,
-                                           *amf_cause, decode_status);
-      break;
-    case M5GMessageType::REG_COMPLETE:
-      rc = amf_handle_registration_complete_response(
-          msg->ue_id, &amf_msg->msg.registrationcompletemsg, *amf_cause,
-          decode_status);
-      break;
-    case M5GMessageType::DE_REG_REQUEST_UE_ORIGIN:
-      rc = amf_handle_deregistration_ue_origin_req(
-          msg->ue_id, &amf_msg->msg.deregistrationequesmsg, *amf_cause,
-          decode_status);
-      break;
-    case M5GMessageType::ULNASTRANSPORT:
-      rc = amf_smf_process_pdu_session_packet(
-          msg->ue_id, &amf_msg->msg.uplinknas5gtransport, *amf_cause);
-      break;
-    default:
-      OAILOG_DEBUG(LOG_NAS_AMF, "Unknown message type: %u, in %s ",
-                   static_cast<uint8_t>(amf_msg->header.message_type),
-                   __FUNCTION__);
+  case M5GMessageType::REG_REQUEST:
+    memcpy(&originating_tai, &msg->tai, sizeof(originating_tai));
+    rc = amf_handle_registration_request(
+        msg->ue_id, &originating_tai, &msg->ecgi,
+        &amf_msg->msg.registrationrequestmsg, msg->is_initial,
+        msg->is_amf_ctx_new, *amf_cause, decode_status);
+    break;
+  case M5GMessageType::M5G_SERVICE_REQUEST:
+    rc = amf_handle_service_request(msg->ue_id, &amf_msg->msg.service_request,
+                                    decode_status);
+    break;
+  case M5GMessageType::M5G_IDENTITY_RESPONSE:
+    rc = amf_handle_identity_response(
+        msg->ue_id, &amf_msg->msg.identityresponsemsg.m5gs_mobile_identity,
+        *amf_cause, decode_status);
+    break;
+  case M5GMessageType::AUTH_RESPONSE:
+    rc = amf_handle_authentication_response(
+        msg->ue_id, &amf_msg->msg.authenticationresponsemsg, *amf_cause,
+        decode_status);
+    break;
+  case M5GMessageType::AUTH_FAILURE:
+    rc = amf_handle_authentication_failure(
+        msg->ue_id, &amf_msg->msg.authenticationfailuremsg, *amf_cause,
+        decode_status);
+    break;
+  case M5GMessageType::SEC_MODE_COMPLETE:
+    rc = amf_handle_security_complete_response(msg->ue_id, decode_status);
+    break;
+  case M5GMessageType::SEC_MODE_REJECT:
+    rc = amf_handle_security_mode_reject(msg->ue_id,
+                                         &amf_msg->msg.securitymodereject,
+                                         *amf_cause, decode_status);
+    break;
+  case M5GMessageType::REG_COMPLETE:
+    rc = amf_handle_registration_complete_response(
+        msg->ue_id, &amf_msg->msg.registrationcompletemsg, *amf_cause,
+        decode_status);
+    break;
+  case M5GMessageType::DE_REG_REQUEST_UE_ORIGIN:
+    rc = amf_handle_deregistration_ue_origin_req(
+        msg->ue_id, &amf_msg->msg.deregistrationequesmsg, *amf_cause,
+        decode_status);
+    break;
+  case M5GMessageType::ULNASTRANSPORT:
+    rc = amf_smf_process_pdu_session_packet(
+        msg->ue_id, &amf_msg->msg.uplinknas5gtransport, *amf_cause);
+    break;
+  default:
+    OAILOG_DEBUG(LOG_NAS_AMF, "Unknown message type: %u, in %s ",
+                 static_cast<uint8_t>(amf_msg->header.message_type),
+                 __FUNCTION__);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
@@ -253,34 +253,34 @@ static status_code_e amf_as_establish_req(amf_as_establish_t* msg,
  **      Others: None                                                    **
  **                                                                      **
  *************************************************************************/
-status_code_e amf_as_send_ng(const amf_as_t* msg) {
+status_code_e amf_as_send_ng(const amf_as_t *msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   amf_as_message_t as_msg = {0};
 
   switch (msg->primitive) {
-    case _AMFAS_DATA_REQ:
-      as_msg.msg_id =
-          amf_as_data_req(&msg->u.data, &as_msg.msg.dl_info_transfer_req);
-      break;
-    case _AMFAS_ESTABLISH_CNF:
-      as_msg.msg_id = amf_as_establish_cnf(&msg->u.establish,
-                                           &as_msg.msg.nas_establish_rsp);
-      break;
-    case _AMFAS_SECURITY_REQ:
-      as_msg.msg_id = amf_as_security_req(&msg->u.security,
-                                          &as_msg.msg.dl_info_transfer_req);
-      break;
-    case _AMFAS_SECURITY_REJ:
-      as_msg.msg_id = amf_as_security_rej(&msg->u.security,
-                                          &as_msg.msg.dl_info_transfer_req);
-      break;
-    case _AMFAS_ESTABLISH_REJ:
-      as_msg.msg_id = amf_as_establish_rej(&msg->u.establish,
-                                           &as_msg.msg.nas_establish_rsp);
-      break;
-    default:
-      as_msg.msg_id = 0;
-      break;
+  case _AMFAS_DATA_REQ:
+    as_msg.msg_id =
+        amf_as_data_req(&msg->u.data, &as_msg.msg.dl_info_transfer_req);
+    break;
+  case _AMFAS_ESTABLISH_CNF:
+    as_msg.msg_id =
+        amf_as_establish_cnf(&msg->u.establish, &as_msg.msg.nas_establish_rsp);
+    break;
+  case _AMFAS_SECURITY_REQ:
+    as_msg.msg_id =
+        amf_as_security_req(&msg->u.security, &as_msg.msg.dl_info_transfer_req);
+    break;
+  case _AMFAS_SECURITY_REJ:
+    as_msg.msg_id =
+        amf_as_security_rej(&msg->u.security, &as_msg.msg.dl_info_transfer_req);
+    break;
+  case _AMFAS_ESTABLISH_REJ:
+    as_msg.msg_id =
+        amf_as_establish_rej(&msg->u.establish, &as_msg.msg.nas_establish_rsp);
+    break;
+  default:
+    as_msg.msg_id = 0;
+    break;
   }
 
   /*
@@ -288,27 +288,27 @@ status_code_e amf_as_send_ng(const amf_as_t* msg) {
    */
   if (as_msg.msg_id > 0) {
     switch (as_msg.msg_id) {
-      case AS_DL_INFO_TRANSFER_REQ_: {
-        amf_app_handle_nas_dl_req(as_msg.msg.dl_info_transfer_req.ue_id,
-                                  as_msg.msg.dl_info_transfer_req.nas_msg,
-                                  as_msg.msg.dl_info_transfer_req.err_code);
-        OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
-      } break;
-      case AS_NAS_ESTABLISH_RSP_: {
-        amf_app_handle_nas_dl_req(as_msg.msg.nas_establish_rsp.ue_id,
-                                  as_msg.msg.nas_establish_rsp.nas_msg,
-                                  as_msg.msg.nas_establish_rsp.err_code);
-        as_msg.msg.nas_establish_rsp.nas_msg = NULL;
-        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-      } break;
-      case AS_NAS_RELEASE_REQ_:
-        OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
-        break;
-      case AS_NAS_ESTABLISH_CNF_:
-        OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
-        break;
-      default:
-        break;
+    case AS_DL_INFO_TRANSFER_REQ_: {
+      amf_app_handle_nas_dl_req(as_msg.msg.dl_info_transfer_req.ue_id,
+                                as_msg.msg.dl_info_transfer_req.nas_msg,
+                                as_msg.msg.dl_info_transfer_req.err_code);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    } break;
+    case AS_NAS_ESTABLISH_RSP_: {
+      amf_app_handle_nas_dl_req(as_msg.msg.nas_establish_rsp.ue_id,
+                                as_msg.msg.nas_establish_rsp.nas_msg,
+                                as_msg.msg.nas_establish_rsp.err_code);
+      as_msg.msg.nas_establish_rsp.nas_msg = NULL;
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    } break;
+    case AS_NAS_RELEASE_REQ_:
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+      break;
+    case AS_NAS_ESTABLISH_CNF_:
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+      break;
+    default:
+      break;
     }
   }
 
@@ -338,8 +338,8 @@ status_code_e amf_as_send_ng(const amf_as_t* msg) {
  **      Others: None                                                  **
  **                                                                    **
  ***********************************************************************/
-static int amf_as_encode(bstring* info, amf_nas_message_t* msg, size_t length,
-                         amf_security_context_t* amf_security_context) {
+static int amf_as_encode(bstring *info, amf_nas_message_t *msg, size_t length,
+                         amf_security_context_t *amf_security_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int bytes = 1;
 
@@ -347,7 +347,7 @@ static int amf_as_encode(bstring* info, amf_nas_message_t* msg, size_t length,
    * so length is modified such that it will be mode of 4 */
   AMF_GET_BYTE_ALIGNED_LENGTH(length);
   if (msg->header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
-    amf_msg_header* header = &msg->security_protected.plain.amf.header;
+    amf_msg_header *header = &msg->security_protected.plain.amf.header;
     // Expand size of protected NAS message
     length += NAS_MESSAGE_SECURITY_HEADER_SIZE;
     // Set header of plain NAS message
@@ -390,8 +390,8 @@ static int amf_as_encode(bstring* info, amf_nas_message_t* msg, size_t length,
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
-                      amf_nas_message_t* nas_msg) {
+int amf_reg_acceptmsg(const guti_m5_t *guti, const tai_t *tai,
+                      amf_nas_message_t *nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type =
@@ -436,10 +436,10 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.amf_pointer = guti->guamfi.amf_pointer;
 
-  uint8_t* offset;
+  uint8_t *offset;
   uint32_t encoded_tmsi = ntohl(guti->m_tmsi);
 
-  offset = reinterpret_cast<uint8_t*>(&encoded_tmsi);
+  offset = reinterpret_cast<uint8_t *>(&encoded_tmsi);
 
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi1 = *offset;
@@ -455,7 +455,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
 
   // TAI List, Allowed NSSAI and GPRS Timer 3 hardcoded
   nas_msg->header.security_header_type =
-      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;  // sit_change
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED; // sit_change
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list.iei =
       0x54;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list.len =
@@ -463,8 +463,7 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .list_type = 0x0;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .num_elements =
-      0x0;  // 0 implies 1 as per ts_124501v1506 section 9.11.3.9
+      .num_elements = 0x0; // 0 implies 1 as per ts_124501v1506 section 9.11.3.9
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .mcc_digit1 = guti->guamfi.plmn.mcc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
@@ -543,8 +542,8 @@ int amf_reg_acceptmsg(const guti_m5_t* guti, const tai_t* tai,
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int amf_service_acceptmsg(const amf_as_establish_t* msg,
-                          amf_nas_message_t* nas_msg) {
+int amf_service_acceptmsg(const amf_as_establish_t *msg,
+                          amf_nas_message_t *nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = SERVICE_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type =
@@ -605,8 +604,8 @@ int amf_service_acceptmsg(const amf_as_establish_t* msg,
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-static int amf_dl_nas_transport_msg(const amf_as_data_t* msg,
-                                    DLNASTransportMsg* amf_msg) {
+static int amf_dl_nas_transport_msg(const amf_as_data_t *msg,
+                                    DLNASTransportMsg *amf_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = AMF_HEADER_LENGTH;
   // Mandatory - Message type
@@ -634,13 +633,13 @@ static int amf_dl_nas_transport_msg(const amf_as_data_t* msg,
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-static int amf_de_reg_acceptmsg(const amf_as_data_t* msg,
-                                m5g_dl_info_transfer_req_t* as_msg,
-                                amf_nas_message_t* nas_msg,
-                                DeRegistrationAcceptUEInitMsg* amf_msg) {
+static int amf_de_reg_acceptmsg(const amf_as_data_t *msg,
+                                m5g_dl_info_transfer_req_t *as_msg,
+                                amf_nas_message_t *nas_msg,
+                                DeRegistrationAcceptUEInitMsg *amf_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = AMF_HEADER_LENGTH;
-  ue_m5gmm_context_s* ue_context;
+  ue_m5gmm_context_s *ue_context;
   uint8_t seq_no = 0;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
@@ -688,8 +687,8 @@ static int amf_de_reg_acceptmsg(const amf_as_data_t* msg,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-uint16_t amf_as_data_req(const amf_as_data_t* msg,
-                         m5g_dl_info_transfer_req_t* as_msg) {
+uint16_t amf_as_data_req(const amf_as_data_t *msg,
+                         m5g_dl_info_transfer_req_t *as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = 0;
   int is_encoded = false;
@@ -705,48 +704,48 @@ uint16_t amf_as_data_req(const amf_as_data_t* msg,
   }
 
   // Setup the NAS security header
-  AMFMsg* amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
+  AMFMsg *amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
 
   // Setup the NAS information message
   if (amf_msg) {
     switch (msg->nas_info) {
-      case AMF_AS_NAS_DATA_REGISTRATION_ACCEPT:
-        size = amf_reg_acceptmsg(msg->guti, &(msg->tai), &nas_msg);
+    case AMF_AS_NAS_DATA_REGISTRATION_ACCEPT:
+      size = amf_reg_acceptmsg(msg->guti, &(msg->tai), &nas_msg);
 
-        if (msg->guti) {
-          delete (msg->guti);
-        }
+      if (msg->guti) {
+        delete (msg->guti);
+      }
 
-        break;
-      case AMF_AS_NAS_DL_NAS_TRANSPORT:
-        // DL messages to NGAP on Identity/Authentication request
-        size =
-            amf_dl_nas_transport_msg(msg, &amf_msg->msg.downlinknas5gtransport);
-        break;
-      case AMF_AS_NAS_DATA_DEREGISTRATION_ACCEPT: {
-        size = amf_de_reg_acceptmsg(msg, as_msg, &nas_msg,
-                                    &amf_msg->msg.deregistrationacceptmsg);
-      } break;
-      case AMF_AS_NAS_INFO_SR_REJ: {
-        size = amf_service_reject(msg, &amf_msg->msg.service_reject);
-        nas_msg.plain.amf.header.message_type =
-            M5GMessageType::M5G_SERVICE_REJECT;
-        nas_msg.plain.amf.header.extended_protocol_discriminator =
-            M5G_MOBILITY_MANAGEMENT_MESSAGES;
-      } break;
+      break;
+    case AMF_AS_NAS_DL_NAS_TRANSPORT:
+      // DL messages to NGAP on Identity/Authentication request
+      size =
+          amf_dl_nas_transport_msg(msg, &amf_msg->msg.downlinknas5gtransport);
+      break;
+    case AMF_AS_NAS_DATA_DEREGISTRATION_ACCEPT: {
+      size = amf_de_reg_acceptmsg(msg, as_msg, &nas_msg,
+                                  &amf_msg->msg.deregistrationacceptmsg);
+    } break;
+    case AMF_AS_NAS_INFO_SR_REJ: {
+      size = amf_service_reject(msg, &amf_msg->msg.service_reject);
+      nas_msg.plain.amf.header.message_type =
+          M5GMessageType::M5G_SERVICE_REJECT;
+      nas_msg.plain.amf.header.extended_protocol_discriminator =
+          M5G_MOBILITY_MANAGEMENT_MESSAGES;
+    } break;
 
-      default:
-        // Send other NAS messages as already encoded SMF messages
-        size = msg->nas_msg.length();
-        break;
+    default:
+      // Send other NAS messages as already encoded SMF messages
+      size = msg->nas_msg.length();
+      break;
     }
   }
 
   if (size > 0) {
     int bytes = 0;
-    amf_security_context_t* amf_security_context = NULL;
-    amf_context_t* amf_ctx = NULL;
-    ue_m5gmm_context_s* ue_m5gmm_context =
+    amf_security_context_t *amf_security_context = NULL;
+    amf_context_t *amf_ctx = NULL;
+    ue_m5gmm_context_s *ue_m5gmm_context =
         amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
     if (ue_m5gmm_context) {
@@ -801,8 +800,8 @@ uint16_t amf_as_data_req(const amf_as_data_t* msg,
  **              Others:  None                                            **
  **                                                                       **
  **************************************************************************/
-AMFMsg* amf_as_set_header(amf_nas_message_t* msg,
-                          const amf_as_security_data_t* security) {
+AMFMsg *amf_as_set_header(amf_nas_message_t *msg,
+                          const amf_as_security_data_t *security) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   msg->header.extended_protocol_discriminator =
       M5GS_MOBILITY_MANAGEMENT_MESSAGE;
@@ -876,8 +875,8 @@ AMFMsg* amf_as_set_header(amf_nas_message_t* msg,
  ** Return:   size                                                        **
  **                                                                       **
  **************************************************************************/
-static int amf_identity_request(const amf_as_security_t* msg,
-                                IdentityRequestMsg* amf_msg) {
+static int amf_identity_request(const amf_as_security_t *msg,
+                                IdentityRequestMsg *amf_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = AMF_HEADER_LENGTH;
   /*
@@ -904,8 +903,8 @@ static int amf_identity_request(const amf_as_security_t* msg,
  ** Return:   size                                                        **
  **                                                                       **
  **************************************************************************/
-static int amf_auth_reject(const amf_as_security_t* msg,
-                           AuthenticationRejectMsg* amf_msg) {
+static int amf_auth_reject(const amf_as_security_t *msg,
+                           AuthenticationRejectMsg *amf_msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int size = AUTHENTICATION_REJECT_MINIMUM_LENGTH;
   amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
@@ -930,8 +929,8 @@ static int amf_auth_reject(const amf_as_security_t* msg,
  **          Others:   None                                                **
  **                                                                        **
  ***************************************************************************/
-static int amf_as_security_req(const amf_as_security_t* msg,
-                               m5g_dl_info_transfer_req_t* as_msg) {
+static int amf_as_security_req(const amf_as_security_t *msg,
+                               m5g_dl_info_transfer_req_t *as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = 0;
   amf_nas_message_t nas_msg;
@@ -951,122 +950,118 @@ static int amf_as_security_req(const amf_as_security_t* msg,
   /*
    * Setup the NAS security header
    */
-  AMFMsg* amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
+  AMFMsg *amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
   /*
    * Setup the NAS security message
    */
   if (amf_msg) {
     switch (msg->msg_type) {
-      case AMF_AS_MSG_TYPE_IDENT:
-        size = amf_identity_request(msg, &amf_msg->msg.identityrequestmsg);
-        nas_msg.header.security_header_type =
-            SECURITY_HEADER_TYPE_NOT_PROTECTED;
-        nas_msg.header.extended_protocol_discriminator = 0x7E;
-        nas_msg.plain.amf.header.message_type =
-            M5GMessageType::M5G_IDENTITY_REQUEST;
-        nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
-        nas_msg.plain.amf.msg.identityrequestmsg.extended_protocol_discriminator
-            .extended_proto_discriminator = 0x7e;
-        nas_msg.plain.amf.msg.identityrequestmsg.message_type.msg_type = 0x5b;
-        nas_msg.plain.amf.msg.identityrequestmsg.m5gs_identity_type.toi = 1;
+    case AMF_AS_MSG_TYPE_IDENT:
+      size = amf_identity_request(msg, &amf_msg->msg.identityrequestmsg);
+      nas_msg.header.security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+      nas_msg.header.extended_protocol_discriminator = 0x7E;
+      nas_msg.plain.amf.header.message_type =
+          M5GMessageType::M5G_IDENTITY_REQUEST;
+      nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
+      nas_msg.plain.amf.msg.identityrequestmsg.extended_protocol_discriminator
+          .extended_proto_discriminator = 0x7e;
+      nas_msg.plain.amf.msg.identityrequestmsg.message_type.msg_type = 0x5b;
+      nas_msg.plain.amf.msg.identityrequestmsg.m5gs_identity_type.toi = 1;
 
-        break;
-      case AMF_AS_MSG_TYPE_AUTH: {
-        ue_m5gmm_context_s* ue_context =
-            amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
-        amf_context_t* amf_ctx = NULL;
+      break;
+    case AMF_AS_MSG_TYPE_AUTH: {
+      ue_m5gmm_context_s *ue_context =
+          amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
+      amf_context_t *amf_ctx = NULL;
 
-        amf_ctx = &ue_context->amf_context;
+      amf_ctx = &ue_context->amf_context;
 
-        size = 50;
-        nas_msg.header.extended_protocol_discriminator = 0x7E;
-        nas_msg.header.security_header_type = 0x0;
-        nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7e;
-        nas_msg.plain.amf.header.message_type = M5GMessageType::AUTH_REQUEST;
-        nas_msg.plain.amf.msg.authenticationrequestmsg
-            .extended_protocol_discriminator.extended_proto_discriminator =
-            0x7e;
-        nas_msg.plain.amf.msg.authenticationrequestmsg.message_type.msg_type =
-            0x56;
-        nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
-            .tsc = 0;
-        nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
-            .nas_key_set_identifier = msg->ksi;
-        memcpy(
-            nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.rand_val,
-            amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
-                .rand,
-            RAND_LENGTH_OCTETS);
+      size = 50;
+      nas_msg.header.extended_protocol_discriminator = 0x7E;
+      nas_msg.header.security_header_type = 0x0;
+      nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7e;
+      nas_msg.plain.amf.header.message_type = M5GMessageType::AUTH_REQUEST;
+      nas_msg.plain.amf.msg.authenticationrequestmsg
+          .extended_protocol_discriminator.extended_proto_discriminator = 0x7e;
+      nas_msg.plain.amf.msg.authenticationrequestmsg.message_type.msg_type =
+          0x56;
+      nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
+          .tsc = 0;
+      nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
+          .nas_key_set_identifier = msg->ksi;
+      memcpy(
+          nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.rand_val,
+          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].rand,
+          RAND_LENGTH_OCTETS);
 
-        memcpy(nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN,
-               amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
-                   .autn,
-               AUTN_LENGTH_OCTETS);
+      memcpy(
+          nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN,
+          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].autn,
+          AUTN_LENGTH_OCTETS);
 
-        uint8_t abba_buff[] = {0x00, 0x00};
-        memcpy(&(nas_msg.plain.amf.msg.authenticationrequestmsg.abba.contents),
-               (const char*)abba_buff, 2);
-        nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.iei = 0x21;
-        nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.iei = 0x20;
-      } break;
-      case AMF_AS_MSG_TYPE_SMC: {
-        size = 8;
-        nas_msg.security_protected.plain.amf.header
-            .extended_protocol_discriminator = 0x7e;
-        nas_msg.security_protected.plain.amf.header.message_type =
-            M5GMessageType::SEC_MODE_COMMAND;
+      uint8_t abba_buff[] = {0x00, 0x00};
+      memcpy(&(nas_msg.plain.amf.msg.authenticationrequestmsg.abba.contents),
+             (const char *)abba_buff, 2);
+      nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.iei = 0x21;
+      nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.iei = 0x20;
+    } break;
+    case AMF_AS_MSG_TYPE_SMC: {
+      size = 8;
+      nas_msg.security_protected.plain.amf.header
+          .extended_protocol_discriminator = 0x7e;
+      nas_msg.security_protected.plain.amf.header.message_type =
+          M5GMessageType::SEC_MODE_COMMAND;
+      nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+          .extended_protocol_discriminator.extended_proto_discriminator = 0x7e;
+      nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+          .sec_header_type.sec_hdr = 0;
+      nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+          .spare_half_octet.spare = 0;
+      nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+          .message_type.msg_type = 0x5D;
+      ue_m5gmm_context_s *ue_context =
+          amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
+      if (ue_context) {
+        amf_security_context_t *amf_security_context =
+            &ue_context->amf_context._security;
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .extended_protocol_discriminator.extended_proto_discriminator =
-            0x7e;
+            .nas_sec_algorithms.tca =
+            amf_security_context->selected_algorithms.encryption;
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .sec_header_type.sec_hdr = 0;
-        nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .spare_half_octet.spare = 0;
-        nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .message_type.msg_type = 0x5D;
-        ue_m5gmm_context_s* ue_context =
-            amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
-        if (ue_context) {
-          amf_security_context_t* amf_security_context =
-              &ue_context->amf_context._security;
-          nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-              .nas_sec_algorithms.tca =
-              amf_security_context->selected_algorithms.encryption;
-          nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-              .nas_sec_algorithms.tia =
-              amf_security_context->selected_algorithms.integrity;
-          // relay UE security capabilities saved to amf_context back to UE
-          memcpy(&(nas_msg.security_protected.plain.amf.msg
-                       .securitymodecommandmsg.ue_sec_capability),
-                 &(ue_context->amf_context.ue_sec_capability),
-                 sizeof(UESecurityCapabilityMsg));
-        } else {
-          OAILOG_ERROR(LOG_AMF_APP, "UE not found : " AMF_UE_NGAP_ID_FMT "\n",
-                       as_msg->ue_id);
-          OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-        }
-        nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .nas_key_set_identifier.tsc = 0;
-        nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .nas_key_set_identifier.nas_key_set_identifier =
-            ue_context->amf_context._security.eksi;
-        nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .spare_half_octet.spare = 0;
-        nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .imeisv_request.imeisv_request = 1;
-      } break;
-      default:
-        OAILOG_WARNING(LOG_NAS_AMF,
-                       "AMFAS-SAP - Type of NAS security "
-                       "message 0x%.2x is not valid\n",
-                       msg->msg_type);
+            .nas_sec_algorithms.tia =
+            amf_security_context->selected_algorithms.integrity;
+        // relay UE security capabilities saved to amf_context back to UE
+        memcpy(&(nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+                     .ue_sec_capability),
+               &(ue_context->amf_context.ue_sec_capability),
+               sizeof(UESecurityCapabilityMsg));
+      } else {
+        OAILOG_ERROR(LOG_AMF_APP, "UE not found : " AMF_UE_NGAP_ID_FMT "\n",
+                     as_msg->ue_id);
+        OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+      }
+      nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+          .nas_key_set_identifier.tsc = 0;
+      nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+          .nas_key_set_identifier.nas_key_set_identifier =
+          ue_context->amf_context._security.eksi;
+      nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+          .spare_half_octet.spare = 0;
+      nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
+          .imeisv_request.imeisv_request = 1;
+    } break;
+    default:
+      OAILOG_WARNING(LOG_NAS_AMF,
+                     "AMFAS-SAP - Type of NAS security "
+                     "message 0x%.2x is not valid\n",
+                     msg->msg_type);
     }
   }
 
   if (size > 0) {
-    amf_context_t* amf_ctx = NULL;
-    amf_security_context_t* amf_security_context = NULL;
-    ue_m5gmm_context_s* ue_mm_context =
+    amf_context_t *amf_ctx = NULL;
+    amf_security_context_t *amf_security_context = NULL;
+    ue_m5gmm_context_s *ue_mm_context =
         amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
     if (ue_mm_context) {
@@ -1120,8 +1115,8 @@ static int amf_as_security_req(const amf_as_security_t* msg,
  **          Others:   None                                                **
  **                                                                        **
  ***************************************************************************/
-static int amf_as_security_rej(const amf_as_security_t* msg,
-                               m5g_dl_info_transfer_req_t* as_msg) {
+static int amf_as_security_rej(const amf_as_security_t *msg,
+                               m5g_dl_info_transfer_req_t *as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = 0;
   amf_nas_message_t nas_msg = {0};
@@ -1139,36 +1134,34 @@ static int amf_as_security_rej(const amf_as_security_t* msg,
   /*
    * Setup the NAS security header
    */
-  AMFMsg* amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
+  AMFMsg *amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
   /*
    * Setup the NAS security message
    */
   if (amf_msg) {
     switch (msg->msg_type) {
-      case AMF_AS_MSG_TYPE_AUTH: {
-        size = amf_auth_reject(msg, &amf_msg->msg.authenticationrejectmsg);
-        nas_msg.header.security_header_type =
-            SECURITY_HEADER_TYPE_NOT_PROTECTED;
-        nas_msg.header.extended_protocol_discriminator = 0x7E;
-        nas_msg.plain.amf.header.message_type = M5GMessageType::AUTH_REJECT;
-        nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
-        nas_msg.plain.amf.msg.authenticationrejectmsg
-            .extended_protocol_discriminator.extended_proto_discriminator =
-            0x7e;
-        nas_msg.plain.amf.msg.authenticationrejectmsg.message_type.msg_type =
-            static_cast<uint8_t>(M5GMessageType::AUTH_REJECT);
-        break;
-      }
-      default: {
-        OAILOG_DEBUG(LOG_AMF_APP, " Invalid as msg type \n");
-      }
+    case AMF_AS_MSG_TYPE_AUTH: {
+      size = amf_auth_reject(msg, &amf_msg->msg.authenticationrejectmsg);
+      nas_msg.header.security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+      nas_msg.header.extended_protocol_discriminator = 0x7E;
+      nas_msg.plain.amf.header.message_type = M5GMessageType::AUTH_REJECT;
+      nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
+      nas_msg.plain.amf.msg.authenticationrejectmsg
+          .extended_protocol_discriminator.extended_proto_discriminator = 0x7e;
+      nas_msg.plain.amf.msg.authenticationrejectmsg.message_type.msg_type =
+          static_cast<uint8_t>(M5GMessageType::AUTH_REJECT);
+      break;
+    }
+    default: {
+      OAILOG_DEBUG(LOG_AMF_APP, " Invalid as msg type \n");
+    }
     }
   }
 
   if (size > 0) {
-    amf_context_t* amf_ctx = NULL;
-    amf_security_context_t* amf_security_context = NULL;
-    ue_m5gmm_context_s* ue_mm_context =
+    amf_context_t *amf_ctx = NULL;
+    amf_security_context_t *amf_security_context = NULL;
+    ue_m5gmm_context_s *ue_mm_context =
         amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
     if (ue_mm_context) {
@@ -1207,17 +1200,17 @@ static int amf_as_security_rej(const amf_as_security_t* msg,
 }
 
 status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
-                                            amf_context_t* amf_ctx,
+                                            amf_context_t *amf_ctx,
                                             bstring nas_msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
    * context before Registration Accept is sent to UE*/
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  Ngap_initial_context_setup_request_t* req = nullptr;
-  Ngap_PDUSession_Resource_Setup_Request_List_t* pdu_resource_transfer_ie =
+  ue_m5gmm_context_s *ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  Ngap_initial_context_setup_request_t *req = nullptr;
+  Ngap_PDUSession_Resource_Setup_Request_List_t *pdu_resource_transfer_ie =
       nullptr;
-  MessageDef* message_p = nullptr;
+  MessageDef *message_p = nullptr;
   message_p =
       itti_alloc_new_message(TASK_AMF_APP, NGAP_INITIAL_CONTEXT_SETUP_REQ);
   if (message_p == NULL) {
@@ -1248,11 +1241,11 @@ status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
       (amf_ctx->ue_sec_capability.ia3 & 0001) << 13;
   req->ue_security_capabilities.m5g_integrity_protection_algo =
       htons(req->ue_security_capabilities.m5g_integrity_protection_algo);
-  req->Security_Key = (unsigned char*)&amf_ctx->_security.kgnb;
+  req->Security_Key = (unsigned char *)&amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
 
-  for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
-    pdusession_setup_item_t* item = nullptr;
+  for (const auto &it : ue_context->amf_context.smf_ctxt_map) {
+    pdusession_setup_item_t *item = nullptr;
     pdu_resource_transfer_ie = &req->PDU_Session_Resource_Setup_Transfer_List;
 
     std::shared_ptr<smf_context_t> smf_context = it.second;
@@ -1292,7 +1285,7 @@ status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
           &smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
 
       // qos flow list
-      qos_flow_list_t* pti_flow_list = smf_context->get_proc_flow_list();
+      qos_flow_list_t *pti_flow_list = smf_context->get_proc_flow_list();
 
       memcpy(&item->PDU_Session_Resource_Setup_Request_Transfer
                   .qos_flow_add_or_mod_request_list,
@@ -1336,8 +1329,8 @@ status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
  **           Others: None                                                 **
  **                                                                        **
  ***************************************************************************/
-uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
-                              nas5g_establish_rsp_t* as_msg) {
+uint16_t amf_as_establish_cnf(const amf_as_establish_t *msg,
+                              nas5g_establish_rsp_t *as_msg) {
   int size = 0;
   int ret_val = 0;
   OAILOG_FUNC_IN(LOG_NAS_AMF);
@@ -1352,10 +1345,10 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
   as_msg->nas_msg = msg->nas_msg;
   as_msg->presencemask = msg->presencemask;
   as_msg->m5g_service_type = msg->service_type;
-  amf_context_t* amf_ctx = NULL;
-  amf_security_context_t* amf_security_context = NULL;
+  amf_context_t *amf_ctx = NULL;
+  amf_security_context_t *amf_security_context = NULL;
   amf_ctx = amf_context_get(msg->ue_id);
-  ue_m5gmm_context_s* ue_mm_context =
+  ue_m5gmm_context_s *ue_mm_context =
       amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (amf_ctx) {
     if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
@@ -1372,36 +1365,36 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
     OAILOG_WARNING(LOG_NAS_AMF, "AMFAS-SAP - AMF Context is NULL...!");
   }
 
-  nas_amf_registration_proc_t* registration_proc =
+  nas_amf_registration_proc_t *registration_proc =
       get_nas_specific_procedure_registration(amf_ctx);
   /*
    * Setup the NAS security header
    */
   amf_as_set_header(&nas_msg, &msg->sctx);
   switch (msg->nas_info) {
-    case AMF_AS_NAS_INFO_REGISTERED:
-      size = amf_reg_acceptmsg(&(msg->guti), &(msg->tai), &nas_msg);
-      nas_msg.header.security_header_type =
-          SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
-      /* TODO amf_as_set_header() is incorrectly setting the security header
-       * type for Registration Accept. Fix it in that function*/
-      break;
-    case AMF_AS_NAS_INFO_SR:
-      size = amf_service_acceptmsg(msg, &nas_msg);
-      nas_msg.header.security_header_type =
-          SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
-      break;
-    case AMF_AS_NAS_INFO_TAU:
-    case AMF_AS_NAS_INFO_NONE:  // Response to SR
-      as_msg->err_code = M5G_AS_SUCCESS;
-      ret_val = AS_NAS_ESTABLISH_CNF_;
-      OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
-    default:
-      OAILOG_WARNING(LOG_NAS_AMF,
-                     "AMFAS-SAP - Type of initial NAS "
-                     "message 0x%.2x is not valid\n",
-                     msg->nas_info);
-      break;
+  case AMF_AS_NAS_INFO_REGISTERED:
+    size = amf_reg_acceptmsg(&(msg->guti), &(msg->tai), &nas_msg);
+    nas_msg.header.security_header_type =
+        SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+    /* TODO amf_as_set_header() is incorrectly setting the security header
+     * type for Registration Accept. Fix it in that function*/
+    break;
+  case AMF_AS_NAS_INFO_SR:
+    size = amf_service_acceptmsg(msg, &nas_msg);
+    nas_msg.header.security_header_type =
+        SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+    break;
+  case AMF_AS_NAS_INFO_TAU:
+  case AMF_AS_NAS_INFO_NONE: // Response to SR
+    as_msg->err_code = M5G_AS_SUCCESS;
+    ret_val = AS_NAS_ESTABLISH_CNF_;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
+  default:
+    OAILOG_WARNING(LOG_NAS_AMF,
+                   "AMFAS-SAP - Type of initial NAS "
+                   "message 0x%.2x is not valid\n",
+                   msg->nas_info);
+    break;
   }
 
   if ((size > 0) && amf_security_context) {
@@ -1464,8 +1457,8 @@ uint16_t amf_as_establish_cnf(const amf_as_establish_t* msg,
 **      Others:    None                                                   **
 **                                                                        **
 ***************************************************************************/
-int amf_send_registration_reject(const amf_as_establish_t* msg,
-                                 RegistrationRejectMsg* amf_msg) {
+int amf_send_registration_reject(const amf_as_establish_t *msg,
+                                 RegistrationRejectMsg *amf_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = AMF_HEADER_LENGTH;
 
@@ -1506,8 +1499,8 @@ int amf_send_registration_reject(const amf_as_establish_t* msg,
  **           Others: None                                                 **
  **                                                                        **
  ***************************************************************************/
-static int amf_as_establish_rej(const amf_as_establish_t* msg,
-                                nas5g_establish_rsp_t* as_msg) {
+static int amf_as_establish_rej(const amf_as_establish_t *msg,
+                                nas5g_establish_rsp_t *as_msg) {
   int size = 0;
   int ret_val = 0;
   OAILOG_FUNC_IN(LOG_NAS_AMF);
@@ -1522,8 +1515,8 @@ static int amf_as_establish_rej(const amf_as_establish_t* msg,
   as_msg->nas_msg = msg->nas_msg;
   as_msg->presencemask = msg->presencemask;
   as_msg->m5g_service_type = msg->service_type;
-  amf_context_t* amf_ctx = NULL;
-  amf_security_context_t* amf_security_context = NULL;
+  amf_context_t *amf_ctx = NULL;
+  amf_security_context_t *amf_security_context = NULL;
   amf_ctx = amf_context_get(msg->ue_id);
   if (amf_ctx) {
     if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
@@ -1540,34 +1533,33 @@ static int amf_as_establish_rej(const amf_as_establish_t* msg,
     OAILOG_WARNING(LOG_NAS_AMF, "AMFAS-SAP - AMF Context is NULL...!");
   }
 
-  AMFMsg* amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
+  AMFMsg *amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
 
   switch (msg->nas_info) {
-    case AMF_AS_NAS_INFO_REGISTERED:
-      size = amf_send_registration_reject(msg,
-                                          &amf_msg->msg.registrationrejectmsg);
-      nas_msg.plain.amf.header.message_type = M5GMessageType::REG_REJECT;
-      nas_msg.plain.amf.header.extended_protocol_discriminator =
-          M5G_MOBILITY_MANAGEMENT_MESSAGES;
-      break;
-    case AMF_AS_NAS_INFO_SR:
-      size = amf_service_rejectmsg(msg, &amf_msg->msg.service_reject);
-      nas_msg.plain.amf.header.message_type =
-          M5GMessageType::M5G_SERVICE_REJECT;
-      nas_msg.plain.amf.header.extended_protocol_discriminator =
-          M5G_MOBILITY_MANAGEMENT_MESSAGES;
-      break;
-    case AMF_AS_NAS_INFO_TAU:
-    case AMF_AS_NAS_INFO_NONE:
-      as_msg->err_code = M5G_AS_SUCCESS;
-      ret_val = AS_NAS_ESTABLISH_CNF_;
-      OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
-    default:
-      OAILOG_WARNING(LOG_NAS_AMF,
-                     "AMFAS-SAP - Type of initial NAS "
-                     "message 0x%.2x is not valid\n",
-                     msg->nas_info);
-      break;
+  case AMF_AS_NAS_INFO_REGISTERED:
+    size =
+        amf_send_registration_reject(msg, &amf_msg->msg.registrationrejectmsg);
+    nas_msg.plain.amf.header.message_type = M5GMessageType::REG_REJECT;
+    nas_msg.plain.amf.header.extended_protocol_discriminator =
+        M5G_MOBILITY_MANAGEMENT_MESSAGES;
+    break;
+  case AMF_AS_NAS_INFO_SR:
+    size = amf_service_rejectmsg(msg, &amf_msg->msg.service_reject);
+    nas_msg.plain.amf.header.message_type = M5GMessageType::M5G_SERVICE_REJECT;
+    nas_msg.plain.amf.header.extended_protocol_discriminator =
+        M5G_MOBILITY_MANAGEMENT_MESSAGES;
+    break;
+  case AMF_AS_NAS_INFO_TAU:
+  case AMF_AS_NAS_INFO_NONE:
+    as_msg->err_code = M5G_AS_SUCCESS;
+    ret_val = AS_NAS_ESTABLISH_CNF_;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
+  default:
+    OAILOG_WARNING(LOG_NAS_AMF,
+                   "AMFAS-SAP - Type of initial NAS "
+                   "message 0x%.2x is not valid\n",
+                   msg->nas_info);
+    break;
   }
 
   /*
@@ -1603,8 +1595,8 @@ static int amf_as_establish_rej(const amf_as_establish_t* msg,
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-static int amf_service_rejectmsg(const amf_as_establish_t* msg,
-                                 ServiceRejectMsg* service_reject) {
+static int amf_service_rejectmsg(const amf_as_establish_t *msg,
+                                 ServiceRejectMsg *service_reject) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = M5G_SERVICE_REJECT_MINIMUM_LENGTH;
 
@@ -1634,8 +1626,8 @@ static int amf_service_rejectmsg(const amf_as_establish_t* msg,
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 
-static int amf_service_reject(const amf_as_data_t* msg,
-                              ServiceRejectMsg* service_reject) {
+static int amf_service_reject(const amf_as_data_t *msg,
+                              ServiceRejectMsg *service_reject) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = M5G_SERVICE_REJECT_MINIMUM_LENGTH;
 
@@ -1658,4 +1650,4 @@ static int amf_service_reject(const amf_as_data_t* msg,
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

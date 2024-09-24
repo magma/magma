@@ -10,21 +10,21 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // M5GSMCause IE Class
 class M5GSMCauseMsg {
- public:
+public:
   uint8_t iei;
   uint8_t cause_value;
 
   M5GSMCauseMsg();
   ~M5GSMCauseMsg();
-  int EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
-                          uint8_t* buffer, uint32_t len);
-  int DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
-                          uint8_t* buffer, uint32_t len);
+  int EncodeM5GSMCauseMsg(M5GSMCauseMsg *m5gsm_cause, uint8_t iei,
+                          uint8_t *buffer, uint32_t len);
+  int DecodeM5GSMCauseMsg(M5GSMCauseMsg *m5gsm_cause, uint8_t iei,
+                          uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

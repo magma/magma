@@ -19,8 +19,8 @@
 
 #include <gmp.h>
 
-#include "feg/protos/s6a_proxy.pb.h"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
+#include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 
 extern "C" {
@@ -32,9 +32,9 @@ using namespace feg;
 
 AuthenticationInformationRequest
 convert_itti_s6a_authentication_info_req_to_proto_msg(
-    const s6a_auth_info_req_t* const msg);
+    const s6a_auth_info_req_t *const msg);
 
 UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
-    const s6a_update_location_req_t* const msg);
+    const s6a_update_location_req_t *const msg);
 
-}  // namespace magma
+} // namespace magma

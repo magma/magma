@@ -10,22 +10,22 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GABBA.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterRAND.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GEAPMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GABBA.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterRAND.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GEAPMessage.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 // AuthenticationRequest Message Class
 class AuthenticationRequestMsg {
- public:
+public:
 #define AUTHENTICATION_REQUEST_MINIMUM_LENGTH 3
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SecurityHeaderTypeMsg sec_header_type;
@@ -39,12 +39,12 @@ class AuthenticationRequestMsg {
 
   AuthenticationRequestMsg();
   ~AuthenticationRequestMsg();
-  int DecodeAuthenticationRequestMsg(AuthenticationRequestMsg* auth_request,
-                                     uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationRequestMsg(AuthenticationRequestMsg* auth_request,
-                                     uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationRequestMsg(AuthenticationRequestMsg *auth_request,
+                                     uint8_t *buffer, uint32_t len);
+  int EncodeAuthenticationRequestMsg(AuthenticationRequestMsg *auth_request,
+                                     uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
          AUTHENTICATION REQUEST message content --- TS 24.501 8.2.1.1

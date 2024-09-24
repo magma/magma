@@ -36,7 +36,7 @@ struct in_addr;
   \email: lionel.gauthier@eurecom.fr
 */
 
-struct in_addr* mme_app_edns_get_sgw_entry(bstring id);
+struct in_addr *mme_app_edns_get_sgw_entry(bstring id);
 status_code_e mme_app_edns_add_sgw_entry(bstring id, struct in_addr in_addr);
-status_code_e mme_app_edns_init(const mme_config_t* mme_config_p);
+status_code_e mme_app_edns_init(const mme_config_t *mme_config_p);
 void mme_app_edns_exit(void);

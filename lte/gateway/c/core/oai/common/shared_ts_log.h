@@ -38,8 +38,8 @@
 #ifndef FILE_SHARED_TS_LOG_SEEN
 #define FILE_SHARED_TS_LOG_SEEN
 
-#include <sys/time.h>
 #include <liblfds710.h>
+#include <sys/time.h>
 
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -73,13 +73,13 @@ typedef struct shared_log_queue_item_s {
 
 //------------------------------------------------------------------------------
 int shared_log_get_start_time_sec(void);
-void shared_log_reuse_item(shared_log_queue_item_t* item_p);
-shared_log_queue_item_t* get_new_log_queue_item(sh_ts_log_app_id_t app_id);
+void shared_log_reuse_item(shared_log_queue_item_t *item_p);
+shared_log_queue_item_t *get_new_log_queue_item(sh_ts_log_app_id_t app_id);
 void shared_log_get_elapsed_time_since_start(
-    struct timeval* const elapsed_time);
+    struct timeval *const elapsed_time);
 int shared_log_init(const int max_threadsP);
 void shared_log_itti_connect(void);
 void shared_log_start_use(void);
 void shared_log_flush_messages(void);
-void shared_log_item(shared_log_queue_item_t* messageP);
+void shared_log_item(shared_log_queue_item_t *messageP);
 #endif /* FILE_SHARED_TS_LOG_SEEN */

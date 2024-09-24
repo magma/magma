@@ -19,12 +19,12 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define TRACKING_AREA_UPDATE_REJECT_MINIMUM_LENGTH (EMM_CAUSE_MINIMUM_LENGTH)
@@ -48,9 +48,9 @@ typedef struct tracking_area_update_reject_msg_tag {
 } tracking_area_update_reject_msg;
 
 int decode_tracking_area_update_reject(
-    tracking_area_update_reject_msg* trackingareaupdatereject, uint8_t* buffer,
+    tracking_area_update_reject_msg *trackingareaupdatereject, uint8_t *buffer,
     uint32_t len);
 
 int encode_tracking_area_update_reject(
-    tracking_area_update_reject_msg* trackingareaupdatereject, uint8_t* buffer,
+    tracking_area_update_reject_msg *trackingareaupdatereject, uint8_t *buffer,
     uint32_t len);

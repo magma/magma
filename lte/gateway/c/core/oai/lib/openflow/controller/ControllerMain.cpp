@@ -15,11 +15,11 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.hpp"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.hpp"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.hpp"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -37,13 +37,13 @@ openflow::OpenflowController ctrl(CONTROLLER_ADDR, CONTROLLER_PORT, NUM_WORKERS,
 int start_of_controller(bool persist_state) {
   static openflow::PagingApplication paging_app;
   static openflow::BaseApplication base_app(persist_state);
-  int uplink_port_num_ = OF13P_LOCAL;  // default is LOCAL port.
+  int uplink_port_num_ = OF13P_LOCAL; // default is LOCAL port.
 
   if (spgw_config.pgw_config.enable_nat == false) {
     // For Non NAT config we need to know uplink bridge port.
     uplink_port_num_ = spgw_config.sgw_config.ovs_config.uplink_port_num;
   }
-  if (uplink_port_num_ == OFP_LOCAL) {  // convert it to OF 1.3 LOCAL port no.
+  if (uplink_port_num_ == OFP_LOCAL) { // convert it to OF 1.3 LOCAL port no.
     uplink_port_num_ = OF13P_LOCAL;
   }
 
@@ -86,16 +86,16 @@ int stop_of_controller(void) {
  * This callback is called from the event loop itself to dispatch an external
  * event to all registered applications
  */
-static void* external_event_callback(std::shared_ptr<void> data) {
+static void *external_event_callback(std::shared_ptr<void> data) {
   auto external_event = std::static_pointer_cast<openflow::ExternalEvent>(data);
   ctrl.dispatch_event(*external_event);
   return NULL;
 }
 
 int openflow_controller_add_gtp_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in6_addr* enb_ipv6, uint32_t i_tei, uint32_t o_tei, const char* imsi,
-    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
+    struct in_addr ue, struct in6_addr *ue_ipv6, int vlan, struct in_addr enb,
+    struct in6_addr *enb_ipv6, uint32_t i_tei, uint32_t o_tei, const char *imsi,
+    struct ip_flow_dl *flow_dl, uint32_t flow_precedence_dl,
     uint32_t gtp_portno) {
   if (flow_dl) {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
@@ -111,8 +111,8 @@ int openflow_controller_add_gtp_tunnel(
 }
 
 int openflow_controller_del_gtp_tunnel(struct in_addr ue,
-                                       struct in6_addr* ue_ipv6, uint32_t i_tei,
-                                       struct ip_flow_dl* flow_dl,
+                                       struct in6_addr *ue_ipv6, uint32_t i_tei,
+                                       struct ip_flow_dl *flow_dl,
                                        uint32_t gtp_portno) {
   if (flow_dl) {
     auto del_tunnel = std::make_shared<openflow::DeleteGTPTunnelEvent>(
@@ -127,10 +127,10 @@ int openflow_controller_del_gtp_tunnel(struct in_addr ue,
 }
 
 int openflow_controller_add_gtp_s8_tunnel(
-    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
-    struct in6_addr* enb_ipv6, struct in_addr pgw, struct in6_addr* pgw_ipv6,
+    struct in_addr ue, struct in6_addr *ue_ipv6, int vlan, struct in_addr enb,
+    struct in6_addr *enb_ipv6, struct in_addr pgw, struct in6_addr *pgw_ipv6,
     uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei, uint32_t pgw_o_tei,
-    const char* imsi, uint32_t enb_gtp_port, uint32_t pgw_gtp_port) {
+    const char *imsi, uint32_t enb_gtp_port, uint32_t pgw_gtp_port) {
   auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
       ue, ue_ipv6, vlan, enb, enb_ipv6, pgw, pgw_ipv6, i_tei, o_tei, pgw_in_tei,
       pgw_o_tei, imsi, enb_gtp_port, pgw_gtp_port);
@@ -140,7 +140,7 @@ int openflow_controller_add_gtp_s8_tunnel(
 }
 
 int openflow_controller_del_gtp_s8_tunnel(struct in_addr ue,
-                                          struct in6_addr* ue_ipv6,
+                                          struct in6_addr *ue_ipv6,
                                           uint32_t i_tei, uint32_t pgw_in_tei,
                                           uint32_t enb_gtp_port,
                                           uint32_t pgw_gtp_port) {
@@ -151,9 +151,9 @@ int openflow_controller_del_gtp_s8_tunnel(struct in_addr ue,
 }
 
 int openflow_controller_discard_data_on_tunnel(struct in_addr ue,
-                                               struct in6_addr* ue_ipv6,
+                                               struct in6_addr *ue_ipv6,
                                                uint32_t i_tei,
-                                               struct ip_flow_dl* flow_dl) {
+                                               struct ip_flow_dl *flow_dl) {
   if (flow_dl) {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
         ue, ue_ipv6, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL, flow_dl,
@@ -168,9 +168,9 @@ int openflow_controller_discard_data_on_tunnel(struct in_addr ue,
 }
 
 int openflow_controller_forward_data_on_tunnel(struct in_addr ue,
-                                               struct in6_addr* ue_ipv6,
+                                               struct in6_addr *ue_ipv6,
                                                uint32_t i_tei,
-                                               struct ip_flow_dl* flow_dl,
+                                               struct ip_flow_dl *flow_dl,
                                                uint32_t flow_precedence_dl) {
   if (flow_dl) {
     auto gtp_tunnel = std::make_shared<openflow::HandleDataOnGTPTunnelEvent>(
@@ -185,8 +185,8 @@ int openflow_controller_forward_data_on_tunnel(struct in_addr ue,
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
-int openflow_controller_add_paging_rule(const char* imsi, struct in_addr ue_ip,
-                                        struct in6_addr* ue_ipv6) {
+int openflow_controller_add_paging_rule(const char *imsi, struct in_addr ue_ip,
+                                        struct in6_addr *ue_ipv6) {
   auto add_arp_event = std::make_shared<openflow::AddArpFlowEvent>(imsi, ue_ip);
   ctrl.inject_external_event(add_arp_event, external_event_callback);
   auto paging_event =
@@ -197,7 +197,7 @@ int openflow_controller_add_paging_rule(const char* imsi, struct in_addr ue_ip,
 }
 
 int openflow_controller_delete_paging_rule(struct in_addr ue_ip,
-                                           struct in6_addr* ue_ipv6) {
+                                           struct in6_addr *ue_ipv6) {
   auto paging_event =
       std::make_shared<openflow::DeletePagingRuleEvent>(ue_ip, ue_ipv6);
   ctrl.inject_external_event(paging_event, external_event_callback);

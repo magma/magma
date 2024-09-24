@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include <chrono>
+#include <gtest/gtest.h>
 #include <thread>
 
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
@@ -20,13 +20,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
-#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
+#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 
 using ::testing::Test;
@@ -596,7 +596,7 @@ TEST(TestAMFStateConverter, TestSMFContextToProto) {
 }
 
 class AMFAppStatelessTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
               NULL, NULL);
@@ -636,7 +636,7 @@ class AMFAppStatelessTest : public ::testing::Test {
     itti_free_desc_threads();
   }
 
-  amf_app_desc_t* amf_app_desc_p;
+  amf_app_desc_t *amf_app_desc_p;
   std::string imsi = "222456000000001";
   plmn_t plmn = {.mcc_digit2 = 0,
                  .mcc_digit1 = 0,
@@ -731,11 +731,11 @@ TEST_F(AMFAppStatelessTest, TestAfterRegistrationComplete) {
       sizeof(ue_registration_complete_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
-  ue_m5gmm_context_t* ue_context_p =
+  ue_m5gmm_context_t *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
   ASSERT_NE(ue_context_p, nullptr);
 
-  map_uint64_ue_context_t* amf_state_ue_id_ht =
+  map_uint64_ue_context_t *amf_state_ue_id_ht =
       AmfNasStateManager::getInstance().get_ue_state_map();
   EXPECT_EQ(amf_state_ue_id_ht->size(), 1);
   EXPECT_EQ(
@@ -874,11 +874,11 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
       sizeof(ue_pdu_session_est_req_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
-  ue_m5gmm_context_t* ue_context_p =
+  ue_m5gmm_context_t *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
   ASSERT_NE(ue_context_p, nullptr);
 
-  map_uint64_ue_context_t* amf_state_ue_id_ht =
+  map_uint64_ue_context_t *amf_state_ue_id_ht =
       AmfNasStateManager::getInstance().get_ue_state_map();
   EXPECT_EQ(amf_state_ue_id_ht->size(), 1);
   EXPECT_EQ(
@@ -907,7 +907,7 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionEstReq) {
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.tun11_ue_context_htbl.size(), 1);
   EXPECT_EQ(amf_app_desc_p->amf_ue_contexts.guti_ue_context_htbl.size(), 1);
 
-  ue_m5gmm_context_t* new_ue_context_p =
+  ue_m5gmm_context_t *new_ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
   EXPECT_EQ(new_ue_context_p->amf_context.smf_ctxt_map.size(), 1);
 
@@ -1040,11 +1040,11 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
       sizeof(pdu_sess_release_complete_hexbuf));
   EXPECT_EQ(rc, RETURNok);
 
-  ue_m5gmm_context_t* ue_context_p =
+  ue_m5gmm_context_t *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
   ASSERT_NE(ue_context_p, nullptr);
 
-  map_uint64_ue_context_t* amf_state_ue_id_ht =
+  map_uint64_ue_context_t *amf_state_ue_id_ht =
       AmfNasStateManager::getInstance().get_ue_state_map();
   EXPECT_EQ(amf_state_ue_id_ht->size(), 1);
   EXPECT_EQ(
@@ -1091,4 +1091,4 @@ TEST_F(AMFAppStatelessTest, TestAfterPDUSessionReleaseComplete) {
   // TODO : CLEANUP_STATELESS do we need map_imsi_ue_proto_str
   // EXPECT_TRUE(AMFClientServicer::getInstance().map_imsi_ue_proto_str.isEmpty());
 }
-}  // namespace magma5g
+} // namespace magma5g

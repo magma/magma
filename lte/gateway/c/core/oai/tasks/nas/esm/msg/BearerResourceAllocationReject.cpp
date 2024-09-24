@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceAllocationReject.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,8 +31,8 @@ extern "C" {
 #endif
 
 int decode_bearer_resource_allocation_reject(
-    bearer_resource_allocation_reject_msg* bearer_resource_allocation_reject,
-    uint8_t* buffer, uint32_t len) {
+    bearer_resource_allocation_reject_msg *bearer_resource_allocation_reject,
+    uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -60,27 +60,27 @@ int decode_bearer_resource_allocation_reject(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case BEARER_RESOURCE_ALLOCATION_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
-        if ((decoded_result = decode_protocol_configuration_options_ie(
-                 &bearer_resource_allocation_reject
-                      ->protocolconfigurationoptions,
-                 true, buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case BEARER_RESOURCE_ALLOCATION_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
+      if ((decoded_result = decode_protocol_configuration_options_ie(
+               &bearer_resource_allocation_reject->protocolconfigurationoptions,
+               true, buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        bearer_resource_allocation_reject->presencemask |=
-            BEARER_RESOURCE_ALLOCATION_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      bearer_resource_allocation_reject->presencemask |=
+          BEARER_RESOURCE_ALLOCATION_REJECT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -88,8 +88,8 @@ int decode_bearer_resource_allocation_reject(
 }
 
 int encode_bearer_resource_allocation_reject(
-    bearer_resource_allocation_reject_msg* bearer_resource_allocation_reject,
-    uint8_t* buffer, uint32_t len) {
+    bearer_resource_allocation_reject_msg *bearer_resource_allocation_reject,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
 
@@ -101,7 +101,7 @@ int encode_bearer_resource_allocation_reject(
 
   if ((encode_result = encode_esm_cause(
            &bearer_resource_allocation_reject->esmcause, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

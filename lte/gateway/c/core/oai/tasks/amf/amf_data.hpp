@@ -17,8 +17,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 };
 #endif
@@ -29,12 +29,12 @@ typedef uint8_t ksi_t;
 #define AMF_CTXT_MEMBER_SECURITY ((uint32_t)1 << 8)
 #define AMF_CTXT_MEMBER_GUTI ((uint32_t)1 << 4)
 #define AMF_CTXT_MEMBER_AUTH_VECTOR0 ((uint32_t)1 << 26)
-#define IS_AMF_CTXT_PRESENT_SECURITY(aMfCtXtPtR) \
+#define IS_AMF_CTXT_PRESENT_SECURITY(aMfCtXtPtR)                               \
   (!!((aMfCtXtPtR)->member_present_mask & AMF_CTXT_MEMBER_SECURITY))
-#define IS_AMF_CTXT_VALID_AUTH_VECTORS(aMfCtXtPtR) \
+#define IS_AMF_CTXT_VALID_AUTH_VECTORS(aMfCtXtPtR)                             \
   (!!((aMfCtXtPtR)->member_valid_mask & AMF_CTXT_MEMBER_AUTH_VECTORS))
-#define IS_AMF_CTXT_VALID_AUTH_VECTOR(aMfCtXtPtR, KsI) \
-  (!!((aMfCtXtPtR)->member_valid_mask &                \
+#define IS_AMF_CTXT_VALID_AUTH_VECTOR(aMfCtXtPtR, KsI)                         \
+  (!!((aMfCtXtPtR)->member_valid_mask &                                        \
       ((AMF_CTXT_MEMBER_AUTH_VECTOR0) << KsI)))
 #define AUTS_LENGTH 14
 #define RAND_LENGTH_BITS (128)
@@ -70,8 +70,8 @@ typedef struct amf_security_context_s {
   count_t kenb_ul_count;
   // Requirement AMF24.501R15_4.4.4.3_2 (DEREGISTRATION REQUEST (if sent before
   // security has been activated);)
-  uint8_t direction_encode;  // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
-  uint8_t direction_decode;  // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
+  uint8_t direction_encode; // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
+  uint8_t direction_decode; // SECU_DIRECTION_DOWNLINK, SECU_DIRECTION_UPLINK
 } amf_security_context_t;
 
 // Authentication request information
@@ -93,4 +93,4 @@ typedef enum {
   AMF_IMEISV_REQUESTED = 1
 } amf_imeisv_req_type_t;
 
-}  // namespace magma5g
+} // namespace magma5g

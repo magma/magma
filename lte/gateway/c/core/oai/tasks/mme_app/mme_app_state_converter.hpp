@@ -20,10 +20,10 @@
 #include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 
-#include <sstream>
-#include "lte/protos/oai/mme_nas_state.pb.h"
 #include "lte/gateway/c/core/oai/include/state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ueip_imsi_map.hpp"
+#include "lte/protos/oai/mme_nas_state.pb.h"
+#include <sstream>
 
 /******************************************************************************
  * This is a helper class to encapsulate all functions for converting in-memory
@@ -37,7 +37,7 @@ namespace magma {
 namespace lte {
 
 class MmeNasStateConverter : public StateConverter {
- public:
+public:
   // Constructor
   MmeNasStateConverter();
 
@@ -45,26 +45,27 @@ class MmeNasStateConverter : public StateConverter {
   ~MmeNasStateConverter();
 
   // Serialize mme_app_desc_t to oai::MmeNasState proto
-  static void state_to_proto(const mme_app_desc_t* mme_nas_state_p,
-                             oai::MmeNasState* state_proto);
+  static void state_to_proto(const mme_app_desc_t *mme_nas_state_p,
+                             oai::MmeNasState *state_proto);
 
   // Deserialize mme_app_desc_t from oai::MmeNasState proto
-  static void proto_to_state(const oai::MmeNasState& state_proto,
-                             mme_app_desc_t* mme_nas_state_p);
+  static void proto_to_state(const oai::MmeNasState &state_proto,
+                             mme_app_desc_t *mme_nas_state_p);
 
-  static void ue_to_proto(const ue_mm_context_t* ue_ctxt,
-                          oai::UeContext* ue_ctxt_proto);
+  static void ue_to_proto(const ue_mm_context_t *ue_ctxt,
+                          oai::UeContext *ue_ctxt_proto);
 
-  static void proto_to_ue(const oai::UeContext& ue_ctxt_proto,
-                          ue_mm_context_t* ue_ctxt);
+  static void proto_to_ue(const oai::UeContext &ue_ctxt_proto,
+                          ue_mm_context_t *ue_ctxt);
 
-  static void mme_app_ueip_imsi_map_to_proto(const UeIpImsiMap& ueip_map,
-                                             oai::MmeUeIpImsiMap* ueip_proto);
+  static void mme_app_ueip_imsi_map_to_proto(const UeIpImsiMap &ueip_map,
+                                             oai::MmeUeIpImsiMap *ueip_proto);
 
-  static void mme_app_proto_to_ueip_imsi_map(
-      const oai::MmeUeIpImsiMap& ueip_proto, UeIpImsiMap& ueip_imsi_map);
+  static void
+  mme_app_proto_to_ueip_imsi_map(const oai::MmeUeIpImsiMap &ueip_proto,
+                                 UeIpImsiMap &ueip_imsi_map);
 
- private:
+private:
   /***********************************************************
    *                 Hashtable <-> Proto
    * Functions to serialize/deserialize in-memory hashtables
@@ -76,20 +77,20 @@ class MmeNasStateConverter : public StateConverter {
    ***********************************************************/
 
   static void hashtable_ts_to_proto(
-      hash_table_ts_t* state_htbl,
-      google::protobuf::Map<unsigned long, oai::UeContext>* proto_map);
+      hash_table_ts_t *state_htbl,
+      google::protobuf::Map<unsigned long, oai::UeContext> *proto_map);
 
   static void proto_to_hashtable_ts(
-      const google::protobuf::Map<unsigned long, oai::UeContext>& proto_map,
-      hash_table_ts_t* state_htbl);
+      const google::protobuf::Map<unsigned long, oai::UeContext> &proto_map,
+      hash_table_ts_t *state_htbl);
 
   static void guti_table_to_proto(
-      const obj_hash_table_uint64_t* guti_htbl,
-      google::protobuf::Map<std::string, unsigned long>* proto_map);
+      const obj_hash_table_uint64_t *guti_htbl,
+      google::protobuf::Map<std::string, unsigned long> *proto_map);
 
   static void proto_to_guti_table(
-      const google::protobuf::Map<std::string, unsigned long>& proto_map,
-      obj_hash_table_uint64_t* guti_htbl);
+      const google::protobuf::Map<std::string, unsigned long> &proto_map,
+      obj_hash_table_uint64_t *guti_htbl);
 
   /**********************************************************
    *                 UE Context <-> Proto                    *
@@ -97,65 +98,65 @@ class MmeNasStateConverter : public StateConverter {
    *  The caller needs to acquire a lock on UE context       *
    **********************************************************/
 
-  static void sgs_context_to_proto(sgs_context_t* state_sgs_context,
-                                   oai::SgsContext* sgs_context_proto);
+  static void sgs_context_to_proto(sgs_context_t *state_sgs_context,
+                                   oai::SgsContext *sgs_context_proto);
 
-  static void proto_to_sgs_context(const oai::SgsContext& sgs_context_proto,
-                                   sgs_context_t* state_sgs_context);
+  static void proto_to_sgs_context(const oai::SgsContext &sgs_context_proto,
+                                   sgs_context_t *state_sgs_context);
 
-  static void fteid_to_proto(const fteid_t& state_fteid,
-                             oai::Fteid* fteid_proto);
+  static void fteid_to_proto(const fteid_t &state_fteid,
+                             oai::Fteid *fteid_proto);
 
-  static void proto_to_fteid(const oai::Fteid& fteid_proto,
-                             fteid_t* state_fteid);
+  static void proto_to_fteid(const oai::Fteid &fteid_proto,
+                             fteid_t *state_fteid);
 
-  static void bearer_context_to_proto(
-      const bearer_context_t& state_bearer_context,
-      oai::BearerContext* bearer_context_proto);
+  static void
+  bearer_context_to_proto(const bearer_context_t &state_bearer_context,
+                          oai::BearerContext *bearer_context_proto);
 
-  static void proto_to_bearer_context(
-      const oai::BearerContext& bearer_context_proto,
-      bearer_context_t* state_bearer_context);
+  static void
+  proto_to_bearer_context(const oai::BearerContext &bearer_context_proto,
+                          bearer_context_t *state_bearer_context);
 
-  static void bearer_context_list_to_proto(
-      const ue_mm_context_t& state_ue_context,
-      oai::UeContext* ue_context_proto);
+  static void
+  bearer_context_list_to_proto(const ue_mm_context_t &state_ue_context,
+                               oai::UeContext *ue_context_proto);
 
-  static void proto_to_bearer_context_list(
-      const oai::UeContext& ue_context_proto,
-      ue_mm_context_t* state_ue_context);
+  static void
+  proto_to_bearer_context_list(const oai::UeContext &ue_context_proto,
+                               ue_mm_context_t *state_ue_context);
 
-  static void esm_pdn_to_proto(const esm_pdn_t& state_esm_pdn,
-                               oai::EsmPdn* esm_pdn_proto);
+  static void esm_pdn_to_proto(const esm_pdn_t &state_esm_pdn,
+                               oai::EsmPdn *esm_pdn_proto);
 
-  static void proto_to_esm_pdn(const oai::EsmPdn& esm_pdn_proto,
-                               esm_pdn_t* state_esm_pdn);
+  static void proto_to_esm_pdn(const oai::EsmPdn &esm_pdn_proto,
+                               esm_pdn_t *state_esm_pdn);
 
-  static void pdn_context_to_proto(const pdn_context_t& state_pdn_context,
-                                   oai::PdnContext* pdn_context_proto);
+  static void pdn_context_to_proto(const pdn_context_t &state_pdn_context,
+                                   oai::PdnContext *pdn_context_proto);
 
-  static void proto_to_pdn_context(const oai::PdnContext& pdn_context_proto,
-                                   pdn_context_t* state_pdn_context);
+  static void proto_to_pdn_context(const oai::PdnContext &pdn_context_proto,
+                                   pdn_context_t *state_pdn_context);
 
-  static void pdn_context_list_to_proto(const ue_mm_context_t& state_ue_context,
-                                        oai::UeContext* ue_context_proto);
+  static void pdn_context_list_to_proto(const ue_mm_context_t &state_ue_context,
+                                        oai::UeContext *ue_context_proto);
 
-  static void proto_to_pdn_context_list(const oai::UeContext& ue_context_proto,
-                                        ue_mm_context_t* state_ue_context);
+  static void proto_to_pdn_context_list(const oai::UeContext &ue_context_proto,
+                                        ue_mm_context_t *state_ue_context);
 
-  static void ue_context_to_proto(const ue_mm_context_t* ue_ctxt,
-                                  oai::UeContext* ue_ctxt_proto);
+  static void ue_context_to_proto(const ue_mm_context_t *ue_ctxt,
+                                  oai::UeContext *ue_ctxt_proto);
 
-  static void proto_to_ue_mm_context(const oai::UeContext& ue_context_proto,
-                                     ue_mm_context_t* state_ue_mm_context);
+  static void proto_to_ue_mm_context(const oai::UeContext &ue_context_proto,
+                                     ue_mm_context_t *state_ue_mm_context);
 
-  static void regional_subscription_to_proto(
-      const ue_mm_context_t& state_ue_context,
-      oai::UeContext* ue_context_proto);
+  static void
+  regional_subscription_to_proto(const ue_mm_context_t &state_ue_context,
+                                 oai::UeContext *ue_context_proto);
 
-  static void proto_to_regional_subscription(
-      const oai::UeContext& ue_context_proto,
-      ue_mm_context_t* state_ue_context);
+  static void
+  proto_to_regional_subscription(const oai::UeContext &ue_context_proto,
+                                 ue_mm_context_t *state_ue_context);
 };
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

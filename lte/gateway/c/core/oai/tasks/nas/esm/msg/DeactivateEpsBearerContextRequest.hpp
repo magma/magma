@@ -29,15 +29,15 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH \
+#define DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH                   \
   (ESM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_MAXIMUM_LENGTH \
+#define DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST_MAXIMUM_LENGTH                   \
   (ESM_CAUSE_MAXIMUM_LENGTH + PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -71,11 +71,11 @@ typedef struct deactivate_eps_bearer_context_request_msg_tag {
 } deactivate_eps_bearer_context_request_msg;
 
 int decode_deactivate_eps_bearer_context_request(
-    deactivate_eps_bearer_context_request_msg*
-        deactivateepsbearercontextrequest,
-    uint8_t* buffer, uint32_t len);
+    deactivate_eps_bearer_context_request_msg
+        *deactivateepsbearercontextrequest,
+    uint8_t *buffer, uint32_t len);
 
 int encode_deactivate_eps_bearer_context_request(
-    deactivate_eps_bearer_context_request_msg*
-        deactivateepsbearercontextrequest,
-    uint8_t* buffer, uint32_t len);
+    deactivate_eps_bearer_context_request_msg
+        *deactivateepsbearercontextrequest,
+    uint8_t *buffer, uint32_t len);

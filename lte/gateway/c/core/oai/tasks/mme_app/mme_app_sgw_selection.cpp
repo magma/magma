@@ -24,10 +24,10 @@
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.hpp"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,20 +44,20 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.hpp"
 
 //------------------------------------------------------------------------------
-void mme_app_select_sgw(const tai_t* const tai,
-                        struct sockaddr* const sgw_in_addr) {
+void mme_app_select_sgw(const tai_t *const tai,
+                        struct sockaddr *const sgw_in_addr) {
   extern mme_config_t mme_config;
 
-  ((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr =
+  ((struct sockaddr_in *)sgw_in_addr)->sin_addr.s_addr =
       mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
-  ((struct sockaddr_in*)sgw_in_addr)->sin_family = AF_INET;
+  ((struct sockaddr_in *)sgw_in_addr)->sin_family = AF_INET;
 
   OAILOG_DEBUG(LOG_MME_APP, "SGW  returned %s\n",
-               inet_ntoa(((struct sockaddr_in*)sgw_in_addr)->sin_addr));
+               inet_ntoa(((struct sockaddr_in *)sgw_in_addr)->sin_addr));
   return;
 
   OAILOG_WARNING(LOG_MME_APP, "Failed SGW lookup for TAI " TAI_FMT "\n",
                  TAI_ARG(tai));
-  ((struct sockaddr_in*)sgw_in_addr)->sin_addr.s_addr = 0;
+  ((struct sockaddr_in *)sgw_in_addr)->sin_addr.s_addr = 0;
   return;
 }

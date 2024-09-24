@@ -22,8 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -54,15 +54,15 @@ struct avp;
 struct msg;
 struct session;
 
-int s6a_ula_cb(struct msg** msg_pP, struct avp* paramavp_pP,
-               struct session* sess_pP, void* opaque_pP,
-               enum disp_action* act_pP) {
-  struct msg* ans_p = NULL;
-  struct msg* qry_p = NULL;
-  struct avp* avp_p = NULL;
-  struct avp_hdr* hdr_p = NULL;
-  MessageDef* message_p = NULL;
-  s6a_update_location_ans_t* s6a_update_location_ans_p = NULL;
+int s6a_ula_cb(struct msg **msg_pP, struct avp *paramavp_pP,
+               struct session *sess_pP, void *opaque_pP,
+               enum disp_action *act_pP) {
+  struct msg *ans_p = NULL;
+  struct msg *qry_p = NULL;
+  struct avp *avp_p = NULL;
+  struct avp_hdr *hdr_p = NULL;
+  MessageDef *message_p = NULL;
+  s6a_update_location_ans_t *s6a_update_location_ans_p = NULL;
 
   DevAssert(msg_pP);
   ans_p = *msg_pP;
@@ -129,9 +129,8 @@ int s6a_ula_cb(struct msg** msg_pP, struct avp* paramavp_pP,
        * Neither result-code nor experimental-result is present ->
        * * * * totally incorrect behavior here.
        */
-      OAILOG_ERROR(LOG_S6A,
-                   "Experimental-Result and Result-Code are absent: "
-                   "This is not a correct behavior\n");
+      OAILOG_ERROR(LOG_S6A, "Experimental-Result and Result-Code are absent: "
+                            "This is not a correct behavior\n");
       goto err;
     }
   }
@@ -161,9 +160,8 @@ int s6a_ula_cb(struct msg** msg_pP, struct avp* paramavp_pP,
      * * * * this is not a compliant behavior...
      * * * * TODO: handle this case.
      */
-    OAILOG_ERROR(LOG_S6A,
-                 "ULA-Flags AVP is absent while result code indicates "
-                 "DIAMETER_SUCCESS\n");
+    OAILOG_ERROR(LOG_S6A, "ULA-Flags AVP is absent while result code indicates "
+                          "DIAMETER_SUCCESS\n");
     goto err;
   }
 
@@ -191,10 +189,10 @@ err:
   return RETURNok;
 }
 
-int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
-  struct avp* avp_p = NULL;
-  struct msg* msg_p = NULL;
-  struct session* sess_p = NULL;
+int s6a_generate_update_location(s6a_update_location_req_t *ulr_pP) {
+  struct avp *avp_p = NULL;
+  struct msg *msg_p = NULL;
+  struct session *sess_p = NULL;
   union avp_value value;
 
   DevAssert(ulr_pP);
@@ -237,7 +235,7 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   {
     CHECK_FCT(
         fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_host, 0, &avp_p));
-    value.os.data = (unsigned char*)bdata(mme_config.s6a_config.hss_host_name);
+    value.os.data = (unsigned char *)bdata(mme_config.s6a_config.hss_host_name);
     value.os.len = blength(mme_config.s6a_config.hss_host_name);
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
@@ -248,7 +246,7 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   {
     CHECK_FCT(
         fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_destination_realm, 0, &avp_p));
-    value.os.data = (unsigned char*)bdata(mme_config.s6a_config.hss_realm);
+    value.os.data = (unsigned char *)bdata(mme_config.s6a_config.hss_realm);
     value.os.len = blength(mme_config.s6a_config.hss_realm);
     CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
     CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
@@ -258,7 +256,7 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
    * Adding the User-Name (IMSI)
    */
   CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_user_name, 0, &avp_p));
-  value.os.data = (unsigned char*)ulr_pP->imsi;
+  value.os.data = (unsigned char *)ulr_pP->imsi;
   value.os.len = strlen(ulr_pP->imsi);
   CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
@@ -324,7 +322,7 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
    * Adding Supported-Features
    */
   if (ulr_pP->dual_regis_5g_ind) {
-    struct avp* child_avp;
+    struct avp *child_avp;
     CHECK_FCT(
         fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_supported_features, 0, &avp_p));
 

@@ -17,10 +17,10 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/LowerLayer.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,7 +47,7 @@ extern "C" {
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-status_code_e esm_sap_send(esm_sap_t* msg);
+status_code_e esm_sap_send(esm_sap_t *msg);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
@@ -77,7 +77,7 @@ status_code_e esm_sap_send(esm_sap_t* msg);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg) {
+status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring *nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
@@ -85,7 +85,7 @@ status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg) {
   emm_sap.primitive = EMMREG_LOWERLAYER_SUCCESS;
   emm_sap.u.emm_reg.ue_id = ue_id;
   emm_sap.u.emm_reg.ctx = NULL;
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   if (ue_mm_context) {
     emm_sap.u.emm_reg.ctx = &ue_mm_context->emm_context;
@@ -95,9 +95,9 @@ status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg) {
     if (*nas_msg) {
       emm_sap.u.emm_reg.u.ll_success.msg_len = blength(*nas_msg);
       emm_sap.u.emm_reg.u.ll_success.digest_len = EMM_REG_MSG_DIGEST_SIZE;
-      nas_digest_msg((const unsigned char* const)bdata(*nas_msg),
+      nas_digest_msg((const unsigned char *const)bdata(*nas_msg),
                      blength(*nas_msg),
-                     (char* const)emm_sap.u.emm_reg.u.ll_success.msg_digest,
+                     (char *const)emm_sap.u.emm_reg.u.ll_success.msg_digest,
                      &emm_sap.u.emm_reg.u.ll_success.digest_len);
     }
     rc = emm_sap_send(&emm_sap);
@@ -124,14 +124,14 @@ status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg) {
  **                                                                        **
  ***************************************************************************/
 status_code_e lowerlayer_failure(mme_ue_s1ap_id_t ue_id,
-                                 STOLEN_REF bstring* nas_msg) {
+                                 STOLEN_REF bstring *nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_FAILURE;
   emm_sap.u.emm_reg.ue_id = ue_id;
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   if (ue_mm_context) {
     emm_sap.u.emm_reg.ctx = &ue_mm_context->emm_context;
@@ -141,9 +141,9 @@ status_code_e lowerlayer_failure(mme_ue_s1ap_id_t ue_id,
     if (*nas_msg) {
       emm_sap.u.emm_reg.u.ll_failure.msg_len = blength(*nas_msg);
       emm_sap.u.emm_reg.u.ll_failure.digest_len = EMM_REG_MSG_DIGEST_SIZE;
-      nas_digest_msg((const unsigned char* const)bdata(*nas_msg),
+      nas_digest_msg((const unsigned char *const)bdata(*nas_msg),
                      blength(*nas_msg),
-                     (char* const)emm_sap.u.emm_reg.u.ll_failure.msg_digest,
+                     (char *const)emm_sap.u.emm_reg.u.ll_failure.msg_digest,
                      &emm_sap.u.emm_reg.u.ll_failure.digest_len);
     }
     rc = emm_sap_send(&emm_sap);
@@ -170,14 +170,14 @@ status_code_e lowerlayer_failure(mme_ue_s1ap_id_t ue_id,
  **                                                                        **
  ***************************************************************************/
 status_code_e lowerlayer_non_delivery_indication(mme_ue_s1ap_id_t ue_id,
-                                                 STOLEN_REF bstring* nas_msg) {
+                                                 STOLEN_REF bstring *nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
 
   emm_sap.primitive = EMMREG_LOWERLAYER_NON_DELIVERY;
   emm_sap.u.emm_reg.ue_id = ue_id;
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   if (ue_mm_context) {
     emm_sap.u.emm_reg.ctx = &ue_mm_context->emm_context;
@@ -185,8 +185,8 @@ status_code_e lowerlayer_non_delivery_indication(mme_ue_s1ap_id_t ue_id,
       emm_sap.u.emm_reg.u.non_delivery_ho.msg_len = blength(*nas_msg);
       emm_sap.u.emm_reg.u.non_delivery_ho.digest_len = EMM_REG_MSG_DIGEST_SIZE;
       nas_digest_msg(
-          (const unsigned char* const)bdata(*nas_msg), blength(*nas_msg),
-          (char* const)emm_sap.u.emm_reg.u.non_delivery_ho.msg_digest,
+          (const unsigned char *const)bdata(*nas_msg), blength(*nas_msg),
+          (char *const)emm_sap.u.emm_reg.u.non_delivery_ho.msg_digest,
           &emm_sap.u.emm_reg.u.non_delivery_ho.digest_len);
     }
     rc = emm_sap_send(&emm_sap);
@@ -242,7 +242,7 @@ status_code_e lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause) {
 
   emm_sap.primitive = EMMREG_LOWERLAYER_RELEASE;
   emm_sap.u.emm_reg.ue_id = 0;
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_sap.u.emm_reg.ctx = &ue_mm_context->emm_context;
   } else {
@@ -274,7 +274,7 @@ status_code_e lowerlayer_data_ind(mme_ue_s1ap_id_t ue_id, const_bstring data) {
   status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   esm_sap.primitive = ESM_UNITDATA_IND;
   esm_sap.is_standalone = true;
   esm_sap.ue_id = ue_id;
@@ -305,8 +305,8 @@ status_code_e lowerlayer_data_req(mme_ue_s1ap_id_t ue_id, bstring data) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {};
-  emm_security_context_t* sctx = NULL;
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  emm_security_context_t *sctx = NULL;
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   emm_sap.primitive = EMMAS_DATA_REQ;
   emm_sap.u.emm_as.u.data.guti = NULL;
@@ -328,15 +328,16 @@ status_code_e lowerlayer_data_req(mme_ue_s1ap_id_t ue_id, bstring data) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e lowerlayer_activate_bearer_req(
-    const mme_ue_s1ap_id_t ue_id, const ebi_t ebi, const bitrate_t mbr_dl,
-    const bitrate_t mbr_ul, const bitrate_t gbr_dl, const bitrate_t gbr_ul,
-    bstring data) {
+status_code_e
+lowerlayer_activate_bearer_req(const mme_ue_s1ap_id_t ue_id, const ebi_t ebi,
+                               const bitrate_t mbr_dl, const bitrate_t mbr_ul,
+                               const bitrate_t gbr_dl, const bitrate_t gbr_ul,
+                               bstring data) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {};
-  emm_security_context_t* sctx = NULL;
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  emm_security_context_t *sctx = NULL;
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   emm_sap.primitive = EMMAS_ERAB_SETUP_REQ;
   emm_sap.u.emm_as.u.activate_bearer_context_req.ebi = ebi;
@@ -367,8 +368,8 @@ status_code_e lowerlayer_deactivate_bearer_req(const mme_ue_s1ap_id_t ue_id,
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {};
-  emm_security_context_t* sctx = NULL;
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  emm_security_context_t *sctx = NULL;
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
 
   emm_sap.primitive = EMMAS_ERAB_REL_CMD;
   emm_sap.u.emm_as.u.deactivate_bearer_context_req.ebi = ebi;
@@ -415,10 +416,10 @@ status_code_e lowerlayer_deactivate_bearer_req(const mme_ue_s1ap_id_t ue_id,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void emm_as_set_security_data(emm_as_security_data_t* data, const void* args,
+void emm_as_set_security_data(emm_as_security_data_t *data, const void *args,
                               bool is_new, bool is_ciphered) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  const emm_security_context_t* context = (emm_security_context_t*)(args);
+  const emm_security_context_t *context = (emm_security_context_t *)(args);
 
   memset(data, 0, sizeof(emm_as_security_data_t));
 
@@ -435,19 +436,19 @@ void emm_as_set_security_data(emm_as_security_data_t* data, const void* args,
         LOG_NAS_EMM,
         "EPS security context exists is new %u KSI %u SQN %u count %u\n",
         is_new, context->eksi, context->ul_count.seq_num,
-        *(uint32_t*)(&context->ul_count));
+        *(uint32_t *)(&context->ul_count));
     OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS_EMM,
-                      "knas_int:", (const char*)context->knas_int,
+                      "knas_int:", (const char *)context->knas_int,
                       AUTH_KNAS_INT_SIZE);
     OAILOG_STREAM_HEX(OAILOG_LEVEL_DEBUG, LOG_NAS_EMM,
-                      "knas_enc:", (const char*)context->knas_enc,
+                      "knas_enc:", (const char *)context->knas_enc,
                       AUTH_KNAS_ENC_SIZE);
     data->is_new = is_new;
     data->ksi = context->eksi;
-    data->sqn = context->dl_count
-                    .seq_num;  // TODO AT check whether we need to
-                               // increment this by one or it is already
-                               // incremented after sending last NAS mssage.
+    data->sqn =
+        context->dl_count.seq_num; // TODO AT check whether we need to
+                                   // increment this by one or it is already
+                                   // incremented after sending last NAS mssage.
     data->count = 0x00000000 |
                   ((context->dl_count.overflow & 0x0000FFFF) << 8) |
                   (context->dl_count.seq_num & 0x000000FF);

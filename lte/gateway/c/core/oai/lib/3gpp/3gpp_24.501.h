@@ -12,8 +12,8 @@
  */
 
 #pragma once
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 //==============================================================================
 // 9 General message format and information elements coding
@@ -63,16 +63,16 @@
 #define T3517_EXT_DEFAULT_VALUE 10
 #define T3520_DEFAULT_VALUE 15
 #define T3521_DEFAULT_VALUE 15
-#define T3523_DEFAULT_VALUE 0  // value provided by network
+#define T3523_DEFAULT_VALUE 0 // value provided by network
 #define T3540_DEFAULT_VALUE 10
-#define T3542_DEFAULT_VALUE 0  // value provided by network
+#define T3542_DEFAULT_VALUE 0 // value provided by network
 #define T3522_DEFAULT_VALUE 6
 #define T3550_DEFAULT_VALUE 6
 #define T3560_DEFAULT_VALUE 6
 #define T3570_DEFAULT_VALUE 6
-#define T3585_DEFAULT_VALUE 0  // Value provided by NW.
-#define T3586_DEFAULT_VALUE 0  // TODO-RECHECK
-#define T3589_DEFAULT_VALUE 0  // TODO-RECHECK
+#define T3585_DEFAULT_VALUE 0 // Value provided by NW.
+#define T3586_DEFAULT_VALUE 0 // TODO-RECHECK
+#define T3589_DEFAULT_VALUE 0 // TODO-RECHECK
 #define T3595_DEFAULT_VALUE 0
 #define IMPLICIT_DEREG_TIMER_VALUE 30
 
@@ -90,14 +90,14 @@ Deregistration accept (UE terminated) */
 //	   congestion/authentication failures
 //-------------------------------------------------------------------------------
 #define AMF_CAUSE_UE_ID_CAN_NOT_BE_DERIVED 9
-#define AMF_CAUSE_SMF_FAILURE 19  // need to check
+#define AMF_CAUSE_SMF_FAILURE 19 // need to check
 #define AMF_CAUSE_MAC_FAILURE 20
 #define AMF_CAUSE_SYNCH_FAILURE 21
 #define AMF_CAUSE_CONGESTION 22
 #define AMF_CAUSE_NGKSI_ALREADY_INUSE 71
 #define AMF_CAUSE_CONDITIONAL_IE_MISSING 101
-#define AMF_UE_SECURITY_CAPABILITIES_MISMATCH \
-  23  // UE security capabilities mismatch
+#define AMF_UE_SECURITY_CAPABILITIES_MISMATCH                                  \
+  23 // UE security capabilities mismatch
 #define AMF_SECURITY_MODE_REJECT 24
 
 #define AMF_CAUSE_LENGTH 1

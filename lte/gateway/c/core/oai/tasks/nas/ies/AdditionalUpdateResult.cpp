@@ -22,16 +22,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
 int decode_additional_update_result(
-    additional_update_result_t* additionalupdateresult, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    additional_update_result_t *additionalupdateresult, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -49,10 +49,10 @@ int decode_additional_update_result(
 
 //------------------------------------------------------------------------------
 int decode_u8_additional_update_result(
-    additional_update_result_t* additionalupdateresult, uint8_t iei,
+    additional_update_result_t *additionalupdateresult, uint8_t iei,
     uint8_t value, uint32_t len) {
   int decoded = 0;
-  uint8_t* buffer = &value;
+  uint8_t *buffer = &value;
 
   *additionalupdateresult = *buffer & 0x3;
   decoded++;
@@ -61,8 +61,8 @@ int decode_u8_additional_update_result(
 
 //------------------------------------------------------------------------------
 int encode_additional_update_result(
-    additional_update_result_t* additionalupdateresult, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    additional_update_result_t *additionalupdateresult, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -77,9 +77,9 @@ int encode_additional_update_result(
 
 //------------------------------------------------------------------------------
 uint8_t encode_u8_additional_update_result(
-    additional_update_result_t* additionalupdateresult) {
+    additional_update_result_t *additionalupdateresult) {
   uint8_t bufferReturn;
-  uint8_t* buffer = &bufferReturn;
+  uint8_t *buffer = &bufferReturn;
   uint8_t encoded = 0;
   uint8_t iei = 0;
 

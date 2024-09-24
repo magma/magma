@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityResponse.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityResponse.hpp"
 
 namespace magma5g {
 IdentityResponseMsg::IdentityResponseMsg(){};
@@ -26,7 +26,7 @@ IdentityResponseMsg::~IdentityResponseMsg(){};
 
 // Decode IdentityResponse Message and its IEs
 int IdentityResponseMsg::DecodeIdentityResponseMsg(
-    IdentityResponseMsg* identity_response, uint8_t* buffer, uint32_t len) {
+    IdentityResponseMsg *identity_response, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -75,7 +75,7 @@ int IdentityResponseMsg::DecodeIdentityResponseMsg(
 
 // Encode Identity Response Message and its IEs
 int IdentityResponseMsg::EncodeIdentityResponseMsg(
-    IdentityResponseMsg* identity_response, uint8_t* buffer, uint32_t len) {
+    IdentityResponseMsg *identity_response, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   int encoded_result = 0;
@@ -123,4 +123,4 @@ int IdentityResponseMsg::EncodeIdentityResponseMsg(
 
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

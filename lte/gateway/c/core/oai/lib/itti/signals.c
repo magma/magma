@@ -32,12 +32,12 @@
 #include "config.h"
 #endif
 
+#include <ctype.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <signal.h>
-#include <ctype.h>
+#include <unistd.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/backtrace.h"
@@ -46,15 +46,15 @@
 #include "lte/gateway/c/core/oai/lib/itti/signals.h"
 
 #ifndef SIG_DEBUG
-#define SIG_DEBUG(x, args...)              \
-  do {                                     \
-    fprintf(stdout, "[SIG][D]" x, ##args); \
+#define SIG_DEBUG(x, args...)                                                  \
+  do {                                                                         \
+    fprintf(stdout, "[SIG][D]" x, ##args);                                     \
   } while (0)
 #endif
 #ifndef SIG_ERROR
-#define SIG_ERROR(x, args...)              \
-  do {                                     \
-    fprintf(stdout, "[SIG][E]" x, ##args); \
+#define SIG_ERROR(x, args...)                                                  \
+  do {                                                                         \
+    fprintf(stdout, "[SIG][E]" x, ##args);                                     \
   } while (0)
 #endif
 
@@ -85,18 +85,21 @@ static const char PROC_PATH[] = "/proc/%d/status";
 static int get_thread_count(pid_t pid) {
   char path[40], line[100], *p;
   int num_threads = -1;
-  FILE* statusf;
+  FILE *statusf;
 
   snprintf(path, sizeof(path), PROC_PATH, pid);
 
   statusf = fopen(path, "r");
-  if (!statusf) return -1;
+  if (!statusf)
+    return -1;
 
   while (fgets(line, sizeof(line), statusf)) {
-    if (strncmp(line, "Threads:", 8) != 0) continue;
+    if (strncmp(line, "Threads:", 8) != 0)
+      continue;
     // Ignore "Threads:" and whitespace
     p = line + strlen(THREADS_STR);
-    while (isspace(*p)) ++p;
+    while (isspace(*p))
+      ++p;
     num_threads = atoi(p);
     break;
   }
@@ -127,7 +130,7 @@ int signal_mask(void) {
   return 0;
 }
 
-int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
+int signal_handle(int *end, task_zmq_ctx_t *task_ctx) {
   int ret;
   siginfo_t info;
 
@@ -155,21 +158,21 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
    * Dispatch the signal to sub-handlers
    */
   switch (info.si_signo) {
-    case SIGABRT:
-      SIG_DEBUG("Received SIGABORT\n");
-      backtrace_handle_signal(&info);
-      break;
+  case SIGABRT:
+    SIG_DEBUG("Received SIGABORT\n");
+    backtrace_handle_signal(&info);
+    break;
 
-    case SIGINT:
-    case SIGTERM:
-      printf("Received SIGINT or SIGTERM\n");
-      send_terminate_message_fatal(task_ctx);
-      *end = 1;
-      break;
+  case SIGINT:
+  case SIGTERM:
+    printf("Received SIGINT or SIGTERM\n");
+    send_terminate_message_fatal(task_ctx);
+    *end = 1;
+    break;
 
-    default:
-      SIG_ERROR("Received unknown signal %d\n", info.si_signo);
-      break;
+  default:
+    SIG_ERROR("Received unknown signal %d\n", info.si_signo);
+    break;
   }
 
   return 0;

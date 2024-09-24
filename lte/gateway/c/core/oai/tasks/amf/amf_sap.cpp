@@ -33,7 +33,7 @@ namespace magma5g {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-status_code_e amf_sap_send(amf_sap_t* msg) {
+status_code_e amf_sap_send(amf_sap_t *msg) {
   status_code_e rc = RETURNerror;
   amf_primitive_t primitive = msg->primitive;
   OAILOG_FUNC_IN(LOG_NAS_AMF);
@@ -87,11 +87,11 @@ status_code_e amf_sap_send(amf_sap_t* msg) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void amf_as_data_t::amf_as_set_security_data(amf_as_security_data_t* data,
-                                             const void* args, bool is_new,
+void amf_as_data_t::amf_as_set_security_data(amf_as_security_data_t *data,
+                                             const void *args, bool is_new,
                                              bool is_ciphered) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  const amf_security_context_t* context = (amf_security_context_t*)(args);
+  const amf_security_context_t *context = (amf_security_context_t *)(args);
   memset(data, 0, sizeof(amf_as_security_data_t));
   if (context && ((context->sc_type == SECURITY_CTX_TYPE_FULL_NATIVE) ||
                   (context->sc_type == SECURITY_CTX_TYPE_MAPPED))) {
@@ -106,7 +106,7 @@ void amf_as_data_t::amf_as_set_security_data(amf_as_security_data_t* data,
         LOG_NAS_AMF,
         "5GCN security context exists is new %u KSI %u SQN %u count %u\n",
         is_new, context->eksi, context->ul_count.seq_num,
-        *(uint32_t*)(&context->ul_count));
+        *(uint32_t *)(&context->ul_count));
     data->is_new = is_new;
     data->ksi = context->eksi;
     data->sqn = context->dl_count.seq_num;
@@ -142,4 +142,4 @@ void amf_as_data_t::amf_as_set_security_data(amf_as_security_data_t* data,
   }
   OAILOG_FUNC_OUT(LOG_NAS_AMF);
 }
-}  // namespace magma5g
+} // namespace magma5g

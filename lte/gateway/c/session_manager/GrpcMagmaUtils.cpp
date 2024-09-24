@@ -16,8 +16,8 @@
 #include <glog/logging.h>
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
-#include <stdlib.h>
 #include <sstream>
+#include <stdlib.h>
 #include <string>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
@@ -40,9 +40,9 @@ void set_grpc_logging_level(bool enable) {
   MLOG(MINFO) << "print_grpc_payload set at: " << grpcLoggingEnabled;
 }
 
-std::string get_env_var(std::string const& key) {
+std::string get_env_var(std::string const &key) {
   MLOG(MINFO) << "Checking env var " << key;
-  char* val;
+  char *val;
   val = getenv(key.c_str());
   std::string retval = "";
   if (val != NULL) {
@@ -51,10 +51,10 @@ std::string get_env_var(std::string const& key) {
   return std::string(retval);
 }
 
-void PrintGrpcMessage(const google::protobuf::Message& msg) {
+void PrintGrpcMessage(const google::protobuf::Message &msg) {
   if (grpcLoggingEnabled) {
     // Lazy log strategy
-    const google::protobuf::Descriptor* desc = msg.GetDescriptor();
+    const google::protobuf::Descriptor *desc = msg.GetDescriptor();
     MLOG(MINFO) << "\n"
                 << "  " << desc->full_name().c_str() << " {\n"
                 << indentText(msg.DebugString(), 6) << "  }";

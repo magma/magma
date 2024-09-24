@@ -10,20 +10,20 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // Spare Half Octet IE Class
 class SpareHalfOctetMsg {
- public:
+public:
   uint8_t spare : 4;
 
   SpareHalfOctetMsg();
   ~SpareHalfOctetMsg();
-  int EncodeSpareHalfOctetMsg(SpareHalfOctetMsg* spare_half_octet, uint8_t iei,
-                              uint8_t* buffer, uint32_t len);
-  int DecodeSpareHalfOctetMsg(SpareHalfOctetMsg* spare_half_octet, uint8_t iei,
-                              uint8_t* buffer, uint32_t len);
+  int EncodeSpareHalfOctetMsg(SpareHalfOctetMsg *spare_half_octet, uint8_t iei,
+                              uint8_t *buffer, uint32_t len);
+  int DecodeSpareHalfOctetMsg(SpareHalfOctetMsg *spare_half_octet, uint8_t iei,
+                              uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

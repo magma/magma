@@ -24,9 +24,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
-#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
-#include "lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/oai/test/s1ap_task/mock_s1ap_op.h"
+#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 
 extern bool hss_associated;
 
@@ -36,13 +36,13 @@ namespace lte {
 task_zmq_ctx_t task_zmq_ctx_main_s1ap_with_injected_states;
 
 // mocking the message handler for the ITTI
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    // TODO: adding the message handler for different types of message
-    default: {
-    } break;
+  // TODO: adding the message handler for different types of message
+  default: {
+  } break;
   }
 
   itti_free_msg_content(received_message_p);
@@ -111,10 +111,10 @@ class S1apMmeHandlersWithInjectedStatesTest : public ::testing::Test {
     std::this_thread::sleep_for(std::chrono::milliseconds(1500));
   }
 
- protected:
+protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::shared_ptr<MockSctpHandler> sctp_handler;
-  oai::S1apState* state;
+  oai::S1apState *state;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream_id;
   std::vector<std::string> name_of_ue_samples;
@@ -176,5 +176,5 @@ TEST_F(S1apMmeHandlersWithInjectedStatesTest, HandleS1apPathSwitchRequest) {
       is_enb_state_valid(state, assoc_id, oai::S1AP_READY, number_attached_ue));
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

@@ -24,11 +24,11 @@
 
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/gtpv2c_ie_formatter/shared/gtpv2c_ie_formatter.h"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <inttypes.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -54,8 +54,8 @@
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_imsi_ie_get(uint8_t ieType, uint16_t ieLength,
-                           uint8_t ieInstance, uint8_t* ieValue, void* arg) {
-  imsi_t* imsi = (imsi_t*)arg;
+                           uint8_t ieInstance, uint8_t *ieValue, void *arg) {
+  imsi_t *imsi = (imsi_t *)arg;
   uint8_t decoded = 0;
 
   DevAssert(arg);
@@ -80,7 +80,7 @@ nw_rc_t gtpv2c_imsi_ie_get(uint8_t ieType, uint16_t ieLength,
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_imsi_ie_set(nw_gtpv2c_msg_handle_t* msg, const imsi_t* imsi) {
+int gtpv2c_imsi_ie_set(nw_gtpv2c_msg_handle_t *msg, const imsi_t *imsi) {
   nw_rc_t rc;
   imsi_t imsi_nbo = {0};
   DevAssert(msg);
@@ -93,15 +93,15 @@ int gtpv2c_imsi_ie_set(nw_gtpv2c_msg_handle_t* msg, const imsi_t* imsi) {
   imsi_nbo.length = imsi->length;
 
   rc = nwGtpv2cMsgAddIe(*msg, NW_GTPV2C_IE_IMSI, (imsi_nbo.length + 1) / 2, 0,
-                        (uint8_t*)imsi_nbo.u.value);
+                        (uint8_t *)imsi_nbo.u.value);
   DevAssert(NW_OK == rc);
   return RETURNok;
 }
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_cause_ie_get(uint8_t ieType, uint16_t ieLength,
-                            uint8_t ieInstance, uint8_t* ieValue, void* arg) {
-  gtpv2c_cause_t* cause = (gtpv2c_cause_t*)arg;
+                            uint8_t ieInstance, uint8_t *ieValue, void *arg) {
+  gtpv2c_cause_t *cause = (gtpv2c_cause_t *)arg;
 
   DevAssert(cause);
   cause->cause_value = ieValue[0];
@@ -119,8 +119,8 @@ nw_rc_t gtpv2c_cause_ie_get(uint8_t ieType, uint16_t ieLength,
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_cause_ie_set(nw_gtpv2c_msg_handle_t* msg,
-                        const gtpv2c_cause_t* cause) {
+int gtpv2c_cause_ie_set(nw_gtpv2c_msg_handle_t *msg,
+                        const gtpv2c_cause_t *cause) {
   nw_rc_t rc;
   uint8_t value[6];
 
@@ -145,7 +145,7 @@ int gtpv2c_cause_ie_set(nw_gtpv2c_msg_handle_t* msg,
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_fteid_ie_set(nw_gtpv2c_msg_handle_t* msg, const fteid_t* fteid,
+int gtpv2c_fteid_ie_set(nw_gtpv2c_msg_handle_t *msg, const fteid_t *fteid,
                         const uint8_t instance) {
   nw_rc_t rc;
   uint8_t value[25];
@@ -185,9 +185,9 @@ int gtpv2c_fteid_ie_set(nw_gtpv2c_msg_handle_t* msg, const fteid_t* fteid,
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_fteid_ie_get(uint8_t ieType, uint16_t ieLength,
-                            uint8_t ieInstance, uint8_t* ieValue, void* arg) {
+                            uint8_t ieInstance, uint8_t *ieValue, void *arg) {
   uint8_t offset = 0;
-  fteid_t* fteid = (fteid_t*)arg;
+  fteid_t *fteid = (fteid_t *)arg;
 
   DevAssert(fteid);
   fteid->ipv4 = (ieValue[0] & 0x80) >> 7;
@@ -221,7 +221,7 @@ nw_rc_t gtpv2c_fteid_ie_get(uint8_t ieType, uint16_t ieLength,
      * * * * WARNING: if Ipv4 is present, 4 bytes of offset should be applied
      */
     memcpy(fteid->ipv6_address.__in6_u.__u6_addr8, &ieValue[5 + offset], 16);
-    inet_ntop(AF_INET6, (void*)&fteid->ipv6_address, ipv6_ascii,
+    inet_ntop(AF_INET6, (void *)&fteid->ipv6_address, ipv6_ascii,
               INET6_ADDRSTRLEN);
     OAILOG_DEBUG(LOG_GTPV2C, "\t- IPv6 addr   %s\n", ipv6_ascii);
   }
@@ -231,9 +231,9 @@ nw_rc_t gtpv2c_fteid_ie_get(uint8_t ieType, uint16_t ieLength,
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_paa_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
-                          uint8_t* ieValue, void* arg) {
+                          uint8_t *ieValue, void *arg) {
   uint8_t offset = 0;
-  paa_t* paa = (paa_t*)arg;
+  paa_t *paa = (paa_t *)arg;
 
   DevAssert(paa);
   paa->pdn_type = ieValue[0] & 0x07;
@@ -269,7 +269,7 @@ nw_rc_t gtpv2c_paa_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
 
     paa->ipv4_address.s_addr = htonl(ip);
     char ipv4[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, (void*)&paa->ipv4_address, ipv4, INET_ADDRSTRLEN);
+    inet_ntop(AF_INET, (void *)&paa->ipv4_address, ipv4, INET_ADDRSTRLEN);
     OAILOG_DEBUG(LOG_S11, "\t- IPv4 addr %s\n", ipv4);
   }
 
@@ -278,7 +278,7 @@ nw_rc_t gtpv2c_paa_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_paa_ie_set(nw_gtpv2c_msg_handle_t* msg, const paa_t* paa) {
+int gtpv2c_paa_ie_set(nw_gtpv2c_msg_handle_t *msg, const paa_t *paa) {
   /*
    * ipv4 address = 4 + ipv6 address = 16 + ipv6 prefix length = 1
    * * * * + pdn_type = 1
@@ -317,7 +317,7 @@ int gtpv2c_paa_ie_set(nw_gtpv2c_msg_handle_t* msg, const paa_t* paa) {
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_ebi_ie_set(nw_gtpv2c_msg_handle_t* msg, const unsigned ebi,
+int gtpv2c_ebi_ie_set(nw_gtpv2c_msg_handle_t *msg, const unsigned ebi,
                       const uint8_t instance) {
   nw_rc_t rc;
   uint8_t value = 0;
@@ -330,8 +330,8 @@ int gtpv2c_ebi_ie_set(nw_gtpv2c_msg_handle_t* msg, const unsigned ebi,
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_ebi_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
-                          uint8_t* ieValue, void* arg) {
-  uint8_t* ebi = (uint8_t*)arg;
+                          uint8_t *ieValue, void *arg) {
+  uint8_t *ebi = (uint8_t *)arg;
 
   DevAssert(ebi);
   *ebi = ieValue[0] & 0x0F;
@@ -340,7 +340,7 @@ nw_rc_t gtpv2c_ebi_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
 }
 
 //------------------------------------------------------------------------------
-nw_rc_t gtpv2c_ambr_ie_set(nw_gtpv2c_msg_handle_t* msg, ambr_t* ambr) {
+nw_rc_t gtpv2c_ambr_ie_set(nw_gtpv2c_msg_handle_t *msg, ambr_t *ambr) {
   nw_rc_t rc;
 
   DevAssert(msg);
@@ -350,7 +350,7 @@ nw_rc_t gtpv2c_ambr_ie_set(nw_gtpv2c_msg_handle_t* msg, ambr_t* ambr) {
    */
 
   uint8_t ambr_br[8];
-  uint8_t* p_ambr;
+  uint8_t *p_ambr;
   p_ambr = ambr_br;
 
   memset(ambr_br, 0, 8);
@@ -368,8 +368,8 @@ nw_rc_t gtpv2c_ambr_ie_set(nw_gtpv2c_msg_handle_t* msg, ambr_t* ambr) {
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_ambr_ie_get(uint8_t ieType, uint16_t ieLength,
-                           uint8_t ieInstance, uint8_t* ieValue, void* arg) {
-  ambr_t* ambr = (ambr_t*)arg;
+                           uint8_t ieInstance, uint8_t *ieValue, void *arg) {
+  ambr_t *ambr = (ambr_t *)arg;
 
   DevAssert(ambr);
 
@@ -384,9 +384,9 @@ nw_rc_t gtpv2c_ambr_ie_get(uint8_t ieType, uint16_t ieLength,
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_bearer_qos_ie_get(uint8_t ieType, uint16_t ieLength,
-                                 uint8_t ieInstance, uint8_t* ieValue,
-                                 void* arg) {
-  bearer_qos_t* bearer_qos = (bearer_qos_t*)arg;
+                                 uint8_t ieInstance, uint8_t *ieValue,
+                                 void *arg) {
+  bearer_qos_t *bearer_qos = (bearer_qos_t *)arg;
 
   DevAssert(bearer_qos);
 
@@ -438,8 +438,8 @@ nw_rc_t gtpv2c_bearer_qos_ie_get(uint8_t ieType, uint16_t ieLength,
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_bearer_qos_ie_set(nw_gtpv2c_msg_handle_t* msg,
-                             const bearer_qos_t* const bearer_qos) {
+int gtpv2c_bearer_qos_ie_set(nw_gtpv2c_msg_handle_t *msg,
+                             const bearer_qos_t *const bearer_qos) {
   nw_rc_t rc;
   uint8_t value[22];
   int index = 0;
@@ -484,9 +484,9 @@ int gtpv2c_bearer_qos_ie_set(nw_gtpv2c_msg_handle_t* msg,
 //------------------------------------------------------------------------------
 
 nw_rc_t gtpv2c_flow_qos_ie_get(uint8_t ieType, uint16_t ieLength,
-                               uint8_t ieInstance, uint8_t* ieValue,
-                               void* arg) {
-  flow_qos_t* flow_qos = (flow_qos_t*)arg;
+                               uint8_t ieInstance, uint8_t *ieValue,
+                               void *arg) {
+  flow_qos_t *flow_qos = (flow_qos_t *)arg;
 
   DevAssert(flow_qos);
 
@@ -531,8 +531,8 @@ nw_rc_t gtpv2c_flow_qos_ie_get(uint8_t ieType, uint16_t ieLength,
 
 //------------------------------------------------------------------------------
 
-int gtpv2c_flow_qos_ie_set(nw_gtpv2c_msg_handle_t* msg,
-                           const flow_qos_t* flow_qos) {
+int gtpv2c_flow_qos_ie_set(nw_gtpv2c_msg_handle_t *msg,
+                           const flow_qos_t *flow_qos) {
   nw_rc_t rc;
   uint8_t value[21];
   int index = 0;
@@ -575,9 +575,9 @@ int gtpv2c_flow_qos_ie_set(nw_gtpv2c_msg_handle_t* msg,
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_tft_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
-                          uint8_t* ieValue, void* arg) {
+                          uint8_t *ieValue, void *arg) {
   uint8_t offset = 0;
-  traffic_flow_template_t* tft = (traffic_flow_template_t*)arg;
+  traffic_flow_template_t *tft = (traffic_flow_template_t *)arg;
 
   DevAssert(tft);
   offset = decode_traffic_flow_template(tft, ieValue, ieLength);
@@ -590,8 +590,8 @@ nw_rc_t gtpv2c_tft_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_tft_ie_set(nw_gtpv2c_msg_handle_t* msg,
-                      const traffic_flow_template_t* const tft) {
+int gtpv2c_tft_ie_set(nw_gtpv2c_msg_handle_t *msg,
+                      const traffic_flow_template_t *const tft) {
   uint8_t temp[TRAFFIC_FLOW_TEMPLATE_MAXIMUM_LENGTH];
   uint8_t offset = 0;
   nw_rc_t rc = NW_OK;
@@ -606,10 +606,10 @@ int gtpv2c_tft_ie_set(nw_gtpv2c_msg_handle_t* msg,
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_tad_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
-                          uint8_t* ieValue, void* arg) {
+                          uint8_t *ieValue, void *arg) {
   uint8_t offset = 0;
-  traffic_flow_aggregate_description_t* tad =
-      (traffic_flow_aggregate_description_t*)arg;
+  traffic_flow_aggregate_description_t *tad =
+      (traffic_flow_aggregate_description_t *)arg;
 
   DevAssert(tad);
   offset = decode_traffic_flow_template(tad, ieValue, ieLength);
@@ -622,8 +622,8 @@ nw_rc_t gtpv2c_tad_ie_get(uint8_t ieType, uint16_t ieLength, uint8_t ieInstance,
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_tad_ie_set(nw_gtpv2c_msg_handle_t* msg,
-                      const traffic_flow_aggregate_description_t* tad) {
+int gtpv2c_tad_ie_set(nw_gtpv2c_msg_handle_t *msg,
+                      const traffic_flow_aggregate_description_t *tad) {
   uint8_t temp[TRAFFIC_FLOW_TEMPLATE_MAXIMUM_LENGTH];
   uint8_t offset = 0;
   nw_rc_t rc = NW_OK;
@@ -639,9 +639,9 @@ int gtpv2c_tad_ie_set(nw_gtpv2c_msg_handle_t* msg,
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_target_identification_ie_get(uint8_t ieType, uint16_t ieLength,
                                             uint8_t ieInstance,
-                                            uint8_t* ieValue, void* arg) {
-  target_identification_t* target_identification =
-      (target_identification_t*)arg;
+                                            uint8_t *ieValue, void *arg) {
+  target_identification_t *target_identification =
+      (target_identification_t *)arg;
 
   DevAssert(target_identification);
   target_identification->target_type = ieValue[0];
@@ -664,76 +664,76 @@ nw_rc_t gtpv2c_target_identification_ie_get(uint8_t ieType, uint16_t ieLength,
   }
 
   switch (target_identification->target_type) {
-    case TARGET_ID_RNC_ID: {
-      target_identification->target_id.rnc_id.lac =
-          (ieValue[4] << 8) | ieValue[5];
-      target_identification->target_id.rnc_id.rac = ieValue[6];
+  case TARGET_ID_RNC_ID: {
+    target_identification->target_id.rnc_id.lac =
+        (ieValue[4] << 8) | ieValue[5];
+    target_identification->target_id.rnc_id.rac = ieValue[6];
 
-      if (ieLength == 11) {
-        /*
-         * Extended RNC id
-         */
-        target_identification->target_id.rnc_id.id =
-            (ieValue[7] << 24) | (ieValue[8] << 16);
-        target_identification->target_id.rnc_id.xid =
-            (ieValue[9] << 8) | (ieValue[10]);
-      } else if (ieLength == 9) {
-        /*
-         * Normal RNC id
-         */
-        target_identification->target_id.rnc_id.id =
-            (ieValue[7] << 8) | ieValue[8];
-        target_identification->target_id.rnc_id.xid = 0;
-      } else {
-        /*
-         * This case is not possible
-         */
-        return NW_GTPV2C_IE_INCORRECT;
-      }
-
-      OAILOG_DEBUG(LOG_S10, "\t\t- LAC 0x%04x\n",
-                   target_identification->target_id.rnc_id.lac);
-      OAILOG_DEBUG(LOG_S10, "\t\t- RAC 0x%02x\n",
-                   target_identification->target_id.rnc_id.rac);
-      OAILOG_DEBUG(LOG_S10, "\t\t- RNC -ID 0x%08x\n",
-                   target_identification->target_id.rnc_id.id);
-      OAILOG_DEBUG(LOG_S10, "\t\t- RNC -XID 0x%08x\n",
-                   target_identification->target_id.rnc_id.xid);
-    } break;
-
-    case TARGET_ID_MACRO_ENB_ID: {
-      if (ieLength != 9) {
-        return NW_GTPV2C_IE_INCORRECT;
-      }
-
-      target_identification->target_id.macro_enb_id.enb_id =
-          ((ieValue[4] & 0x0F) << 16) | (ieValue[5] << 8) | ieValue[6];
-      target_identification->target_id.macro_enb_id.tac =
+    if (ieLength == 11) {
+      /*
+       * Extended RNC id
+       */
+      target_identification->target_id.rnc_id.id =
+          (ieValue[7] << 24) | (ieValue[8] << 16);
+      target_identification->target_id.rnc_id.xid =
+          (ieValue[9] << 8) | (ieValue[10]);
+    } else if (ieLength == 9) {
+      /*
+       * Normal RNC id
+       */
+      target_identification->target_id.rnc_id.id =
           (ieValue[7] << 8) | ieValue[8];
-      OAILOG_DEBUG(LOG_S10, "\t\t- ENB Id 0x%06x\n",
-                   target_identification->target_id.macro_enb_id.enb_id);
-      OAILOG_DEBUG(LOG_S10, "\t\t- TAC    0x%04x\n",
-                   target_identification->target_id.macro_enb_id.tac);
-    } break;
-
-    case TARGET_ID_HOME_ENB_ID: {
-      if (ieLength != 10) {
-        return NW_GTPV2C_IE_INCORRECT;
-      }
-
-      target_identification->target_id.home_enb_id.enb_id =
-          ((ieValue[4] & 0x0F) << 14) | (ieValue[5] << 16) | (ieValue[6] << 8) |
-          ieValue[7];
-      target_identification->target_id.home_enb_id.tac =
-          (ieValue[8] << 8) | ieValue[9];
-      OAILOG_DEBUG(LOG_S10, "\t\t- ENB Id 0x%07x\n",
-                   target_identification->target_id.home_enb_id.enb_id);
-      OAILOG_DEBUG(LOG_S10, "\t\t- TAC    0x%04x\n",
-                   target_identification->target_id.home_enb_id.tac);
-    } break;
-
-    default:
+      target_identification->target_id.rnc_id.xid = 0;
+    } else {
+      /*
+       * This case is not possible
+       */
       return NW_GTPV2C_IE_INCORRECT;
+    }
+
+    OAILOG_DEBUG(LOG_S10, "\t\t- LAC 0x%04x\n",
+                 target_identification->target_id.rnc_id.lac);
+    OAILOG_DEBUG(LOG_S10, "\t\t- RAC 0x%02x\n",
+                 target_identification->target_id.rnc_id.rac);
+    OAILOG_DEBUG(LOG_S10, "\t\t- RNC -ID 0x%08x\n",
+                 target_identification->target_id.rnc_id.id);
+    OAILOG_DEBUG(LOG_S10, "\t\t- RNC -XID 0x%08x\n",
+                 target_identification->target_id.rnc_id.xid);
+  } break;
+
+  case TARGET_ID_MACRO_ENB_ID: {
+    if (ieLength != 9) {
+      return NW_GTPV2C_IE_INCORRECT;
+    }
+
+    target_identification->target_id.macro_enb_id.enb_id =
+        ((ieValue[4] & 0x0F) << 16) | (ieValue[5] << 8) | ieValue[6];
+    target_identification->target_id.macro_enb_id.tac =
+        (ieValue[7] << 8) | ieValue[8];
+    OAILOG_DEBUG(LOG_S10, "\t\t- ENB Id 0x%06x\n",
+                 target_identification->target_id.macro_enb_id.enb_id);
+    OAILOG_DEBUG(LOG_S10, "\t\t- TAC    0x%04x\n",
+                 target_identification->target_id.macro_enb_id.tac);
+  } break;
+
+  case TARGET_ID_HOME_ENB_ID: {
+    if (ieLength != 10) {
+      return NW_GTPV2C_IE_INCORRECT;
+    }
+
+    target_identification->target_id.home_enb_id.enb_id =
+        ((ieValue[4] & 0x0F) << 14) | (ieValue[5] << 16) | (ieValue[6] << 8) |
+        ieValue[7];
+    target_identification->target_id.home_enb_id.tac =
+        (ieValue[8] << 8) | ieValue[9];
+    OAILOG_DEBUG(LOG_S10, "\t\t- ENB Id 0x%07x\n",
+                 target_identification->target_id.home_enb_id.enb_id);
+    OAILOG_DEBUG(LOG_S10, "\t\t- TAC    0x%04x\n",
+                 target_identification->target_id.home_enb_id.tac);
+  } break;
+
+  default:
+    return NW_GTPV2C_IE_INCORRECT;
   }
 
   return NW_OK;
@@ -741,8 +741,8 @@ nw_rc_t gtpv2c_target_identification_ie_get(uint8_t ieType, uint16_t ieLength,
 
 //------------------------------------------------------------------------------
 status_code_e gtpv2c_target_identification_ie_set(
-    nw_gtpv2c_msg_handle_t* msg,
-    const target_identification_t* target_identification) {
+    nw_gtpv2c_msg_handle_t *msg,
+    const target_identification_t *target_identification) {
   nw_rc_t rc;
   uint8_t target_id[3];
   // uint32_t                               macro_enb_id;
@@ -775,7 +775,7 @@ status_code_e gtpv2c_target_identification_ie_set(
   uint8_t enbId[4];
 
   uint8_t targetIeBuf[10];
-  uint8_t* pTargetIeBuf = targetIeBuf;
+  uint8_t *pTargetIeBuf = targetIeBuf;
 
   uint8_t target_id_length = 0;
 
@@ -784,7 +784,7 @@ status_code_e gtpv2c_target_identification_ie_set(
   *pTargetIeBuf = target_identification->target_type;
   target_id_length++;
   /** Set the plmn. */
-  memcpy((uint8_t*)(pTargetIeBuf + target_id_length), target_id, 3);
+  memcpy((uint8_t *)(pTargetIeBuf + target_id_length), target_id, 3);
   target_id_length += 3;
 
   /** Check the eNB Type. */
@@ -797,7 +797,7 @@ status_code_e gtpv2c_target_identification_ie_set(
     memcpy(pTargetIeBuf + target_id_length, enbId, 4);
     target_id_length += 4;
     /** TAC. */
-    *((uint16_t*)(pTargetIeBuf + target_id_length)) =
+    *((uint16_t *)(pTargetIeBuf + target_id_length)) =
         htons(target_identification->target_id.home_enb_id.tac);
     target_id_length += 2;
   } else if (target_identification->target_type == TARGET_ID_MACRO_ENB_ID) {
@@ -810,7 +810,7 @@ status_code_e gtpv2c_target_identification_ie_set(
     memcpy(pTargetIeBuf + target_id_length, enbId, 3);
     target_id_length += 3;
     /** TAC. */
-    *((uint16_t*)(pTargetIeBuf + target_id_length)) =
+    *((uint16_t *)(pTargetIeBuf + target_id_length)) =
         htons(target_identification->target_id.macro_enb_id.tac);
     target_id_length += 2;
   } else if (target_identification->target_type == TARGET_ID_RNC_ID) {
@@ -819,18 +819,18 @@ status_code_e gtpv2c_target_identification_ie_set(
     /** Macro Enb Id. */
     // Skip 1 place --> todo: copy 20 bits
     target_id_length += 2;
-    *((uint32_t*)(pTargetIeBuf + target_id_length)) =
+    *((uint32_t *)(pTargetIeBuf + target_id_length)) =
         htons(target_identification->target_id.rnc_id.lac);
     target_id_length += 2;
-    *((uint32_t*)(pTargetIeBuf + target_id_length)) =
+    *((uint32_t *)(pTargetIeBuf + target_id_length)) =
         target_identification->target_id.rnc_id.rac;
     target_id_length++;
     /** RNC-ID. */
-    *((uint16_t*)(pTargetIeBuf + target_id_length)) =
+    *((uint16_t *)(pTargetIeBuf + target_id_length)) =
         htons(target_identification->target_id.rnc_id.id);
     target_id_length += 2;
     /** RNC-XID. */
-    *((uint16_t*)(pTargetIeBuf + target_id_length)) =
+    *((uint16_t *)(pTargetIeBuf + target_id_length)) =
         htonl(target_identification->target_id.rnc_id.xid);
     target_id_length += 2;
   } else {
@@ -851,85 +851,80 @@ status_code_e gtpv2c_target_identification_ie_set(
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_bearer_context_created_ie_get(uint8_t ieType, uint16_t ieLength,
                                              uint8_t ieInstance,
-                                             uint8_t* ieValue, void* arg) {
-  bearer_contexts_created_t* bearer_contexts = (bearer_contexts_created_t*)arg;
+                                             uint8_t *ieValue, void *arg) {
+  bearer_contexts_created_t *bearer_contexts = (bearer_contexts_created_t *)arg;
   DevAssert(bearer_contexts);
   DevAssert(0 <= bearer_contexts->num_bearer_context);
   DevAssert(MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS >=
             bearer_contexts->num_bearer_context);
-  bearer_context_created_t* bearer_context =
+  bearer_context_created_t *bearer_context =
       &bearer_contexts->bearer_contexts[bearer_contexts->num_bearer_context];
   uint16_t read = 0;
   nw_rc_t rc;
 
   while (ieLength > read) {
-    nw_gtpv2c_ie_tlv_t* ie_p;
+    nw_gtpv2c_ie_tlv_t *ie_p;
 
-    ie_p = (nw_gtpv2c_ie_tlv_t*)&ieValue[read];
+    ie_p = (nw_gtpv2c_ie_tlv_t *)&ieValue[read];
 
     switch (ie_p->t) {
-      case NW_GTPV2C_IE_EBI:
-        rc = gtpv2c_ebi_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                               &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                               &bearer_context->eps_bearer_id);
-        DevAssert(NW_OK == rc);
-        break;
+    case NW_GTPV2C_IE_EBI:
+      rc = gtpv2c_ebi_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                             &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                             &bearer_context->eps_bearer_id);
+      DevAssert(NW_OK == rc);
+      break;
 
-      case NW_GTPV2C_IE_FTEID:
-        switch (ie_p->i) {
-          case 0:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s1u_sgw_fteid);
-            break;
-          case 1:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s4u_sgw_fteid);
-            break;
-          case 2:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s5_s8_u_pgw_fteid);
-            break;
-          case 3:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s12_sgw_fteid);
-            break;
-          default:
-            OAILOG_ERROR(LOG_S11, "Received unexpected IE %u instance %u\n",
-                         ie_p->t, ie_p->i);
-            return NW_GTPV2C_IE_INCORRECT;
-        }
-        DevAssert(NW_OK == rc);
-        break;
-
-      case NW_GTPV2C_IE_CAUSE:
-        rc = gtpv2c_cause_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+    case NW_GTPV2C_IE_FTEID:
+      switch (ie_p->i) {
+      case 0:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
                                  &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                 &bearer_context->cause);
+                                 &bearer_context->s1u_sgw_fteid);
         break;
-
-      case NW_GTPV2C_IE_BEARER_LEVEL_QOS:
-        rc = gtpv2c_bearer_qos_ie_get(
-            ie_p->t, ntohs(ie_p->l), ie_p->i,
-            &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-            &bearer_context->bearer_level_qos);
+      case 1:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s4u_sgw_fteid);
         break;
-
-      case NW_GTPV2C_IE_BEARER_FLAGS:
-        OAILOG_WARNING(LOG_S11, "Received IE BEARER_FLAGS %u to implement\n",
-                       ie_p->t);
+      case 2:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s5_s8_u_pgw_fteid);
         break;
-
+      case 3:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s12_sgw_fteid);
+        break;
       default:
-        OAILOG_ERROR(LOG_S11, "Received unexpected IE %u\n", ie_p->t);
+        OAILOG_ERROR(LOG_S11, "Received unexpected IE %u instance %u\n",
+                     ie_p->t, ie_p->i);
         return NW_GTPV2C_IE_INCORRECT;
+      }
+      DevAssert(NW_OK == rc);
+      break;
+
+    case NW_GTPV2C_IE_CAUSE:
+      rc = gtpv2c_cause_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                               &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                               &bearer_context->cause);
+      break;
+
+    case NW_GTPV2C_IE_BEARER_LEVEL_QOS:
+      rc = gtpv2c_bearer_qos_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                    &bearer_context->bearer_level_qos);
+      break;
+
+    case NW_GTPV2C_IE_BEARER_FLAGS:
+      OAILOG_WARNING(LOG_S11, "Received IE BEARER_FLAGS %u to implement\n",
+                     ie_p->t);
+      break;
+
+    default:
+      OAILOG_ERROR(LOG_S11, "Received unexpected IE %u\n", ie_p->t);
+      return NW_GTPV2C_IE_INCORRECT;
     }
 
     read += (ntohs(ie_p->l) + sizeof(nw_gtpv2c_ie_tlv_t));
@@ -940,7 +935,7 @@ nw_rc_t gtpv2c_bearer_context_created_ie_get(uint8_t ieType, uint16_t ieLength,
 
 //------------------------------------------------------------------------------
 int gtpv2c_bearer_context_created_ie_set(
-    nw_gtpv2c_msg_handle_t* msg, const bearer_context_created_t* const bearer) {
+    nw_gtpv2c_msg_handle_t *msg, const bearer_context_created_t *const bearer) {
   nw_rc_t rc;
 
   DevAssert(msg);
@@ -967,93 +962,86 @@ int gtpv2c_bearer_context_created_ie_set(
 nw_rc_t gtpv2c_bearer_context_to_be_created_ie_get(uint8_t ieType,
                                                    uint16_t ieLength,
                                                    uint8_t ieInstance,
-                                                   uint8_t* ieValue,
-                                                   void* arg) {
-  bearer_contexts_to_be_created_t* bearer_contexts =
-      (bearer_contexts_to_be_created_t*)arg;
+                                                   uint8_t *ieValue,
+                                                   void *arg) {
+  bearer_contexts_to_be_created_t *bearer_contexts =
+      (bearer_contexts_to_be_created_t *)arg;
   DevAssert(bearer_contexts);
   DevAssert(0 <= bearer_contexts->num_bearer_context);
   DevAssert(MSG_CREATE_SESSION_REQUEST_MAX_BEARER_CONTEXTS >=
             bearer_contexts->num_bearer_context);
-  bearer_context_to_be_created_t* bearer_context =
+  bearer_context_to_be_created_t *bearer_context =
       &bearer_contexts->bearer_contexts[bearer_contexts->num_bearer_context];
   uint16_t read = 0;
   nw_rc_t rc;
 
   while (ieLength > read) {
-    nw_gtpv2c_ie_tlv_t* ie_p;
+    nw_gtpv2c_ie_tlv_t *ie_p;
 
-    ie_p = (nw_gtpv2c_ie_tlv_t*)&ieValue[read];
+    ie_p = (nw_gtpv2c_ie_tlv_t *)&ieValue[read];
 
     switch (ie_p->t) {
-      case NW_GTPV2C_IE_EBI:
-        rc = gtpv2c_ebi_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                               &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                               &bearer_context->eps_bearer_id);
-        DevAssert(NW_OK == rc);
-        break;
+    case NW_GTPV2C_IE_EBI:
+      rc = gtpv2c_ebi_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                             &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                             &bearer_context->eps_bearer_id);
+      DevAssert(NW_OK == rc);
+      break;
 
-      case NW_GTPV2C_IE_BEARER_LEVEL_QOS:
-        rc = gtpv2c_bearer_qos_ie_get(
-            ie_p->t, ntohs(ie_p->l), ie_p->i,
-            &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-            &bearer_context->bearer_level_qos);
-        break;
+    case NW_GTPV2C_IE_BEARER_LEVEL_QOS:
+      rc = gtpv2c_bearer_qos_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                    &bearer_context->bearer_level_qos);
+      break;
 
-      case NW_GTPV2C_IE_BEARER_TFT:
-        OAILOG_ERROR(LOG_S11, "Received IE %u to implement\n", ie_p->t);
-        return NW_GTPV2C_IE_INCORRECT;
-        break;
+    case NW_GTPV2C_IE_BEARER_TFT:
+      OAILOG_ERROR(LOG_S11, "Received IE %u to implement\n", ie_p->t);
+      return NW_GTPV2C_IE_INCORRECT;
+      break;
 
-      case NW_GTPV2C_IE_FTEID:
-        switch (ie_p->i) {
-          case 0:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s1u_enb_fteid);
-            break;
-          case 1:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s4u_sgsn_fteid);
-            break;
-          case 2:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s5_s8_u_sgw_fteid);
-            break;
-          case 3:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s5_s8_u_pgw_fteid);
-            break;
-          case 4:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s12_rnc_fteid);
-            break;
-          case 5:
-            rc =
-                gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
-                                    &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
-                                    &bearer_context->s2b_u_epdg_fteid);
-            break;
-          default:
-            OAILOG_ERROR(LOG_S11, "Received unexpected IE %u instance %u\n",
-                         ie_p->t, ie_p->i);
-            return NW_GTPV2C_IE_INCORRECT;
-        }
-        DevAssert(NW_OK == rc);
+    case NW_GTPV2C_IE_FTEID:
+      switch (ie_p->i) {
+      case 0:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s1u_enb_fteid);
         break;
-
+      case 1:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s4u_sgsn_fteid);
+        break;
+      case 2:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s5_s8_u_sgw_fteid);
+        break;
+      case 3:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s5_s8_u_pgw_fteid);
+        break;
+      case 4:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s12_rnc_fteid);
+        break;
+      case 5:
+        rc = gtpv2c_fteid_ie_get(ie_p->t, ntohs(ie_p->l), ie_p->i,
+                                 &ieValue[read + sizeof(nw_gtpv2c_ie_tlv_t)],
+                                 &bearer_context->s2b_u_epdg_fteid);
+        break;
       default:
-        OAILOG_ERROR(LOG_S11, "Received unexpected IE %u\n", ie_p->t);
+        OAILOG_ERROR(LOG_S11, "Received unexpected IE %u instance %u\n",
+                     ie_p->t, ie_p->i);
         return NW_GTPV2C_IE_INCORRECT;
+      }
+      DevAssert(NW_OK == rc);
+      break;
+
+    default:
+      OAILOG_ERROR(LOG_S11, "Received unexpected IE %u\n", ie_p->t);
+      return NW_GTPV2C_IE_INCORRECT;
     }
 
     read += (ntohs(ie_p->l) + sizeof(nw_gtpv2c_ie_tlv_t));
@@ -1064,8 +1052,8 @@ nw_rc_t gtpv2c_bearer_context_to_be_created_ie_get(uint8_t ieType,
 
 //------------------------------------------------------------------------------
 int gtpv2c_bearer_context_to_be_created_ie_set(
-    nw_gtpv2c_msg_handle_t* msg,
-    const bearer_context_to_be_created_t* bearer_context) {
+    nw_gtpv2c_msg_handle_t *msg,
+    const bearer_context_to_be_created_t *bearer_context) {
   nw_rc_t rc;
 
   DevAssert(msg);
@@ -1093,8 +1081,8 @@ int gtpv2c_bearer_context_to_be_created_ie_set(
 }
 
 //------------------------------------------------------------------------------
-nw_rc_t gtpv2c_selection_mode_ie_set(nw_gtpv2c_msg_handle_t* msg,
-                                     SelectionMode_t* sm) {
+nw_rc_t gtpv2c_selection_mode_ie_set(nw_gtpv2c_msg_handle_t *msg,
+                                     SelectionMode_t *sm) {
   DevAssert(msg);
   DevAssert(sm);
   uint8_t val8 = *sm;
@@ -1105,9 +1093,9 @@ nw_rc_t gtpv2c_selection_mode_ie_set(nw_gtpv2c_msg_handle_t* msg,
 
 //------------------------------------------------------------------------------
 nw_rc_t gtpv2c_selection_mode_ie_get(uint8_t ieType, uint16_t ieLength,
-                                     uint8_t ieInstance, uint8_t* ieValue,
-                                     void* arg) {
-  SelectionMode_t* sm = (SelectionMode_t*)arg;
+                                     uint8_t ieInstance, uint8_t *ieValue,
+                                     void *arg) {
+  SelectionMode_t *sm = (SelectionMode_t *)arg;
 
   DevAssert(sm);
   *sm = (ieValue[0] & 0x03);

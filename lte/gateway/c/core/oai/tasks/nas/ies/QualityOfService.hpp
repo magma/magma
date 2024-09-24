@@ -44,11 +44,11 @@ typedef struct QualityOfService_tag {
   uint8_t sourcestatisticsdescriptor : 4;
 } QualityOfService;
 
-int encode_quality_of_service(QualityOfService* qualityofservice, uint8_t iei,
-                              uint8_t* buffer, uint32_t len);
+int encode_quality_of_service(QualityOfService *qualityofservice, uint8_t iei,
+                              uint8_t *buffer, uint32_t len);
 
-int decode_quality_of_service(QualityOfService* qualityofservice, uint8_t iei,
-                              uint8_t* buffer, uint32_t len);
+int decode_quality_of_service(QualityOfService *qualityofservice, uint8_t iei,
+                              uint8_t *buffer, uint32_t len);
 
-void dump_quality_of_service_xml(QualityOfService* qualityofservice,
+void dump_quality_of_service_xml(QualityOfService *qualityofservice,
                                  uint8_t iei);

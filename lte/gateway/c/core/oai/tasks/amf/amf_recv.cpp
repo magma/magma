@@ -15,21 +15,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include <unordered_map>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
+#include <unordered_map>
 
 #define AMF_CAUSE_SUCCESS (1)
 #define AMF_CAUSE_UE_SEC_CAP_MISSMATCH (23)
@@ -39,18 +39,18 @@ extern "C" {
 namespace magma5g {
 
 status_code_e amf_handle_service_request(
-    amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
+    amf_ue_ngap_id_t ue_id, ServiceRequestMsg *msg,
     const amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   status_code_e rc = RETURNok;
-  ue_m5gmm_context_s* ue_context = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
   notify_ue_event notify_ue_event_type;
   amf_sap_t amf_sap;
   tmsi_t tmsi_rcv;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   uint16_t pdu_session_status = 0;
   uint32_t tmsi_stored;
-  paging_context_t* paging_ctx = nullptr;
+  paging_context_t *paging_ctx = nullptr;
 
   OAILOG_DEBUG(LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
                msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[0],
@@ -127,7 +127,7 @@ status_code_e amf_handle_service_request(
         if (!msg->uplink_data_status.uplinkDataStatus) {
           rc = amf_sap_send(&amf_sap);
         } else {
-          for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+          for (const auto &it : ue_context->amf_context.smf_ctxt_map) {
             std::shared_ptr<smf_context_t> smf_ctxt = it.second;
             if (smf_ctxt) {
               if (smf_ctxt->pdu_session_state == ACTIVE) {
@@ -157,7 +157,7 @@ status_code_e amf_handle_service_request(
           ue_context->pending_service_response = true;
 
           IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
-          for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+          for (const auto &it : ue_context->amf_context.smf_ctxt_map) {
             std::shared_ptr<smf_context_t> smf_ctxt = it.second;
             if (smf_ctxt) {
               if (msg->uplink_data_status.uplinkDataStatus &
@@ -217,8 +217,8 @@ status_code_e amf_handle_service_request(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
-                           supi_as_imsi_t& supi_imsi) {
+void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity &imsi,
+                           supi_as_imsi_t &supi_imsi) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   supi_imsi.plmn.mcc_digit1 = imsi.mcc_digit1;
   supi_imsi.plmn.mcc_digit2 = imsi.mcc_digit2;
@@ -230,8 +230,8 @@ void amf_copy_plmn_to_supi(const ImsiM5GSMobileIdentity& imsi,
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-status_code_e amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
-                                       ue_m5gmm_context_s* ue_context) {
+status_code_e amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity &imsi,
+                                       ue_m5gmm_context_s *ue_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null");
@@ -247,8 +247,8 @@ status_code_e amf_copy_plmn_to_context(const ImsiM5GSMobileIdentity& imsi,
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
-int amf_copy_plmn_to_context_guti(const GutiM5GSMobileIdentity& guti,
-                                  ue_m5gmm_context_s* ue_context) {
+int amf_copy_plmn_to_context_guti(const GutiM5GSMobileIdentity &guti,
+                                  ue_m5gmm_context_s *ue_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "UE context is null");
@@ -265,7 +265,7 @@ int amf_copy_plmn_to_context_guti(const GutiM5GSMobileIdentity& guti,
 }
 
 void amf_get_registration_type_request(
-    uint8_t received_reg_type, amf_proc_registration_type_t* params_reg_type) {
+    uint8_t received_reg_type, amf_proc_registration_type_t *params_reg_type) {
   std::string reg_type;
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (received_reg_type == AMF_REGISTRATION_TYPE_INITIAL) {
@@ -291,8 +291,8 @@ void amf_get_registration_type_request(
 
 /* Identifies 5GS Registration type and processes the Message accordingly */
 status_code_e amf_handle_registration_request(
-    amf_ue_ngap_id_t ue_id, tai_t* originating_tai, ecgi_t* originating_ecgi,
-    RegistrationRequestMsg* msg, const bool is_initial,
+    amf_ue_ngap_id_t ue_id, tai_t *originating_tai, ecgi_t *originating_ecgi,
+    RegistrationRequestMsg *msg, const bool is_initial,
     const bool is_amf_ctx_new, int amf_cause,
     const amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
@@ -323,14 +323,14 @@ status_code_e amf_handle_registration_request(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_m5gmm_context_s *ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "UE context is null for UE ID: " AMF_UE_NGAP_ID_FMT, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  amf_registration_request_ies_t* params =
+  amf_registration_request_ies_t *params =
       new (amf_registration_request_ies_t)();
 
   // Store the registration type in params
@@ -344,7 +344,7 @@ status_code_e amf_handle_registration_request(
            &(msg->ue_sec_capability), sizeof(UESecurityCapabilityMsg));
   }
   memcpy(&(ue_context->amf_context.originating_tai),
-         (const void*)originating_tai, sizeof(tai_t));
+         (const void *)originating_tai, sizeof(tai_t));
 
   ue_context->amf_context.decode_status = decode_status;
 
@@ -468,7 +468,7 @@ status_code_e amf_handle_registration_request(
 
         amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
 
-        amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
+        amf_ue_context_on_new_guti(ue_context, (guti_m5_t *)&amf_guti);
 
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
         ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
@@ -483,12 +483,12 @@ status_code_e amf_handle_registration_request(
 
         ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
 
-        std::string empheral_public_key = reinterpret_cast<char*>(
+        std::string empheral_public_key = reinterpret_cast<char *>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.empheral_public_key);
-        std::string ciphertext = reinterpret_cast<char*>(
+        std::string ciphertext = reinterpret_cast<char *>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext->data);
         bdestroy(msg->m5gs_mobile_identity.mobile_identity.imsi.ciphertext);
-        std::string mac_tag = reinterpret_cast<char*>(
+        std::string mac_tag = reinterpret_cast<char *>(
             msg->m5gs_mobile_identity.mobile_identity.imsi.mac_tag);
 
         get_decrypt_imsi_suci_extension(
@@ -590,7 +590,7 @@ status_code_e amf_handle_registration_request(
                    " new 5G-TMSI value 0x%08" PRIx32 "\n",
                    amf_guti.m_tmsi);
 
-      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*)&amf_guti);
+      amf_ue_context_on_new_guti(ue_context, (guti_m5_t *)&amf_guti);
       ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
 
       params->guti = new (guti_m5_t)();
@@ -639,9 +639,10 @@ status_code_e amf_handle_registration_request(
  **                                                                        **
  ***************************************************************************/
 
-status_code_e amf_handle_identity_response(
-    amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg, int amf_cause,
-    amf_nas_message_decode_status_t decode_status) {
+status_code_e
+amf_handle_identity_response(amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg *msg,
+                             int amf_cause,
+                             amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   status_code_e rc = RETURNerror;
 
@@ -649,13 +650,13 @@ status_code_e amf_handle_identity_response(
   // Get the mobile identity
 
   imsi_t imsi = {0}, *p_imsi = NULL;
-  imei_t* p_imei = NULL;
-  imeisv_t* p_imeisv = NULL;
-  tmsi_t* p_tmsi = NULL;
+  imei_t *p_imei = NULL;
+  imeisv_t *p_imeisv = NULL;
+  tmsi_t *p_tmsi = NULL;
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
-  guti_m5_t* amf_ctx_guti = NULL;
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  guti_m5_t *amf_ctx_guti = NULL;
+  ue_m5gmm_context_s *ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   // This is SUCI message identity type is SUPI as IMSI type
   // Extract the SUPI from SUCI directly as scheme is NULL
@@ -698,19 +699,19 @@ status_code_e amf_handle_identity_response(
       // which will be used to send in DL message during registration
       // accept message
 
-      amf_ctx_guti = reinterpret_cast<guti_m5_t*>(&amf_guti);
+      amf_ctx_guti = reinterpret_cast<guti_m5_t *>(&amf_guti);
 
       if (ue_context) {
         ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
         amf_ue_context_on_new_guti(ue_context,
-                                   reinterpret_cast<guti_m5_t*>(&amf_guti));
+                                   reinterpret_cast<guti_m5_t *>(&amf_guti));
       }
 
       // Execute the identification completion procedure
 
-      rc = amf_proc_identification_complete(ue_id, p_imsi, p_imei, p_imeisv,
-                                            reinterpret_cast<uint32_t*>(p_tmsi),
-                                            amf_ctx_guti);
+      rc = amf_proc_identification_complete(
+          ue_id, p_imsi, p_imei, p_imeisv, reinterpret_cast<uint32_t *>(p_tmsi),
+          amf_ctx_guti);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     } else {
       // Call subscriberdb to decode the SUPI or IMSI from SUCI as scheme
@@ -719,13 +720,13 @@ status_code_e amf_handle_identity_response(
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
       amf_copy_plmn_to_context(msg->mobile_identity.imsi, ue_context);
 
-      std::string empheral_public_key = reinterpret_cast<char*>(
+      std::string empheral_public_key = reinterpret_cast<char *>(
           msg->mobile_identity.imsi.empheral_public_key);
       std::string ciphertext =
-          reinterpret_cast<char*>(msg->mobile_identity.imsi.ciphertext->data);
+          reinterpret_cast<char *>(msg->mobile_identity.imsi.ciphertext->data);
       bdestroy(msg->mobile_identity.imsi.ciphertext);
       std::string mac_tag =
-          reinterpret_cast<char*>(msg->mobile_identity.imsi.mac_tag);
+          reinterpret_cast<char *>(msg->mobile_identity.imsi.mac_tag);
       rc = RETURNok;
       get_decrypt_imsi_suci_extension(&ue_context->amf_context,
                                       msg->mobile_identity.imsi.home_nw_id,
@@ -754,7 +755,7 @@ status_code_e amf_handle_identity_response(
  **                                                                        **
  ***************************************************************************/
 status_code_e amf_handle_authentication_response(
-    amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
+    amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg *msg, int amf_cause,
     amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   status_code_e rc = RETURNok;
@@ -799,9 +800,10 @@ status_code_e amf_handle_authentication_response(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e amf_handle_authentication_failure(
-    amf_ue_ngap_id_t ue_id, AuthenticationFailureMsg* msg, int amf_cause,
-    amf_nas_message_decode_status_t status) {
+status_code_e
+amf_handle_authentication_failure(amf_ue_ngap_id_t ue_id,
+                                  AuthenticationFailureMsg *msg, int amf_cause,
+                                  amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   status_code_e rc = RETURNok;
 
@@ -835,9 +837,10 @@ status_code_e amf_handle_authentication_failure(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e amf_handle_security_mode_reject(
-    amf_ue_ngap_id_t ue_id, SecurityModeRejectMsg* msg, int amf_cause,
-    const amf_nas_message_decode_status_t status) {
+status_code_e
+amf_handle_security_mode_reject(amf_ue_ngap_id_t ue_id,
+                                SecurityModeRejectMsg *msg, int amf_cause,
+                                const amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   status_code_e rc = RETURNok;
 
@@ -875,4 +878,4 @@ status_code_e amf_handle_security_mode_reject(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

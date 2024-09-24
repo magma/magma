@@ -40,10 +40,10 @@
  * S1AP Constants
  ******************************************************************************/
 
-#define S1AP_PORT_NUMBER (36412)  ///< S1AP SCTP IANA ASSIGNED Port Number
-#define S1AP_SCTP_PPID (18)  ///< S1AP SCTP Payload Protocol Identifier (PPID)
+#define S1AP_PORT_NUMBER (36412) ///< S1AP SCTP IANA ASSIGNED Port Number
+#define S1AP_SCTP_PPID (18) ///< S1AP SCTP Payload Protocol Identifier (PPID)
 
-#define S1AP_OUTCOME_TIMER_DEFAULT (5)  ///< S1AP Outcome drop timer (s)
+#define S1AP_OUTCOME_TIMER_DEFAULT (5) ///< S1AP Outcome drop timer (s)
 
 /*******************************************************************************
  * S6A Constants
@@ -66,8 +66,8 @@
 
 #define MMEC (0)
 #define MMEGID (0)
-#define PLMN_MCC (1)  // maps to mcc = "001"
-#define PLMN_MNC (1)  // maps to mnc = "01"
+#define PLMN_MCC (1) // maps to mcc = "001"
+#define PLMN_MNC (1) // maps to mnc = "01"
 #define PLMN_MNC_LEN (2)
 #define PLMN_TAC (1)
 

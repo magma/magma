@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnConnectivityRequest.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 int decode_pdn_connectivity_request(
-    pdn_connectivity_request_msg* pdn_connectivity_request, uint8_t* buffer,
+    pdn_connectivity_request_msg *pdn_connectivity_request, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -66,67 +66,68 @@ int decode_pdn_connectivity_request(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case PDN_CONNECTIVITY_REQUEST_ESM_INFORMATION_TRANSFER_FLAG_IEI:
-        if ((decoded_result = decode_esm_information_transfer_flag(
-                 &pdn_connectivity_request->esminformationtransferflag,
-                 PDN_CONNECTIVITY_REQUEST_ESM_INFORMATION_TRANSFER_FLAG_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case PDN_CONNECTIVITY_REQUEST_ESM_INFORMATION_TRANSFER_FLAG_IEI:
+      if ((decoded_result = decode_esm_information_transfer_flag(
+               &pdn_connectivity_request->esminformationtransferflag,
+               PDN_CONNECTIVITY_REQUEST_ESM_INFORMATION_TRANSFER_FLAG_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        pdn_connectivity_request->presencemask |=
-            PDN_CONNECTIVITY_REQUEST_ESM_INFORMATION_TRANSFER_FLAG_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      pdn_connectivity_request->presencemask |=
+          PDN_CONNECTIVITY_REQUEST_ESM_INFORMATION_TRANSFER_FLAG_PRESENT;
+      break;
 
-      case PDN_CONNECTIVITY_REQUEST_ACCESS_POINT_NAME_IEI:
-        if ((decoded_result = decode_access_point_name_ie(
-                 &pdn_connectivity_request->accesspointname, true,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case PDN_CONNECTIVITY_REQUEST_ACCESS_POINT_NAME_IEI:
+      if ((decoded_result = decode_access_point_name_ie(
+               &pdn_connectivity_request->accesspointname, true,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        pdn_connectivity_request->presencemask |=
-            PDN_CONNECTIVITY_REQUEST_ACCESS_POINT_NAME_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      pdn_connectivity_request->presencemask |=
+          PDN_CONNECTIVITY_REQUEST_ACCESS_POINT_NAME_PRESENT;
+      break;
 
-      case PDN_CONNECTIVITY_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
-        if ((decoded_result = decode_protocol_configuration_options_ie(
-                 &pdn_connectivity_request->protocolconfigurationoptions, true,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case PDN_CONNECTIVITY_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
+      if ((decoded_result = decode_protocol_configuration_options_ie(
+               &pdn_connectivity_request->protocolconfigurationoptions, true,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        pdn_connectivity_request->presencemask |=
-            PDN_CONNECTIVITY_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      pdn_connectivity_request->presencemask |=
+          PDN_CONNECTIVITY_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+      break;
 
-      case PDN_CONNECTIVITY_REQUEST_DEVICE_PROPERTIES_IEI:
-      case PDN_CONNECTIVITY_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI:
-        // Skip this IE. Not supported. It is relevant for delay tolerant
-        // devices such as IoT devices.
-        OAILOG_INFO(
-            LOG_NAS_ESM,
-            "ESM-MSG - Device Properties IE in PDN Connectivity Request is not "
-            "supported. Skipping this IE. IE = %x\n",
-            ieiDecoded);
-        decoded += 1;  // Device Properties is 1 byte
-        break;
+    case PDN_CONNECTIVITY_REQUEST_DEVICE_PROPERTIES_IEI:
+    case PDN_CONNECTIVITY_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI:
+      // Skip this IE. Not supported. It is relevant for delay tolerant
+      // devices such as IoT devices.
+      OAILOG_INFO(
+          LOG_NAS_ESM,
+          "ESM-MSG - Device Properties IE in PDN Connectivity Request is not "
+          "supported. Skipping this IE. IE = %x\n",
+          ieiDecoded);
+      decoded += 1; // Device Properties is 1 byte
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -134,7 +135,7 @@ int decode_pdn_connectivity_request(
 }
 
 int encode_pdn_connectivity_request(
-    pdn_connectivity_request_msg* pdn_connectivity_request, uint8_t* buffer,
+    pdn_connectivity_request_msg *pdn_connectivity_request, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   int encode_result = 0;

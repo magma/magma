@@ -32,8 +32,8 @@ extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 
 //------------------------------------------------------------------------------
-int decode_tracking_area_identity_list(tai_list_t* trackingareaidentitylist,
-                                       uint8_t iei, uint8_t* buffer,
+int decode_tracking_area_identity_list(tai_list_t *trackingareaidentitylist,
+                                       uint8_t iei, uint8_t *buffer,
                                        uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
@@ -166,10 +166,10 @@ int decode_tracking_area_identity_list(tai_list_t* trackingareaidentitylist,
 }
 
 //------------------------------------------------------------------------------
-int encode_tracking_area_identity_list(tai_list_t* trackingareaidentitylist,
-                                       uint8_t iei, uint8_t* buffer,
+int encode_tracking_area_identity_list(tai_list_t *trackingareaidentitylist,
+                                       uint8_t iei, uint8_t *buffer,
                                        uint32_t len) {
-  uint8_t* lenPtr;
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*

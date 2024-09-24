@@ -19,8 +19,8 @@
 
 *****************************************************************************/
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "Ngap_BroadcastPLMNItem.h"
 #include "Ngap_BroadcastPLMNList.h"
@@ -38,10 +38,10 @@
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 static int32_t ngap_tai_item_slice_compare(
-    const Ngap_SliceSupportList_t* const slice_support_list,
-    const amf_s_nssai_t* const config_nssai) {
+    const Ngap_SliceSupportList_t *const slice_support_list,
+    const amf_s_nssai_t *const config_nssai) {
   uint8_t slice_list_count = slice_support_list->list.count;
-  Ngap_S_NSSAI_t* s_NSSAI = NULL;
+  Ngap_S_NSSAI_t *s_NSSAI = NULL;
   int32_t ret = NGAP_SLICE_CMP_MATCH_FAILED_SD;
 
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -56,7 +56,7 @@ static int32_t ngap_tai_item_slice_compare(
 
     // If Slice Differenitator does not match keep looking
     if (s_NSSAI->sD) {
-      uint32_t rcvd_sd_val = htonl(*(uint32_t*)s_NSSAI->sD->buf);
+      uint32_t rcvd_sd_val = htonl(*(uint32_t *)s_NSSAI->sD->buf);
       rcvd_sd_val = rcvd_sd_val >> 8;
 
       if (config_nssai->sd.v != rcvd_sd_val) {
@@ -71,9 +71,9 @@ static int32_t ngap_tai_item_slice_compare(
 }
 
 /* Compare the list against PLMN Support List */
-static int ngap_amf_compare_plmn(
-    const Ngap_PLMNIdentity_t* const plmn,
-    const Ngap_SliceSupportList_t* const slice_support_list) {
+static int
+ngap_amf_compare_plmn(const Ngap_PLMNIdentity_t *const plmn,
+                      const Ngap_SliceSupportList_t *const slice_support_list) {
   uint16_t mcc = 0;
   uint16_t mnc = 0;
   uint16_t mnc_len = 0;
@@ -119,10 +119,10 @@ static int ngap_amf_compare_plmn(
                 &(amf_config.plmn_support_list.plmn_support[i].s_nssai)) == 0) {
           ret = TA_LIST_AT_LEAST_ONE_MATCH;
           break;
-        }  // Slice Found in plmn_support list
-      }    // Plmn found in support list
-    }      // Loop through plmn support list
-  }        // Plmn Match Found
+        } // Slice Found in plmn_support list
+      }   // Plmn found in support list
+    }     // Loop through plmn support list
+  }       // Plmn Match Found
 
   amf_config_unlock(&amf_config);
   OAILOG_FUNC_RETURN(LOG_NGAP, ret);
@@ -130,7 +130,7 @@ static int ngap_amf_compare_plmn(
 
 /* @brief compare a list of broadcasted plmns against the AMF configured.
  */
-static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
+static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t *b_plmns) {
   int i = 0;
   int matching_occurrence = 0;
   DevAssert(b_plmns != NULL);
@@ -154,7 +154,7 @@ static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
 
 /* @brief compare a TAC
  */
-static int ngap_amf_compare_tac(const Ngap_TAC_t* tac) {
+static int ngap_amf_compare_tac(const Ngap_TAC_t *tac) {
   int i = 0;
   uint16_t tac_value = 0;
 
@@ -181,7 +181,7 @@ static int ngap_amf_compare_tac(const Ngap_TAC_t* tac) {
            - TA_LIST_UNKNOWN_TAC if at least one PLMN match and no TAC match
            - TA_LIST_RET_OK if both tac and plmn match at least one element
 */
-int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list) {
+int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t *ta_list) {
   int i;
   int tac_ret, bplmn_ret;
 
@@ -192,7 +192,7 @@ int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list) {
    */
   OAILOG_FUNC_IN(LOG_NGAP);
   for (i = 0; i < ta_list->list.count; i++) {
-    Ngap_SupportedTAItem_t* ta;
+    Ngap_SupportedTAItem_t *ta;
 
     ta = ta_list->list.array[i];
     DevAssert(ta != NULL);
@@ -215,13 +215,13 @@ int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list) {
 
 /* @brief compare PLMNs
  */
-static int ngap_paging_compare_plmns(m5g_supported_tai_items_t* gnb_tai_item,
-                                     const paging_tai_list_t* p_tai_list) {
+static int ngap_paging_compare_plmns(m5g_supported_tai_items_t *gnb_tai_item,
+                                     const paging_tai_list_t *p_tai_list) {
   int plmn_idx, p_plmn_idx;
 
   OAILOG_FUNC_IN(LOG_NGAP);
   for (plmn_idx = 0; plmn_idx < gnb_tai_item->bplmnlist_count; plmn_idx++) {
-    plmn_t* gnb_plmn = NULL;
+    plmn_t *gnb_plmn = NULL;
     gnb_plmn = &gnb_tai_item->bplmn_list[plmn_idx].plmn_id;
     if (gnb_plmn == NULL) {
       OAILOG_ERROR(LOG_NGAP, "PLMN Information not found in eNB tai list\n");
@@ -249,7 +249,7 @@ static int ngap_paging_compare_plmns(m5g_supported_tai_items_t* gnb_tai_item,
 /* @brief compare a TAC
  */
 static int ngap_paging_compare_tac(uint8_t gnb_tac,
-                                   const paging_tai_list_t* p_tai_list) {
+                                   const paging_tai_list_t *p_tai_list) {
   OAILOG_FUNC_IN(LOG_NGAP);
   for (int p_tac_count = 0; p_tac_count < (p_tai_list->numoftac + 1);
        p_tac_count++) {
@@ -266,8 +266,8 @@ static int ngap_paging_compare_tac(uint8_t gnb_tac,
    ENBs
            - tai_matching=1 if both TAC and PLMN matches with list of ENBs
 */
-int ngap_paging_compare_ta_lists(m5g_supported_ta_list_t* gnb_ta_list,
-                                 const paging_tai_list_t* p_tai_list,
+int ngap_paging_compare_ta_lists(m5g_supported_ta_list_t *gnb_ta_list,
+                                 const paging_tai_list_t *p_tai_list,
                                  uint8_t p_tai_list_count) {
   bool tac_ret = false, bplmn_ret = false;
   int gnb_tai_count, p_list_count;
@@ -275,14 +275,14 @@ int ngap_paging_compare_ta_lists(m5g_supported_ta_list_t* gnb_ta_list,
   OAILOG_FUNC_IN(LOG_NGAP);
   for (gnb_tai_count = 0; gnb_tai_count < gnb_ta_list->list_count;
        gnb_tai_count++) {
-    m5g_supported_tai_items_t* gnb_tai_item = NULL;
+    m5g_supported_tai_items_t *gnb_tai_item = NULL;
     gnb_tai_item = &gnb_ta_list->supported_tai_items[gnb_tai_count];
     if (gnb_tai_item == NULL) {
       OAILOG_ERROR(LOG_NGAP, "TAI Item not found in eNB TA List\n");
       OAILOG_FUNC_RETURN(LOG_NGAP, false);
     }
     for (p_list_count = 0; p_list_count < p_tai_list_count; p_list_count++) {
-      const paging_tai_list_t* tai = NULL;
+      const paging_tai_list_t *tai = NULL;
       tai = &p_tai_list[p_list_count];
       if (tai == NULL) {
         OAILOG_ERROR(LOG_NGAP, "Paging TAI list not found\n");

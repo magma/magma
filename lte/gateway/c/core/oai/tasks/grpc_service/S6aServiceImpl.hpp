@@ -23,13 +23,13 @@
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class DeleteSubscriberRequest;
 class DeleteSubscriberResponse;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::ServerContext;
 using magma::lte::DeleteSubscriberRequest;
@@ -40,7 +40,7 @@ namespace magma {
 using namespace lte;
 
 class S6aServiceImpl final : public S6aService::Service {
- public:
+public:
   S6aServiceImpl();
 
   /*
@@ -53,9 +53,9 @@ class S6aServiceImpl final : public S6aService::Service {
                                 err message.
        * @return grpc Status instance
        */
-  grpc::Status DeleteSubscriber(ServerContext* context,
-                                const DeleteSubscriberRequest* request,
-                                DeleteSubscriberResponse* response) override;
+  grpc::Status DeleteSubscriber(ServerContext *context,
+                                const DeleteSubscriberRequest *request,
+                                DeleteSubscriberResponse *response) override;
 };
 
-}  // namespace magma
+} // namespace magma

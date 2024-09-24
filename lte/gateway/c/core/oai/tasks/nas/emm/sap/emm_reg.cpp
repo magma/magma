@@ -78,7 +78,7 @@ void emm_reg_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_reg_send(emm_reg_t* const msg) {
+status_code_e emm_reg_send(emm_reg_t *const msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
 

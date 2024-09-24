@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 #include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <yaml-cpp/yaml.h> // IWYU pragma: keep
 
 using google::protobuf::Message;
 
@@ -55,8 +55,8 @@ void RedisClient::init_db_connection() {
   is_connected_ = true;
 }
 
-status_code_e RedisClient::write(const std::string& key,
-                                 const std::string& value) {
+status_code_e RedisClient::write(const std::string &key,
+                                 const std::string &value) {
 #if !MME_UNIT_TEST
   if (!is_connected()) {
     return RETURNerror;
@@ -73,7 +73,7 @@ status_code_e RedisClient::write(const std::string& key,
   return RETURNok;
 }
 
-std::string RedisClient::read(const std::string& key) {
+std::string RedisClient::read(const std::string &key) {
   auto db_read_fut = db_client_->get(key);
   db_client_->sync_commit();
   auto db_read_reply = db_read_fut.get();
@@ -89,8 +89,8 @@ std::string RedisClient::read(const std::string& key) {
   return db_read_reply.as_string();
 }
 
-status_code_e RedisClient::write_proto_str(const std::string& key,
-                                           const std::string& proto_msg,
+status_code_e RedisClient::write_proto_str(const std::string &key,
+                                           const std::string &proto_msg,
                                            uint64_t version) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
   wrapper_proto.set_serialized_msg(proto_msg);
@@ -106,8 +106,8 @@ status_code_e RedisClient::write_proto_str(const std::string& key,
   return RETURNok;
 }
 
-status_code_e RedisClient::read_proto(const std::string& key,
-                                      Message& proto_msg) {
+status_code_e RedisClient::read_proto(const std::string &key,
+                                      Message &proto_msg) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
   if (read_redis_state(key, wrapper_proto) != RETURNok) {
     return RETURNerror;
@@ -121,7 +121,7 @@ status_code_e RedisClient::read_proto(const std::string& key,
   return RETURNok;
 }
 
-int RedisClient::read_version(const std::string& key) {
+int RedisClient::read_version(const std::string &key) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
   if (read_redis_state(key, wrapper_proto) != RETURNok) {
     return RETURNerror;
@@ -130,8 +130,8 @@ int RedisClient::read_version(const std::string& key) {
   return wrapper_proto.version();
 }
 
-status_code_e RedisClient::clear_keys(
-    const std::vector<std::string>& keys_to_clear) {
+status_code_e
+RedisClient::clear_keys(const std::vector<std::string> &keys_to_clear) {
 #if !MME_UNIT_TEST
   auto db_write = db_client_->del(keys_to_clear);
   db_client_->sync_commit();
@@ -144,7 +144,7 @@ status_code_e RedisClient::clear_keys(
   return RETURNok;
 }
 
-std::vector<std::string> RedisClient::get_keys(const std::string& pattern) {
+std::vector<std::string> RedisClient::get_keys(const std::string &pattern) {
   size_t cursor = 0;
   std::vector<std::string> replies;
   do {
@@ -163,7 +163,7 @@ std::vector<std::string> RedisClient::get_keys(const std::string& pattern) {
     auto response = db_read_reply.as_array();
     auto returned_keys = response[1];
 
-    for (const auto& reply : returned_keys.as_array()) {
+    for (const auto &reply : returned_keys.as_array()) {
       replies.emplace_back(reply.as_string());
     }
 
@@ -174,34 +174,34 @@ std::vector<std::string> RedisClient::get_keys(const std::string& pattern) {
   return replies;
 }
 
-status_code_e RedisClient::read_redis_state(const std::string& key,
-                                            orc8r::RedisState& state_out) {
+status_code_e RedisClient::read_redis_state(const std::string &key,
+                                            orc8r::RedisState &state_out) {
   try {
     std::string str_value = read(key);
     if (deserialize(state_out, str_value) != RETURNok) {
       return RETURNerror;
     }
     return RETURNok;
-  } catch (const std::runtime_error& e) {
+  } catch (const std::runtime_error &e) {
     return RETURNerror;
   }
 }
 
-status_code_e RedisClient::serialize(const Message& proto_msg,
-                                     std::string& str_to_serialize) {
+status_code_e RedisClient::serialize(const Message &proto_msg,
+                                     std::string &str_to_serialize) {
   if (!proto_msg.SerializeToString(&str_to_serialize)) {
     return RETURNerror;
   }
   return RETURNok;
 }
 
-status_code_e RedisClient::deserialize(Message& proto_msg,
-                                       const std::string& str_to_deserialize) {
+status_code_e RedisClient::deserialize(Message &proto_msg,
+                                       const std::string &str_to_deserialize) {
   if (!proto_msg.ParseFromString(str_to_deserialize)) {
     return RETURNerror;
   }
   return RETURNok;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

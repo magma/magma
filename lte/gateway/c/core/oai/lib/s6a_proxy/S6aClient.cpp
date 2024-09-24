@@ -18,8 +18,8 @@
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
 
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
 #include <iostream>
+#include <thread> // std::thread
 #include <utility>
 
 #include "feg/protos/s6a_proxy.pb.h"
@@ -36,7 +36,7 @@ extern "C" {
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::Status;
 #define MME_SERVICE "mme"
@@ -78,7 +78,7 @@ bool S6aClient::read_hss_relay_enabled() {
   if (!magma::load_service_mconfig_from_file(MME_SERVICE, &mconfig)) {
     std::cout << "[INFO] Unable to load mconfig for mme, S6a relay is disabled"
               << std::endl;
-    return false;  // default is - relay disabled
+    return false; // default is - relay disabled
   }
   if (mconfig.relay_enabled()) {
     return true;
@@ -93,34 +93,34 @@ bool S6aClient::read_mme_cloud_subscriberdb_enabled() {
     std::cout << "[INFO] Unable to load mconfig for mme, cloud subscriberdb is "
                  "disabled"
               << std::endl;
-    return false;  // default is - cloud subscriberdb disabled
+    return false; // default is - cloud subscriberdb disabled
   }
   return mconfig.cloud_subscriberdb_enabled();
 }
 
-S6aClient& S6aClient::get_s6a_proxy_instance() {
+S6aClient &S6aClient::get_s6a_proxy_instance() {
   static S6aClient s6a_proxy_instance(true);
   return s6a_proxy_instance;
 }
 
-S6aClient& S6aClient::get_subscriberdb_instance() {
+S6aClient &S6aClient::get_subscriberdb_instance() {
   static S6aClient subscriberdb_instance(false);
   return subscriberdb_instance;
 }
 
-S6aClient& S6aClient::get_client_based_on_fed_mode(const char* imsi) {
+S6aClient &S6aClient::get_client_based_on_fed_mode(const char *imsi) {
   // get_client_based_on_fed_mode finds out the s6a_client (either subscribrdb
   // or FEG) based on imsi and fed map configured
   switch (match_fed_mode_map(imsi, LOG_S6A)) {
-    case magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER:
-    case magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER:
-      return get_s6a_proxy_instance();
-    case magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER:
-      return get_subscriberdb_instance();
-    default:
-      std::cout << "[ERROR] Unable to find appropriate fed mode for " << imsi
-                << ". Using local s6a_cli" << std::endl;
-      return get_subscriberdb_instance();
+  case magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER:
+  case magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER:
+    return get_s6a_proxy_instance();
+  case magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER:
+    return get_subscriberdb_instance();
+  default:
+    std::cout << "[ERROR] Unable to find appropriate fed mode for " << imsi
+              << ". Using local s6a_cli" << std::endl;
+    return get_subscriberdb_instance();
   }
 }
 
@@ -153,9 +153,9 @@ S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
   resp_loop_thread.detach();
 }
 
-void S6aClient::purge_ue(const char* imsi,
+void S6aClient::purge_ue(const char *imsi,
                          std::function<void(Status, PurgeUEAnswer)> callbk) {
-  S6aClient& client = get_client_based_on_fed_mode(imsi);
+  S6aClient &client = get_client_based_on_fed_mode(imsi);
 
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
@@ -177,9 +177,9 @@ void S6aClient::purge_ue(const char* imsi,
 }
 
 void S6aClient::authentication_info_req(
-    const s6a_auth_info_req_t* const msg,
+    const s6a_auth_info_req_t *const msg,
     std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk) {
-  S6aClient& client = get_client_based_on_fed_mode(msg->imsi);
+  S6aClient &client = get_client_based_on_fed_mode(msg->imsi);
 
   AuthenticationInformationRequest proto_msg =
       convert_itti_s6a_authentication_info_req_to_proto_msg(msg);
@@ -201,9 +201,9 @@ void S6aClient::authentication_info_req(
 }
 
 void S6aClient::update_location_request(
-    const s6a_update_location_req_t* const msg,
+    const s6a_update_location_req_t *const msg,
     std::function<void(Status, feg::UpdateLocationAnswer)> callbk) {
-  S6aClient& client = get_client_based_on_fed_mode(msg->imsi);
+  S6aClient &client = get_client_based_on_fed_mode(msg->imsi);
 
   UpdateLocationRequest proto_msg =
       convert_itti_s6a_update_location_request_to_proto_msg(msg);
@@ -225,7 +225,7 @@ void S6aClient::update_location_request(
 }
 
 void S6aClient::convert_ula_to_subscriber_data(
-    feg::UpdateLocationAnswer response, magma::lte::SubscriberData* sub_data) {
+    feg::UpdateLocationAnswer response, magma::lte::SubscriberData *sub_data) {
   if (response.apn_size() < 1) {
     std::cout << "No APN configurations received" << std::endl;
     return;
@@ -300,4 +300,4 @@ void S6aClient::convert_ula_to_subscriber_data(
   }
 }
 
-}  // namespace magma
+} // namespace magma

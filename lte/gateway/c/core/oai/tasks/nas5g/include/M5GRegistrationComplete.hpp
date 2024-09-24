@@ -10,16 +10,16 @@ limitations under the License.
 */
 
 #pragma once
-#include <sstream>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 class RegistrationCompleteMsg {
- public:
+public:
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SecurityHeaderTypeMsg sec_header_type;
   SpareHalfOctetMsg spare_half_octet;
@@ -29,12 +29,12 @@ class RegistrationCompleteMsg {
 
   RegistrationCompleteMsg();
   ~RegistrationCompleteMsg();
-  int DecodeRegistrationCompleteMsg(RegistrationCompleteMsg* reg_complete,
-                                    uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationCompleteMsg(RegistrationCompleteMsg* reg_complete,
-                                    uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationCompleteMsg(RegistrationCompleteMsg *reg_complete,
+                                    uint8_t *buffer, uint32_t len);
+  int EncodeRegistrationCompleteMsg(RegistrationCompleteMsg *reg_complete,
+                                    uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    Table 8.2.8.1.1: REGISTRATION COMPLETE message content

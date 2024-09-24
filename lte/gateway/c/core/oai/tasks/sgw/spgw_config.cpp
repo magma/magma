@@ -24,29 +24,29 @@
 #define SGW
 #define SPGW_CONFIG_C
 
-#include <unistd.h>
+#include <libconfig.h>
 #include <stdlib.h>
 #include <string.h>
-#include <libconfig.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 
-void spgw_config_display(spgw_config_t* config_p);
+void spgw_config_display(spgw_config_t *config_p);
 
 //------------------------------------------------------------------------------
-void spgw_config_init(spgw_config_t* config_pP) {
+void spgw_config_init(spgw_config_t *config_pP) {
   sgw_config_init(&config_pP->sgw_config);
   pgw_config_init(&config_pP->pgw_config);
 
@@ -59,7 +59,7 @@ void spgw_config_init(spgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e spgw_config_process(spgw_config_t* config_pP) {
+status_code_e spgw_config_process(spgw_config_t *config_pP) {
   if (RETURNok != sgw_config_process(&config_pP->sgw_config)) {
     return RETURNerror;
   }
@@ -71,7 +71,7 @@ status_code_e spgw_config_process(spgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e spgw_config_parse_file(spgw_config_t* config_pP) {
+status_code_e spgw_config_parse_file(spgw_config_t *config_pP) {
   config_t cfg = {0};
   config_init(&cfg);
 
@@ -113,13 +113,13 @@ status_code_e spgw_config_parse_file(spgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-void spgw_config_display(spgw_config_t* config_p) {
+void spgw_config_display(spgw_config_t *config_p) {
   sgw_config_display(&config_p->sgw_config);
   pgw_config_display(&config_p->pgw_config);
 }
 
 //------------------------------------------------------------------------------
-static void usage(char* target) {
+static void usage(char *target) {
   OAILOG_INFO(LOG_CONFIG, "==== EURECOM %s version: %s ====\n", PACKAGE_NAME,
               PACKAGE_VERSION);
   OAILOG_INFO(LOG_CONFIG, "Please report any bug to: %s\n", PACKAGE_BUGREPORT);
@@ -136,8 +136,8 @@ static void usage(char* target) {
               PACKAGE_NAME);
 }
 //------------------------------------------------------------------------------
-status_code_e spgw_config_parse_opt_line(int argc, char* argv[],
-                                         spgw_config_t* spgw_config_p) {
+status_code_e spgw_config_parse_opt_line(int argc, char *argv[],
+                                         spgw_config_t *spgw_config_p) {
   int c;
 
   spgw_config_init(spgw_config_p);
@@ -147,39 +147,39 @@ status_code_e spgw_config_parse_opt_line(int argc, char* argv[],
    */
   while ((c = getopt(argc, argv, "c:hi:K:V")) != -1) {
     switch (c) {
-      case 'c': {
-        /*
-         * Store the given configuration file. If no file is given,
-         * * * * then the default values will be used.
-         */
-        spgw_config_p->config_file = blk2bstr(optarg, strlen(optarg));
-        spgw_config_p->pgw_config.config_file =
-            bstrcpy(spgw_config_p->config_file);
-        spgw_config_p->sgw_config.config_file =
-            bstrcpy(spgw_config_p->config_file);
-        OAILOG_DEBUG(LOG_CONFIG, "spgw_config.config_file %s\n",
-                     bdata(spgw_config_p->config_file));
-      } break;
+    case 'c': {
+      /*
+       * Store the given configuration file. If no file is given,
+       * * * * then the default values will be used.
+       */
+      spgw_config_p->config_file = blk2bstr(optarg, strlen(optarg));
+      spgw_config_p->pgw_config.config_file =
+          bstrcpy(spgw_config_p->config_file);
+      spgw_config_p->sgw_config.config_file =
+          bstrcpy(spgw_config_p->config_file);
+      OAILOG_DEBUG(LOG_CONFIG, "spgw_config.config_file %s\n",
+                   bdata(spgw_config_p->config_file));
+    } break;
 
-      case 'V': {
-        OAILOG_DEBUG(LOG_CONFIG,
-                     "==== EURECOM %s v%s ===="
-                     "Please report any bug to: %s\n",
-                     PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
-      } break;
+    case 'V': {
+      OAILOG_DEBUG(LOG_CONFIG,
+                   "==== EURECOM %s v%s ===="
+                   "Please report any bug to: %s\n",
+                   PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
+    } break;
 
-      case 'K':
-        spgw_config_p->sgw_config.itti_config.log_file =
-            blk2bstr(optarg, strlen(optarg));
-        OAILOG_DEBUG(LOG_CONFIG,
-                     "spgw_config.sgw_config.itti_config.log_file %s\n",
-                     bdata(spgw_config_p->sgw_config.itti_config.log_file));
-        break;
+    case 'K':
+      spgw_config_p->sgw_config.itti_config.log_file =
+          blk2bstr(optarg, strlen(optarg));
+      OAILOG_DEBUG(LOG_CONFIG,
+                   "spgw_config.sgw_config.itti_config.log_file %s\n",
+                   bdata(spgw_config_p->sgw_config.itti_config.log_file));
+      break;
 
-      case 'h': /* Fall through */
-      default:
-        usage(argv[0]);
-        exit(0);
+    case 'h': /* Fall through */
+    default:
+      usage(argv[0]);
+      exit(0);
     }
   }
 
@@ -204,7 +204,7 @@ status_code_e spgw_config_parse_opt_line(int argc, char* argv[],
   return RETURNok;
 }
 
-void free_spgw_config(spgw_config_t* spgw_config_p) {
+void free_spgw_config(spgw_config_t *spgw_config_p) {
   OAI_FPRINTF_INFO("Cleaning up SPGW configs");
   free_pgw_config(&spgw_config_p->pgw_config);
   free_sgw_config(&spgw_config_p->sgw_config);

@@ -27,11 +27,11 @@ typedef struct EmergencyNumberList_tag {
   uint8_t emergencyservicecategoryvalue : 5;
 } EmergencyNumberList;
 
-int encode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_emergency_number_list(EmergencyNumberList *emergencynumberlist,
+                                 uint8_t iei, uint8_t *buffer, uint32_t len);
 
-int decode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_emergency_number_list(EmergencyNumberList *emergencynumberlist,
+                                 uint8_t iei, uint8_t *buffer, uint32_t len);
 
-void dump_emergency_number_list_xml(EmergencyNumberList* emergencynumberlist,
+void dump_emergency_number_list_xml(EmergencyNumberList *emergencynumberlist,
                                     uint8_t iei);

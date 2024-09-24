@@ -9,11 +9,11 @@
    limitations under the License.
  */
 
-#include <iomanip>
-#include <sstream>
+#include <array>
 #include <cstdint>
 #include <cstring>
-#include <array>
+#include <iomanip>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,8 +21,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
 
 namespace magma5g {
 M5GSMobileIdentityMsg::M5GSMobileIdentityMsg(){};
@@ -42,7 +42,7 @@ M5GSMobileIdentityIe::~M5GSMobileIdentityIe(){};
 
 // Decode GutiMobileIdentity IE Message
 int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
-    GutiM5GSMobileIdentity* guti, uint8_t* buffer, uint8_t ielen) {
+    GutiM5GSMobileIdentity *guti, uint8_t *buffer, uint8_t ielen) {
   int decoded = 0;
   uint16_t setid;
 
@@ -93,7 +93,7 @@ int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
 
 // Decode ImeiMobileIdentity IE
 int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
-    ImeiM5GSMobileIdentity* imei, uint8_t* buffer, uint8_t ielen) {
+    ImeiM5GSMobileIdentity *imei, uint8_t *buffer, uint8_t ielen) {
   int decoded = 0;
 
   imei->identity_digit1 = (*(buffer + decoded) >> 4) & 0xf;
@@ -121,7 +121,7 @@ int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
 
 // Decode ImsiMobileIdentity IE
 int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
-    ImsiM5GSMobileIdentity* imsi, uint8_t* buffer, uint8_t ielen) {
+    ImsiM5GSMobileIdentity *imsi, uint8_t *buffer, uint8_t ielen) {
   int decoded = 0;
   /* 5GS mobile identity comprises of
      1  byte  for spare bits, supi format and type of identity
@@ -237,7 +237,7 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
 // Will be supported POST MVC
 // Decode SuciMobileIdentity IE
 int M5GSMobileIdentityMsg::DecodeSuciMobileIdentityMsg(
-    SuciM5GSMobileIdentity* suci, uint8_t* buffer, uint8_t ielen) {
+    SuciM5GSMobileIdentity *suci, uint8_t *buffer, uint8_t ielen) {
   int decoded = 0;
 
   suci->spare2 = (*(buffer + decoded) >> 7) & 0x1;
@@ -261,7 +261,7 @@ int M5GSMobileIdentityMsg::DecodeSuciMobileIdentityMsg(
 
 // Decode TmsiMobileIdentity IE
 int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
-    TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer, uint8_t ielen) {
+    TmsiM5GSMobileIdentity *tmsi, uint8_t *buffer, uint8_t ielen) {
   int decoded = 0;
 
   tmsi->spare = (*(buffer + decoded) >> 4) & 0xf;
@@ -295,7 +295,7 @@ int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
 
 // Decode M5GSMobileIdentity IE
 int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
-    M5GSMobileIdentityMsg* mg5smobile_identity, uint8_t iei, uint8_t* buffer,
+    M5GSMobileIdentityMsg *mg5smobile_identity, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int decoded_rc = TLV_VALUE_DOESNT_MATCH;
   int decoded = 0;
@@ -337,7 +337,7 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
 
 // Encode GutiMobileIdentity IE
 int M5GSMobileIdentityMsg::EncodeGutiMobileIdentityMsg(
-    GutiM5GSMobileIdentity* guti, uint8_t* buffer) {
+    GutiM5GSMobileIdentity *guti, uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) =
@@ -374,7 +374,7 @@ int M5GSMobileIdentityMsg::EncodeGutiMobileIdentityMsg(
 // Will be supported POST MVC
 // Encode ImeiMobileIdentity IE
 int M5GSMobileIdentityMsg::EncodeImeiMobileIdentityMsg(
-    ImeiM5GSMobileIdentity* imei, uint8_t* buffer) {
+    ImeiM5GSMobileIdentity *imei, uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) = 0x00 | ((imei->identity_digit1 & 0xf0) << 4) |
@@ -391,7 +391,7 @@ int M5GSMobileIdentityMsg::EncodeImeiMobileIdentityMsg(
 // Will be supported POST MVC
 // Encode ImsiMobileIdentity IE
 int M5GSMobileIdentityMsg::EncodeImsiMobileIdentityMsg(
-    ImsiM5GSMobileIdentity* imsi, uint8_t* buffer) {
+    ImsiM5GSMobileIdentity *imsi, uint8_t *buffer) {
   uint32_t encoded = 0;
   *(buffer + encoded) =
       0x00 | ((imsi->spare2 & 0x80) << 7) | ((imsi->supi_format & 0x07) << 4) |
@@ -427,7 +427,7 @@ int M5GSMobileIdentityMsg::EncodeImsiMobileIdentityMsg(
 
 // Will be supported POST MVC
 int M5GSMobileIdentityMsg::EncodeTmsiMobileIdentityMsg(
-    TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer) {
+    TmsiM5GSMobileIdentity *tmsi, uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) = 0x00 | ((tmsi->spare & 0x0f) << 4) |
@@ -444,23 +444,24 @@ int M5GSMobileIdentityMsg::EncodeTmsiMobileIdentityMsg(
 
 // Encode SuciMobileIdentity IE
 int M5GSMobileIdentityMsg::EncodeSuciMobileIdentityMsg(
-    SuciM5GSMobileIdentity* suci, uint8_t* buffer) {
+    SuciM5GSMobileIdentity *suci, uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) =
       0x00 | ((suci->spare2 & 0x80) << 7) | ((suci->supi_format & 0x07) << 4) |
       ((suci->spare1 & 0x01) << 3) | (suci->type_of_identity & 0x7);
   encoded++;
-  suci->suci_nai.assign((const char*)(buffer + encoded), suci->suci_nai.size());
+  suci->suci_nai.assign((const char *)(buffer + encoded),
+                        suci->suci_nai.size());
 
   return encoded;
 };
 
 // Encode M5GSMobileIdentity IE
 int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(
-    M5GSMobileIdentityMsg* m5gs_mobile_identity, uint8_t iei, uint8_t* buffer,
+    M5GSMobileIdentityMsg *m5gs_mobile_identity, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
-  uint16_t* lenPtr;
+  uint16_t *lenPtr;
   int encoded_rc = TLV_VALUE_DOESNT_MATCH;
   uint32_t encoded = 0;
 
@@ -474,7 +475,7 @@ int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(
   } else
     return 0;
 
-  lenPtr = (uint16_t*)(buffer + encoded);
+  lenPtr = (uint16_t *)(buffer + encoded);
   encoded += 2;
   m5gs_mobile_identity->toi =
       m5gs_mobile_identity->mobile_identity.guti.type_of_identity;
@@ -503,4 +504,4 @@ int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(
   *lenPtr = htons(encoded + encoded_rc - 2 - ((iei > 0) ? 1 : 0));
   return (encoded + encoded_rc);
 };
-}  // namespace magma5g
+} // namespace magma5g

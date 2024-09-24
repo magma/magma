@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 #include <chrono>
-#include <string.h>
 #include <gtest/gtest.h>
+#include <string.h>
 #include <thread>
 
 extern "C" {
@@ -20,14 +20,14 @@ extern "C" {
 #define CHECK_PROTOTYPE_ONLY
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 }
 
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD) \
+#define TASK_DEF(tHREADiD)                                                     \
   {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
 #include "lte/gateway/c/core/oai/include/tasks_def.h"
 #undef TASK_DEF
@@ -46,24 +46,24 @@ typedef struct {
   task_id_t this_task;
   task_id_t task_id_list[3];
   int list_size;
-  task_zmq_ctx_t* task_zmq_ctx;
+  task_zmq_ctx_t *task_zmq_ctx;
 } task_thread_args_t;
 
 long msg_latency;
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TERMINATE_MESSAGE: {
-    } break;
+  case TERMINATE_MESSAGE: {
+  } break;
 
-    case TEST_MESSAGE: {
-      msg_latency = ITTI_MSG_LATENCY(received_message_p);
-    } break;
+  case TEST_MESSAGE: {
+    msg_latency = ITTI_MSG_LATENCY(received_message_p);
+  } break;
 
-    default: {
-    } break;
+  default: {
+  } break;
   }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -72,7 +72,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   return 0;
 }
 
-void* task_thread(task_thread_args_t* args) {
+void *task_thread(task_thread_args_t *args) {
   init_task_context(args->this_task, args->task_id_list, args->list_size,
                     handle_message, args->task_zmq_ctx);
 
@@ -123,7 +123,7 @@ class ITTIMessagePassingTest : public ::testing::Test {
 };
 
 TEST_F(ITTIMessagePassingTest, TestMessageLatency) {
-  MessageDef* test_message_p;
+  MessageDef *test_message_p;
   test_message_p = DEPRECATEDitti_alloc_new_message_fatal(
       task_zmq_ctx_test1.task_id, TEST_MESSAGE);
   send_msg_to_task(&task_zmq_ctx_test1, TASK_TEST_2, test_message_p);
@@ -152,7 +152,7 @@ TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {
   uint16_t erab_no_of_items = 3;
   uint16_t failed_erabs = 4;
   char ipv4string[16] = "192.168.101.234";
-  MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
+  MessageDef *message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = 10;
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.no_of_items =
@@ -160,7 +160,7 @@ TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {
   for (int item = 0; item < erab_no_of_items; item++) {
     MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
         .e_rab_setup_list.item[item]
-        .e_rab_id = (uint8_t)item;  // Arbitrary RAB ids
+        .e_rab_id = (uint8_t)item; // Arbitrary RAB ids
     MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
         .e_rab_setup_list.item[item]
         .gtp_teid = (uint32_t)item;
@@ -168,11 +168,11 @@ TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {
         .e_rab_setup_list.item[item]
         .transport_layer_address = blk2bstr(ipv4string, 15);
   }
-  itti_mme_app_initial_context_setup_rsp_t* ics_rsp =
+  itti_mme_app_initial_context_setup_rsp_t *ics_rsp =
       &(MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p));
   for (int index = 0; index < failed_erabs; index++) {
     ics_rsp->e_rab_failed_to_setup_list.item[index].e_rab_id =
-        (uint8_t)index;  // Arbitrary RAB ids
+        (uint8_t)index; // Arbitrary RAB ids
     ics_rsp->e_rab_failed_to_setup_list.item[index].cause.present =
         S1ap_Cause_PR_radioNetwork;
     ics_rsp->e_rab_failed_to_setup_list.item[index].cause.choice.radioNetwork =
@@ -186,9 +186,9 @@ TEST_F(ITTIApiTest, TestInitialContextSetupRsp) {
 
 TEST_F(ITTIApiTest, TestHandoverRequest) {
   char arbitrary_src_tgt_container[20] = "This is arbitrary";
-  MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
+  MessageDef *message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_MME_APP, MME_APP_HANDOVER_REQUEST);
-  itti_mme_app_handover_request_t* ho_request_p =
+  itti_mme_app_handover_request_t *ho_request_p =
       &message_p->ittiMsg.mme_app_handover_request;
 
   // fill in arbitrary values

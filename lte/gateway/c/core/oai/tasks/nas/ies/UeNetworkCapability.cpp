@@ -32,8 +32,8 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/common_defs.h"
 //------------------------------------------------------------------------------
-int decode_ue_network_capability(ue_network_capability_t* uenetworkcapability,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_ue_network_capability(ue_network_capability_t *uenetworkcapability,
+                                 uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -114,9 +114,9 @@ int decode_ue_network_capability(ue_network_capability_t* uenetworkcapability,
 }
 
 //------------------------------------------------------------------------------
-int encode_ue_network_capability(ue_network_capability_t* uenetworkcapability,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+int encode_ue_network_capability(ue_network_capability_t *uenetworkcapability,
+                                 uint8_t iei, uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*

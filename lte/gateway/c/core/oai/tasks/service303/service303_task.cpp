@@ -43,24 +43,24 @@ static void service303_message_exit(void);
 task_zmq_ctx_t service303_server_task_zmq_ctx;
 task_zmq_ctx_t service303_message_task_zmq_ctx;
 static long display_stats_timer_id;
-static int handle_display_timer(zloop_t*, int, void*);
+static int handle_display_timer(zloop_t *, int, void *);
 static void start_display_stats_timer(size_t);
 
-static int handle_service303_server_message(zloop_t* loop, zsock_t* reader,
-                                            void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_service303_server_message(zloop_t *loop, zsock_t *reader,
+                                            void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TERMINATE_MESSAGE:
-      itti_free_msg_content(received_message_p);
-      free(received_message_p);
-      service303_server_exit();
-      break;
-    default: {
-      OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
-                   ITTI_MSG_ID(received_message_p),
-                   ITTI_MSG_NAME(received_message_p));
-    } break;
+  case TERMINATE_MESSAGE:
+    itti_free_msg_content(received_message_p);
+    free(received_message_p);
+    service303_server_exit();
+    break;
+  default: {
+    OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
+                 ITTI_MSG_ID(received_message_p),
+                 ITTI_MSG_NAME(received_message_p));
+  } break;
   }
 
   itti_free_msg_content(received_message_p);
@@ -68,8 +68,8 @@ static int handle_service303_server_message(zloop_t* loop, zsock_t* reader,
   return 0;
 }
 
-static void* service303_server_thread(__attribute__((unused)) void* args) {
-  service303_data_t* service303_data = (service303_data_t*)args;
+static void *service303_server_thread(__attribute__((unused)) void *args) {
+  service303_data_t *service303_data = (service303_data_t *)args;
 
   start_service303_server(service303_data->name, service303_data->version);
 
@@ -81,55 +81,54 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
 
   zloop_start(service303_server_task_zmq_ctx.event_loop);
   AssertFatal(
-      0,
-      "Asserting as service303_server_thread should not be exiting on its "
-      "own!");
+      0, "Asserting as service303_server_thread should not be exiting on its "
+         "own!");
   return NULL;
 }
 
-static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_service_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case APPLICATION_HEALTHY_MSG: {
-      service303_set_application_health(APP_HEALTHY);
-    } break;
-    case APPLICATION_UNHEALTHY_MSG: {
-      service303_set_application_health(APP_UNHEALTHY);
-    } break;
-    case APPLICATION_MME_APP_STATS_MSG: {
-      service303_mme_app_statistics_read(
-          &received_message_p->ittiMsg.application_mme_app_stats_msg);
-    } break;
-    case APPLICATION_S1AP_STATS_MSG: {
-      service303_s1ap_statistics_read(
-          &received_message_p->ittiMsg.application_s1ap_stats_msg);
-    } break;
-    case APPLICATION_AMF_APP_STATS_MSG: {
-      service303_amf_app_statistics_read(
-          &received_message_p->ittiMsg.application_amf_app_stats_msg);
-    } break;
-    case APPLICATION_NGAP_STATS_MSG: {
-      service303_ngap_statistics_read(
-          &received_message_p->ittiMsg.application_ngap_stats_msg);
-    } break;
-    case TERMINATE_MESSAGE:
-      free(received_message_p);
-      service303_message_exit();
-      break;
-    default: {
-      OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
-                   ITTI_MSG_ID(received_message_p),
-                   ITTI_MSG_NAME(received_message_p));
-    } break;
+  case APPLICATION_HEALTHY_MSG: {
+    service303_set_application_health(APP_HEALTHY);
+  } break;
+  case APPLICATION_UNHEALTHY_MSG: {
+    service303_set_application_health(APP_UNHEALTHY);
+  } break;
+  case APPLICATION_MME_APP_STATS_MSG: {
+    service303_mme_app_statistics_read(
+        &received_message_p->ittiMsg.application_mme_app_stats_msg);
+  } break;
+  case APPLICATION_S1AP_STATS_MSG: {
+    service303_s1ap_statistics_read(
+        &received_message_p->ittiMsg.application_s1ap_stats_msg);
+  } break;
+  case APPLICATION_AMF_APP_STATS_MSG: {
+    service303_amf_app_statistics_read(
+        &received_message_p->ittiMsg.application_amf_app_stats_msg);
+  } break;
+  case APPLICATION_NGAP_STATS_MSG: {
+    service303_ngap_statistics_read(
+        &received_message_p->ittiMsg.application_ngap_stats_msg);
+  } break;
+  case TERMINATE_MESSAGE:
+    free(received_message_p);
+    service303_message_exit();
+    break;
+  default: {
+    OAILOG_DEBUG(LOG_UTIL, "Unknown message ID %d: %s\n",
+                 ITTI_MSG_ID(received_message_p),
+                 ITTI_MSG_NAME(received_message_p));
+  } break;
   }
 
   free(received_message_p);
   return 0;
 }
 
-static void* service303_thread(void* args) {
-  service303_data_t* service303_data = (service303_data_t*)args;
+static void *service303_thread(void *args) {
+  service303_data_t *service303_data = (service303_data_t *)args;
   itti_mark_task_ready(TASK_SERVICE303);
   const task_id_t peer_task_ids[] = {};
   init_task_context(TASK_SERVICE303, peer_task_ids, 0, handle_service_message,
@@ -141,7 +140,7 @@ static void* service303_thread(void* args) {
   return NULL;
 }
 
-status_code_e service303_init(service303_data_t* service303_data) {
+status_code_e service303_init(service303_data_t *service303_data) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing Service303 task interface\n");
 
   if (itti_create_task(TASK_SERVICE303_SERVER, &service303_server_thread,
@@ -176,7 +175,7 @@ static void service303_message_exit(void) {
   pthread_exit(NULL);
 }
 
-static int handle_display_timer(zloop_t* loop, int id, void* arg) {
+static int handle_display_timer(zloop_t *loop, int id, void *arg) {
   service303_statistics_display();
   service303_statistics_display_5G();
   return 0;

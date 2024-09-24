@@ -15,20 +15,20 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #ifdef __cplusplus
 }
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include <thread>
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
+#include <thread>
 
 namespace magma5g {
 
@@ -43,8 +43,8 @@ namespace magma5g {
 status_code_e amf_handle_security_complete_response(
     amf_ue_ngap_id_t ue_id, amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  ue_m5gmm_context_s* ue_mm_context = NULL;
-  amf_context_t* amf_ctx = NULL;
+  ue_m5gmm_context_s *ue_mm_context = NULL;
+  amf_context_t *amf_ctx = NULL;
   status_code_e rc = RETURNok;
   OAILOG_DEBUG(LOG_NAS_AMF,
                "Security mode procedures complete for "
@@ -63,7 +63,7 @@ status_code_e amf_handle_security_complete_response(
                  ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-  nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
+  nas_amf_smc_proc_t *smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
   if (smc_proc) {
     amf_app_stop_timer(smc_proc->T3560.id);
     OAILOG_DEBUG(LOG_AMF_APP,
@@ -91,4 +91,4 @@ status_code_e amf_handle_security_complete_response(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-}  // namespace magma5g
+} // namespace magma5g

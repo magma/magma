@@ -26,8 +26,8 @@
 
 typedef uint8_t emm_cause_t;
 
-int encode_emm_cause(emm_cause_t* emmcause, uint8_t iei, uint8_t* buffer,
+int encode_emm_cause(emm_cause_t *emmcause, uint8_t iei, uint8_t *buffer,
                      uint32_t len);
 
-int decode_emm_cause(emm_cause_t* emmcause, uint8_t iei, uint8_t* buffer,
+int decode_emm_cause(emm_cause_t *emmcause, uint8_t iei, uint8_t *buffer,
                      uint32_t len);

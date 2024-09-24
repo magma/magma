@@ -22,15 +22,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
-int decode_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_nas_key_set_identifier(NasKeySetIdentifier *naskeysetidentifier,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -47,10 +47,10 @@ int decode_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
+int decode_u8_nas_key_set_identifier(NasKeySetIdentifier *naskeysetidentifier,
                                      uint8_t iei, uint8_t value, uint32_t len) {
   int decoded = 0;
-  uint8_t* buffer = &value;
+  uint8_t *buffer = &value;
 
   naskeysetidentifier->tsc = (*(buffer + decoded) >> 3) & 0x1;
   naskeysetidentifier->naskeysetidentifier = *(buffer + decoded) & 0x7;
@@ -59,8 +59,8 @@ int decode_u8_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
 }
 
 //------------------------------------------------------------------------------
-int encode_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_nas_key_set_identifier(NasKeySetIdentifier *naskeysetidentifier,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -76,10 +76,10 @@ int encode_nas_key_set_identifier(NasKeySetIdentifier* naskeysetidentifier,
 }
 
 //------------------------------------------------------------------------------
-uint8_t encode_u8_nas_key_set_identifier(
-    NasKeySetIdentifier* naskeysetidentifier) {
+uint8_t
+encode_u8_nas_key_set_identifier(NasKeySetIdentifier *naskeysetidentifier) {
   uint8_t bufferReturn;
-  uint8_t* buffer = &bufferReturn;
+  uint8_t *buffer = &bufferReturn;
   uint8_t encoded = 0;
   uint8_t iei = 0;
 

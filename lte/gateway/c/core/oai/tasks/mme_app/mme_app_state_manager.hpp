@@ -33,22 +33,22 @@ namespace lte {
 class MmeNasStateManager
     : public StateManager<mme_app_desc_t, ue_mm_context_t, oai::MmeNasState,
                           oai::UeContext, MmeNasStateConverter> {
- public:
+public:
   /**
    * Returns an instance of MmeNasStateManager, guaranteed to be thread safe and
    * initialized only once.
    **/
-  static MmeNasStateManager& getInstance();
+  static MmeNasStateManager &getInstance();
 
   // Initialize the local in-memory state when MME app inits
-  int initialize_state(const mme_config_t* mme_config_p);
+  int initialize_state(const mme_config_t *mme_config_p);
 
   /**
    * Retrieve the state pointer from state manager. The read_from_db flag is a
    * debug flag; if set to true, the state is loaded from the data store on
    * every get.
    */
-  mme_app_desc_t* get_state(bool read_from_db) override;
+  mme_app_desc_t *get_state(bool read_from_db) override;
 
   /**
    * Release the memory for MME NAS state and destroy the read-write lock. This
@@ -63,17 +63,17 @@ class MmeNasStateManager
    * Copy constructor and assignment operator are marked as deleted functions.
    * Making them public for better debugging/logging.
    */
-  MmeNasStateManager(MmeNasStateManager const&) = delete;
-  MmeNasStateManager& operator=(MmeNasStateManager const&) = delete;
+  MmeNasStateManager(MmeNasStateManager const &) = delete;
+  MmeNasStateManager &operator=(MmeNasStateManager const &) = delete;
 
   // Serializes ueip_imsi_map to proto and saves it into data store
   void write_mme_ueip_imsi_map_to_db();
   // Returns a reference to UeIpImsiMap
-  UeIpImsiMap& get_mme_ueip_imsi_map(void);
+  UeIpImsiMap &get_mme_ueip_imsi_map(void);
   // Returns mme_ue_state map
-  proto_map_uint32_ue_context_t* get_ue_state_map();
+  proto_map_uint32_ue_context_t *get_ue_state_map();
 
- private:
+private:
   // Constructor for MME NAS state manager
   MmeNasStateManager();
 
@@ -108,8 +108,8 @@ class MmeNasStateManager
    * So defining ue_ip_imsi map with key as ue_ip and value as list of imsis
    * having same ue_ip
    */
-  UeIpImsiMap ueip_imsi_map;  // ueip => list of imsi64
+  UeIpImsiMap ueip_imsi_map; // ueip => list of imsi64
   proto_map_uint32_ue_context_t mme_app_state_ue_map;
 };
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

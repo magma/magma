@@ -34,16 +34,16 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_messages.hpp"
 
 status_code_e handle_sms_orc8r_downlink_unitdata(
-    const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p) {
+    const itti_sgsap_downlink_unitdata_t *sgs_dl_unitdata_p) {
   status_code_e rc = RETURNok;
 
-  MessageDef* message_p = NULL;
-  itti_sgsap_downlink_unitdata_t* sgs_dl_unit_data_p = NULL;
+  MessageDef *message_p = NULL;
+  itti_sgsap_downlink_unitdata_t *sgs_dl_unit_data_p = NULL;
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_SMS_ORC8R,
                                                      SGSAP_DOWNLINK_UNITDATA);
   sgs_dl_unit_data_p = &message_p->ittiMsg.sgsap_downlink_unitdata;
-  memset((void*)sgs_dl_unit_data_p, 0, sizeof(itti_sgsap_downlink_unitdata_t));
+  memset((void *)sgs_dl_unit_data_p, 0, sizeof(itti_sgsap_downlink_unitdata_t));
 
   memcpy(sgs_dl_unit_data_p, sgs_dl_unitdata_p,
          sizeof(itti_sgsap_downlink_unitdata_t));

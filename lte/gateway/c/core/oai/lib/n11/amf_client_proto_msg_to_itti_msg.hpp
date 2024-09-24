@@ -31,10 +31,10 @@ namespace magma5g {
 
 void convert_proto_msg_to_itti_m5g_auth_info_ans(
     M5GAuthenticationInformationAnswer msg,
-    itti_amf_subs_auth_info_ans_t* itti_msg);
+    itti_amf_subs_auth_info_ans_t *itti_msg);
 
 void convert_proto_msg_to_itti_amf_decrypted_msin_info_ans(
     M5GSUCIRegistrationAnswer response,
-    itti_amf_decrypted_msin_info_ans_t* amf_app_decrypted_imsi_info_resp);
+    itti_amf_decrypted_msin_info_ans_t *amf_app_decrypted_imsi_info_resp);
 
-}  // namespace magma5g
+} // namespace magma5g

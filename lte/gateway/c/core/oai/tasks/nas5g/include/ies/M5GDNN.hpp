@@ -12,12 +12,12 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 class DNNMsg {
- public:
+public:
 #define DNN_MIN_LENGTH 3
 #define MAX_DNN_LENGTH 102
   uint8_t iei;
@@ -26,9 +26,9 @@ class DNNMsg {
 
   DNNMsg();
   ~DNNMsg();
-  int EncodeDNNMsg(DNNMsg* eap_message, uint8_t iei, uint8_t* buffer,
+  int EncodeDNNMsg(DNNMsg *eap_message, uint8_t iei, uint8_t *buffer,
                    uint32_t len);
-  int DecodeDNNMsg(DNNMsg* eap_message, uint8_t iei, uint8_t* buffer,
+  int DecodeDNNMsg(DNNMsg *eap_message, uint8_t iei, uint8_t *buffer,
                    uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

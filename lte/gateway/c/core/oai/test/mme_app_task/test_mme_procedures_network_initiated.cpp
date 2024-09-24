@@ -12,12 +12,12 @@
  * limitations under the License.
  */
 #include <chrono>
-#include <gtest/gtest.h>
-#include <cstdint>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
+#include <cstdint>
+#include <gtest/gtest.h>
+#include <mutex>
 #include <stdio.h>
+#include <thread>
 
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
@@ -28,7 +28,7 @@ namespace magma {
 namespace lte {
 
 TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -74,7 +74,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetach) {
 }
 
 TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -125,7 +125,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedExpiredDetach) {
 }
 
 TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -174,7 +174,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedDetachRetxFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDedicatedBearerRej) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -215,7 +215,7 @@ TEST_F(MmeAppProcedureTest, TestNwInitiatedActivateDedicatedBearerRej) {
 
 TEST_F(MmeAppProcedureTest,
        TestNwInitiatedDedicatedBearerActivationFailureWithT3485Expiry) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -258,7 +258,7 @@ TEST_F(MmeAppProcedureTest,
 
 TEST_F(MmeAppProcedureTest,
        TestNwInitiatedBearerDeactivationFailureWithT3495Expiry) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -328,7 +328,7 @@ TEST_F(MmeAppProcedureTest,
 
 TEST_F(MmeAppProcedureTest,
        TestNwInitiatedActivateDeactivateDedicatedBearerRequest) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -394,7 +394,7 @@ TEST_F(MmeAppProcedureTest,
 TEST_F(
     MmeAppProcedureTest,
     TestNwInitiatedActivateDeactivateDedicatedBearerWithT3485T3495Expirations) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -476,5 +476,5 @@ TEST_F(
   detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

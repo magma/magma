@@ -13,24 +13,24 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.331.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "Ngap_Cause.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/n11_messages_types.h"  //pdu_res_set_change
 #include "Ngap_PagingDRX.h"
 #include "Ngap_PagingPriority.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/n11_messages_types.h" //pdu_res_set_change
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.331.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
 typedef uint64_t gnb_ngap_id_key_t;
 typedef uint64_t bitrate_t;
 
-typedef char* APN_t;
+typedef char *APN_t;
 typedef uint8_t APNRestriction_t;
 typedef uint8_t DelayValue_t;
 typedef uint8_t priority_level_t;
@@ -42,58 +42,58 @@ typedef uint32_t context_identifier_t;
 typedef uint32_t rau_tau_timer_t;
 
 typedef uint32_t ard_t;
-typedef int pdn_cid_t;  // pdn connection identity, related to esm protocol,
-                        // sometimes type is mixed with int return code!!...
+typedef int pdn_cid_t; // pdn connection identity, related to esm protocol,
+                       // sometimes type is mixed with int return code!!...
 typedef uint8_t
-    proc_tid_t;  // procedure transaction identity, related to esm protocol
+    proc_tid_t; // procedure transaction identity, related to esm protocol
 typedef uint8_t qci_t;
 typedef uint32_t teid_t;
 
-#define NGAP_GNB_DEREGISTERED_IND(mSGpTR) \
+#define NGAP_GNB_DEREGISTERED_IND(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.ngap_gNB_deregistered_ind
-#define NGAP_GNB_INITIATED_RESET_REQ(mSGpTR) \
+#define NGAP_GNB_INITIATED_RESET_REQ(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.ngap_gnb_initiated_reset_req
-#define NGAP_GNB_INITIATED_RESET_ACK(mSGpTR) \
+#define NGAP_GNB_INITIATED_RESET_ACK(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.ngap_gnb_initiated_reset_ack
-#define NGAP_UE_CONTEXT_RELEASE_REQ(mSGpTR) \
+#define NGAP_UE_CONTEXT_RELEASE_REQ(mSGpTR)                                    \
   (mSGpTR)->ittiMsg.ngap_ue_context_release_req
-#define NGAP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR) \
+#define NGAP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR)                                \
   (mSGpTR)->ittiMsg.ngap_ue_context_release_command
-#define NGAP_UE_CONTEXT_RELEASE_COMPLETE(mSGpTR) \
+#define NGAP_UE_CONTEXT_RELEASE_COMPLETE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.ngap_ue_context_release_complete
-#define NGAP_UE_CONTEXT_MODIFICATION_REQUEST(mSGpTR) \
+#define NGAP_UE_CONTEXT_MODIFICATION_REQUEST(mSGpTR)                           \
   (mSGpTR)->ittiMsg.ngap_ue_context_mod_request
-#define NGAP_UE_CONTEXT_MODIFICATION_RESPONSE(mSGpTR) \
+#define NGAP_UE_CONTEXT_MODIFICATION_RESPONSE(mSGpTR)                          \
   (mSGpTR)->ittiMsg.ngap_ue_context_mod_response
-#define NGAP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR) \
+#define NGAP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR)                           \
   (mSGpTR)->ittiMsg.ngap_ue_context_mod_failure
 
-#define NGAP_PDUSESSION_RESOURCE_SETUP_REQ(mSGpTR) \
+#define NGAP_PDUSESSION_RESOURCE_SETUP_REQ(mSGpTR)                             \
   (mSGpTR)->ittiMsg.ngap_pdusession_resource_setup_req
-#define NGAP_PDUSESSIONRESOURCE_SETUP_RSP(mSGpTR) \
+#define NGAP_PDUSESSIONRESOURCE_SETUP_RSP(mSGpTR)                              \
   (mSGpTR)->ittiMsg.ngap_pdusessionresource_setup_rsp
-#define NGAP_PDUSESSIONRESOURCE_REL_RSP(mSGpTR) \
+#define NGAP_PDUSESSIONRESOURCE_REL_RSP(mSGpTR)                                \
   (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_rsp
-#define NGAP_PDUSESSIONRESOURCE_REL_REQ(mSGpTR) \
+#define NGAP_PDUSESSIONRESOURCE_REL_REQ(mSGpTR)                                \
   (mSGpTR)->ittiMsg.ngap_pdusessionresource_rel_req
 
-#define NGAP_INITIAL_UE_MESSAGE(mSGpTR) \
+#define NGAP_INITIAL_UE_MESSAGE(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.ngap_initial_ue_message
 #define NGAP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.ngap_nas_dl_data_req
-#define NGAP_INITIAL_CONTEXT_SETUP_REQ(mSGpTR) \
+#define NGAP_INITIAL_CONTEXT_SETUP_REQ(mSGpTR)                                 \
   (mSGpTR)->ittiMsg.ngap_initial_context_setup_req
-#define NGAP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR) \
+#define NGAP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR)                                 \
   (mSGpTR)->ittiMsg.ngap_initial_context_setup_rsp
 #define NGAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.ngap_paging_request
-#define NGAP_PATH_SWITCH_REQUEST(mSGpTR) \
+#define NGAP_PATH_SWITCH_REQUEST(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.ngap_path_switch_request
-#define NGAP_PATH_SWITCH_REQUEST_ACK(mSGpTR) \
+#define NGAP_PATH_SWITCH_REQUEST_ACK(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.ngap_path_switch_request_ack
-#define NGAP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR) \
+#define NGAP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.ngap_path_switch_request_failure
-#define NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(mSGpTR) \
+#define NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(mSGpTR)                           \
   (mSGpTR)->ittiMsg.ngap_pdu_session_resource_modify_req
-#define NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(mSGpTR) \
+#define NGAP_PDU_SESSION_RESOURCE_MODIFY_RSP(mSGpTR)                           \
   (mSGpTR)->ittiMsg.ngap_pdu_sessionresource_modify_rsp
 
 // NOT a ITTI message
@@ -146,7 +146,7 @@ typedef struct itti_ngap_initial_ctxt_setup_req_s {
 typedef struct itti_ngap_ue_cap_ind_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
-  uint8_t* radio_capabilities;
+  uint8_t *radio_capabilities;
   size_t radio_capabilities_length;
 } itti_ngap_ue_cap_ind_t;
 
@@ -166,7 +166,7 @@ typedef struct itti_ngap_gnb_initiated_reset_req_s {
   uint32_t gnb_id;
   ngap_reset_type_t ngap_reset_type;
   uint32_t num_ue;
-  ng_sig_conn_id_t* ue_to_reset_list;
+  ng_sig_conn_id_t *ue_to_reset_list;
 } itti_ngap_gnb_initiated_reset_req_t;
 
 typedef struct itti_ngap_gnb_initiated_reset_ack_s {
@@ -174,7 +174,7 @@ typedef struct itti_ngap_gnb_initiated_reset_ack_s {
   uint16_t sctp_stream_id;
   ngap_reset_type_t ngap_reset_type;
   uint32_t num_ue;
-  ng_sig_conn_id_t* ue_to_reset_list;
+  ng_sig_conn_id_t *ue_to_reset_list;
 } itti_ngap_gnb_initiated_reset_ack_t;
 
 // List of possible causes for AMF generated UE context release command towards
@@ -232,19 +232,19 @@ typedef enum ngap_cn_domain_e {
 
 typedef struct itti_ngap_paging_request_s {
   s_tmsi_m5_t UEPagingIdentity;
-  e_Ngap_PagingDRX default_paging_drx;  // v32, v64, v128, v256
+  e_Ngap_PagingDRX default_paging_drx; // v32, v64, v128, v256
   e_Ngap_PagingPriority PagingPriority;
   Ngap_TAI_List_For_Paging_t TAIListForPaging;
 
 } itti_ngap_paging_request_t;
 
-typedef enum m5g_uecontextrequest {  // ue context requested supported enum
+typedef enum m5g_uecontextrequest { // ue context requested supported enum
   M5G_UEContextRequest_requested = 1,
 } m5g_uecontextrequest_t;
 
 typedef struct itti_ngap_initial_ue_message_s {
-  sctp_assoc_id_t sctp_assoc_id;  // key stored in AMF_APP for AMF_APP forward
-                                  // NAS response to NGAP
+  sctp_assoc_id_t sctp_assoc_id; // key stored in AMF_APP for AMF_APP forward
+                                 // NAS response to NGAP
   uint32_t gnb_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
@@ -271,9 +271,9 @@ typedef struct itti_ngap_initial_ue_message_s {
 typedef struct itti_ngap_pdusession_resource_setup_req_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  bstring nas_pdu;  // optional
+  bstring nas_pdu; // optional
   ngap_ue_aggregate_maximum_bit_rate_t
-      ue_aggregate_maximum_bit_rate;  // optional
+      ue_aggregate_maximum_bit_rate; // optional
   Ngap_PDUSession_Resource_Setup_Request_List_t pduSessionResource_setup_list;
 } itti_ngap_pdusession_resource_setup_req_t;
 
@@ -334,7 +334,7 @@ typedef struct itti_ngap_pdu_session_resource_modify_request_s {
   Ngap_Message_Type_t Ngap_Message_Type;
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
-  bstring nas_pdu;  // optional
+  bstring nas_pdu; // optional
   Ngap_PDUSession_Resource_Modify_Request_List_t pduSessResourceModReqList;
 } itti_ngap_pdu_session_resource_modify_request_t;
 

@@ -13,16 +13,16 @@
 #include "lte/gateway/c/session_manager/RestartHandler.hpp"
 #include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 
+#include <chrono>
 #include <cxxabi.h>
+#include <future>
 #include <glog/logging.h>
 #include <google/protobuf/stubs/common.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include <orc8r/protos/directoryd.pb.h>
-#include <chrono>
-#include <future>
 #include <memory>
+#include <orc8r/protos/directoryd.pb.h>
 #include <ostream>
 #include <string>
 #include <system_error>
@@ -41,7 +41,7 @@ namespace magma {
 class LocalEnforcer;
 namespace orc8r {
 class Void;
-}  // namespace orc8r
+} // namespace orc8r
 
 namespace sessiond {
 
@@ -51,13 +51,10 @@ const uint RestartHandler::rpc_retry_interval_s_ = 5;
 RestartHandler::RestartHandler(
     std::shared_ptr<DirectorydClient> directoryd_client,
     std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
-    std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
-    SessionStore& session_store)
-    : directoryd_client_(directoryd_client),
-      aaa_client_(aaa_client),
-      enforcer_(enforcer),
-      reporter_(reporter),
-      session_store_(session_store) {}
+    std::shared_ptr<LocalEnforcer> enforcer, SessionReporter *reporter,
+    SessionStore &session_store)
+    : directoryd_client_(directoryd_client), aaa_client_(aaa_client),
+      enforcer_(enforcer), reporter_(reporter), session_store_(session_store) {}
 
 void RestartHandler::cleanup_previous_sessions() {
   bool populated = populate_sessions_to_terminate_with_retries();
@@ -99,7 +96,7 @@ bool RestartHandler::launch_threads_to_terminate_with_retries() {
       // Modify sessions_to_terminate_
       std::lock_guard<std::mutex> map_guard(sessions_to_terminate_lock_);
 
-      for (const auto& iter : sessions_to_terminate_) {
+      for (const auto &iter : sessions_to_terminate_) {
         termination_futures.push_back(std::async(
             std::launch::async,
             &magma::sessiond::RestartHandler::terminate_previous_session, this,
@@ -110,7 +107,7 @@ bool RestartHandler::launch_threads_to_terminate_with_retries() {
 
     termination_try++;
     // Retrieve all thread results
-    for (auto&& fut : termination_futures) {
+    for (auto &&fut : termination_futures) {
       fut.get();
     }
     termination_futures.clear();
@@ -137,19 +134,19 @@ bool RestartHandler::populate_sessions_to_terminate_with_retries() {
     std::future<bool> directoryd_future = directoryd_res.get_future();
     directoryd_client_->get_all_directoryd_records(
         [this, &directoryd_res](Status status,
-                                const AllDirectoryRecords& response) {
+                                const AllDirectoryRecords &response) {
           if (!status.ok()) {
             directoryd_res.set_value(false);
             return;
           }
           PrintGrpcMessage(
-              static_cast<const google::protobuf::Message&>(response));
-          for (auto& record : response.records()) {
+              static_cast<const google::protobuf::Message &>(response));
+          for (auto &record : response.records()) {
             auto session_iter = record.fields().find("session_id");
             if (session_iter == record.fields().end()) {
               continue;
             }
-            const std::string& session_id = session_iter->second;
+            const std::string &session_id = session_iter->second;
             sessions_to_terminate_.insert({record.id(), session_id});
           }
           directoryd_res.set_value(true);
@@ -168,8 +165,8 @@ bool RestartHandler::populate_sessions_to_terminate_with_retries() {
   return finished;
 }
 
-void RestartHandler::terminate_previous_session(const std::string& sid,
-                                                const std::string& session_id) {
+void RestartHandler::terminate_previous_session(const std::string &sid,
+                                                const std::string &session_id) {
   SessionTerminateRequest term_req;
   term_req.mutable_common_context()->mutable_sid()->set_id(sid);
   term_req.set_session_id(session_id);
@@ -179,7 +176,7 @@ void RestartHandler::terminate_previous_session(const std::string& sid,
       .report_terminate_session(
           term_req,
           [this, &termination_res, sid, session_id](
-              Status status, const SessionTerminateResponse& response) {
+              Status status, const SessionTerminateResponse &response) {
             if (!status.ok()) {
               MLOG(MERROR) << "CCR-T cleanup for subscriber " << sid
                            << ", session id: " << session_id << " failed";
@@ -190,7 +187,7 @@ void RestartHandler::terminate_previous_session(const std::string& sid,
             del_request.set_id(response.sid());
             directoryd_client_->delete_directoryd_record(
                 del_request,
-                [&termination_res, sid](Status status, const Void&) {
+                [&termination_res, sid](Status status, const Void &) {
                   if (!status.ok()) {
                     MLOG(MERROR) << "DirectoryD DeleteRecord failed to remove "
                                  << "subscriber " << sid << " from DirectoryD";
@@ -211,5 +208,5 @@ void RestartHandler::terminate_previous_session(const std::string& sid,
     // sessions_to_terminate_lock_ released
   }
 }
-}  // namespace sessiond
-}  // namespace magma
+} // namespace sessiond
+} // namespace magma

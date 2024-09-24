@@ -68,16 +68,16 @@ enum_to_string_t pdn_type_to_string[IP_MAX] = {
     {IPv4_OR_v6, "IPv4 or IPv6"},
 };
 
-static int compare_values(const void* m1, const void* m2) {
-  enum_to_string_t* mi1 = (enum_to_string_t*)m1;
-  enum_to_string_t* mi2 = (enum_to_string_t*)m2;
+static int compare_values(const void *m1, const void *m2) {
+  enum_to_string_t *mi1 = (enum_to_string_t *)m1;
+  enum_to_string_t *mi2 = (enum_to_string_t *)m2;
 
   return (mi1->enum_value - mi2->enum_value);
 }
 
-char* enum_to_string(int enum_val, enum_to_string_t* string_table,
+char *enum_to_string(int enum_val, enum_to_string_t *string_table,
                      int nb_element) {
-  enum_to_string_t* res;
+  enum_to_string_t *res;
   enum_to_string_t temp;
 
   temp.enum_value = enum_val;

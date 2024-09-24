@@ -10,22 +10,22 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMaxNumOfSupportedPacketFilters.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.hpp"
+#include <sstream>
 
 namespace magma5g {
 // PDUSessionEstablishmentRequest Message Class
 class PDUSessionEstablishmentRequestMsg {
- public:
+public:
 #define PDU_SESSION_ESTABLISH_REQ_MIN_LEN 4
 
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
@@ -41,12 +41,12 @@ class PDUSessionEstablishmentRequestMsg {
   PDUSessionEstablishmentRequestMsg();
   ~PDUSessionEstablishmentRequestMsg();
   int DecodePDUSessionEstablishmentRequestMsg(
-      PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
-      uint8_t* buffer, uint32_t len);
+      PDUSessionEstablishmentRequestMsg *pdu_session_estab_request,
+      uint8_t *buffer, uint32_t len);
   int EncodePDUSessionEstablishmentRequestMsg(
-      PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
-      uint8_t* buffer, uint32_t len);
-  void copy(const PDUSessionEstablishmentRequestMsg& p) {
+      PDUSessionEstablishmentRequestMsg *pdu_session_estab_request,
+      uint8_t *buffer, uint32_t len);
+  void copy(const PDUSessionEstablishmentRequestMsg &p) {
     extended_protocol_discriminator.copy(p.extended_protocol_discriminator);
     pdu_session_identity.copy(p.pdu_session_identity);
     pti.copy(p.pti);
@@ -55,7 +55,7 @@ class PDUSessionEstablishmentRequestMsg {
     pdu_session_type.copy(p.pdu_session_type);
     ssc_mode.copy(p.ssc_mode);
   }
-  bool isEqual(const PDUSessionEstablishmentRequestMsg& p) {
+  bool isEqual(const PDUSessionEstablishmentRequestMsg &p) {
     return (
         extended_protocol_discriminator.isEqual(
             p.extended_protocol_discriminator) &&
@@ -66,7 +66,7 @@ class PDUSessionEstablishmentRequestMsg {
         ssc_mode.isEqual(p.ssc_mode));
   }
 };
-}  // namespace magma5g
+} // namespace magma5g
 /******************************************************************************
   TS-24.501 Table 8.3.1.1.1: PDU SESSION ESTABLISHMENT Request message content
 -------------------------------------------------------------------------------

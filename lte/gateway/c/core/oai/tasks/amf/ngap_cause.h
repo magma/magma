@@ -108,10 +108,10 @@ typedef enum ngap_CauseMisc {
 typedef struct ngap_Cause {
   ngap_Cause_PR present;
   union ngap_Cause_u {
-    e_ngap_CauseRadioNetwork radioNetwork;  // Radio Network Layer Cause
-    e_ngap_CauseTransport transport;        // Transport Layer Cause
-    e_ngap_CauseNAS nas;                    // NAS Cause
-    e_ngap_CauseProtocol protocol;          // Protocol Cause
-    e_ngap_CauseMisc misc;                  // Miscellaneous Cause
+    e_ngap_CauseRadioNetwork radioNetwork; // Radio Network Layer Cause
+    e_ngap_CauseTransport transport;       // Transport Layer Cause
+    e_ngap_CauseNAS nas;                   // NAS Cause
+    e_ngap_CauseProtocol protocol;         // Protocol Cause
+    e_ngap_CauseMisc misc;                 // Miscellaneous Cause
   } ngapCause_u;
 } ngap_Cause_t;

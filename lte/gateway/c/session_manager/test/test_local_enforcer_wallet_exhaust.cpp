@@ -14,16 +14,16 @@
 #include <folly/io/async/EventBaseManager.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <iostream>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <orc8r/protos/common.pb.h>
-#include <stdint.h>
-#include <time.h>
-#include <iostream>
 #include <memory>
+#include <orc8r/protos/common.pb.h>
 #include <set>
+#include <stdint.h>
 #include <string>
+#include <time.h>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -45,7 +45,7 @@
 namespace grpc {
 class ServerContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 #define SECONDS_A_DAY 86400
 
@@ -58,7 +58,7 @@ namespace magma {
 Teids teids0;
 
 class LocalEnforcerTest : public ::testing::Test {
- protected:
+protected:
   void SetUpWithMConfig(magma::mconfig::SessionD mconfig) {
     reporter = std::make_shared<MockSessionReporter>();
     rule_store = std::make_shared<StaticRuleStore>();
@@ -101,15 +101,15 @@ class LocalEnforcerTest : public ::testing::Test {
     return mconfig;
   }
 
-  void insert_static_rule(uint32_t rating_group, const std::string& m_key,
-                          const std::string& rule_id) {
+  void insert_static_rule(uint32_t rating_group, const std::string &m_key,
+                          const std::string &rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
-  void initialize_session(SessionMap& session_map,
-                          const std::string& session_id,
-                          const SessionConfig& cfg,
-                          const CreateSessionResponse& response) {
+  void initialize_session(SessionMap &session_map,
+                          const std::string &session_id,
+                          const SessionConfig &cfg,
+                          const CreateSessionResponse &response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
     local_enforcer->update_session_with_policy_response(session, response,
@@ -117,7 +117,7 @@ class LocalEnforcerTest : public ::testing::Test {
     session_map[imsi].push_back(std::move(session));
   }
 
- protected:
+protected:
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<SessionStore> session_store;
@@ -128,7 +128,7 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<MockEventsReporter> events_reporter;
   SessionMap session_map;
   SessionConfig cwf_session_config;
-  folly::EventBase* evb;
+  folly::EventBase *evb;
 };
 
 // Make sure sessions that are scheduled to be terminated before sync are
@@ -161,7 +161,7 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   auto session_update = session_store->get_default_session_update(session_map);
   EXPECT_EQ(session_map[IMSI1].size(), 1);
 
-  auto& uc = session_update[IMSI1][SESSION_ID_1];
+  auto &uc = session_update[IMSI1][SESSION_ID_1];
   // remove all monitored policies to trigger a termination schedule
   uc.static_rules_to_uninstall = {"rule1"};
   success = session_store->update_sessions(session_update);
@@ -220,7 +220,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
   SetUpWithMConfig(get_mconfig_gx_rule_wallet_exhaust());
   insert_static_rule(1, "m1", "static_1");
 
-  std::vector<std::string> static_rules{};  // no rule installs
+  std::vector<std::string> static_rules{}; // no rule installs
   CreateSessionResponse response;
   create_session_create_response(IMSI1, SESSION_ID_1, "m1", static_rules,
                                  &response);
@@ -312,4 +312,4 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   local_enforcer->update_session_credits_and_rules(session_map, update_response,
                                                    update);
 }
-}  // namespace magma
+} // namespace magma

@@ -26,15 +26,16 @@ static uint32_t MULalpha(uint8_t c);
 static uint32_t DIValpha(uint8_t c);
 static uint32_t S1(uint32_t w);
 static uint32_t S2(uint32_t w);
-static void snow3g_clock_LFSR_initialization_mode(
-    uint32_t F, snow_3g_context_t* s3g_ctx_pP);
-static void snow3g_clock_LFSR_key_stream_mode(
-    snow_3g_context_t* snow_3g_context_pP);
-static uint32_t snow3g_clock_fsm(snow_3g_context_t* snow_3g_context_pP);
+static void
+snow3g_clock_LFSR_initialization_mode(uint32_t F,
+                                      snow_3g_context_t *s3g_ctx_pP);
+static void
+snow3g_clock_LFSR_key_stream_mode(snow_3g_context_t *snow_3g_context_pP);
+static uint32_t snow3g_clock_fsm(snow_3g_context_t *snow_3g_context_pP);
 void snow3g_initialize(uint32_t k[4], uint32_t IV[4],
-                       snow_3g_context_t* snow_3g_context_pP);
-void snow3g_generate_key_stream(uint32_t n, uint32_t* ks,
-                                snow_3g_context_t* snow_3g_context_pP);
+                       snow_3g_context_t *snow_3g_context_pP);
+void snow3g_generate_key_stream(uint32_t n, uint32_t *ks,
+                                snow_3g_context_t *snow_3g_context_pP);
 
 /* _MULx.
   Input V: an 8-bit input.
@@ -146,8 +147,9 @@ static uint32_t S2(uint32_t w) {
   See section 3.4.4.
 */
 
-static void snow3g_clock_LFSR_initialization_mode(
-    uint32_t F, snow_3g_context_t* s3g_ctx_pP) {
+static void
+snow3g_clock_LFSR_initialization_mode(uint32_t F,
+                                      snow_3g_context_t *s3g_ctx_pP) {
   uint32_t v =
       (((s3g_ctx_pP->LFSR_S0 << 8) & 0xffffff00) ^
        (MULalpha((uint8_t)((s3g_ctx_pP->LFSR_S0 >> 24) & 0xff))) ^
@@ -176,8 +178,8 @@ static void snow3g_clock_LFSR_initialization_mode(
   LFSR Registers S0 to S15 are updated as the LFSR receives a single clock.
   See section 3.4.5.
 */
-static void snow3g_clock_LFSR_key_stream_mode(
-    snow_3g_context_t* snow_3g_context_pP) {
+static void
+snow3g_clock_LFSR_key_stream_mode(snow_3g_context_t *snow_3g_context_pP) {
   uint32_t v =
       (((snow_3g_context_pP->LFSR_S0 << 8) & 0xffffff00) ^
        (MULalpha((uint8_t)((snow_3g_context_pP->LFSR_S0 >> 24) & 0xff))) ^
@@ -209,7 +211,7 @@ static void snow3g_clock_LFSR_key_stream_mode(
   See Section 3.4.6.
 */
 
-static uint32_t snow3g_clock_fsm(snow_3g_context_t* snow_3g_context_pP) {
+static uint32_t snow3g_clock_fsm(snow_3g_context_t *snow_3g_context_pP) {
   uint32_t F = ((snow_3g_context_pP->LFSR_S15 + snow_3g_context_pP->FSM_R1) &
                 0xffffffff) ^
                snow_3g_context_pP->FSM_R2;
@@ -231,7 +233,7 @@ static uint32_t snow3g_clock_fsm(snow_3g_context_t* snow_3g_context_pP) {
 */
 
 void snow3g_initialize(uint32_t k[4], uint32_t IV[4],
-                       snow_3g_context_t* snow_3g_context_pP) {
+                       snow_3g_context_t *snow_3g_context_pP) {
   uint8_t i = 0;
   uint32_t F = 0x0;
 
@@ -269,8 +271,8 @@ void snow3g_initialize(uint32_t k[4], uint32_t IV[4],
     See section 4.2.
 */
 
-void snow3g_generate_key_stream(uint32_t n, uint32_t* ks,
-                                snow_3g_context_t* snow_3g_context_pP) {
+void snow3g_generate_key_stream(uint32_t n, uint32_t *ks,
+                                snow_3g_context_t *snow_3g_context_pP) {
   uint32_t t = 0;
   uint32_t F = 0x0;
 

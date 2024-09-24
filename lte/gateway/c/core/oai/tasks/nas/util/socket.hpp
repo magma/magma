@@ -59,10 +59,10 @@ typedef struct socket_id_s socket_id_t;
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void* socket_udp_open(int type, const char* host, const char* port);
-status_code_e socket_get_fd(const void* id);
+void *socket_udp_open(int type, const char *host, const char *port);
+status_code_e socket_get_fd(const void *id);
 
-ssize_t socket_recv(void* id, char* buffer, size_t length);
-ssize_t socket_send(const void* id, const char* buffer, size_t length);
+ssize_t socket_recv(void *id, char *buffer, size_t length);
+ssize_t socket_send(const void *id, const char *buffer, size_t length);
 
-void socket_close(void* id);
+void socket_close(void *id);

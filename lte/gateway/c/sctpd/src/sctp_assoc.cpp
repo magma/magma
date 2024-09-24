@@ -23,18 +23,13 @@ namespace magma {
 namespace sctpd {
 
 SctpAssoc::SctpAssoc()
-    : sd(0),
-      ppid(0),
-      instreams(0),
-      outstreams(0),
-      assoc_id(0),
-      messages_recv(0),
-      messages_sent(0) {}
+    : sd(0), ppid(0), instreams(0), outstreams(0), assoc_id(0),
+      messages_recv(0), messages_sent(0) {}
 
 void SctpAssoc::dump() const {
   MLOG(MDEBUG) << "SctpAssoc<id: " << std::to_string(this->assoc_id) << ">"
                << std::endl;
 }
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

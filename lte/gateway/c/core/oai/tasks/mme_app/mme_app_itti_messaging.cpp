@@ -24,10 +24,10 @@
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
 
+#include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
-#include <netinet/in.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,9 +72,9 @@ extern task_zmq_ctx_t mme_app_task_zmq_ctx;
  **          emm_casue: failed cause                                       **
  **                                                                        **
  ***************************************************************************/
-void mme_app_itti_ue_context_release(struct ue_mm_context_s* ue_context_p,
+void mme_app_itti_ue_context_release(struct ue_mm_context_s *ue_context_p,
                                      enum s1cause cause) {
-  MessageDef* message_p;
+  MessageDef *message_p;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   message_p =
@@ -119,13 +119,13 @@ void mme_app_itti_ue_context_release(struct ue_mm_context_s* ue_context_p,
  **                                                                        **
  ***************************************************************************/
 status_code_e mme_app_send_s11_release_access_bearers_req(
-    struct ue_mm_context_s* const ue_mm_context, imsi64_t imsi_64) {
+    struct ue_mm_context_s *const ue_mm_context, imsi64_t imsi_64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   /*
    * Keep the identifier to the default APN
    */
-  MessageDef* message_p = NULL;
-  itti_s11_release_access_bearers_request_t* release_access_bearers_request_p =
+  MessageDef *message_p = NULL;
+  itti_s11_release_access_bearers_request_t *release_access_bearers_request_p =
       NULL;
 
   if (ue_mm_context == NULL) {
@@ -203,16 +203,17 @@ status_code_e mme_app_send_s11_release_access_bearers_req(
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_app_send_s11_create_session_req(
-    mme_app_desc_t* mme_app_desc_p, struct ue_mm_context_s* const ue_mm_context,
-    const pdn_cid_t pdn_cid) {
+status_code_e
+mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
+                                    struct ue_mm_context_s *const ue_mm_context,
+                                    const pdn_cid_t pdn_cid) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   /*
    * Keep the identifier to the default APN
    */
-  MessageDef* message_p = NULL;
-  itti_s11_create_session_request_t* session_request_p = NULL;
+  MessageDef *message_p = NULL;
+  itti_s11_create_session_request_t *session_request_p = NULL;
 
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid UE MM context received\n");
@@ -255,7 +256,7 @@ status_code_e mme_app_send_s11_create_session_req(
    */
   session_request_p->teid = 0;
   IMSI64_TO_STRING(ue_mm_context->emm_context._imsi64,
-                   (char*)(&session_request_p->imsi.digit),
+                   (char *)(&session_request_p->imsi.digit),
                    ue_mm_context->emm_context._imsi.length);
   session_request_p->imsi.length = ue_mm_context->emm_context._imsi.length;
 
@@ -274,13 +275,13 @@ status_code_e mme_app_send_s11_create_session_req(
   session_request_p->mei.present = MEI_IMEISV;
   session_request_p->mei.choice.imeisv = ue_mm_context->emm_context._imeisv;
   // Fill User Location Information
-  session_request_p->uli.present = 0;  // initialize the presencemask
+  session_request_p->uli.present = 0; // initialize the presencemask
   mme_app_get_user_location_information(&session_request_p->uli, ue_mm_context);
 
   session_request_p->rat_type = RAT_EUTRAN;
 
   // default bearer already created by NAS
-  bearer_context_t* bc = mme_app_get_bearer_context(
+  bearer_context_t *bc = mme_app_get_bearer_context(
       ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->default_ebi);
   if (bc == NULL) {
     OAILOG_ERROR_UE(
@@ -336,9 +337,9 @@ status_code_e mme_app_send_s11_create_session_req(
       &mme_app_desc_p->mme_ue_contexts, ue_mm_context,
       ue_mm_context->enb_s1ap_id_key, ue_mm_context->mme_ue_s1ap_id,
       ue_mm_context->emm_context._imsi64,
-      session_request_p->sender_fteid_for_cp.teid,  // mme_teid_s11 is new
+      session_request_p->sender_fteid_for_cp.teid, // mme_teid_s11 is new
       &ue_mm_context->emm_context._guti);
-  struct apn_configuration_s* selected_apn_config_p = mme_app_get_apn_config(
+  struct apn_configuration_s *selected_apn_config_p = mme_app_get_apn_config(
       ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->context_identifier);
 
   memcpy(session_request_p->apn, selected_apn_config_p->service_selection,
@@ -370,7 +371,7 @@ status_code_e mme_app_send_s11_create_session_req(
     uint8_t j;
 
     for (j = 0; j < selected_apn_config_p->nb_ip_address; j++) {
-      ip_address_t* ip_address = &selected_apn_config_p->ip_address[j];
+      ip_address_t *ip_address = &selected_apn_config_p->ip_address[j];
 
       if (ip_address->pdn_type == IPv4) {
         session_request_p->paa.ipv4_address.s_addr =
@@ -406,11 +407,11 @@ status_code_e mme_app_send_s11_create_session_req(
   // Actually, since S and P GW are bundled together, there is no PGW selection
   // (based on PGW id in ULA, or DNS query based on FQDN)
   if (1) {
-    mme_app_select_sgw(
-        &ue_mm_context->emm_context.originating_tai,
-        (struct sockaddr* const) & session_request_p->edns_peer_ip);
+    mme_app_select_sgw(&ue_mm_context->emm_context.originating_tai,
+                       (struct sockaddr *const) &
+                           session_request_p->edns_peer_ip);
 
-    if (((struct sockaddr* const) & (session_request_p->edns_peer_ip))
+    if (((struct sockaddr *const) & (session_request_p->edns_peer_ip))
             ->sa_family == AF_INET) {
       ue_mm_context->pdn_contexts[pdn_cid]
           ->s_gw_address_s11_s4.address.ipv4_address.s_addr =
@@ -434,7 +435,7 @@ status_code_e mme_app_send_s11_create_session_req(
 
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
   int mode =
-      match_fed_mode_map((char*)session_request_p->imsi.digit, LOG_MME_APP);
+      match_fed_mode_map((char *)session_request_p->imsi.digit, LOG_MME_APP);
   if (mode == S8_SUBSCRIBER) {
     OAILOG_INFO_UE(LOG_MME_APP, ue_mm_context->emm_context._imsi64,
                    "Sending s11 create session req message to SGW_s8 task for "
@@ -460,16 +461,16 @@ status_code_e mme_app_send_s11_create_session_req(
 void mme_app_send_s1ap_e_rab_modification_confirm(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-    const mme_app_s1ap_proc_modify_bearer_ind_t* const proc) {
+    const mme_app_s1ap_proc_modify_bearer_ind_t *const proc) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   /** Send a S1AP E-RAB MODIFICATION CONFIRM TO THE ENB. */
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_MODIFICATION_CNF);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "itti_alloc_new_message Failed\n");
   }
 
-  itti_s1ap_e_rab_modification_cnf_t* s1ap_e_rab_modification_cnf_p =
+  itti_s1ap_e_rab_modification_cnf_t *s1ap_e_rab_modification_cnf_p =
       &message_p->ittiMsg.s1ap_e_rab_modification_cnf;
 
   /** Set the identifiers. */
@@ -514,11 +515,11 @@ void mme_app_send_s1ap_e_rab_modification_confirm(
  **                                                                        **
  ***************************************************************************/
 void nas_itti_sgsap_uplink_unitdata(
-    const char* const imsi, uint8_t imsi_len, bstring nas_msg,
-    imeisv_t* imeisv_pP, MobileStationClassmark2* mobilestationclassmark2_pP,
-    tai_t* tai_pP, ecgi_t* ecgi_pP, bool sms_orc8r_enabled) {
+    const char *const imsi, uint8_t imsi_len, bstring nas_msg,
+    imeisv_t *imeisv_pP, MobileStationClassmark2 *mobilestationclassmark2_pP,
+    tai_t *tai_pP, ecgi_t *ecgi_pP, bool sms_orc8r_enabled) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   int uetimezone = 0;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UPLINK_UNITDATA);
@@ -548,7 +549,7 @@ void nas_itti_sgsap_uplink_unitdata(
    * update the imeisv presence bitmask
    */
   if (imeisv_pP) {
-    hexa_to_ascii((uint8_t*)imeisv_pP->u.value,
+    hexa_to_ascii((uint8_t *)imeisv_pP->u.value,
                   SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv, 8);
     SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv[imeisv_pP->length] = '\0';
     SGSAP_UPLINK_UNITDATA(message_p).opt_imeisv_length = imeisv_pP->length;
@@ -561,7 +562,7 @@ void nas_itti_sgsap_uplink_unitdata(
    */
   if (mobilestationclassmark2_pP) {
     SGSAP_UPLINK_UNITDATA(message_p).opt_mobilestationclassmark2 =
-        *((MobileStationClassmark2_t*)mobilestationclassmark2_pP);
+        *((MobileStationClassmark2_t *)mobilestationclassmark2_pP);
     SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
         UPLINK_UNITDATA_MOBILE_STATION_CLASSMARK_2_PARAMETER_PRESENT;
   }
@@ -570,7 +571,7 @@ void nas_itti_sgsap_uplink_unitdata(
    * update the tai presence bitmask.
    */
   if (tai_pP) {
-    SGSAP_UPLINK_UNITDATA(message_p).opt_tai = *((tai_t*)tai_pP);
+    SGSAP_UPLINK_UNITDATA(message_p).opt_tai = *((tai_t *)tai_pP);
     SGSAP_UPLINK_UNITDATA(message_p).presencemask |=
         UPLINK_UNITDATA_TAI_PARAMETER_PRESENT;
   }
@@ -622,10 +623,10 @@ void nas_itti_sgsap_uplink_unitdata(
  **          imsi_len : Length of IMSI                                     **
  **                                                                        **
  ***************************************************************************/
-void mme_app_itti_sgsap_tmsi_reallocation_comp(const char* imsi,
+void mme_app_itti_sgsap_tmsi_reallocation_comp(const char *imsi,
                                                const unsigned int imsi_len) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_TMSI_REALLOC_COMP);
   if (message_p == NULL) {
@@ -663,10 +664,10 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(const char* imsi,
  **          imsi_len : Length of IMSI                                     **
  **                                                                        **
  ***************************************************************************/
-void mme_app_itti_sgsap_ue_activity_ind(const char* imsi,
+void mme_app_itti_sgsap_ue_activity_ind(const char *imsi,
                                         const unsigned int imsi_len) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
   if (message_p == NULL) {

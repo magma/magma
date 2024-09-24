@@ -14,8 +14,8 @@ limitations under the License.
 #pragma once
 //--C includes -----------------------------------------------------------------
 extern "C" {
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 ////--C++ includes
 ///---------------------------------------------------------------
@@ -55,23 +55,23 @@ void amf_pdu_stop_timer(int timer_id);
 
 // The *_pop*timer_* functions also removes the timer_id from the map.
 // These functions are supposed to be used only by expired timers.
-bool amf_pop_timer_arg(int timer_id, timer_arg_t* arg);
-bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t* arg);
+bool amf_pop_timer_arg(int timer_id, timer_arg_t *arg);
+bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t *arg);
 
 class AmfUeContext {
- private:
+private:
   std::map<int, timer_arg_t> amf_app_timers;
   std::map<int, ue_pdu_id_t> amf_pdu_timers;
   AmfUeContext() : amf_app_timers(), amf_pdu_timers(){};
 
- public:
-  static AmfUeContext& Instance() {
+public:
+  static AmfUeContext &Instance() {
     static AmfUeContext instance;
     return instance;
   }
 
-  AmfUeContext(AmfUeContext const&) = delete;
-  void operator=(AmfUeContext const&) = delete;
+  AmfUeContext(AmfUeContext const &) = delete;
+  void operator=(AmfUeContext const &) = delete;
 
   int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
                  timer_arg_t id);
@@ -88,8 +88,8 @@ class AmfUeContext {
    * @param arg Timer arguments to be stored in this parameter
    * @return True if timer_id exists, False otherwise.
    */
-  bool PopTimerArgById(const int timer_id, timer_arg_t* arg);
-  bool PopPduTimerArgById(const int timer_id, ue_pdu_id_t* arg);
+  bool PopTimerArgById(const int timer_id, timer_arg_t *arg);
+  bool PopPduTimerArgById(const int timer_id, ue_pdu_id_t *arg);
 };
 
-}  // namespace magma5g
+} // namespace magma5g

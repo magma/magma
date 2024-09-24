@@ -17,24 +17,24 @@
 
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <utility>
 
-#include "orc8r/protos/mconfig/mconfigs.pb.h"
 #include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/protos/session_manager.pb.h"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
+#include "orc8r/protos/mconfig/mconfigs.pb.h"
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class SubscriberID;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 #define MAGMAD_SERVICE "magmad"
 
@@ -42,7 +42,7 @@ using grpc::Status;
 
 namespace magma {
 
-PCEFClient& PCEFClient::get_instance() {
+PCEFClient &PCEFClient::get_instance() {
   static PCEFClient client_instance;
   return client_instance;
 }
@@ -59,9 +59,9 @@ PCEFClient::PCEFClient() {
 }
 
 void PCEFClient::create_session(
-    const LocalCreateSessionRequest& request,
+    const LocalCreateSessionRequest &request,
     std::function<void(Status, LocalCreateSessionResponse)> callback) {
-  PCEFClient& client = get_instance();
+  PCEFClient &client = get_instance();
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto local_response = new AsyncLocalResponse<LocalCreateSessionResponse>(
@@ -78,9 +78,9 @@ void PCEFClient::create_session(
 }
 
 void PCEFClient::end_session(
-    const LocalEndSessionRequest& request,
+    const LocalEndSessionRequest &request,
     std::function<void(Status, LocalEndSessionResponse)> callback) {
-  PCEFClient& client = get_instance();
+  PCEFClient &client = get_instance();
   auto local_response = new AsyncLocalResponse<LocalEndSessionResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   auto response_reader = client.stub_->AsyncEndSession(
@@ -89,9 +89,9 @@ void PCEFClient::end_session(
 }
 
 void PCEFClient::bind_policy2bearer(
-    const PolicyBearerBindingRequest& request,
+    const PolicyBearerBindingRequest &request,
     std::function<void(Status, PolicyBearerBindingResponse)> callback) {
-  PCEFClient& client = get_instance();
+  PCEFClient &client = get_instance();
   auto local_response = new AsyncLocalResponse<PolicyBearerBindingResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   auto response_reader = client.stub_->AsyncBindPolicy2Bearer(
@@ -100,9 +100,9 @@ void PCEFClient::bind_policy2bearer(
 }
 
 void PCEFClient::update_teids(
-    const UpdateTunnelIdsRequest& request,
+    const UpdateTunnelIdsRequest &request,
     std::function<void(Status, UpdateTunnelIdsResponse)> callback) {
-  PCEFClient& client = get_instance();
+  PCEFClient &client = get_instance();
   auto local_response = new AsyncLocalResponse<UpdateTunnelIdsResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
   auto response_reader = client.stub_->AsyncUpdateTunnelIds(
@@ -110,4 +110,4 @@ void PCEFClient::update_teids(
   local_response->set_response_reader(std::move(response_reader));
 }
 
-}  // namespace magma
+} // namespace magma

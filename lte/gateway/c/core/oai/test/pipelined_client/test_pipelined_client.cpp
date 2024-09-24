@@ -324,5 +324,5 @@ TEST(test_classifier_rpc, test_paging_uev4) {
   EXPECT_TRUE(paging_request.ue_session_state().ue_config_state() ==
               UESessionState::INSTALL_IDLE);
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

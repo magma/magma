@@ -19,10 +19,10 @@
 #include <iostream>
 #include <string>
 
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/sgs_client/itti_msg_to_proto_msg.hpp"
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
-#include "lte/gateway/c/core/oai/lib/sgs_client/itti_msg_to_proto_msg.hpp"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
@@ -89,8 +89,8 @@ static std::string get_mme_name() {
 namespace magma {
 using namespace feg;
 
-AlertAck convert_itti_sgsap_alert_ack_to_proto_msg(
-    const itti_sgsap_alert_ack_t* msg) {
+AlertAck
+convert_itti_sgsap_alert_ack_to_proto_msg(const itti_sgsap_alert_ack_t *msg) {
   AlertAck ret;
   ret.Clear();
 
@@ -100,7 +100,7 @@ AlertAck convert_itti_sgsap_alert_ack_to_proto_msg(
 }
 
 AlertReject convert_itti_sgsap_alert_reject_to_proto_msg(
-    const itti_sgsap_alert_reject_t* msg) {
+    const itti_sgsap_alert_reject_t *msg) {
   AlertReject ret;
   ret.Clear();
 
@@ -113,7 +113,7 @@ AlertReject convert_itti_sgsap_alert_reject_to_proto_msg(
 }
 
 LocationUpdateRequest convert_itti_sgsap_location_update_req_to_proto_msg(
-    const itti_sgsap_location_update_req_t* msg) {
+    const itti_sgsap_location_update_req_t *msg) {
   LocationUpdateRequest ret;
   ret.Clear();
 
@@ -133,7 +133,7 @@ LocationUpdateRequest convert_itti_sgsap_location_update_req_to_proto_msg(
 }
 
 TMSIReallocationComplete convert_itti_sgsap_tmsi_reallocation_comp_to_proto_msg(
-    const itti_sgsap_tmsi_reallocation_comp_t* msg) {
+    const itti_sgsap_tmsi_reallocation_comp_t *msg) {
   TMSIReallocationComplete ret;
   ret.Clear();
 
@@ -143,7 +143,7 @@ TMSIReallocationComplete convert_itti_sgsap_tmsi_reallocation_comp_to_proto_msg(
 }
 
 EPSDetachIndication convert_itti_sgsap_eps_detach_ind_to_proto_msg(
-    const itti_sgsap_eps_detach_ind_t* msg) {
+    const itti_sgsap_eps_detach_ind_t *msg) {
   EPSDetachIndication ret;
   ret.Clear();
 
@@ -159,7 +159,7 @@ EPSDetachIndication convert_itti_sgsap_eps_detach_ind_to_proto_msg(
 }
 
 IMSIDetachIndication convert_itti_sgsap_imsi_detach_ind_to_proto_msg(
-    const itti_sgsap_imsi_detach_ind_t* msg) {
+    const itti_sgsap_imsi_detach_ind_t *msg) {
   IMSIDetachIndication ret;
   ret.Clear();
 
@@ -175,7 +175,7 @@ IMSIDetachIndication convert_itti_sgsap_imsi_detach_ind_to_proto_msg(
 }
 
 PagingReject convert_itti_sgsap_paging_reject_to_proto_msg(
-    const itti_sgsap_paging_reject_t* msg) {
+    const itti_sgsap_paging_reject_t *msg) {
   PagingReject ret;
   ret.Clear();
 
@@ -188,7 +188,7 @@ PagingReject convert_itti_sgsap_paging_reject_to_proto_msg(
 }
 
 ServiceRequest convert_itti_sgsap_service_request_to_proto_msg(
-    const itti_sgsap_service_request_t* msg) {
+    const itti_sgsap_service_request_t *msg) {
   ServiceRequest ret;
   ret.Clear();
 
@@ -232,7 +232,7 @@ ServiceRequest convert_itti_sgsap_service_request_to_proto_msg(
 }
 
 UEActivityIndication convert_itti_sgsap_ue_activity_indication_to_proto_msg(
-    const itti_sgsap_ue_activity_ind_t* msg) {
+    const itti_sgsap_ue_activity_ind_t *msg) {
   UEActivityIndication ret;
   ret.Clear();
 
@@ -242,7 +242,7 @@ UEActivityIndication convert_itti_sgsap_ue_activity_indication_to_proto_msg(
 }
 
 UEUnreachable convert_itti_sgsap_ue_unreachable_to_proto_msg(
-    const itti_sgsap_ue_unreachable_t* msg) {
+    const itti_sgsap_ue_unreachable_t *msg) {
   UEUnreachable ret;
   ret.Clear();
 
@@ -255,7 +255,7 @@ UEUnreachable convert_itti_sgsap_ue_unreachable_to_proto_msg(
 }
 
 UplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
-    const itti_sgsap_uplink_unitdata_t* msg) {
+    const itti_sgsap_uplink_unitdata_t *msg) {
   UplinkUnitdata ret;
   ret.Clear();
 
@@ -294,4 +294,4 @@ UplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_proto_msg(
   return ret;
 }
 
-}  // namespace magma
+} // namespace magma

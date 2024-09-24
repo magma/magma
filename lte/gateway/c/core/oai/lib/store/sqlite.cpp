@@ -33,8 +33,8 @@ void SqliteStore::init_db_connection(std::string db_location, int sid_digits) {
   _create_store();
 }
 
-std::vector<std::string> SqliteStore::_create_db_locations(
-    std::string db_location, int n_shards) {
+std::vector<std::string>
+SqliteStore::_create_db_locations(std::string db_location, int n_shards) {
   // in memory if db_location is not specified
   if (db_location.length() == 0) {
     db_location = "/var/opt/magma/";
@@ -53,9 +53,9 @@ std::vector<std::string> SqliteStore::_create_db_locations(
 
 void SqliteStore::_create_store() {
   for (auto db_location_s : _db_locations) {
-    sqlite3* db;
+    sqlite3 *db;
     int rc;
-    const char* db_location = db_location_s.c_str();
+    const char *db_location = db_location_s.c_str();
     rc = sqlite3_open(db_location, &db);
     if (rc) {
       std::cout << "Cannot open database " << sqlite3_errmsg(db) << std::endl;
@@ -64,10 +64,9 @@ void SqliteStore::_create_store() {
                 << std::endl;
     }
 
-    const char* sql =
-        "CREATE TABLE IF NOT EXISTS subscriberdb"
-        "(subscriber_id text PRIMARY KEY, data text)";
-    char* zErrMsg;
+    const char *sql = "CREATE TABLE IF NOT EXISTS subscriberdb"
+                      "(subscriber_id text PRIMARY KEY, data text)";
+    char *zErrMsg;
 
     rc = sqlite3_exec(db, sql, NULL, 0, &zErrMsg);
     if (rc != SQLITE_OK) {
@@ -81,16 +80,16 @@ void SqliteStore::_create_store() {
   }
 }
 
-void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
+void SqliteStore::add_subscriber(const SubscriberData &subscriber_data) {
   std::string sid_s = _get_sid(subscriber_data);
-  const char* sid = sid_s.c_str();
+  const char *sid = sid_s.c_str();
   std::string data_str_s;
   subscriber_data.SerializeToString(&data_str_s);
-  const char* data_str = data_str_s.c_str();
+  const char *data_str = data_str_s.c_str();
 
   std::string db_location_s = _db_locations[_sid2bucket(sid)];
-  const char* db_location = db_location_s.c_str();
-  sqlite3* db;
+  const char *db_location = db_location_s.c_str();
+  sqlite3 *db;
   int rc_open = sqlite3_open(db_location, &db);
   if (rc_open) {
     std::cout << "Cannot open database " << sqlite3_errmsg(db) << std::endl;
@@ -98,11 +97,10 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
     std::cout << "Database " << db_location << " opened successfully "
               << std::endl;
   }
-  const char* sql =
-      "INSERT INTO subscriberdb(subscriber_id, data) "
-      "VALUES (?, ?)";
-  sqlite3_stmt* stmt;
-  const char* pzTail;
+  const char *sql = "INSERT INTO subscriberdb(subscriber_id, data) "
+                    "VALUES (?, ?)";
+  sqlite3_stmt *stmt;
+  const char *pzTail;
   int rc_prep = sqlite3_prepare_v2(db, sql, strlen(sql), &stmt, &pzTail);
   if (rc_prep == SQLITE_OK) {
     sqlite3_bind_text(stmt, 1, sid, strlen(sid), NULL);
@@ -116,7 +114,7 @@ void SqliteStore::add_subscriber(const SubscriberData& subscriber_data) {
   }
 }
 
-const char* SqliteStore::_get_sid(const SubscriberData& subscriber_data) {
+const char *SqliteStore::_get_sid(const SubscriberData &subscriber_data) {
   if (subscriber_data.sid().type() == SubscriberID::IMSI) {
     std::cout << "Valid sid: " << subscriber_data.sid().id() << std::endl;
     std::string sid_s = "IMSI" + subscriber_data.sid().id();
@@ -140,5 +138,5 @@ int SqliteStore::_sid2bucket(std::string sid) {
   }
   return bucket;
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

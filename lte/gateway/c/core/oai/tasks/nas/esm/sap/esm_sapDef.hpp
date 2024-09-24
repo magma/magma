@@ -43,8 +43,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -114,7 +114,7 @@ typedef struct esm_pdn_connectivity_s {
   int is_defined;    /* Indicates whether a PDN context has been defined
                       * for the specified APN            */
   int pdn_type;      /* PDN address type (IPv4, IPv6, IPv4v6)    */
-  const char* apn;   /* PDN's Access Point Name          */
+  const char *apn;   /* PDN's Access Point Name          */
   bool is_emergency; /* Indicates whether the PDN context has been
                       * defined to establish connection for emergency
                       * bearer services              */
@@ -153,8 +153,8 @@ typedef struct esm_eps_dedicated_bearer_context_activate_s {
   bitrate_t gbr_dl;
   bitrate_t mbr_ul;
   bitrate_t mbr_dl;
-  traffic_flow_template_t* tft;
-  protocol_configuration_options_t* pco;
+  traffic_flow_template_t *tft;
+  protocol_configuration_options_t *pco;
   fteid_t sgw_fteid;
 } esm_eps_dedicated_bearer_context_activate_t;
 
@@ -179,7 +179,7 @@ typedef struct esm_sap_s {
                               * within this primitive has to be sent/received
                               * standalone or together within an EMM related
                               * message              */
-  struct emm_context_s* ctx; /* UE MM context                   */
+  struct emm_context_s *ctx; /* UE MM context                   */
   unsigned int ue_id;        /* Local UE identifier             */
   esm_sap_error_t err;       /* ESM-SAP error code               */
   const_bstring recv;        /* Encoded ESM message received     */

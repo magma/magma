@@ -25,16 +25,16 @@
 typedef uint8_t esm_information_transfer_flag_t;
 
 int encode_esm_information_transfer_flag(
-    esm_information_transfer_flag_t* esminformationtransferflag, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    esm_information_transfer_flag_t *esminformationtransferflag, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 uint8_t encode_u8_esm_information_transfer_flag(
-    esm_information_transfer_flag_t* esminformationtransferflag);
+    esm_information_transfer_flag_t *esminformationtransferflag);
 
 int decode_esm_information_transfer_flag(
-    esm_information_transfer_flag_t* esminformationtransferflag, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    esm_information_transfer_flag_t *esminformationtransferflag, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 int decode_u8_esm_information_transfer_flag(
-    esm_information_transfer_flag_t* esminformationtransferflag, uint8_t iei,
+    esm_information_transfer_flag_t *esminformationtransferflag, uint8_t iei,
     uint8_t value, uint32_t len);

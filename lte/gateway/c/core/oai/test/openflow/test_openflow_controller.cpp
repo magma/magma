@@ -14,23 +14,23 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <gtest/gtest-message.h>    // for Message
-#include <gtest/gtest-test-part.h>  // for TestPartResult
-#include <gtest/gtest.h>            // for TestInfo (ptr only), InitGoog...
-#include <stddef.h>                 // for NULL
-#include <stdint.h>                 // for uint8_t
-#include <fluid/base/EventLoop.hh>  // for fluid_base
-#include <fluid/util/ethaddr.hh>    // for fluid_msg
-#include <memory>                   // for unique_ptr
+#include <fluid/base/EventLoop.hh> // for fluid_base
+#include <fluid/util/ethaddr.hh>   // for fluid_msg
+#include <gtest/gtest-message.h>   // for Message
+#include <gtest/gtest-test-part.h> // for TestPartResult
+#include <gtest/gtest.h>           // for TestInfo (ptr only), InitGoog...
+#include <memory>                  // for unique_ptr
+#include <stddef.h>                // for NULL
+#include <stdint.h>                // for uint8_t
 // TODO: Once #5146 is resolved this can be re-ordered above <memory>
-#include <fluid/OFConnection.hh>  // for OFConnection, OFConnection::E...
-#include <stdexcept>              // for runtime_error
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp"  // for EVENT_PACKET_IN, EVENT_SWITCH...
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"  // for OpenflowController, OFPT_PACK...
-#include "gmock/gmock-matchers.h"       // for AnythingMatcher, _
-#include "gmock/gmock-spec-builders.h"  // for EXPECT_CALL, TypedExpectation
-#include "gmock/gmock.h"                // for InitGoogleMock
-#include "lte/gateway/c/core/oai/test/openflow/openflow_mocks.h"  // for MockApplication
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp" // for EVENT_PACKET_IN, EVENT_SWITCH...
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp" // for OpenflowController, OFPT_PACK...
+#include "lte/gateway/c/core/oai/test/openflow/openflow_mocks.h" // for MockApplication
+#include "gmock/gmock-matchers.h"      // for AnythingMatcher, _
+#include "gmock/gmock-spec-builders.h" // for EXPECT_CALL, TypedExpectation
+#include "gmock/gmock.h"               // for InitGoogleMock
+#include <fluid/OFConnection.hh>       // for OFConnection, OFConnection::E...
+#include <stdexcept>                   // for runtime_error
 
 using ::testing::_;
 using ::testing::InSequence;
@@ -45,19 +45,19 @@ namespace {
  * Test fixture that instantiates an openflow controller for testing.
  */
 class ControllerTest : public ::testing::Test {
- public:
+public:
   void default_message_callback(uint8_t type) {
-    controller->message_callback(NULL,  // no connection
+    controller->message_callback(NULL, // no connection
                                  type,
-                                 NULL,  // no data
-                                 0);    // no length
+                                 NULL, // no data
+                                 0);   // no length
   }
 
   void default_connection_callback(OFConnection::Event type) {
     controller->connection_callback(NULL, type);
   }
 
- protected:
+protected:
   virtual void SetUp() {
     controller = std::unique_ptr<OpenflowController>(
         new OpenflowController("127.0.0.1", 6666, 2, false));
@@ -73,7 +73,7 @@ TEST_F(ControllerTest, TestRegistration) {
   MockApplication app;
   EXPECT_CALL(app, event_callback(_, _)).Times(1);
 
-  controller->register_for_event((Application*)&app, EVENT_PACKET_IN);
+  controller->register_for_event((Application *)&app, EVENT_PACKET_IN);
   default_message_callback(OFPT_PACKET_IN_TYPE);
 }
 
@@ -108,4 +108,4 @@ TEST_F(ControllerTest, TestMultipleApplications) {
   default_message_callback(OFPT_PACKET_IN_TYPE);
   default_connection_callback(OFConnection::EVENT_CLOSED);
 }
-}  // namespace
+} // namespace

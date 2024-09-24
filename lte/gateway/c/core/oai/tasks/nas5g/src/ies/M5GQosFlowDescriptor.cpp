@@ -27,7 +27,7 @@ M5GQosFlowDescription::M5GQosFlowDescription() {}
 M5GQosFlowDescription::~M5GQosFlowDescription() {}
 
 int M5GQosFlowDescription::EncodeM5GQosFlowDescription(
-    M5GQosFlowDescription* qosFlowDesc, uint8_t* buffer, uint32_t len) {
+    M5GQosFlowDescription *qosFlowDesc, uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   OAILOG_DEBUG(LOG_NAS5G, " EncodeQosFlowDescriptor : ");
@@ -46,7 +46,7 @@ int M5GQosFlowDescription::EncodeM5GQosFlowDescription(
                static_cast<int>(*(buffer + encoded)));
   encoded++;
   for (uint8_t i = 0; i < qosFlowDesc->numOfParams; i++) {
-    M5GQosFlowParam* qosParams = &qosFlowDesc->paramList[i];
+    M5GQosFlowParam *qosParams = &qosFlowDesc->paramList[i];
     encoded +=
         qosParams->EncodeM5GQosFlowParam(qosParams, (buffer + encoded), len);
   }
@@ -55,7 +55,7 @@ int M5GQosFlowDescription::EncodeM5GQosFlowDescription(
 }
 
 int M5GQosFlowDescription::DecodeM5GQosFlowDescription(
-    M5GQosFlowDescription* qosFlowDesc, uint8_t* buffer, uint32_t len) {
+    M5GQosFlowDescription *qosFlowDesc, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   OAILOG_DEBUG(LOG_NAS5G, " DecodeQosFlowDescriptor : ");
@@ -75,11 +75,11 @@ int M5GQosFlowDescription::DecodeM5GQosFlowDescription(
   decoded++;
 
   for (uint8_t i = 0; i < qosFlowDesc->numOfParams; i++) {
-    M5GQosFlowParam* qosParams = &qosFlowDesc->paramList[i];
+    M5GQosFlowParam *qosParams = &qosFlowDesc->paramList[i];
     decoded +=
         qosParams->DecodeM5GQosFlowParam(qosParams, (buffer + decoded), len);
   }
 
   return decoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

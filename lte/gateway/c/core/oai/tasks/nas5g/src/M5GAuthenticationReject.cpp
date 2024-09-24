@@ -26,7 +26,7 @@ AuthenticationRejectMsg::~AuthenticationRejectMsg(){};
 
 // Decoding Authentication Reject Message and its IEs
 int AuthenticationRejectMsg::DecodeAuthenticationRejectMsg(
-    AuthenticationRejectMsg* auth_reject, uint8_t* buffer, uint32_t len) {
+    AuthenticationRejectMsg *auth_reject, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -63,7 +63,7 @@ int AuthenticationRejectMsg::DecodeAuthenticationRejectMsg(
 
 // Encoding Authentication Reject Message and its IEs
 int AuthenticationRejectMsg::EncodeAuthenticationRejectMsg(
-    AuthenticationRejectMsg* auth_reject, uint8_t* buffer, uint32_t len) {
+    AuthenticationRejectMsg *auth_reject, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
@@ -97,4 +97,4 @@ int AuthenticationRejectMsg::EncodeAuthenticationRejectMsg(
 
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

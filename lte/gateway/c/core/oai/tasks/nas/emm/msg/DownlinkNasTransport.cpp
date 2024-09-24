@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_downlink_nas_transport(
-    downlink_nas_transport_msg* downlink_nas_transport, uint8_t* buffer,
+    downlink_nas_transport_msg *downlink_nas_transport, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -53,7 +53,7 @@ int decode_downlink_nas_transport(
 }
 
 int encode_downlink_nas_transport(
-    downlink_nas_transport_msg* downlink_nas_transport, uint8_t* buffer,
+    downlink_nas_transport_msg *downlink_nas_transport, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -66,7 +66,7 @@ int encode_downlink_nas_transport(
 
   if ((encode_result = encode_nas_message_container(
            downlink_nas_transport->nasmessagecontainer, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

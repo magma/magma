@@ -10,20 +10,20 @@
 */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASSecurityAlgorithms.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIMEISVRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASSecurityAlgorithms.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
+#include <sstream>
 
 namespace magma5g {
 // SecurityModeCommand Message Class
 class SecurityModeCommandMsg {
- public:
+public:
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SpareHalfOctetMsg spare_half_octet;
   SecurityHeaderTypeMsg sec_header_type;
@@ -36,12 +36,12 @@ class SecurityModeCommandMsg {
 
   SecurityModeCommandMsg();
   ~SecurityModeCommandMsg();
-  int DecodeSecurityModeCommandMsg(SecurityModeCommandMsg* sec_mode_command,
-                                   uint8_t* buffer, uint32_t len);
-  int EncodeSecurityModeCommandMsg(SecurityModeCommandMsg* sec_mode_command,
-                                   uint8_t* buffer, uint32_t len);
+  int DecodeSecurityModeCommandMsg(SecurityModeCommandMsg *sec_mode_command,
+                                   uint8_t *buffer, uint32_t len);
+  int EncodeSecurityModeCommandMsg(SecurityModeCommandMsg *sec_mode_command,
+                                   uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    SPEC TS-24501 Table 8.2.25.1.1 SECURITY MODE COMMAND message content

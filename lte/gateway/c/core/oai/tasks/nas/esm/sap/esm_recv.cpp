@@ -87,8 +87,8 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi);
  **                                                                        **
  ***************************************************************************/
 
-esm_cause_t esm_recv_status(emm_context_t* emm_context, proc_tid_t pti,
-                            ebi_t ebi, const esm_status_msg* msg) {
+esm_cause_t esm_recv_status(emm_context_t *emm_context, proc_tid_t pti,
+                            ebi_t ebi, const esm_status_msg *msg) {
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   int rc = RETURNerror;
 
@@ -142,10 +142,11 @@ esm_cause_t esm_recv_status(emm_context_t* emm_context, proc_tid_t pti,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-esm_cause_t esm_recv_pdn_connectivity_request(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const pdn_connectivity_request_msg* msg, ebi_t* new_ebi,
-    bool is_standalone) {
+esm_cause_t
+esm_recv_pdn_connectivity_request(emm_context_t *emm_context, proc_tid_t pti,
+                                  ebi_t ebi,
+                                  const pdn_connectivity_request_msg *msg,
+                                  ebi_t *new_ebi, bool is_standalone) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;
   int esm_cause = ESM_CAUSE_SUCCESS;
@@ -196,11 +197,11 @@ esm_cause_t esm_recv_pdn_connectivity_request(
    * Get PDN connection and EPS bearer context data structure to setup
    */
   if (!emm_context->esm_ctx.esm_proc_data) {
-    emm_context->esm_ctx.esm_proc_data = (esm_proc_data_t*)calloc(
+    emm_context->esm_ctx.esm_proc_data = (esm_proc_data_t *)calloc(
         1, sizeof(*emm_context->esm_ctx.esm_proc_data));
   }
 
-  struct esm_proc_data_s* esm_data = emm_context->esm_ctx.esm_proc_data;
+  struct esm_proc_data_s *esm_data = emm_context->esm_ctx.esm_proc_data;
 
   esm_data->pti = pti;
   /*
@@ -257,7 +258,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
    * Get the Access Point Name, if provided
    */
   if (msg->presencemask & PDN_CONNECTIVITY_REQUEST_ACCESS_POINT_NAME_PRESENT) {
-    if (esm_data->apn) bdestroy_wrapper(&esm_data->apn);
+    if (esm_data->apn)
+      bdestroy_wrapper(&esm_data->apn);
     if (mme_config.nas_config.enable_apn_correction) {
       esm_data->apn = mme_app_process_apn_correction(&(emm_context->_imsi),
                                                      msg->accesspointname);
@@ -265,7 +267,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
           LOG_NAS_ESM, emm_context->_imsi64,
           "ESM-SAP   - APN CORRECTION (apn = %s) for ue id " MME_UE_S1AP_ID_FMT
           "\n",
-          (const char*)bdata(esm_data->apn), ue_id);
+          (const char *)bdata(esm_data->apn), ue_id);
     } else {
       esm_data->apn = msg->accesspointname;
     }
@@ -309,10 +311,10 @@ esm_cause_t esm_recv_pdn_connectivity_request(
   emm_context->emm_cause = ESM_CAUSE_SUCCESS;
 
   if (is_standalone) {
-    ue_mm_context_t* ue_mm_context_p =
+    ue_mm_context_t *ue_mm_context_p =
         mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     // Select APN
-    struct apn_configuration_s* apn_config =
+    struct apn_configuration_s *apn_config =
         mme_app_select_apn(ue_mm_context_p, &esm_cause);
 
     /*
@@ -331,7 +333,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      */
     for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
       if (ue_mm_context_p->pdn_contexts[itr]) {
-        if (!(strcmp((const char*)ue_mm_context_p->pdn_contexts[itr]
+        if (!(strcmp((const char *)ue_mm_context_p->pdn_contexts[itr]
                          ->apn_subscribed->data,
                      apn_config->service_selection)) &&
             (ue_mm_context_p->pdn_contexts[itr]->is_active)) {
@@ -343,7 +345,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
     /* Find a free PDN Connection ID*/
     for (pdn_cid = 0; pdn_cid < MAX_APN_PER_UE; pdn_cid++) {
-      if (!ue_mm_context_p->pdn_contexts[pdn_cid]) break;
+      if (!ue_mm_context_p->pdn_contexts[pdn_cid])
+        break;
     }
 
     if (pdn_cid >= MAX_APN_PER_UE) {
@@ -390,7 +393,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
     emm_context->esm_ctx.pending_standalone += 1;
 
-    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     mme_app_send_s11_create_session_req(mme_app_desc_p, ue_mm_context_p,
                                         pdn_cid);
   } else {
@@ -424,13 +427,14 @@ esm_cause_t esm_recv_pdn_connectivity_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-esm_cause_t esm_recv_pdn_disconnect_request(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const pdn_disconnect_request_msg* msg) {
+esm_cause_t
+esm_recv_pdn_disconnect_request(emm_context_t *emm_context, proc_tid_t pti,
+                                ebi_t ebi,
+                                const pdn_disconnect_request_msg *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   pdn_cid_t pid = MAX_APN_PER_UE;
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
-  ue_mm_context_t* ue_mm_context_p = NULL;
+  ue_mm_context_t *ue_mm_context_p = NULL;
   ue_mm_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
@@ -482,7 +486,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
   /*
    * Execute the PDN disconnect procedure requested by the UE
    */
-  struct esm_proc_data_s* esm_data = emm_context->esm_ctx.esm_proc_data;
+  struct esm_proc_data_s *esm_data = emm_context->esm_ctx.esm_proc_data;
   esm_data->pti = pti;
 
   if (ue_mm_context_p
@@ -527,7 +531,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
-  bool no_delete_gtpv2c_tunnel = true;  // Due to check on line 470
+  bool no_delete_gtpv2c_tunnel = true; // Due to check on line 470
   OAILOG_INFO_UE(LOG_NAS_ESM, ue_mm_context_p->emm_context._imsi64,
                  "ESM-SAP   - Sending Delete session req message "
                  "(ue_id=" MME_UE_S1AP_ID_FMT ", pid=%d, ebi=%d)\n",
@@ -544,9 +548,10 @@ esm_cause_t esm_recv_pdn_disconnect_request(
 }
 
 //------------------------------------------------------------------------------
-esm_cause_t esm_recv_information_response(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const esm_information_response_msg* msg) {
+esm_cause_t
+esm_recv_information_response(emm_context_t *emm_context, proc_tid_t pti,
+                              ebi_t ebi,
+                              const esm_information_response_msg *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   mme_ue_s1ap_id_t ue_id =
@@ -592,7 +597,7 @@ esm_cause_t esm_recv_information_response(
         LOG_NAS_ESM, emm_context->_imsi64,
         "ESM-SAP   - APN CORRECTION (apn = %s) for ue id " MME_UE_S1AP_ID_FMT
         "\n",
-        (const char*)bdata(apn), ue_id);
+        (const char *)bdata(apn), ue_id);
   }
 
   /*
@@ -604,7 +609,7 @@ esm_cause_t esm_recv_information_response(
   int pid = esm_proc_esm_information_response(
       emm_context, pti, apn, &msg->protocolconfigurationoptions, &esm_cause);
 
-  bdestroy_wrapper((bstring*)&msg->accesspointname);
+  bdestroy_wrapper((bstring *)&msg->accesspointname);
   if (pid != RETURNerror) {
     // Continue with S6a Update Location Request
     mme_app_send_s6a_update_location_req(
@@ -634,8 +639,8 @@ esm_cause_t esm_recv_information_response(
  **                                                                        **
  ***************************************************************************/
 
-status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
-                                             void* args) {
+status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t *loop, int timer_id,
+                                             void *args) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   timer_arg_t timer_args;
@@ -646,8 +651,8 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
   }
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
-  ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, const_cast<char*>("EPS BEARER DEACTIVATE T3495 Timer"));
+  ue_mm_context_t *ue_mm_context = mme_app_get_ue_context_for_timer(
+      ue_id, const_cast<char *>("EPS BEARER DEACTIVATE T3495 Timer"));
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -660,7 +665,7 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
   int rc;
   int bid = EBI_TO_INDEX(ebi);
 
-  bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];
+  bearer_context_t *bearer_context = ue_mm_context->bearer_contexts[bid];
   if (bearer_context == NULL) {
     OAILOG_ERROR_UE(
         LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
@@ -670,12 +675,12 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
-  esm_ebr_context_t* ebr_ctx = &(bearer_context->esm_ebr_context);
+  esm_ebr_context_t *ebr_ctx = &(bearer_context->esm_ebr_context);
 
   if (ebr_ctx && ebr_ctx->args) {
     // Get retransmission timer parameters data
-    esm_ebr_timer_data_t* esm_ebr_timer_data =
-        (esm_ebr_timer_data_t*)(ebr_ctx->args);
+    esm_ebr_timer_data_t *esm_ebr_timer_data =
+        (esm_ebr_timer_data_t *)(ebr_ctx->args);
     // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
     OAILOG_WARNING_UE(
@@ -696,8 +701,7 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
         if (rc != RETURNerror) {
           OAILOG_INFO_UE(LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
                          "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
-                         "ue_id=" MME_UE_S1AP_ID_FMT
-                         "ebi (%u)"
+                         "ue_id=" MME_UE_S1AP_ID_FMT "ebi (%u)"
                          "\n",
                          esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
         }
@@ -705,15 +709,14 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
         OAILOG_WARNING_UE(
             LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
             "ESM-PROC  - ERAB_SETUP_RSP_COUNTER_MAX reached for ERAB_SETUP_RSP "
-            "ue_id= " MME_UE_S1AP_ID_FMT
-            " ebi (%u)"
+            "ue_id= " MME_UE_S1AP_ID_FMT " ebi (%u)"
             "\n",
             esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
         if (bearer_context->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
           bearer_context->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
         }
         if (esm_ebr_timer_data) {
-          free_wrapper((void**)&esm_ebr_timer_data);
+          free_wrapper((void **)&esm_ebr_timer_data);
         }
       }
     } else {
@@ -729,7 +732,7 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
         bearer_context->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
       }
       if (esm_ebr_timer_data) {
-        free_wrapper((void**)&esm_ebr_timer_data);
+        free_wrapper((void **)&esm_ebr_timer_data);
       }
     }
   }
@@ -756,11 +759,11 @@ status_code_e erab_setup_rsp_tmr_exp_handler(zloop_t* loop, int timer_id,
  **                                                                        **
  ***************************************************************************/
 esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const activate_default_eps_bearer_context_accept_msg* msg) {
+    emm_context_t *emm_context, proc_tid_t pti, ebi_t ebi,
+    const activate_default_eps_bearer_context_accept_msg *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
-  ue_mm_context_t* ue_context_p =
+  ue_mm_context_t *ue_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   mme_ue_s1ap_id_t ue_id = ue_context_p->mme_ue_s1ap_id;
 
@@ -816,7 +819,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
    */
   if (emm_context->esm_ctx.pending_standalone > 0) {
     emm_context->esm_ctx.pending_standalone -= 1;
-    bearer_context_t* bearer_ctx =
+    bearer_context_t *bearer_ctx =
         mme_app_get_bearer_context(ue_context_p, ebi);
     if (!bearer_ctx) {
       OAILOG_ERROR_UE(
@@ -858,8 +861,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
       if (rc != RETURNerror) {
         OAILOG_DEBUG_UE(LOG_NAS_ESM, emm_context->_imsi64,
                         "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
-                        "ue_id=" MME_UE_S1AP_ID_FMT
-                        "ebi (%u)"
+                        "ue_id=" MME_UE_S1AP_ID_FMT "ebi (%u)"
                         "\n",
                         ue_id, ebi);
       }
@@ -891,8 +893,8 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
  **                                                                        **
  ***************************************************************************/
 esm_cause_t esm_recv_activate_default_eps_bearer_context_reject(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const activate_default_eps_bearer_context_reject_msg* msg) {
+    emm_context_t *emm_context, proc_tid_t pti, ebi_t ebi,
+    const activate_default_eps_bearer_context_reject_msg *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_cause_t esm_cause = ESM_CAUSE_REQUEST_REJECTED_UNSPECIFIED;
   mme_ue_s1ap_id_t ue_id =
@@ -964,8 +966,8 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_reject(
  **                                                                        **
  ***************************************************************************/
 esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_accept(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const activate_dedicated_eps_bearer_context_accept_msg* msg) {
+    emm_context_t *emm_context, proc_tid_t pti, ebi_t ebi,
+    const activate_dedicated_eps_bearer_context_accept_msg *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   mme_ue_s1ap_id_t ue_id =
@@ -1046,8 +1048,8 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_accept(
  **                                                                        **
  ***************************************************************************/
 esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const activate_dedicated_eps_bearer_context_reject_msg* msg) {
+    emm_context_t *emm_context, proc_tid_t pti, ebi_t ebi,
+    const activate_dedicated_eps_bearer_context_reject_msg *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
@@ -1122,8 +1124,8 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
  **                                                                        **
  ***************************************************************************/
 esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
-    emm_context_t* emm_context, proc_tid_t pti, ebi_t ebi,
-    const deactivate_eps_bearer_context_accept_msg* msg) {
+    emm_context_t *emm_context, proc_tid_t pti, ebi_t ebi,
+    const deactivate_eps_bearer_context_accept_msg *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
   mme_ue_s1ap_id_t ue_id =

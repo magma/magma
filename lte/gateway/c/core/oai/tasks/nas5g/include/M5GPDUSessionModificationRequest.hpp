@@ -14,18 +14,18 @@
 #include <vector>
 
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowDescriptor.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
 
 namespace magma5g {
 // PDUSessionModificationRequest Message Class
 class PDUSessionModificationRequestMsg {
- public:
+public:
 #define PDU_SESSION_MODIFICATION_REQ_MIN_LEN 4
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   PDUSessionIdentityMsg pdu_session_identity;
@@ -39,13 +39,13 @@ class PDUSessionModificationRequestMsg {
   PDUSessionModificationRequestMsg();
   ~PDUSessionModificationRequestMsg();
   int DecodePDUSessionModificationRequestMsg(
-      PDUSessionModificationRequestMsg* pdu_session_modif_request,
-      uint8_t* buffer, uint32_t len);
+      PDUSessionModificationRequestMsg *pdu_session_modif_request,
+      uint8_t *buffer, uint32_t len);
   int EncodePDUSessionModificationRequestMsg(
-      PDUSessionModificationRequestMsg* pdu_session_modif_request,
-      uint8_t* buffer, uint32_t len);
+      PDUSessionModificationRequestMsg *pdu_session_modif_request,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    TS-24.501 Table 8.3.7.1.1: PDU SESSION MODIFICATION REQUEST message content

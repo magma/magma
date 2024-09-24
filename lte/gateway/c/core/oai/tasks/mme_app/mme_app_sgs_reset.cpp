@@ -30,9 +30,9 @@
 
 *****************************************************************************/
 
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include <stdbool.h>
 #include <stddef.h>
-#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 
 #ifdef __cplusplus
 extern "C" {
@@ -68,14 +68,14 @@ extern "C" {
  **                                                                        **
  ***************************************************************************/
 status_code_e mme_app_handle_sgsap_reset_indication(
-    itti_sgsap_vlr_reset_indication_t* const reset_indication_pP) {
+    itti_sgsap_vlr_reset_indication_t *const reset_indication_pP) {
   status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(LOG_MME_APP, " Received SGSAP-Reset Indication from VLR :%s \n",
               reset_indication_pP->vlr_name);
 
   /* Handle VLR Reset for each SGS associated UE */
-  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+  proto_map_uint32_ue_context_t *mme_app_state_ue_map = get_mme_ue_state();
 
   if (!mme_app_state_ue_map) {
     OAILOG_ERROR(LOG_MME_APP, "Failed to get mme_ue_state");
@@ -106,14 +106,14 @@ status_code_e mme_app_handle_sgsap_reset_indication(
  **                                                                        **
  ***************************************************************************/
 bool mme_app_handle_reset_indication(
-    const uint32_t unused_keyP, struct ue_mm_context_s* const ue_context_pP,
-    void* unused_param_pP, void** unused_result_pP) {
+    const uint32_t unused_keyP, struct ue_mm_context_s *const ue_context_pP,
+    void *unused_param_pP, void **unused_result_pP) {
   status_code_e rc = RETURNerror;
   sgs_fsm_t sgs_fsm;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  struct ue_mm_context_s* const ue_context_p =
-      (struct ue_mm_context_s*)ue_context_pP;
+  struct ue_mm_context_s *const ue_context_p =
+      (struct ue_mm_context_s *)ue_context_pP;
   if (ue_context_p == NULL) {
     OAILOG_WARNING(LOG_MME_APP, "UE context not found \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, false);
@@ -134,7 +134,7 @@ bool mme_app_handle_reset_indication(
   ue_context_p->sgs_context->sgsap_msg = NULL; /* sgs message */
   sgs_fsm.primitive = _SGS_RESET_INDICATION;
   sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
-  sgs_fsm.ctx = (void*)ue_context_p->sgs_context;
+  sgs_fsm.ctx = (void *)ue_context_p->sgs_context;
 
   /* Invoke SGS FSM */
   if (RETURNok != (rc = sgs_fsm_process(&sgs_fsm))) {
@@ -158,7 +158,7 @@ bool mme_app_handle_reset_indication(
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-status_code_e sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_associated_reset_indication(const sgs_fsm_t *fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (fsm_evt == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid SGS FSM Event object received\n");
@@ -167,7 +167,7 @@ status_code_e sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt) {
   OAILOG_DEBUG(LOG_MME_APP,
                "Handle Reset Indication in Associated state for ue-id :%u \n",
                fsm_evt->ue_id);
-  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
+  sgs_context_t *sgs_context = (sgs_context_t *)fsm_evt->ctx;
   if (sgs_context == NULL) {
     OAILOG_WARNING(LOG_MME_APP, " Strange sgs context is NULL for ue_id :%u \n",
                    fsm_evt->ue_id);

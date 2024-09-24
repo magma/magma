@@ -30,7 +30,7 @@ extern "C" {
 #endif
 
 int decode_authentication_failure(
-    authentication_failure_msg* authentication_failure, uint8_t* buffer,
+    authentication_failure_msg *authentication_failure, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -58,27 +58,28 @@ int decode_authentication_failure(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_IEI:
-        if ((decoded_result = decode_authentication_failure_parameter_ie(
-                 &authentication_failure->authenticationfailureparameter,
-                 AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_IEI:
+      if ((decoded_result = decode_authentication_failure_parameter_ie(
+               &authentication_failure->authenticationfailureparameter,
+               AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        authentication_failure->presencemask |=
-            AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      authentication_failure->presencemask |=
+          AUTHENTICATION_FAILURE_AUTHENTICATION_FAILURE_PARAMETER_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -86,7 +87,7 @@ int decode_authentication_failure(
 }
 
 int encode_authentication_failure(
-    authentication_failure_msg* authentication_failure, uint8_t* buffer,
+    authentication_failure_msg *authentication_failure, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -99,7 +100,7 @@ int encode_authentication_failure(
 
   if ((encode_result = encode_emm_cause(
            &authentication_failure->emmcause, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

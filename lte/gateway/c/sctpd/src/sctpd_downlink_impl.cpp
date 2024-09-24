@@ -23,19 +23,18 @@
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace sctpd {
 
-SctpdDownlinkImpl::SctpdDownlinkImpl(SctpEventHandler& uplink_handler)
-    : _uplink_handler(uplink_handler),
-      _sctp_4G_connection(nullptr),
+SctpdDownlinkImpl::SctpdDownlinkImpl(SctpEventHandler &uplink_handler)
+    : _uplink_handler(uplink_handler), _sctp_4G_connection(nullptr),
       _sctp_5G_connection(nullptr) {}
 
 Status SctpdDownlinkImpl::create_sctp_connection(
-    std::unique_ptr<SctpConnection>& sctp_connection, const InitReq* req,
-    InitRes* res) {
+    std::unique_ptr<SctpConnection> &sctp_connection, const InitReq *req,
+    InitRes *res) {
   if (sctp_connection != nullptr && !req->force_restart()) {
     MLOG(MERROR) << "SctpdDownlinkImpl::Init reusing existing connection";
     res->set_result(InitRes::INIT_OK);
@@ -57,8 +56,8 @@ Status SctpdDownlinkImpl::create_sctp_connection(
   return Status::OK;
 }
 
-Status SctpdDownlinkImpl::Init(ServerContext* context, const InitReq* req,
-                               InitRes* res) {
+Status SctpdDownlinkImpl::Init(ServerContext *context, const InitReq *req,
+                               InitRes *res) {
   MLOG(MINFO) << "SctpdDownlinkImpl::req->ppid()="
               << std::to_string(req->ppid());
   MLOG(MINFO) << "SctpdDownlinkImpl::req->port()="
@@ -76,8 +75,8 @@ Status SctpdDownlinkImpl::Init(ServerContext* context, const InitReq* req,
   return Status::OK;
 }
 
-Status SctpdDownlinkImpl::SendDl(ServerContext* context, const SendDlReq* req,
-                                 SendDlRes* res) {
+Status SctpdDownlinkImpl::SendDl(ServerContext *context, const SendDlReq *req,
+                                 SendDlRes *res) {
   MLOG(MDEBUG) << "SctpdDownlinkImpl::SendDl starting";
 
   try {
@@ -104,5 +103,5 @@ void SctpdDownlinkImpl::stop() {
   }
 }
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

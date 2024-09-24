@@ -51,12 +51,12 @@ uint64_t get_bit_rate(uint8_t ambr_unit) {
 /*
  * AMBR calculation based on 9.11.4.14 of 24-501
  */
-void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
+void ambr_calculation_pdu_session(uint16_t *dl_session_ambr,
                                   M5GSessionAmbrUnit dl_ambr_unit,
-                                  uint16_t* ul_session_ambr,
+                                  uint16_t *ul_session_ambr,
                                   M5GSessionAmbrUnit ul_ambr_unit,
-                                  uint64_t* dl_pdu_ambr,
-                                  uint64_t* ul_pdu_ambr) {
+                                  uint64_t *dl_pdu_ambr,
+                                  uint64_t *ul_pdu_ambr) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   *dl_pdu_ambr =
       (*dl_session_ambr) * get_bit_rate(static_cast<uint8_t>(dl_ambr_unit));
@@ -72,13 +72,13 @@ void ambr_calculation_pdu_session(uint16_t* dl_session_ambr,
  * itti_message is sent to NGAP.
  */
 status_code_e pdu_session_resource_setup_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    ue_m5gmm_context_s *ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  pdu_session_resource_setup_request_transfer_t*
-      amf_pdu_ses_setup_transfer_req = nullptr;
-  itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
-  MessageDef* message_p = nullptr;
+  pdu_session_resource_setup_request_transfer_t
+      *amf_pdu_ses_setup_transfer_req = nullptr;
+  itti_ngap_pdusession_resource_setup_req_t *ngap_pdu_ses_setup_req = nullptr;
+  MessageDef *message_p = nullptr;
   uint64_t dl_pdu_ambr;
   uint64_t ul_pdu_ambr;
 
@@ -135,7 +135,7 @@ status_code_e pdu_session_resource_setup_request(
   amf_pdu_ses_setup_transfer_req->pdu_ip_type.pdn_type =
       smf_context->pdu_address.pdn_type;
 
-  qos_flow_list_t* pti_flow_list = smf_context->get_proc_flow_list();
+  qos_flow_list_t *pti_flow_list = smf_context->get_proc_flow_list();
 
   memcpy(&amf_pdu_ses_setup_transfer_req->qos_flow_add_or_mod_request_list,
          pti_flow_list, sizeof(qos_flow_list_t));
@@ -154,14 +154,14 @@ status_code_e pdu_session_resource_setup_request(
  * itti_message is sent to NGAP.
  */
 int pdu_session_resource_modify_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    ue_m5gmm_context_s *ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
     std::shared_ptr<smf_context_t> smf_context, bstring nas_msg) {
-  pdu_session_resource_modify_request_transfer_t* amf_pdu_ses_mod_transfer_req =
+  pdu_session_resource_modify_request_transfer_t *amf_pdu_ses_mod_transfer_req =
       nullptr;
-  itti_ngap_pdu_session_resource_modify_request_t* ngap_pdu_ses_mod_req =
+  itti_ngap_pdu_session_resource_modify_request_t *ngap_pdu_ses_mod_req =
       nullptr;
-  qos_flow_add_or_modify_request_list_t* qos_Flow_Add_Or_Modify_List = nullptr;
-  MessageDef* message_p = nullptr;
+  qos_flow_add_or_modify_request_list_t *qos_Flow_Add_Or_Modify_List = nullptr;
+  MessageDef *message_p = nullptr;
 
   message_p = itti_alloc_new_message(TASK_AMF_APP,
                                      NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ);
@@ -186,12 +186,12 @@ int pdu_session_resource_modify_request(
 
   qos_Flow_Add_Or_Modify_List =
       &amf_pdu_ses_mod_transfer_req->qos_flow_add_or_mod_request_list;
-  qos_flow_list_cause_t* qos_flow_list_to_release =
+  qos_flow_list_cause_t *qos_flow_list_to_release =
       &amf_pdu_ses_mod_transfer_req->qos_flow_to_release_list;
   qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows = 0;
   qos_flow_list_to_release->numOfItems = 0;
 
-  qos_flow_list_t* pti_flow_list = smf_context->get_proc_flow_list();
+  qos_flow_list_t *pti_flow_list = smf_context->get_proc_flow_list();
   for (int i = 0; i < pti_flow_list->maxNumOfQosFlows; i++) {
     if (pti_flow_list->item[i].qos_flow_req_item.qos_flow_action ==
             policy_action_add ||
@@ -200,7 +200,7 @@ int pdu_session_resource_modify_request(
       memcpy(&qos_Flow_Add_Or_Modify_List
                   ->item[qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows]
                   .qos_flow_req_item,
-             (const void*)&pti_flow_list->item[i].qos_flow_req_item,
+             (const void *)&pti_flow_list->item[i].qos_flow_req_item,
              sizeof(qos_flow_setup_request_item));
       qos_Flow_Add_Or_Modify_List->maxNumOfQosFlows++;
     } else if (pti_flow_list->item[i].qos_flow_req_item.qos_flow_action ==
@@ -223,15 +223,15 @@ int pdu_session_resource_modify_request(
 }
 
 /* Resource release request to gNB through NGAP */
-int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
+int pdu_session_resource_release_request(ue_m5gmm_context_s *ue_context,
                                          amf_ue_ngap_id_t amf_ue_ngap_id,
                                          std::shared_ptr<smf_context_t> smf_ctx,
                                          bool retransmit) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   bstring buffer;
   uint32_t bytes = 0;
-  DLNASTransportMsg* encode_msg = NULL;
-  SmfMsg* smf_msg = NULL;
+  DLNASTransportMsg *encode_msg = NULL;
+  SmfMsg *smf_msg = NULL;
   uint32_t len = 0;
   uint32_t container_len = 0;
   amf_nas_message_t msg;
@@ -292,16 +292,16 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
       static_cast<uint8_t>(M5GMessageType::PDU_SESSION_RELEASE_COMMAND);
   container_len++;
   smf_msg->msg.pdu_session_release_command.m5gsm_cause.cause_value =
-      0x24;  // Regular deactivation
+      0x24; // Regular deactivation
   container_len++;
 
   encode_msg->payload_container.len = container_len;
-  len += 2;  // 2 bytes for container.len
+  len += 2; // 2 bytes for container.len
   len += container_len;
 
   AMF_GET_BYTE_ALIGNED_LENGTH(len);
   if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
-    amf_msg_header* header = &msg.security_protected.plain.amf.header;
+    amf_msg_header *header = &msg.security_protected.plain.amf.header;
     /*
      * Expand size of protected NAS message
      */
@@ -328,8 +328,8 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
-  MessageDef* message_p = nullptr;
+  itti_ngap_pdusessionresource_rel_req_t *ngap_pdu_ses_release_req = nullptr;
+  MessageDef *message_p = nullptr;
   pdu_session_resource_release_command_transfer amf_pdu_ses_rel_transfer_req;
 
   message_p =
@@ -374,4 +374,4 @@ int pdu_session_resource_release_request(ue_m5gmm_context_s* ue_context,
   amf_send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
-}  // namespace magma5g
+} // namespace magma5g

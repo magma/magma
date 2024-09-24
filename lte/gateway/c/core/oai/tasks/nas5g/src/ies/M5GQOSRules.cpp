@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,8 +19,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
 
 namespace magma5g {
 NewQOSRulePktFilter::NewQOSRulePktFilter() {}
@@ -31,8 +31,8 @@ QOSRulesMsg::QOSRulesMsg() {}
 QOSRulesMsg::~QOSRulesMsg() {}
 
 // Decode QOSRules IE
-uint8_t QOSRulesMsg::DecodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
-                                           uint8_t* buffer, uint32_t len) {
+uint8_t QOSRulesMsg::DecodeQOSRulesMsgData(QOSRulesMsg *qos_rules,
+                                           uint8_t *buffer, uint32_t len) {
   uint8_t decoded = 0;
   uint8_t i = 0;
 
@@ -76,8 +76,8 @@ uint8_t QOSRulesMsg::DecodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
 }
 
 // Decode QOSRules IE
-int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
-                                   uint8_t* buffer, uint32_t len) {
+int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg *qos_rules, uint8_t iei,
+                                   uint8_t *buffer, uint32_t len) {
   uint8_t decoded = 0;
 
   if (iei > 0) {
@@ -97,8 +97,8 @@ int QOSRulesMsg::DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
   return decoded;
 }
 
-uint16_t QOSRulesMsg::EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
-                                            uint8_t* buffer, uint32_t len) {
+uint16_t QOSRulesMsg::EncodeQOSRulesMsgData(QOSRulesMsg *qos_rules,
+                                            uint8_t *buffer, uint32_t len) {
   uint16_t encoded = 0;
   uint8_t i = 0;
   uint8_t j = 0;
@@ -151,8 +151,8 @@ uint16_t QOSRulesMsg::EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules,
 }
 
 // Encode QOSRules IE
-int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
-                                   uint8_t* buffer, uint32_t len) {
+int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg *qos_rules, uint8_t iei,
+                                   uint8_t *buffer, uint32_t len) {
   uint16_t encoded = 0;
 
   // Checking IEI and pointer
@@ -169,4 +169,4 @@ int QOSRulesMsg::EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei,
   encoded += EncodeQOSRulesMsgData(qos_rules, buffer + encoded, len);
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

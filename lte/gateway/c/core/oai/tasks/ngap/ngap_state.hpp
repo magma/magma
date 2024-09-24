@@ -25,27 +25,27 @@
 extern "C" {
 #endif
 
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 int ngap_state_init(uint32_t max_ues, uint32_t max_gnbs, bool use_stateless);
 
 void ngap_state_exit(void);
 
-ngap_state_t* get_ngap_state(bool read_from_db);
+ngap_state_t *get_ngap_state(bool read_from_db);
 
 void put_ngap_state(void);
 
-gnb_description_t* ngap_state_get_gnb(ngap_state_t* state,
+gnb_description_t *ngap_state_get_gnb(ngap_state_t *state,
                                       sctp_assoc_id_t assoc_id);
 
-m5g_ue_description_t* ngap_state_get_ue_gnbid(sctp_assoc_id_t sctp_assoc_id,
+m5g_ue_description_t *ngap_state_get_ue_gnbid(sctp_assoc_id_t sctp_assoc_id,
                                               gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
-m5g_ue_description_t* ngap_state_get_ue_amfid(amf_ue_ngap_id_t amf_ue_ngap_id);
+m5g_ue_description_t *ngap_state_get_ue_amfid(amf_ue_ngap_id_t amf_ue_ngap_id);
 
-m5g_ue_description_t* ngap_state_get_ue_imsi(imsi64_t imsi64);
+m5g_ue_description_t *ngap_state_get_ue_imsi(imsi64_t imsi64);
 
 /**
  * Return unique composite id for NGAP UE context
@@ -64,9 +64,9 @@ void put_ngap_imsi_map(void);
 /**
  * @return ngap_imsi_map_t pointer
  */
-ngap_imsi_map_t* get_ngap_imsi_map(void);
+ngap_imsi_map_t *get_ngap_imsi_map(void);
 
-hash_table_ts_t* get_ngap_ue_state(void);
+hash_table_ts_t *get_ngap_ue_state(void);
 
 int read_ngap_ue_state_db(void);
 
@@ -75,11 +75,11 @@ void put_ngap_ue_state(imsi64_t imsi64);
 void delete_ngap_ue_state(imsi64_t imsi64);
 
 bool ngap_ue_compare_by_amf_ue_id_cb(__attribute__((unused)) hash_key_t keyP,
-                                     void* elementP, void* parameterP,
-                                     void** resultP);
+                                     void *elementP, void *parameterP,
+                                     void **resultP);
 
 bool ngap_ue_compare_by_imsi(__attribute__((unused)) hash_key_t keyP,
-                             void* elementP, void* parameterP, void** resultP);
+                             void *elementP, void *parameterP, void **resultP);
 
 #ifdef __cplusplus
 }

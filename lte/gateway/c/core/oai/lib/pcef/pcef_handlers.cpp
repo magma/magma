@@ -20,8 +20,8 @@
 #include <cstring>
 #include <string>
 
-#include <grpcpp/impl/codegen/status.h>
 #include "lte/protos/session_manager.pb.h"
+#include <grpcpp/impl/codegen/status.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,8 +34,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
@@ -44,9 +44,9 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 // TODO Clean up pcef_create_session_data structure to include
 // imsi/ip/bearer_id etc.
 static void pcef_fill_create_session_req(
-    std::string& imsi, std::string& ip4, std::string& ip6, ebi_t eps_bearer_id,
-    const struct pcef_create_session_data* session_data,
-    magma::LocalCreateSessionRequest* sreq) {
+    std::string &imsi, std::string &ip4, std::string &ip6, ebi_t eps_bearer_id,
+    const struct pcef_create_session_data *session_data,
+    magma::LocalCreateSessionRequest *sreq) {
   // Common Context
   auto common_context = sreq->mutable_common_context();
   common_context->mutable_sid()->set_id("IMSI" + imsi);
@@ -97,12 +97,12 @@ static void pcef_fill_create_session_req(
  * PCEFClient receives the response for the aynchronous Create Sesssion RPC
  */
 status_code_e send_itti_pcef_create_session_response(
-    const std::string& imsi, s5_create_session_request_t session_request,
-    const grpc::Status& status) {
+    const std::string &imsi, s5_create_session_request_t session_request,
+    const grpc::Status &status) {
 #if MME_UNIT_TEST
   return RETURNok;
 #endif
-  MessageDef* message_p = nullptr;
+  MessageDef *message_p = nullptr;
 
   message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, PCEF_CREATE_SESSION_RESPONSE);
@@ -113,7 +113,7 @@ status_code_e send_itti_pcef_create_session_response(
     return RETURNerror;
   }
 
-  itti_pcef_create_session_response_t* pcef_create_session_resp_p = nullptr;
+  itti_pcef_create_session_response_t *pcef_create_session_resp_p = nullptr;
   pcef_create_session_resp_p = &message_p->ittiMsg.pcef_create_session_response;
 
   pcef_create_session_resp_p->rpc_status = PCEF_STATUS_OK;
@@ -131,8 +131,8 @@ status_code_e send_itti_pcef_create_session_response(
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
-void pcef_create_session(std::string imsi_str, const char* ip4, const char* ip6,
-                         const pcef_create_session_data* session_data,
+void pcef_create_session(std::string imsi_str, const char *ip4, const char *ip6,
+                         const pcef_create_session_data *session_data,
                          s5_create_session_request_t session_request) {
   std::string ip4_str, ip6_str;
 
@@ -152,8 +152,8 @@ void pcef_create_session(std::string imsi_str, const char* ip4, const char* ip6,
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
       sreq, [imsi_str, session_request](
-                const grpc::Status& status,
-                const magma::LocalCreateSessionResponse& response) {
+                const grpc::Status &status,
+                const magma::LocalCreateSessionResponse &response) {
         send_itti_pcef_create_session_response(imsi_str, session_request,
                                                status);
       });
@@ -166,14 +166,14 @@ bool pcef_end_session(const std::string imsi, const std::string apn) {
   magma::PCEFClient::end_session(
       request,
       [&](grpc::Status status, magma::LocalEndSessionResponse response) {
-        return;  // For now, do nothing. TODO: handle errors asynchronously
+        return; // For now, do nothing. TODO: handle errors asynchronously
       });
   return true;
 }
 
-void pcef_send_policy2bearer_binding(const char* imsi,
+void pcef_send_policy2bearer_binding(const char *imsi,
                                      const uint8_t default_bearer_id,
-                                     const char* policy_rule_name,
+                                     const char *policy_rule_name,
                                      const uint8_t eps_bearer_id,
                                      const uint32_t eps_bearer_agw_teid,
                                      const uint32_t eps_bearer_enb_teid) {
@@ -187,11 +187,11 @@ void pcef_send_policy2bearer_binding(const char* imsi,
   magma::PCEFClient::bind_policy2bearer(
       request,
       [&](grpc::Status status, magma::PolicyBearerBindingResponse response) {
-        return;  // For now, do nothing. TODO: handle errors asynchronously
+        return; // For now, do nothing. TODO: handle errors asynchronously
       });
 }
 
-void pcef_update_teids(const char* imsi, uint8_t default_bearer_id,
+void pcef_update_teids(const char *imsi, uint8_t default_bearer_id,
                        uint32_t enb_teid, uint32_t agw_teid) {
 #if MME_UNIT_TEST
   return;
@@ -209,9 +209,9 @@ void pcef_update_teids(const char* imsi, uint8_t default_bearer_id,
 #if MME_UNIT_TEST
           return;
 #endif
-          MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          MessageDef *message_p = DEPRECATEDitti_alloc_new_message_fatal(
               TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
-          itti_gx_nw_init_deactv_bearer_request_t* itti_msg =
+          itti_gx_nw_init_deactv_bearer_request_t *itti_msg =
               &message_p->ittiMsg.gx_nw_init_deactv_bearer_request;
           std::string imsi = request.sid().id();
           OAILOG_INFO(
@@ -255,7 +255,7 @@ char convert_digit_to_char(char digit) {
 }
 
 void get_plmn_from_session_req(
-    const itti_s11_create_session_request_t* saved_req, char* mcc_mnc) {
+    const itti_s11_create_session_request_t *saved_req, char *mcc_mnc) {
   mcc_mnc[0] = convert_digit_to_char(saved_req->serving_network.mcc[0]);
   mcc_mnc[1] = convert_digit_to_char(saved_req->serving_network.mcc[1]);
   mcc_mnc[2] = convert_digit_to_char(saved_req->serving_network.mcc[2]);
@@ -272,8 +272,8 @@ void get_plmn_from_session_req(
 }
 
 void get_imsi_plmn_from_session_req(const std::string imsi,
-                                    struct pcef_create_session_data* data) {
-  const char* imsi_digit = imsi.c_str();
+                                    struct pcef_create_session_data *data) {
+  const char *imsi_digit = imsi.c_str();
   data->imsi_mcc_mnc[0] = convert_digit_to_char(imsi_digit[0]);
   data->imsi_mcc_mnc[1] = convert_digit_to_char(imsi_digit[1]);
   data->imsi_mcc_mnc[2] = convert_digit_to_char(imsi_digit[2]);
@@ -291,12 +291,12 @@ void get_imsi_plmn_from_session_req(const std::string imsi,
 }
 
 bool get_uli_from_session_req(
-    const itti_s11_create_session_request_t* saved_req, char* uli) {
+    const itti_s11_create_session_request_t *saved_req, char *uli) {
   if (!saved_req->uli.present) {
     return 0;
   }
 
-  uli[0] = 130;  // TAI and ECGI - defined in 29.061
+  uli[0] = 130; // TAI and ECGI - defined in 29.061
 
   // TAI as defined in 29.274 8.21.4
   uli[1] = ((saved_req->uli.s.tai.plmn.mcc_digit2 & 0xf) << 4) |
@@ -328,7 +328,7 @@ bool get_uli_from_session_req(
 }
 
 int get_msisdn_from_session_req(
-    const itti_s11_create_session_request_t* saved_req, char* msisdn) {
+    const itti_s11_create_session_request_t *saved_req, char *msisdn) {
   int len = saved_req->msisdn.length;
   if (len == 0) {
     return len;
@@ -349,7 +349,7 @@ int get_msisdn_from_session_req(
   return len;
 }
 
-void convert_imeisv_to_string(char* imeisv) {
+void convert_imeisv_to_string(char *imeisv) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   uint8_t idx = 0;
   for (; idx < IMEISV_DIGITS_MAX; idx++) {
@@ -361,7 +361,7 @@ void convert_imeisv_to_string(char* imeisv) {
 }
 
 int get_imeisv_from_session_req(
-    const itti_s11_create_session_request_t* saved_req, char* imeisv) {
+    const itti_s11_create_session_request_t *saved_req, char *imeisv) {
   if (saved_req->mei.present & MEI_IMEISV) {
     // IMEISV as defined in 3GPP TS 23.003 MEI_IMEISV
     imeisv[0] = saved_req->mei.choice.imeisv.u.num.tac1;
@@ -386,7 +386,7 @@ int get_imeisv_from_session_req(
   return 0;
 }
 
-bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list) {
+bool pcef_delete_dedicated_bearer(const char *imsi, const ebi_list_t ebi_list) {
   auto imsi_str = std::string(imsi);
 
   // TODO(pruthvihebbani) : Send grpc message to session manager to delete

@@ -17,9 +17,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationResult.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <sstream>
 
 namespace magma5g {
 AuthenticationResultMsg::AuthenticationResultMsg(){};
@@ -27,7 +27,7 @@ AuthenticationResultMsg::~AuthenticationResultMsg(){};
 
 // Decode Authentication Result Message and its IEs
 int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
-    AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len) {
+    AuthenticationResultMsg *auth_result, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -82,7 +82,7 @@ int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
 
 // Encode Authentication Result Message and its IEs
 int AuthenticationResultMsg::EncodeAuthenticationResultMsg(
-    AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len) {
+    AuthenticationResultMsg *auth_result, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
 
@@ -134,4 +134,4 @@ int AuthenticationResultMsg::EncodeAuthenticationResultMsg(
     encoded += encoded_result;
   return encoded;
 };
-}  // namespace magma5g
+} // namespace magma5g

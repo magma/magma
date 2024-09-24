@@ -23,8 +23,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
@@ -33,8 +33,8 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 int decode_nr_ue_security_capability(
-    nr_ue_security_capability_t* nruesecuritycapability, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    nr_ue_security_capability_t *nruesecuritycapability, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -64,9 +64,9 @@ int decode_nr_ue_security_capability(
 
 //------------------------------------------------------------------------------
 int encode_nr_ue_security_capability(
-    nr_ue_security_capability_t* nruesecuritycapability, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+    nr_ue_security_capability_t *nruesecuritycapability, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*

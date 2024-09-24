@@ -17,21 +17,21 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PTmsiSignature.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_p_tmsi_signature(PTmsiSignature* ptmsisignature, uint8_t iei,
-                            uint8_t* buffer, uint32_t len) {
+int decode_p_tmsi_signature(PTmsiSignature *ptmsisignature, uint8_t iei,
+                            uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   int decode_result;
   uint8_t ielen = 3;
@@ -54,7 +54,7 @@ int decode_p_tmsi_signature(PTmsiSignature* ptmsisignature, uint8_t iei,
 }
 
 int encode_p_tmsi_signature(PTmsiSignature ptmsisignature, uint8_t iei,
-                            uint8_t* buffer, uint32_t len) {
+                            uint8_t *buffer, uint32_t len) {
   uint32_t encode_result;
   uint32_t encoded = 0;
 

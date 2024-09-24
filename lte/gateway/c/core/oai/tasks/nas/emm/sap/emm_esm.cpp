@@ -39,7 +39,7 @@ extern "C" {
 /*
    String representation of EMMESM-SAP primitives
 */
-static const char* emm_esm_primitive_str[] = {
+static const char *emm_esm_primitive_str[] = {
     "EMMESM_RELEASE_IND",           "EMMESM_UNITDATA_REQ",
     "EMMESM_ACTIVATE_BEARER_REQ",   "EMMESM_UNITDATA_IND",
     "EMMESM_DEACTIVATE_BEARER_REQ",
@@ -85,7 +85,7 @@ void emm_esm_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_esm_send(const emm_esm_t* msg) {
+status_code_e emm_esm_send(const emm_esm_t *msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_esm_primitive_t primitive = msg->primitive;
@@ -94,28 +94,27 @@ status_code_e emm_esm_send(const emm_esm_t* msg) {
               emm_esm_primitive_str[primitive - _EMMESM_START - 1], primitive);
 
   switch (primitive) {
-    case _EMMESM_UNITDATA_REQ:
-      /*
-       * ESM requests EMM to transfer ESM data unit to lower layer
-       */
-      rc = lowerlayer_data_req(msg->ue_id, msg->u.data.msg);
-      break;
+  case _EMMESM_UNITDATA_REQ:
+    /*
+     * ESM requests EMM to transfer ESM data unit to lower layer
+     */
+    rc = lowerlayer_data_req(msg->ue_id, msg->u.data.msg);
+    break;
 
-    case _EMMESM_ACTIVATE_BEARER_REQ:
-      rc = lowerlayer_activate_bearer_req(
-          msg->ue_id, msg->u.activate_bearer.ebi, msg->u.activate_bearer.mbr_dl,
-          msg->u.activate_bearer.mbr_ul, msg->u.activate_bearer.gbr_dl,
-          msg->u.activate_bearer.gbr_ul, msg->u.activate_bearer.msg);
-      break;
+  case _EMMESM_ACTIVATE_BEARER_REQ:
+    rc = lowerlayer_activate_bearer_req(
+        msg->ue_id, msg->u.activate_bearer.ebi, msg->u.activate_bearer.mbr_dl,
+        msg->u.activate_bearer.mbr_ul, msg->u.activate_bearer.gbr_dl,
+        msg->u.activate_bearer.gbr_ul, msg->u.activate_bearer.msg);
+    break;
 
-    case _EMMESM_DEACTIVATE_BEARER_REQ:
-      rc = lowerlayer_deactivate_bearer_req(msg->ue_id,
-                                            msg->u.deactivate_bearer.ebi,
-                                            msg->u.deactivate_bearer.msg);
-      break;
+  case _EMMESM_DEACTIVATE_BEARER_REQ:
+    rc = lowerlayer_deactivate_bearer_req(
+        msg->ue_id, msg->u.deactivate_bearer.ebi, msg->u.deactivate_bearer.msg);
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 
   if (rc != RETURNok) {

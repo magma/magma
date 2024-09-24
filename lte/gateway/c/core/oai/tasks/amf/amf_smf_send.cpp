@@ -15,7 +15,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <string.h>
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -23,6 +22,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include <string.h>
 #ifdef __cplusplus
 }
 #endif
@@ -35,13 +35,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 using magma5g::AsyncSmfServiceClient;
 
@@ -49,8 +49,8 @@ extern amf_config_t amf_config;
 namespace magma5g {
 #define IMSI_LEN 15
 
-static int pdu_session_resource_release_t3592_handler(zloop_t* loop,
-                                                      int timer_id, void* arg);
+static int pdu_session_resource_release_t3592_handler(zloop_t *loop,
+                                                      int timer_id, void *arg);
 
 /***************************************************************************
 **                                                                        **
@@ -73,8 +73,8 @@ int esm_pt_is_reserved(int pti) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_handle_pdu_establishment_request(SmfMsg* msg,
-                                             amf_smf_t* amf_smf_msg) {
+int amf_smf_handle_pdu_establishment_request(SmfMsg *msg,
+                                             amf_smf_t *amf_smf_msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int smf_cause = SMF_CAUSE_SUCCESS;
   OAILOG_DEBUG(LOG_AMF_APP,
@@ -120,14 +120,14 @@ int amf_smf_handle_pdu_establishment_request(SmfMsg* msg,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_smf_handle_pdu_release_request(SmfMsg* msg, amf_smf_t* amf_smf_msg) {
+int amf_smf_handle_pdu_release_request(SmfMsg *msg, amf_smf_t *amf_smf_msg) {
   int smf_cause = SMF_CAUSE_SUCCESS;
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_smf_msg->u.release.pti = msg->header.procedure_transaction_id;
   amf_smf_msg->u.release.pdu_session_id = msg->header.pdu_session_id;
   amf_smf_msg->u.release.cause_value = smf_cause;
-  OAILOG_FUNC_RETURN(LOG_AMF_APP, smf_cause);  // TODO add error checking and
-                                               // return appropriate cause value
+  OAILOG_FUNC_RETURN(LOG_AMF_APP, smf_cause); // TODO add error checking and
+                                              // return appropriate cause value
 }
 
 /***************************************************************************
@@ -138,7 +138,7 @@ int amf_smf_handle_pdu_release_request(SmfMsg* msg, amf_smf_t* amf_smf_msg) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_send_pdusession_reject(SmfMsg* reject_req, uint8_t session_id,
+int amf_send_pdusession_reject(SmfMsg *reject_req, uint8_t session_id,
                                uint8_t pti, uint8_t cause) {
   uint8_t buffer[5];
   int rc;
@@ -166,7 +166,7 @@ int amf_send_pdusession_reject(SmfMsg* reject_req, uint8_t session_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void set_amf_smf_context(PDUSessionEstablishmentRequestMsg* message,
+void set_amf_smf_context(PDUSessionEstablishmentRequestMsg *message,
                          std::shared_ptr<smf_context_t> smf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   smf_ctx->smf_proc_data.pdu_session_id =
@@ -181,7 +181,7 @@ void set_amf_smf_context(PDUSessionEstablishmentRequestMsg* message,
   smf_ctx->smf_proc_data.pdu_session_type =
       static_cast<M5GPduSessionType>(message->pdu_session_type.type_val);
   smf_ctx->smf_proc_data.ssc_mode = message->ssc_mode.mode_val;
-  smf_ctx->pdu_session_version = 0;  // Initializing pdu version to 0
+  smf_ctx->pdu_session_version = 0; // Initializing pdu version to 0
   memset(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
          sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
   smf_ctx->gtp_tunnel_id.gnb_gtp_teid = 0x0;
@@ -196,7 +196,7 @@ void set_amf_smf_context(PDUSessionEstablishmentRequestMsg* message,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void clear_amf_smf_context(amf_context_t& amf_context, uint8_t pdu_session_id) {
+void clear_amf_smf_context(amf_context_t &amf_context, uint8_t pdu_session_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_DEBUG(LOG_AMF_APP,
                "clearing saved context associated with the pdu session\n");
@@ -209,7 +209,7 @@ void clear_amf_smf_context(amf_context_t& amf_context, uint8_t pdu_session_id) {
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-int pdu_session_release_request_process(ue_m5gmm_context_s* ue_context,
+int pdu_session_release_request_process(ue_m5gmm_context_s *ue_context,
                                         std::shared_ptr<smf_context_t> smf_ctx,
                                         amf_ue_ngap_id_t amf_ue_ngap_id,
                                         bool retransmit) {
@@ -237,7 +237,7 @@ int pdu_session_release_request_process(ue_m5gmm_context_s* ue_context,
 }
 
 int pdu_session_resource_release_complete(
-    ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
+    ue_m5gmm_context_s *ue_context, amf_smf_t amf_smf_msg,
     std::shared_ptr<smf_context_t> smf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
@@ -277,7 +277,7 @@ int pdu_session_resource_release_complete(
 }
 
 status_code_e pdu_session_resource_modification_complete(
-    ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
+    ue_m5gmm_context_s *ue_context, amf_smf_t amf_smf_msg,
     std::shared_ptr<smf_context_t> smf_ctx) {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   status_code_e rc = RETURNok;
@@ -297,7 +297,7 @@ status_code_e pdu_session_resource_modification_complete(
 }
 
 int pdu_session_resource_modification_command_reject(
-    ue_m5gmm_context_s* ue_context, amf_smf_t amf_smf_msg,
+    ue_m5gmm_context_s *ue_context, amf_smf_t amf_smf_msg,
     std::shared_ptr<smf_context_t> smf_ctx) {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   int rc = 1;
@@ -314,7 +314,7 @@ int pdu_session_resource_modification_command_reject(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-int t3592_abort_handler(ue_m5gmm_context_t* ue_context,
+int t3592_abort_handler(ue_m5gmm_context_t *ue_context,
                         std::shared_ptr<smf_context_t> smf_ctx,
                         uint8_t pdu_session_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
@@ -327,8 +327,8 @@ int t3592_abort_handler(ue_m5gmm_context_t* ue_context,
   rc = pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
-static int pdu_session_resource_release_t3592_handler(zloop_t* loop,
-                                                      int timer_id, void* arg) {
+static int pdu_session_resource_release_t3592_handler(zloop_t *loop,
+                                                      int timer_id, void *arg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_INFO(LOG_AMF_APP,
               "T3592: pdu_session_resource_release_t3592_handler\n");
@@ -349,7 +349,7 @@ static int pdu_session_resource_release_t3592_handler(zloop_t* loop,
   amf_ue_ngap_id = uepdu_id.ue_id;
   pdu_session_id = uepdu_id.pdu_id;
 
-  ue_m5gmm_context_s* ue_context =
+  ue_m5gmm_context_s *ue_context =
       amf_ue_context_exists_amf_ue_ngap_id(amf_ue_ngap_id);
 
   if (ue_context) {
@@ -413,14 +413,14 @@ static int pdu_session_resource_release_t3592_handler(zloop_t* loop,
 **                                                                        **
 ***************************************************************************/
 status_code_e amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
-                                                 ULNASTransportMsg* msg,
+                                                 ULNASTransportMsg *msg,
                                                  int amf_cause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   status_code_e rc = RETURNok;
   amf_smf_t amf_smf_msg = {};
   std::shared_ptr<smf_context_t> smf_ctx;
   char imsi[IMSI_BCD_DIGITS_MAX + 1] = {0};
-  protocol_configuration_options_t* msg_pco = nullptr;
+  protocol_configuration_options_t *msg_pco = nullptr;
 
   if (!msg) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
@@ -434,7 +434,7 @@ status_code_e amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_m5gmm_context_s *ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (!ue_context) {
     OAILOG_ERROR(LOG_AMF_APP,
@@ -498,155 +498,153 @@ status_code_e amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
   // Process the decoded NAS message
   switch (static_cast<M5GMessageType>(
       msg->payload_container.smf_msg.header.message_type)) {
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST: {
-      amf_cause = amf_smf_handle_pdu_establishment_request(
-          &(msg->payload_container.smf_msg), &amf_smf_msg);
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST: {
+    amf_cause = amf_smf_handle_pdu_establishment_request(
+        &(msg->payload_container.smf_msg), &amf_smf_msg);
 
-      OAILOG_INFO(LOG_AMF_APP, "Copy the contents from message to context \n");
-      msg_pco = &(msg->payload_container.smf_msg.msg.pdu_session_estab_request
-                      .protocolconfigurationoptions.pco);
+    OAILOG_INFO(LOG_AMF_APP, "Copy the contents from message to context \n");
+    msg_pco = &(msg->payload_container.smf_msg.msg.pdu_session_estab_request
+                    .protocolconfigurationoptions.pco);
 
-      /* Copy the pco contents from Message to smf_context */
-      sm_copy_protocol_configuration_options(&(smf_ctx->pco), msg_pco);
+    /* Copy the pco contents from Message to smf_context */
+    sm_copy_protocol_configuration_options(&(smf_ctx->pco), msg_pco);
 
-      /* Free the memory from Message Structure */
-      sm_free_protocol_configuration_options(&msg_pco);
+    /* Free the memory from Message Structure */
+    sm_free_protocol_configuration_options(&msg_pco);
 
-      if (amf_cause != SMF_CAUSE_SUCCESS) {
-        rc = amf_pdu_session_establishment_reject(
-            ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
-            msg->payload_container.smf_msg.header.procedure_transaction_id,
-            static_cast<uint8_t>(amf_cause));
+    if (amf_cause != SMF_CAUSE_SUCCESS) {
+      rc = amf_pdu_session_establishment_reject(
+          ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
+          msg->payload_container.smf_msg.header.procedure_transaction_id,
+          static_cast<uint8_t>(amf_cause));
 
-        OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
-      }
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+    }
 
-      smf_ctx->requested_nssai.sst = msg->nssai.sst;
-      if (msg->nssai.sd[0]) {
-        memcpy(smf_ctx->requested_nssai.sd, msg->nssai.sd, SD_LENGTH);
-      }
-      set_amf_smf_context(
-          &(msg->payload_container.smf_msg.msg.pdu_session_estab_request),
-          smf_ctx);
-      memset(amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr, '\0',
-             sizeof(amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr));
+    smf_ctx->requested_nssai.sst = msg->nssai.sst;
+    if (msg->nssai.sd[0]) {
+      memcpy(smf_ctx->requested_nssai.sd, msg->nssai.sd, SD_LENGTH);
+    }
+    set_amf_smf_context(
+        &(msg->payload_container.smf_msg.msg.pdu_session_estab_request),
+        smf_ctx);
+    memset(amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr, '\0',
+           sizeof(amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr));
 
-      amf_smf_msg.u.establish.gnb_gtp_teid = 0x0;
-      memcpy(amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr,
-             smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
+    amf_smf_msg.u.establish.gnb_gtp_teid = 0x0;
+    memcpy(amf_smf_msg.u.establish.gnb_gtp_teid_ip_addr,
+           smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
 
-      amf_smf_msg.u.establish.gnb_gtp_teid =
-          smf_ctx->gtp_tunnel_id.gnb_gtp_teid;
+    amf_smf_msg.u.establish.gnb_gtp_teid = smf_ctx->gtp_tunnel_id.gnb_gtp_teid;
 
-      int index_dnn = 0;
-      bool ue_sent_dnn = true;
-      std::string dnn_string;
+    int index_dnn = 0;
+    bool ue_sent_dnn = true;
+    std::string dnn_string;
 
-      if (msg->dnn.len <= 1) {
-        ue_sent_dnn = false;
-        dnn_string.assign(bdata(amf_config.default_dnn));
-      } else {
-        dnn_string.assign(reinterpret_cast<char*>(msg->dnn.dnn),
-                          msg->dnn.len - 1);
-      }
+    if (msg->dnn.len <= 1) {
+      ue_sent_dnn = false;
+      dnn_string.assign(bdata(amf_config.default_dnn));
+    } else {
+      dnn_string.assign(reinterpret_cast<char *>(msg->dnn.dnn),
+                        msg->dnn.len - 1);
+    }
 
-      int validate = amf_validate_dnn(&ue_context->amf_context, dnn_string,
-                                      &index_dnn, ue_sent_dnn);
+    int validate = amf_validate_dnn(&ue_context->amf_context, dnn_string,
+                                    &index_dnn, ue_sent_dnn);
 
-      if (validate == RETURNok) {
-        smf_dnn_ambr_select(smf_ctx, ue_context, index_dnn);
-      } else {
-        OAILOG_INFO(
-            LOG_AMF_APP,
-            "DNN is not Supported or not Subscribed, reject with a cause: 27 "
-            "\n");
-        rc = amf_pdu_session_establishment_reject(
-            ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
-            msg->payload_container.smf_msg.header.procedure_transaction_id,
-            static_cast<uint8_t>(M5GSmCause::MISSING_OR_UNKNOWN_DNN));
+    if (validate == RETURNok) {
+      smf_dnn_ambr_select(smf_ctx, ue_context, index_dnn);
+    } else {
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "DNN is not Supported or not Subscribed, reject with a cause: 27 "
+          "\n");
+      rc = amf_pdu_session_establishment_reject(
+          ue_id, msg->payload_container.smf_msg.header.pdu_session_id,
+          msg->payload_container.smf_msg.header.procedure_transaction_id,
+          static_cast<uint8_t>(M5GSmCause::MISSING_OR_UNKNOWN_DNN));
 
-        ue_context->amf_context.smf_ctxt_map.erase(
-            msg->payload_container.smf_msg.header.pdu_session_id);
-        OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
-      }
+      ue_context->amf_context.smf_ctxt_map.erase(
+          msg->payload_container.smf_msg.header.pdu_session_id);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+    }
 
-      smf_ctx->smf_proc_data.pti =
-          msg->payload_container.smf_msg.msg.pdu_session_estab_request.pti.pti;
-      // send request to SMF over grpc
-      /*
-       * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
-       */
-      rc = pdu_state_handle_message(
-          // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
-          REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
-          // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL,
-          // 0);
-          SESSION_NULL, ue_context, amf_smf_msg, imsi, NULL, 0);
-    } break;
-    case M5GMessageType::PDU_SESSION_RELEASE_REQUEST: {
-      smf_ctx->smf_proc_data.pti = msg->payload_container.smf_msg.msg
-                                       .pdu_session_release_request.pti.pti;
-      smf_ctx->retransmission_count = 0;
-      if (RETURNok == pdu_session_release_request_process(ue_context, smf_ctx,
-                                                          ue_id, false)) {
-        OAILOG_INFO(
-            LOG_AMF_APP,
-            "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %ld "
-            "Started\n",
-            smf_ctx->T3592.id);
-      }
-    } break;
-    case M5GMessageType::PDU_SESSION_RELEASE_COMPLETE: {
-      if (smf_ctx->T3592.id != NAS5G_TIMER_INACTIVE_ID) {
-        amf_pdu_stop_timer(smf_ctx->T3592.id);
-        OAILOG_INFO(
-            LOG_AMF_APP,
-            "T3592: after stop PDU_SESSION_RELEASE_REQUEST timer T3592 with id "
-            "= %ld\n",
-            smf_ctx->T3592.id);
-        smf_ctx->T3592.id = NAS5G_TIMER_INACTIVE_ID;
-      }
-      amf_cause = amf_smf_handle_pdu_release_request(
-          &(msg->payload_container.smf_msg), &amf_smf_msg);
+    smf_ctx->smf_proc_data.pti =
+        msg->payload_container.smf_msg.msg.pdu_session_estab_request.pti.pti;
+    // send request to SMF over grpc
+    /*
+     * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
+     */
+    rc = pdu_state_handle_message(
+        // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
+        REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
+        // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL,
+        // 0);
+        SESSION_NULL, ue_context, amf_smf_msg, imsi, NULL, 0);
+  } break;
+  case M5GMessageType::PDU_SESSION_RELEASE_REQUEST: {
+    smf_ctx->smf_proc_data.pti =
+        msg->payload_container.smf_msg.msg.pdu_session_release_request.pti.pti;
+    smf_ctx->retransmission_count = 0;
+    if (RETURNok == pdu_session_release_request_process(ue_context, smf_ctx,
+                                                        ue_id, false)) {
+      OAILOG_INFO(LOG_AMF_APP,
+                  "T3592: PDU_SESSION_RELEASE_REQUEST timer T3592 with id  %ld "
+                  "Started\n",
+                  smf_ctx->T3592.id);
+    }
+  } break;
+  case M5GMessageType::PDU_SESSION_RELEASE_COMPLETE: {
+    if (smf_ctx->T3592.id != NAS5G_TIMER_INACTIVE_ID) {
+      amf_pdu_stop_timer(smf_ctx->T3592.id);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "T3592: after stop PDU_SESSION_RELEASE_REQUEST timer T3592 with id "
+          "= %ld\n",
+          smf_ctx->T3592.id);
+      smf_ctx->T3592.id = NAS5G_TIMER_INACTIVE_ID;
+    }
+    amf_cause = amf_smf_handle_pdu_release_request(
+        &(msg->payload_container.smf_msg), &amf_smf_msg);
 
-      pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
-    } break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE: {
-      if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
-        amf_pdu_stop_timer(smf_ctx->T3591.id);
-        OAILOG_INFO(
-            LOG_AMF_APP,
-            "T3591: after stop PDU_SESSION_MODIFICATION_COMMAND timer T3591 "
-            "with id "
-            "= %ld\n",
-            smf_ctx->T3591.id);
-        smf_ctx->T3591.id = NAS5G_TIMER_INACTIVE_ID;
-        bdestroy_wrapper(&smf_ctx->session_message);
-      }
-      amf_smf_msg.pdu_session_id =
-          msg->payload_container.smf_msg.header.pdu_session_id;
-      rc = pdu_session_resource_modification_complete(ue_context, amf_smf_msg,
-                                                      smf_ctx);
-    } break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT: {
-      if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
-        amf_pdu_stop_timer(smf_ctx->T3591.id);
-        OAILOG_INFO(
-            LOG_AMF_APP,
-            "T3591: after stop PDU_SESSION_MODIFICATION_COMMAND_REJECT timer "
-            "T3591 with id "
-            "= %ld\n",
-            smf_ctx->T3591.id);
-        smf_ctx->T3591.id = NAS5G_TIMER_INACTIVE_ID;
-        bdestroy_wrapper(&smf_ctx->session_message);
-      }
-      amf_smf_msg.pdu_session_id =
-          msg->payload_container.smf_msg.header.pdu_session_id;
-      pdu_session_resource_modification_command_reject(ue_context, amf_smf_msg,
-                                                       smf_ctx);
-    } break;
-    default:
-      break;
+    pdu_session_resource_release_complete(ue_context, amf_smf_msg, smf_ctx);
+  } break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE: {
+    if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
+      amf_pdu_stop_timer(smf_ctx->T3591.id);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "T3591: after stop PDU_SESSION_MODIFICATION_COMMAND timer T3591 "
+          "with id "
+          "= %ld\n",
+          smf_ctx->T3591.id);
+      smf_ctx->T3591.id = NAS5G_TIMER_INACTIVE_ID;
+      bdestroy_wrapper(&smf_ctx->session_message);
+    }
+    amf_smf_msg.pdu_session_id =
+        msg->payload_container.smf_msg.header.pdu_session_id;
+    rc = pdu_session_resource_modification_complete(ue_context, amf_smf_msg,
+                                                    smf_ctx);
+  } break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT: {
+    if (smf_ctx->T3591.id != NAS5G_TIMER_INACTIVE_ID) {
+      amf_pdu_stop_timer(smf_ctx->T3591.id);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "T3591: after stop PDU_SESSION_MODIFICATION_COMMAND_REJECT timer "
+          "T3591 with id "
+          "= %ld\n",
+          smf_ctx->T3591.id);
+      smf_ctx->T3591.id = NAS5G_TIMER_INACTIVE_ID;
+      bdestroy_wrapper(&smf_ctx->session_message);
+    }
+    amf_smf_msg.pdu_session_id =
+        msg->payload_container.smf_msg.header.pdu_session_id;
+    pdu_session_resource_modification_command_reject(ue_context, amf_smf_msg,
+                                                     smf_ctx);
+  } break;
+  default:
+    break;
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
@@ -658,13 +656,13 @@ status_code_e amf_smf_process_pdu_session_packet(amf_ue_ngap_id_t ue_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void smf_dnn_ambr_select(const std::shared_ptr<smf_context_t>& smf_ctx,
-                         ue_m5gmm_context_s* ue_context, int index_dnn) {
+void smf_dnn_ambr_select(const std::shared_ptr<smf_context_t> &smf_ctx,
+                         ue_m5gmm_context_s *ue_context, int index_dnn) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   smf_ctx->dnn.assign(
-      reinterpret_cast<char*>(ue_context->amf_context.apn_config_profile
-                                  .apn_configuration[index_dnn]
-                                  .service_selection),
+      reinterpret_cast<char *>(ue_context->amf_context.apn_config_profile
+                                   .apn_configuration[index_dnn]
+                                   .service_selection),
       strlen(ue_context->amf_context.apn_config_profile
                  .apn_configuration[index_dnn]
                  .service_selection));
@@ -690,12 +688,12 @@ void smf_dnn_ambr_select(const std::shared_ptr<smf_context_t>& smf_ctx,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
+M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg *msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   std::shared_ptr<smf_context_t> smf_ctx;
   M5GSmCause cause = M5GSmCause::INVALID_CAUSE;
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_m5gmm_context_s *ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, cause);
   }
@@ -761,11 +759,11 @@ M5GSmCause amf_smf_get_smcause(amf_ue_ngap_id_t ue_id, ULNASTransportMsg* msg) {
 **                                                                        **
 ***************************************************************************/
 M5GMmCause amf_smf_validate_context(amf_ue_ngap_id_t ue_id,
-                                    ULNASTransportMsg* msg) {
+                                    ULNASTransportMsg *msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   M5GMmCause mm_cause = M5GMmCause::UNKNOWN_CAUSE;
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_m5gmm_context_s *ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   M5GRequestType requestType =
       static_cast<M5GRequestType>(msg->request_type.type_val);
   /*
@@ -794,8 +792,8 @@ M5GMmCause amf_smf_validate_context(amf_ue_ngap_id_t ue_id,
 ** This function validates the DNN string received from UE or from        **
 ** mme.yml againt apn stored in amf_context for a particular imsi.        **
 ***************************************************************************/
-status_code_e amf_validate_dnn(const amf_context_s* amf_ctxt_p,
-                               std::string dnn_string, int* index,
+status_code_e amf_validate_dnn(const amf_context_s *amf_ctxt_p,
+                               std::string dnn_string, int *index,
                                bool ue_sent_dnn) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   // Validating apn_configuration_s
@@ -828,7 +826,7 @@ status_code_e amf_validate_dnn(const amf_context_s* amf_ctxt_p,
 **                                                                        **
 ***************************************************************************/
 status_code_e amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
-                                        ue_m5gmm_context_s* ue_context,
+                                        ue_m5gmm_context_s *ue_context,
                                         notify_ue_event notify_event_type,
                                         uint16_t session_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
@@ -837,8 +835,8 @@ status_code_e amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
    * Only need  to be filled IMSI and ue_state_idle of UE
    */
   magma::lte::SetSmNotificationContext notify_req;
-  auto* req_common = notify_req.mutable_common_context();
-  auto* req_rat_specific = notify_req.mutable_rat_specific_notification();
+  auto *req_common = notify_req.mutable_common_context();
+  auto *req_rat_specific = notify_req.mutable_rat_specific_notification();
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
   auto imsi_str = std::string(imsi);
@@ -856,7 +854,7 @@ status_code_e amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
         magma::lte::NotifyUeEvents::UE_SERVICE_REQUEST_ON_PAGING);
   }
 
-  for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+  for (const auto &it : ue_context->amf_context.smf_ctxt_map) {
     std::shared_ptr<smf_context_t> smf_context = it.second;
 
     if (smf_context->pdu_address.pdn_type == IPv4) {
@@ -864,7 +862,7 @@ status_code_e amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
 
       inet_ntop(AF_INET, &(smf_context->pdu_address.ipv4_address.s_addr),
                 ip_str, INET_ADDRSTRLEN);
-      req_common->set_ue_ipv4(reinterpret_cast<char*>(ip_str));
+      req_common->set_ue_ipv4(reinterpret_cast<char *>(ip_str));
     }
   }
   // Set the PDU Address
@@ -887,8 +885,9 @@ status_code_e amf_smf_notification_send(amf_ue_ngap_id_t ue_id,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-status_code_e amf_update_smf_context_pdu_ip(
-    const std::shared_ptr<smf_context_t>& smf_ctx, paa_t* address_info) {
+status_code_e
+amf_update_smf_context_pdu_ip(const std::shared_ptr<smf_context_t> &smf_ctx,
+                              paa_t *address_info) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_INFO(LOG_AMF_APP, "SMF context PDU address updated\n");
   memcpy(&(smf_ctx->pdu_address), address_info, sizeof(paa_t));
@@ -905,9 +904,9 @@ status_code_e amf_update_smf_context_pdu_ip(
 **                                                                        **
 ***************************************************************************/
 status_code_e amf_smf_handle_ip_address_response(
-    itti_amf_ip_allocation_response_t* response_p) {
+    itti_amf_ip_allocation_response_t *response_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context;
+  ue_m5gmm_context_s *ue_context;
   std::shared_ptr<smf_context_t> smf_ctx;
   imsi64_t imsi64;
   status_code_e rc = RETURNerror;
@@ -917,7 +916,7 @@ status_code_e amf_smf_handle_ip_address_response(
 
   if (ue_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "UE Context for [%s] not found \n",
-                 reinterpret_cast<char*>(response_p->imsi));
+                 reinterpret_cast<char *>(response_p->imsi));
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
@@ -926,7 +925,7 @@ status_code_e amf_smf_handle_ip_address_response(
   if (NULL == smf_ctx) {
     OAILOG_ERROR(LOG_AMF_APP,
                  "Smf Context not found for pdu session id: [%s] \n",
-                 reinterpret_cast<char*>(response_p->pdu_session_id));
+                 reinterpret_cast<char *>(response_p->pdu_session_id));
     return rc;
   }
   if (response_p->result != SGI_STATUS_OK) {
@@ -943,9 +942,8 @@ status_code_e amf_smf_handle_ip_address_response(
   rc = amf_update_smf_context_pdu_ip(smf_ctx, &(response_p->paa));
 
   if (rc < 0) {
-    OAILOG_ERROR(LOG_AMF_APP,
-                 "SMF Context for PDU not found or Address "
-                 "type not supported\n");
+    OAILOG_ERROR(LOG_AMF_APP, "SMF Context for PDU not found or Address "
+                              "type not supported\n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
@@ -1009,7 +1007,7 @@ status_code_e amf_smf_handle_ip_address_response(
 
 status_code_e amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p = NULL;
+  ue_m5gmm_context_s *ue_context_p = NULL;
   status_code_e rc = RETURNok;
 
   OAILOG_INFO(
@@ -1029,7 +1027,7 @@ status_code_e amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  s6a_update_location_req_t* s6a_ulr_p = new s6a_update_location_req_t();
+  s6a_update_location_req_t *s6a_ulr_p = new s6a_update_location_req_t();
 
   IMSI64_TO_STRING(ue_context_p->amf_context.imsi64, s6a_ulr_p->imsi,
                    IMSI_LENGTH);
@@ -1064,15 +1062,15 @@ status_code_e amf_send_n11_update_location_req(amf_ue_ngap_id_t ue_id) {
  **                                                                        **
  ***************************************************************************/
 status_code_e handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
-                                                ULNASTransportMsg* ulmsg,
+                                                ULNASTransportMsg *ulmsg,
                                                 M5GMmCause m5gmmcause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   status_code_e rc = RETURNok;
-  DLNASTransportMsg* dlmsg = nullptr;
+  DLNASTransportMsg *dlmsg = nullptr;
   uint32_t bytes = 0;
   uint32_t len = 0;
   bstring buffer;
-  ue_m5gmm_context_s* ue_context = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
   amf_nas_message_t msg = {};
 
   /*
@@ -1134,7 +1132,7 @@ status_code_e handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
   // Payload container IE from ulmsg
   dlmsg->payload_container.copy(ulmsg->payload_container);
 
-  len += 2;  // 2 bytes for container.len
+  len += 2; // 2 bytes for container.len
   len += dlmsg->payload_container.len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
@@ -1142,7 +1140,7 @@ status_code_e handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
    */
   AMF_GET_BYTE_ALIGNED_LENGTH(len);
   if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
-    amf_msg_header* header = &msg.security_protected.plain.amf.header;
+    amf_msg_header *header = &msg.security_protected.plain.amf.header;
     /*
      * Expand size of protected NAS message
      */
@@ -1191,11 +1189,11 @@ status_code_e handle_sm_message_routing_failure(amf_ue_ngap_id_t ue_id,
 int construct_pdu_session_reject_dl_req(uint8_t sequence_number,
                                         uint8_t session_id, uint8_t pti,
                                         uint8_t cause, bool is_security_enabled,
-                                        amf_nas_message_t* msg) {
+                                        amf_nas_message_t *msg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   uint32_t len = 0;
   uint32_t container_len = 0;
-  DLNASTransportMsg* dlmsg = nullptr;
+  DLNASTransportMsg *dlmsg = nullptr;
 
   if (nullptr == msg) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
@@ -1244,7 +1242,7 @@ int construct_pdu_session_reject_dl_req(uint8_t sequence_number,
   dlmsg->pdu_session_identity.pdu_session_id = session_id;
   len++;
 
-  SmfMsg& pdu_sess_est_reject = dlmsg->payload_container.smf_msg;
+  SmfMsg &pdu_sess_est_reject = dlmsg->payload_container.smf_msg;
   // header
   pdu_sess_est_reject.header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
@@ -1279,7 +1277,7 @@ int construct_pdu_session_reject_dl_req(uint8_t sequence_number,
    */
   AMF_GET_BYTE_ALIGNED_LENGTH(len);
   if (SECURITY_HEADER_TYPE_NOT_PROTECTED != msg->header.security_header_type) {
-    amf_msg_header* header = &msg->security_protected.plain.amf.header;
+    amf_msg_header *header = &msg->security_protected.plain.amf.header;
     /*
      * Expand size of protected NAS message
      */
@@ -1316,7 +1314,7 @@ status_code_e amf_pdu_session_establishment_reject(amf_ue_ngap_id_t ue_id,
   uint32_t bytes = 0;
   uint32_t len = 0;
   bstring buffer;
-  ue_m5gmm_context_s* ue_context = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
   amf_nas_message_t msg = {};
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -1351,4 +1349,4 @@ status_code_e amf_pdu_session_establishment_reject(amf_ue_ngap_id_t ue_id,
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

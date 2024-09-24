@@ -21,6 +21,6 @@
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_common.hpp"
 
-status_code_e s1ap_mme_decode_pdu(S1ap_S1AP_PDU_t* pdu, const_bstring const raw)
+status_code_e s1ap_mme_decode_pdu(S1ap_S1AP_PDU_t *pdu, const_bstring const raw)
     __attribute__((warn_unused_result));
 #endif /* FILE_S1AP_MME_DECODER_SEEN */

@@ -24,11 +24,11 @@
 
 typedef uint8_t PacketFlowIdentifier;
 
-int encode_packet_flow_identifier(PacketFlowIdentifier* packetflowidentifier,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_packet_flow_identifier(PacketFlowIdentifier *packetflowidentifier,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len);
 
-int decode_packet_flow_identifier(PacketFlowIdentifier* packetflowidentifier,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_packet_flow_identifier(PacketFlowIdentifier *packetflowidentifier,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len);
 
-void dump_packet_flow_identifier_xml(PacketFlowIdentifier* packetflowidentifier,
+void dump_packet_flow_identifier_xml(PacketFlowIdentifier *packetflowidentifier,
                                      uint8_t iei);

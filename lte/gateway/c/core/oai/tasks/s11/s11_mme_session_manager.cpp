@@ -24,12 +24,12 @@
 
 #include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.hpp"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -55,12 +55,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s11/s11_common.hpp"
 #include "lte/gateway/c/core/oai/tasks/s11/s11_ie_formatter.hpp"
 
-extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
+extern hash_table_ts_t *s11_mme_teid_2_gtv2c_teid_handle;
 
 //------------------------------------------------------------------------------
-status_code_e s11_mme_create_session_request(
-    nw_gtpv2c_stack_handle_t* stack_p,
-    itti_s11_create_session_request_t* req_p) {
+status_code_e
+s11_mme_create_session_request(nw_gtpv2c_stack_handle_t *stack_p,
+                               itti_s11_create_session_request_t *req_p) {
   nw_gtpv2c_ulp_api_t ulp_req = {};
   nw_rc_t rc;
   uint8_t restart_counter = 0;
@@ -77,7 +77,7 @@ status_code_e s11_mme_create_session_request(
 
   /** Will stay in stack until its copied into trx and sent to UE. */
   ulp_req.u_api_info.initialReqInfo.edns_peer_ip =
-      (struct sockaddr*)&req_p->edns_peer_ip;
+      (struct sockaddr *)&req_p->edns_peer_ip;
 
   ulp_req.u_api_info.initialReqInfo.teidLocal = req_p->sender_fteid_for_cp.teid;
   ulp_req.u_api_info.initialReqInfo.hUlpTunnel = 0;
@@ -85,8 +85,9 @@ status_code_e s11_mme_create_session_request(
 
   // Add recovery if contacting the peer for the first time
   rc = nwGtpv2cMsgAddIe((ulp_req.hMsg), NW_GTPV2C_IE_RECOVERY, 1, 0,
-                        (uint8_t*)&restart_counter);
-  if (rc != NW_OK) return RETURNerror;
+                        (uint8_t *)&restart_counter);
+  if (rc != NW_OK)
+    return RETURNerror;
 
   // Putting the information Elements
   imsi_t imsi;
@@ -157,11 +158,11 @@ status_code_e s11_mme_create_session_request(
   hashtable_rc_t hash_rc =
       hashtable_ts_insert(s11_mme_teid_2_gtv2c_teid_handle,
                           (hash_key_t)req_p->sender_fteid_for_cp.teid,
-                          (void*)ulp_req.u_api_info.initialReqInfo.hTunnel);
+                          (void *)ulp_req.u_api_info.initialReqInfo.hTunnel);
   if (HASH_TABLE_OK != hash_rc) {
     OAILOG_WARNING(LOG_S11,
                    "Could not save GTPv2-C hTunnel %p for local teid %X\n",
-                   (void*)ulp_req.u_api_info.initialReqInfo.hTunnel,
+                   (void *)ulp_req.u_api_info.initialReqInfo.hTunnel,
                    ulp_req.u_api_info.initialReqInfo.teidLocal);
     OAILOG_FUNC_RETURN(LOG_S11, RETURNerror);
   }
@@ -169,14 +170,15 @@ status_code_e s11_mme_create_session_request(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s11_mme_handle_create_session_response(
-    nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
+status_code_e
+s11_mme_handle_create_session_response(nw_gtpv2c_stack_handle_t *stack_p,
+                                       nw_gtpv2c_ulp_api_t *pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
   uint16_t offendingIeLength;
-  itti_s11_create_session_response_t* resp_p;
-  MessageDef* message_p;
-  nw_gtpv2c_msg_parser_t* pMsgParser;
+  itti_s11_create_session_response_t *resp_p;
+  MessageDef *message_p;
+  nw_gtpv2c_msg_parser_t *pMsgParser;
 
   DevAssert(stack_p);
   message_p = DEPRECATEDitti_alloc_new_message_fatal(
@@ -260,7 +262,8 @@ status_code_e s11_mme_handle_create_session_response(
     DevAssert(NW_OK == rc);
     rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
     DevAssert(NW_OK == rc);
-    if (&resp_p->paa) free_wrapper((void**)&resp_p->paa);
+    if (&resp_p->paa)
+      free_wrapper((void **)&resp_p->paa);
     free(message_p);
     message_p = NULL;
     return RETURNerror;
@@ -279,7 +282,8 @@ status_code_e s11_mme_handle_create_session_response(
         LOG_S11,
         "Received a late overlapping request. Not forwarding message to "
         "MME_APP layer. \n");
-    if (&resp_p->paa) free_wrapper((void**)&resp_p->paa);
+    if (&resp_p->paa)
+      free_wrapper((void **)&resp_p->paa);
     free(message_p);
     message_p = NULL;
     return RETURNok;
@@ -288,9 +292,9 @@ status_code_e s11_mme_handle_create_session_response(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s11_mme_delete_session_request(
-    nw_gtpv2c_stack_handle_t* stack_p,
-    itti_s11_delete_session_request_t* req_p) {
+status_code_e
+s11_mme_delete_session_request(nw_gtpv2c_stack_handle_t *stack_p,
+                               itti_s11_delete_session_request_t *req_p) {
   nw_gtpv2c_ulp_api_t ulp_req;
   nw_rc_t rc;
 
@@ -303,14 +307,14 @@ status_code_e s11_mme_delete_session_request(
   rc = nwGtpv2cMsgNew(*stack_p, true, NW_GTP_DELETE_SESSION_REQ, req_p->teid, 0,
                       &(ulp_req.hMsg));
   ulp_req.u_api_info.initialReqInfo.edns_peer_ip =
-      (struct sockaddr*)&req_p->edns_peer_ip;
+      (struct sockaddr *)&req_p->edns_peer_ip;
   ulp_req.u_api_info.initialReqInfo.teidLocal = req_p->local_teid;
   ulp_req.u_api_info.initialReqInfo.noDelete = req_p->noDelete;
 
   hashtable_rc_t hash_rc = hashtable_ts_get(
       s11_mme_teid_2_gtv2c_teid_handle,
       (hash_key_t)ulp_req.u_api_info.initialReqInfo.teidLocal,
-      (void**)(uintptr_t)&ulp_req.u_api_info.initialReqInfo.hTunnel);
+      (void **)(uintptr_t)&ulp_req.u_api_info.initialReqInfo.hTunnel);
 
   if (HASH_TABLE_OK != hash_rc) {
     OAILOG_WARNING(LOG_S11, "Could not get GTPv2-C hTunnel for local teid %X\n",
@@ -344,14 +348,15 @@ status_code_e s11_mme_delete_session_request(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s11_mme_handle_delete_session_response(
-    nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
+status_code_e
+s11_mme_handle_delete_session_response(nw_gtpv2c_stack_handle_t *stack_p,
+                                       nw_gtpv2c_ulp_api_t *pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
   uint16_t offendingIeLength;
-  itti_s11_delete_session_response_t* resp_p = NULL;
-  MessageDef* message_p = NULL;
-  nw_gtpv2c_msg_parser_t* pMsgParser = NULL;
+  itti_s11_delete_session_response_t *resp_p = NULL;
+  MessageDef *message_p = NULL;
+  nw_gtpv2c_msg_parser_t *pMsgParser = NULL;
   hashtable_rc_t hash_rc = HASH_TABLE_OK;
 
   DevAssert(stack_p);
@@ -414,7 +419,7 @@ status_code_e s11_mme_handle_delete_session_response(
     ulp_req.apiType = NW_GTPV2C_ULP_DELETE_LOCAL_TUNNEL;
     hash_rc = hashtable_ts_get(
         s11_mme_teid_2_gtv2c_teid_handle, (hash_key_t)resp_p->teid,
-        (void**)(uintptr_t)&ulp_req.u_api_info.deleteLocalTunnelInfo.hTunnel);
+        (void **)(uintptr_t)&ulp_req.u_api_info.deleteLocalTunnelInfo.hTunnel);
     if (HASH_TABLE_OK != hash_rc) {
       OAILOG_ERROR(
           LOG_S11,
@@ -433,114 +438,114 @@ status_code_e s11_mme_handle_delete_session_response(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s11_mme_handle_ulp_error_indicatior(
-    nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
+status_code_e
+s11_mme_handle_ulp_error_indicatior(nw_gtpv2c_stack_handle_t *stack_p,
+                                    nw_gtpv2c_ulp_api_t *pUlpApi) {
   /** Get the failed transaction. */
   /** Check the message type. */
   OAILOG_FUNC_IN(LOG_S11);
   status_code_e rc = RETURNok;
 
   nw_gtpv2c_msg_type_t msgType = pUlpApi->u_api_info.rspFailureInfo.msgType;
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   switch (msgType) {
-    case NW_GTP_CREATE_SESSION_REQ: /**< Message which was sent!. */
-    {
-      itti_s11_create_session_response_t* rsp_p;
-      /** Respond with an S10 Context Reponse Failure. */
-      message_p = DEPRECATEDitti_alloc_new_message_fatal(
-          TASK_S11, S11_CREATE_SESSION_RESPONSE);
-      rsp_p = &message_p->ittiMsg.s11_create_session_response;
-      memset(rsp_p, 0, sizeof(*rsp_p));
-      /** Set the destination TEID (our TEID). */
-      rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
-      /** Set the transaction for the triggered acknowledgment. */
-      rsp_p->trxn = (void*)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
-      /** Set the cause. */
-      rsp_p->cause.cause_value =
-          SYSTEM_FAILURE; /**< Would mean that this message either did not come
-                             at all or could not be dealt with properly. */
-    } break;
-    case NW_GTP_MODIFY_BEARER_REQ: {
-      itti_s11_modify_bearer_response_t* rsp_p;
-      message_p = DEPRECATEDitti_alloc_new_message_fatal(
-          TASK_S11, S11_MODIFY_BEARER_RESPONSE);
-      rsp_p = &message_p->ittiMsg.s11_modify_bearer_response;
-      memset(rsp_p, 0, sizeof(*rsp_p));
-      /** Set the destination TEID (our TEID). */
-      rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
-      /** Set the transaction for the triggered acknowledgment. */
-      rsp_p->trxn = (void*)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
-      /** Set the cause. */
-      rsp_p->cause.cause_value =
-          SYSTEM_FAILURE; /**< Would mean that this message either did not come
-                             at all or could not be dealt with properly. */
-    } break;
-    case NW_GTP_DELETE_SESSION_REQ: {
-      /**
-       * We will omit the error and send success back.
-       * UE context should always be removed.
-       */
-      itti_s11_delete_session_response_t* rsp_p;
-      message_p = DEPRECATEDitti_alloc_new_message_fatal(
-          TASK_S11, S11_DELETE_SESSION_RESPONSE);
-      rsp_p = &message_p->ittiMsg.s11_delete_session_response;
-      memset(rsp_p, 0, sizeof(*rsp_p));
-      /** Set the destination TEID (our TEID). */
-      rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
-      /** Set the transaction for the triggered acknowledgment. */
-      rsp_p->trxn = (void*)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
-      /** Set the cause. */
-      rsp_p->cause.cause_value =
-          REQUEST_ACCEPTED; /**< Would mean that this message either did not
-                               come at all or could not be dealt with properly.
-                             */
-      OAILOG_ERROR(
-          LOG_S11,
-          "DELETE_SESSION_RESPONSE could not be received for for local "
-          "teid " TEID_FMT
-          ". Sending ACCEPTED back (ignoring the network failure). \n",
-          rsp_p->teid);
-    } break;
-    case NW_GTP_RELEASE_ACCESS_BEARERS_REQ: {
-      /**
-       * We will omit the error and send success back.
-       * UE context should always be removed.
-       */
-      itti_s11_release_access_bearers_response_t* rsp_p;
-      message_p = DEPRECATEDitti_alloc_new_message_fatal(
-          TASK_S11, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
-      rsp_p = &message_p->ittiMsg.s11_release_access_bearers_response;
-      memset(rsp_p, 0, sizeof(*rsp_p));
-      /** Set the destination TEID (our TEID). */
-      rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
-      /** Set the transaction for the triggered acknowledgment. */
-      rsp_p->trxn = (void*)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
-      /** Set the cause. */
-      rsp_p->cause.cause_value =
-          REQUEST_ACCEPTED; /**< Would mean that this message either did not
-                               come at all or could not be dealt with properly.
-                             */
-      OAILOG_ERROR(
-          LOG_S11,
-          "RELEASE_ACCESS_BEARERS_RESPONSE could not be received for for local "
-          "teid " TEID_FMT
-          ". Sending ACCEPTED back (ignoring the network failure). \n",
-          rsp_p->teid);
-    } break;
-      /** Failed commands. */
+  case NW_GTP_CREATE_SESSION_REQ: /**< Message which was sent!. */
+  {
+    itti_s11_create_session_response_t *rsp_p;
+    /** Respond with an S10 Context Reponse Failure. */
+    message_p = DEPRECATEDitti_alloc_new_message_fatal(
+        TASK_S11, S11_CREATE_SESSION_RESPONSE);
+    rsp_p = &message_p->ittiMsg.s11_create_session_response;
+    memset(rsp_p, 0, sizeof(*rsp_p));
+    /** Set the destination TEID (our TEID). */
+    rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
+    /** Set the transaction for the triggered acknowledgment. */
+    rsp_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
+    /** Set the cause. */
+    rsp_p->cause.cause_value =
+        SYSTEM_FAILURE; /**< Would mean that this message either did not come
+                           at all or could not be dealt with properly. */
+  } break;
+  case NW_GTP_MODIFY_BEARER_REQ: {
+    itti_s11_modify_bearer_response_t *rsp_p;
+    message_p = DEPRECATEDitti_alloc_new_message_fatal(
+        TASK_S11, S11_MODIFY_BEARER_RESPONSE);
+    rsp_p = &message_p->ittiMsg.s11_modify_bearer_response;
+    memset(rsp_p, 0, sizeof(*rsp_p));
+    /** Set the destination TEID (our TEID). */
+    rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
+    /** Set the transaction for the triggered acknowledgment. */
+    rsp_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
+    /** Set the cause. */
+    rsp_p->cause.cause_value =
+        SYSTEM_FAILURE; /**< Would mean that this message either did not come
+                           at all or could not be dealt with properly. */
+  } break;
+  case NW_GTP_DELETE_SESSION_REQ: {
+    /**
+     * We will omit the error and send success back.
+     * UE context should always be removed.
+     */
+    itti_s11_delete_session_response_t *rsp_p;
+    message_p = DEPRECATEDitti_alloc_new_message_fatal(
+        TASK_S11, S11_DELETE_SESSION_RESPONSE);
+    rsp_p = &message_p->ittiMsg.s11_delete_session_response;
+    memset(rsp_p, 0, sizeof(*rsp_p));
+    /** Set the destination TEID (our TEID). */
+    rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
+    /** Set the transaction for the triggered acknowledgment. */
+    rsp_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
+    /** Set the cause. */
+    rsp_p->cause.cause_value =
+        REQUEST_ACCEPTED; /**< Would mean that this message either did not
+                             come at all or could not be dealt with properly.
+                           */
+    OAILOG_ERROR(LOG_S11,
+                 "DELETE_SESSION_RESPONSE could not be received for for local "
+                 "teid " TEID_FMT
+                 ". Sending ACCEPTED back (ignoring the network failure). \n",
+                 rsp_p->teid);
+  } break;
+  case NW_GTP_RELEASE_ACCESS_BEARERS_REQ: {
+    /**
+     * We will omit the error and send success back.
+     * UE context should always be removed.
+     */
+    itti_s11_release_access_bearers_response_t *rsp_p;
+    message_p = DEPRECATEDitti_alloc_new_message_fatal(
+        TASK_S11, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
+    rsp_p = &message_p->ittiMsg.s11_release_access_bearers_response;
+    memset(rsp_p, 0, sizeof(*rsp_p));
+    /** Set the destination TEID (our TEID). */
+    rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
+    /** Set the transaction for the triggered acknowledgment. */
+    rsp_p->trxn = (void *)pUlpApi->u_api_info.rspFailureInfo.hUlpTrxn;
+    /** Set the cause. */
+    rsp_p->cause.cause_value =
+        REQUEST_ACCEPTED; /**< Would mean that this message either did not
+                             come at all or could not be dealt with properly.
+                           */
+    OAILOG_ERROR(
+        LOG_S11,
+        "RELEASE_ACCESS_BEARERS_RESPONSE could not be received for for local "
+        "teid " TEID_FMT
+        ". Sending ACCEPTED back (ignoring the network failure). \n",
+        rsp_p->teid);
+  } break;
+    /** Failed commands. */
 
-      /** Send this one directly to the ESM. */
+    /** Send this one directly to the ESM. */
 
-      rc = send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
-      OAILOG_FUNC_RETURN(LOG_S11, rc);
+    rc = send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
+    OAILOG_FUNC_RETURN(LOG_S11, rc);
 
-    default:
-      OAILOG_ERROR(LOG_S10,
-                   "Received an unhandled error indicator for the local "
-                   "S11-TEID " TEID_FMT " and message type %d. \n",
-                   pUlpApi->u_api_info.rspFailureInfo.teidLocal,
-                   pUlpApi->u_api_info.rspFailureInfo.msgType);
-      OAILOG_FUNC_RETURN(LOG_S11, RETURNerror);
+  default:
+    OAILOG_ERROR(LOG_S10,
+                 "Received an unhandled error indicator for the local "
+                 "S11-TEID " TEID_FMT " and message type %d. \n",
+                 pUlpApi->u_api_info.rspFailureInfo.teidLocal,
+                 pUlpApi->u_api_info.rspFailureInfo.msgType);
+    OAILOG_FUNC_RETURN(LOG_S11, RETURNerror);
   }
   OAILOG_WARNING(LOG_S10,
                  "Received an error indicator for the local S11-TEID " TEID_FMT

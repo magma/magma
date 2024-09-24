@@ -14,8 +14,8 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <gtest/gtest.h>
 #include <glog/logging.h>
+#include <gtest/gtest.h>
 
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"

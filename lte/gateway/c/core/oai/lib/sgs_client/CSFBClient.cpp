@@ -16,22 +16,22 @@
  */
 
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
+#include <thread> // std::thread
 #include <utility>
 
+#include "feg/protos/csfb.pb.h"
 #include "lte/gateway/c/core/oai/lib/sgs_client/CSFBClient.hpp"
 #include "lte/gateway/c/core/oai/lib/sgs_client/itti_msg_to_proto_msg.hpp"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "feg/protos/csfb.pb.h"
 #include "orc8r/protos/common.pb.h"
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 
-CSFBClient& CSFBClient::get_instance() {
+CSFBClient &CSFBClient::get_instance() {
   static CSFBClient client_instance;
   return client_instance;
 }
@@ -47,9 +47,9 @@ CSFBClient::CSFBClient() {
 }
 
 void CSFBClient::location_update_request(
-    const itti_sgsap_location_update_req_t* msg,
+    const itti_sgsap_location_update_req_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   LocationUpdateRequest proto_msg =
       convert_itti_sgsap_location_update_req_to_proto_msg(msg);
   // Create a raw response pointer that stores a callback to be called when the
@@ -67,9 +67,9 @@ void CSFBClient::location_update_request(
   local_response->set_response_reader(std::move(response_reader));
 }
 
-void CSFBClient::alert_ack(const itti_sgsap_alert_ack_t* msg,
+void CSFBClient::alert_ack(const itti_sgsap_alert_ack_t *msg,
                            std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   AlertAck proto_msg = convert_itti_sgsap_alert_ack_to_proto_msg(msg);
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
@@ -79,9 +79,9 @@ void CSFBClient::alert_ack(const itti_sgsap_alert_ack_t* msg,
 }
 
 void CSFBClient::alert_reject(
-    const itti_sgsap_alert_reject_t* msg,
+    const itti_sgsap_alert_reject_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   AlertReject proto_msg = convert_itti_sgsap_alert_reject_to_proto_msg(msg);
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
@@ -91,9 +91,9 @@ void CSFBClient::alert_reject(
 }
 
 void CSFBClient::tmsi_reallocation_complete(
-    const itti_sgsap_tmsi_reallocation_comp_t* msg,
+    const itti_sgsap_tmsi_reallocation_comp_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   TMSIReallocationComplete proto_msg =
       convert_itti_sgsap_tmsi_reallocation_comp_to_proto_msg(msg);
   auto local_response =
@@ -104,9 +104,9 @@ void CSFBClient::tmsi_reallocation_complete(
 }
 
 void CSFBClient::eps_detach_indication(
-    const itti_sgsap_eps_detach_ind_t* msg,
+    const itti_sgsap_eps_detach_ind_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   EPSDetachIndication proto_msg =
       convert_itti_sgsap_eps_detach_ind_to_proto_msg(msg);
   auto local_response =
@@ -117,9 +117,9 @@ void CSFBClient::eps_detach_indication(
 }
 
 void CSFBClient::imsi_detach_indication(
-    const itti_sgsap_imsi_detach_ind_t* msg,
+    const itti_sgsap_imsi_detach_ind_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   IMSIDetachIndication proto_msg =
       convert_itti_sgsap_imsi_detach_ind_to_proto_msg(msg);
   auto local_response =
@@ -130,9 +130,9 @@ void CSFBClient::imsi_detach_indication(
 }
 
 void CSFBClient::paging_reject(
-    const itti_sgsap_paging_reject_t* msg,
+    const itti_sgsap_paging_reject_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   PagingReject proto_msg = convert_itti_sgsap_paging_reject_to_proto_msg(msg);
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
@@ -142,9 +142,9 @@ void CSFBClient::paging_reject(
 }
 
 void CSFBClient::service_request(
-    const itti_sgsap_service_request_t* msg,
+    const itti_sgsap_service_request_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   ServiceRequest proto_msg =
       convert_itti_sgsap_service_request_to_proto_msg(msg);
   auto local_response =
@@ -155,9 +155,9 @@ void CSFBClient::service_request(
 }
 
 void CSFBClient::ue_activity_indication(
-    const itti_sgsap_ue_activity_ind_t* msg,
+    const itti_sgsap_ue_activity_ind_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   UEActivityIndication proto_msg =
       convert_itti_sgsap_ue_activity_indication_to_proto_msg(msg);
   auto local_response =
@@ -168,9 +168,9 @@ void CSFBClient::ue_activity_indication(
 }
 
 void CSFBClient::ue_unreachable(
-    const itti_sgsap_ue_unreachable_t* msg,
+    const itti_sgsap_ue_unreachable_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   UEUnreachable proto_msg = convert_itti_sgsap_ue_unreachable_to_proto_msg(msg);
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
@@ -180,9 +180,9 @@ void CSFBClient::ue_unreachable(
 }
 
 void CSFBClient::send_uplink_unitdata(
-    const itti_sgsap_uplink_unitdata_t* msg,
+    const itti_sgsap_uplink_unitdata_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  CSFBClient& client = get_instance();
+  CSFBClient &client = get_instance();
   UplinkUnitdata proto_msg =
       convert_itti_sgsap_uplink_unitdata_to_proto_msg(msg);
   auto local_response =
@@ -192,4 +192,4 @@ void CSFBClient::send_uplink_unitdata(
   local_response->set_response_reader(std::move(response_reader));
 }
 
-}  // namespace magma
+} // namespace magma

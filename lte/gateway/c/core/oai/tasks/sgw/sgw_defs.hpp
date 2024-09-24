@@ -31,7 +31,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state);
+status_code_e spgw_app_init(spgw_config_t *spgw_config_pP, bool persist_state);
 #ifdef __cplusplus
 }
 #endif

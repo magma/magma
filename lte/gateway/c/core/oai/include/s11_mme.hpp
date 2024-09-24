@@ -27,7 +27,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-status_code_e s11_mme_init(mme_config_t* mme_config);
+status_code_e s11_mme_init(mme_config_t *mme_config);
 #ifdef __cplusplus
 }
 #endif

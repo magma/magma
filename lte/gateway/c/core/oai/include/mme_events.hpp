@@ -41,7 +41,7 @@ int attach_success_event(imsi64_t imsi64);
  * @param action Indicates whether explicit detach accept action was sent to UE
  * @return response code
  */
-int detach_success_event(imsi64_t imsi64, const char* action);
+int detach_success_event(imsi64_t imsi64, const char *action);
 
 /**
  * Logs s1 setup success event
@@ -49,7 +49,7 @@ int detach_success_event(imsi64_t imsi64, const char* action);
  * @param enb_id unique identifier of eNodeb
  * @return response code
  */
-int s1_setup_success_event(const char* enb_name, uint32_t enb_id);
+int s1_setup_success_event(const char *enb_name, uint32_t enb_id);
 
 /**
  * Logs Attach failure event

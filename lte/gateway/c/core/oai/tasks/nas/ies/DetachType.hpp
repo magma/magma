@@ -35,13 +35,13 @@ typedef struct detach_type_s {
   uint8_t typeofdetach;
 } detach_type_t;
 
-int encode_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t* buffer,
+int encode_detach_type(detach_type_t *detachtype, uint8_t iei, uint8_t *buffer,
                        uint32_t len);
 
-uint8_t encode_u8_detach_type(detach_type_t* detachtype);
+uint8_t encode_u8_detach_type(detach_type_t *detachtype);
 
-int decode_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t* buffer,
+int decode_detach_type(detach_type_t *detachtype, uint8_t iei, uint8_t *buffer,
                        uint32_t len);
 
-int decode_u8_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t value,
+int decode_u8_detach_type(detach_type_t *detachtype, uint8_t iei, uint8_t value,
                           uint32_t len);

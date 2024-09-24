@@ -51,5 +51,5 @@ Description Defines the EPS Mobility Management procedure call manager,
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void emm_main_initialize(const mme_config_t* mme_config_p);
+void emm_main_initialize(const mme_config_t *mme_config_p);
 void emm_main_cleanup(void);

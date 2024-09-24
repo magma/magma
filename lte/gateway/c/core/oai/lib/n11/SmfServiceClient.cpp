@@ -10,28 +10,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <google/protobuf/util/time_util.h>
+#include <arpa/inet.h>
 #include <cassert>
+#include <cstring>
+#include <google/protobuf/util/time_util.h>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
-#include <cstring>
 #include <iostream>
+#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <memory>
 #include <string>
 #include <thread>
-#include <lte/protos/session_manager.grpc.pb.h>
-#include <lte/protos/session_manager.pb.h>
-#include <arpa/inet.h>
 #include <utility>
 
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/include/amf_service_handler.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/amf_service_handler.h"
 #ifdef __cplusplus
 }
 #endif
@@ -53,10 +53,10 @@ void handle_session_context_response(grpc::Status status,
 }
 
 int send_n11_create_pdu_session_failure_itti(
-    itti_n11_create_pdu_session_failure_t* itti_msg) {
+    itti_n11_create_pdu_session_failure_t *itti_msg) {
   OAILOG_DEBUG(LOG_UTIL,
                "Sending itti_n11_create_pdu_session_failure to AMF \n");
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, N11_CREATE_PDU_SESSION_FAILURE);
   if (message_p == NULL) {
     OAILOG_ERROR(
@@ -69,7 +69,7 @@ int send_n11_create_pdu_session_failure_itti(
 }
 
 void handle_session_context_response(grpc::Status status,
-                                     const SetSMSessionContext& request,
+                                     const SetSMSessionContext &request,
                                      magma::lte::SmContextVoid response) {
   if (status.ok()) {
     return;
@@ -80,14 +80,14 @@ void handle_session_context_response(grpc::Status status,
                "error code [%d] error message [%s] ",
                status.error_code(), status.error_message().c_str());
 
-  auto& req_common = request.common_context();
+  auto &req_common = request.common_context();
   itti_n11_create_pdu_session_failure_t itti_msg = {};
 
   if (!req_common.sid().id().empty()) {
     strncpy(itti_msg.imsi, req_common.sid().id().c_str() + 4,
             IMSI_BCD_DIGITS_MAX);
   }
-  auto& req_rat_specific =
+  auto &req_rat_specific =
       request.rat_specific_context().m5gsm_session_context();
   itti_msg.pdu_session_id = req_rat_specific.pdu_session_id();
   itti_msg.error_code = static_cast<uint8_t>(status.error_code());
@@ -97,16 +97,17 @@ void handle_session_context_response(grpc::Status status,
 using namespace magma::lte;
 namespace magma5g {
 
-SetSMSessionContext create_sm_pdu_session(
-    std::string& imsi, uint8_t* apn, uint32_t pdu_session_id,
-    uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, std::string& ip4, std::string& ip6,
-    const ambr_t& state_ambr, uint32_t version,
-    const eps_subscribed_qos_profile_t& qos_profile) {
+SetSMSessionContext
+create_sm_pdu_session(std::string &imsi, uint8_t *apn, uint32_t pdu_session_id,
+                      uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+                      uint8_t pti, uint8_t *gnb_gtp_teid_ip_addr,
+                      std::string &ip4, std::string &ip6,
+                      const ambr_t &state_ambr, uint32_t version,
+                      const eps_subscribed_qos_profile_t &qos_profile) {
   magma::lte::SetSMSessionContext req;
   M5GQosInformationRequest qos_info;
 
-  auto* req_common = req.mutable_common_context();
+  auto *req_common = req.mutable_common_context();
 
   // Encode IMSI
   req_common->mutable_sid()->set_id("IMSI" + imsi);
@@ -116,7 +117,7 @@ SetSMSessionContext create_sm_pdu_session(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
 
   // Encode APU, storing apn value
-  req_common->set_apn((char*)apn);
+  req_common->set_apn((char *)apn);
 
   // Encode RAT TYPE
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
@@ -137,7 +138,7 @@ SetSMSessionContext create_sm_pdu_session(
     req_common->set_ue_ipv6(ip6);
   }
 
-  auto* req_rat_specific =
+  auto *req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
 
   // Set the Session ID
@@ -178,11 +179,11 @@ SetSMSessionContext create_sm_pdu_session(
 }
 
 int AsyncSmfServiceClient::amf_smf_create_pdu_session(
-    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    char *imsi, uint8_t *apn, uint32_t pdu_session_id,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid, uint8_t pti,
-    uint8_t* gnb_gtp_teid_ip_addr, char* ue_ipv4_addr, char* ue_ipv6_addr,
-    const ambr_t& state_ambr, uint32_t version,
-    const eps_subscribed_qos_profile_t& qos_profile) {
+    uint8_t *gnb_gtp_teid_ip_addr, char *ue_ipv4_addr, char *ue_ipv6_addr,
+    const ambr_t &state_ambr, uint32_t version,
+    const eps_subscribed_qos_profile_t &qos_profile) {
   std::string ip4_str, ip6_str;
 
   if (ue_ipv4_addr) {
@@ -202,9 +203,9 @@ int AsyncSmfServiceClient::amf_smf_create_pdu_session(
   return 0;
 }
 
-bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
+bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext &request) {
   SetSMFSessionRPC(
-      request, [request](const Status& status, const SmContextVoid& response) {
+      request, [request](const Status &status, const SmContextVoid &response) {
         handle_session_context_response(status, request, response);
       });
 
@@ -212,8 +213,8 @@ bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
 }
 
 void AsyncSmfServiceClient::SetSMFSessionRPC(
-    SetSMSessionContext& request,
-    const std::function<void(Status, SmContextVoid)>& callback) {
+    SetSMSessionContext &request,
+    const std::function<void(Status, SmContextVoid)> &callback) {
   auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
                                                          RESPONSE_TIMEOUT);
 
@@ -222,9 +223,9 @@ void AsyncSmfServiceClient::SetSMFSessionRPC(
 }
 
 bool AsyncSmfServiceClient::set_smf_notification(
-    const SetSmNotificationContext& notify) {
+    const SetSmNotificationContext &notify) {
   SetSMFNotificationRPC(
-      notify, [](const Status& status, const SmContextVoid& response) {
+      notify, [](const Status &status, const SmContextVoid &response) {
         handle_session_context_response(status, response);
       });
 
@@ -232,8 +233,8 @@ bool AsyncSmfServiceClient::set_smf_notification(
 }
 
 void AsyncSmfServiceClient::SetSMFNotificationRPC(
-    const SetSmNotificationContext& notify,
-    const std::function<void(Status, SmContextVoid)>& callback) {
+    const SetSmNotificationContext &notify,
+    const std::function<void(Status, SmContextVoid)> &callback) {
   auto localResp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
                                                          RESPONSE_TIMEOUT);
 
@@ -249,14 +250,14 @@ AsyncSmfServiceClient::AsyncSmfServiceClient() {
   resp_loop_thread.detach();
 }
 
-AsyncSmfServiceClient& AsyncSmfServiceClient::getInstance() {
+AsyncSmfServiceClient &AsyncSmfServiceClient::getInstance() {
   static AsyncSmfServiceClient instance;
   return instance;
 }
 
 bool AsyncSmfServiceClient::n11_update_location_req(
-    const s6a_update_location_req_t* const ulr_p) {
+    const s6a_update_location_req_t *const ulr_p) {
   return s6a_update_location_req(ulr_p);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

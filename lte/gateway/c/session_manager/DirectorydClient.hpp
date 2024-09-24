@@ -12,13 +12,13 @@
  */
 #pragma once
 
+#include <functional>
+#include <memory>
+#include <mutex>
 #include <orc8r/protos/common.pb.h>
 #include <orc8r/protos/directoryd.grpc.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
 #include <stdint.h>
-#include <functional>
-#include <memory>
-#include <mutex>
 #include <unordered_map>
 
 #include "lte/gateway/c/session_manager/SessionState.hpp"
@@ -27,14 +27,14 @@
 namespace grpc {
 class Channel;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace orc8r {
 class AllDirectoryRecords;
 class DeleteRecordRequest;
 class UpdateRecordRequest;
-}  // namespace orc8r
+} // namespace orc8r
 
 using namespace orc8r;
 using grpc::Status;
@@ -43,21 +43,21 @@ using grpc::Status;
  * DirectorydClient is the base class for managing interactions with DirectoryD.
  */
 class DirectorydClient {
- public:
+public:
   virtual ~DirectorydClient() = default;
   /**
    * Update the DirectoryD record
    * @param update_request - request used to update the record
    */
   virtual void update_directoryd_record(
-      const UpdateRecordRequest& request,
+      const UpdateRecordRequest &request,
       std::function<void(Status status, Void)> callback) = 0;
   /**
    * Delete the DirectoryD record for the specified ID
    * @param delelete_request - request used to delete the record
    */
   virtual void delete_directoryd_record(
-      const DeleteRecordRequest& request,
+      const DeleteRecordRequest &request,
       std::function<void(Status status, Void)> callback) = 0;
 
   /**
@@ -72,7 +72,7 @@ class DirectorydClient {
  * UE information.
  */
 class AsyncDirectorydClient : public GRPCReceiver, public DirectorydClient {
- public:
+public:
   AsyncDirectorydClient();
 
   AsyncDirectorydClient(std::shared_ptr<grpc::Channel> directoryd_channel);
@@ -81,16 +81,16 @@ class AsyncDirectorydClient : public GRPCReceiver, public DirectorydClient {
    * Update the DirectoryD record
    * @param update_request - request used to update the record
    */
-  void update_directoryd_record(
-      const UpdateRecordRequest& request,
-      std::function<void(Status status, Void)> callback);
+  void
+  update_directoryd_record(const UpdateRecordRequest &request,
+                           std::function<void(Status status, Void)> callback);
   /**
    * Delete the DirectoryD record for the specified ID
    * @param delelete_request - request used to delete the record
    */
-  void delete_directoryd_record(
-      const DeleteRecordRequest& request,
-      std::function<void(Status status, Void)> callback);
+  void
+  delete_directoryd_record(const DeleteRecordRequest &request,
+                           std::function<void(Status status, Void)> callback);
 
   /**
    * Get all DirectoryD records
@@ -98,9 +98,9 @@ class AsyncDirectorydClient : public GRPCReceiver, public DirectorydClient {
   void get_all_directoryd_records(
       std::function<void(Status status, AllDirectoryRecords)> callback);
 
- private:
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+private:
+  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<GatewayDirectoryService::Stub> stub_;
 };
 
-}  // namespace magma
+} // namespace magma

@@ -15,10 +15,10 @@
  *      contact@openairinterface.org
  */
 
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,7 +96,7 @@ static status_code_e emm_service_reject(mme_ue_s1ap_id_t ue_id,
   status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
-  emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
+  emm_context_t *emm_ctx = emm_context_get(&_emm_data, ue_id);
   emm_sap_t emm_sap = {};
 
   /*
@@ -145,10 +145,11 @@ static status_code_e emm_service_reject(mme_ue_s1ap_id_t ue_id,
  **              and EPC supports CS or SMS                                **
  **              send the extended service req notification to mme_app     **
  ***************************************************************************/
-status_code_e emm_proc_extended_service_request(
-    const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg) {
+status_code_e
+emm_proc_extended_service_request(const mme_ue_s1ap_id_t ue_id,
+                                  const extended_service_request_msg *msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_t* emm_ctx = NULL;
+  emm_context_t *emm_ctx = NULL;
 
   /*
    * Get the UE context
@@ -214,11 +215,11 @@ status_code_e emm_proc_extended_service_request(
  **              send the extended service req notification to mme_app     **
  ***************************************************************************/
 status_code_e emm_recv_initial_ext_service_request(
-    const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg,
-    int* emm_cause, const nas_message_decode_status_t* decode_status) {
+    const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg *msg,
+    int *emm_cause, const nas_message_decode_status_t *decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
-  emm_context_t* emm_ctx = NULL;
+  emm_context_t *emm_ctx = NULL;
   emm_sap_t emm_sap = {};
 
   /*
@@ -315,7 +316,7 @@ status_code_e emm_recv_initial_ext_service_request(
 }
 
 static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id) {
-  ue_mm_context_t* ue_context = NULL;
+  ue_mm_context_t *ue_context = NULL;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context) {
@@ -333,7 +334,7 @@ status_code_e emm_send_service_reject_in_dl_nas(const mme_ue_s1ap_id_t ue_id,
                                                 const uint8_t emm_cause) {
   status_code_e rc = RETURNok;
   emm_sap_t emm_sap = {};
-  emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
+  emm_context_t *emm_ctx = emm_context_get(&_emm_data, ue_id);
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   if (!emm_ctx) {
@@ -345,10 +346,10 @@ status_code_e emm_send_service_reject_in_dl_nas(const mme_ue_s1ap_id_t ue_id,
   }
   emm_ctx->emm_cause = emm_cause;
   emm_sap.primitive = EMMAS_DATA_REQ;
-  emm_sap.u.emm_as.u.data.emm_cause = (uint32_t*)&emm_ctx->emm_cause;
+  emm_sap.u.emm_as.u.data.emm_cause = (uint32_t *)&emm_ctx->emm_cause;
   emm_sap.u.emm_as.u.data.ue_id = ue_id;
   emm_sap.u.emm_as.u.data.nas_info = EMM_AS_NAS_DATA_INFO_SR;
-  emm_sap.u.emm_as.u.data.nas_msg = NULL;  // No ESM container
+  emm_sap.u.emm_as.u.data.nas_msg = NULL; // No ESM container
   /*
    * Setup EPS NAS security data
    */

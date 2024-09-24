@@ -14,12 +14,12 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <gtest/gtest-message.h>     // for Message
-#include <gtest/gtest-param-test.h>  // for ParamIteratorInterface, Values
-#include <gtest/gtest-test-part.h>   // for TestPartResult
-#include <gtest/gtest.h>             // for InitGoogleTest, RUN_ALL_TESTS
-#include <string>                    // for basic_string, string
-#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"  // for IMSIEncoder, openflow
+#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp" // for IMSIEncoder, openflow
+#include <gtest/gtest-message.h>    // for Message
+#include <gtest/gtest-param-test.h> // for ParamIteratorInterface, Values
+#include <gtest/gtest-test-part.h>  // for TestPartResult
+#include <gtest/gtest.h>            // for InitGoogleTest, RUN_ALL_TESTS
+#include <string>                   // for basic_string, string
 
 using ::testing::Test;
 using ::testing::Values;
@@ -46,4 +46,4 @@ INSTANTIATE_TEST_CASE_P(TestLeadingZeros, IMSIEncoderTest,
 INSTANTIATE_TEST_CASE_P(TestDifferentLengths, IMSIEncoderTest,
                         Values("001010000000013", "01010000000013",
                                "28950000000013"));
-}  // namespace
+} // namespace

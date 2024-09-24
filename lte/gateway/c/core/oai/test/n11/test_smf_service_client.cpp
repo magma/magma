@@ -10,13 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
-#include <glog/logging.h>
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include <glog/logging.h>
+#include <gtest/gtest.h>
 
-#include "lte/protos/session_manager.pb.h"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.hpp"
+#include "lte/protos/session_manager.pb.h"
 
 using ::testing::Test;
 
@@ -35,7 +35,7 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   uint32_t pdu_session_type = 3;
   uint32_t gnb_gtp_teid = 1;
   uint8_t pti = 10;
-  uint8_t gnb_gtp_teid_ip_addr[4] = {0};  //("10.20.30.40")
+  uint8_t gnb_gtp_teid_ip_addr[4] = {0}; //("10.20.30.40")
   gnb_gtp_teid_ip_addr[0] = 0xA;
   gnb_gtp_teid_ip_addr[1] = 0x14;
   gnb_gtp_teid_ip_addr[2] = 0x1E;
@@ -61,13 +61,13 @@ TEST(test_create_sm_pdu_session_v4, create_sm_pdu_session_v4) {
   qos_profile.allocation_retention_priority.priority_level = 15;
 
   request = magma5g::create_sm_pdu_session(
-      imsi, (uint8_t*)apn.c_str(), pdu_session_id, pdu_session_type,
+      imsi, (uint8_t *)apn.c_str(), pdu_session_id, pdu_session_type,
       gnb_gtp_teid, pti, gnb_gtp_teid_ip_addr, ue_ipv4_addr, ue_ipv6_addr,
       default_ambr, version, qos_profile);
 
-  auto* rat_req =
+  auto *rat_req =
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  auto* req_cmn = request.mutable_common_context();
+  auto *req_cmn = request.mutable_common_context();
 
   EXPECT_EQ(imsi, req_cmn->sid().id().substr(4));
   EXPECT_EQ(magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI,
@@ -94,8 +94,8 @@ TEST(test_create_sm_pdu_session_response, create_sm_pdu_session_response) {
 
   itti_n11_create_pdu_session_response_t itti_msg;
 
-  auto* req_common = request.mutable_common_context();
-  auto* req_m5g =
+  auto *req_common = request.mutable_common_context();
+  auto *req_m5g =
       request.mutable_rat_specific_context()->mutable_m5g_session_context_rsp();
 
   req_common->mutable_sid()->set_id("IMSI901700000000001");
@@ -170,8 +170,8 @@ TEST(test_received_notification_t, create_received_notification_t) {
   AmfServiceImpl amfservice;
 
   itti_n11_received_notification_t itti_msg;
-  auto* notify_common = notif.mutable_common_context();
-  auto* req_m5g = notif.mutable_rat_specific_notification();
+  auto *notify_common = notif.mutable_common_context();
+  auto *req_m5g = notif.mutable_rat_specific_notification();
 
   // CommonSessionContext
   notify_common->mutable_sid()->set_id("IMSI901700000000001");
@@ -203,5 +203,5 @@ TEST(test_received_notification_t, create_received_notification_t) {
   EXPECT_EQ(itti_msg.m5gsm_cause, req_m5g->m5gsm_cause());
   EXPECT_EQ(itti_msg.notify_ue_evnt, req_m5g->notify_ue_event());
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

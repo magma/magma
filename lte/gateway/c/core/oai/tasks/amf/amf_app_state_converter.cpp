@@ -12,8 +12,8 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.hpp"
-#include <vector>
 #include <memory>
+#include <vector>
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
@@ -30,8 +30,8 @@ namespace magma5g {
 AmfNasStateConverter::AmfNasStateConverter() = default;
 AmfNasStateConverter::~AmfNasStateConverter() = default;
 
-void AmfNasStateConverter::plmn_to_chars(const plmn_t& state_plmn,
-                                         char* plmn_array) {
+void AmfNasStateConverter::plmn_to_chars(const plmn_t &state_plmn,
+                                         char *plmn_array) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   plmn_array[0] = static_cast<char>(state_plmn.mcc_digit1 + ASCII_ZERO);
   plmn_array[1] = static_cast<char>(state_plmn.mcc_digit2 + ASCII_ZERO);
@@ -42,8 +42,8 @@ void AmfNasStateConverter::plmn_to_chars(const plmn_t& state_plmn,
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-void AmfNasStateConverter::chars_to_plmn(const char* plmn_array,
-                                         plmn_t* state_plmn) {
+void AmfNasStateConverter::chars_to_plmn(const char *plmn_array,
+                                         plmn_t *state_plmn) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_plmn->mcc_digit1 = static_cast<int>(plmn_array[0]) - ASCII_ZERO;
   state_plmn->mcc_digit2 = static_cast<int>(plmn_array[1]) - ASCII_ZERO;
@@ -55,12 +55,12 @@ void AmfNasStateConverter::chars_to_plmn(const char* plmn_array,
 }
 
 // HelperFunction: Converts guti_m5_t to std::string
-std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
-    const guti_m5_t& guti) {
+std::string
+AmfNasStateConverter::amf_app_convert_guti_m5_to_string(const guti_m5_t &guti) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 #define GUTI_M5_STRING_LEN 25
-  char* temp_str =
-      reinterpret_cast<char*>(calloc(1, sizeof(char) * GUTI_M5_STRING_LEN));
+  char *temp_str =
+      reinterpret_cast<char *>(calloc(1, sizeof(char) * GUTI_M5_STRING_LEN));
   snprintf(temp_str, GUTI_M5_STRING_LEN, "%x%x%x%x%x%x%02x%04x%04x%08x",
            guti.guamfi.plmn.mcc_digit1, guti.guamfi.plmn.mcc_digit2,
            guti.guamfi.plmn.mcc_digit3, guti.guamfi.plmn.mnc_digit1,
@@ -74,7 +74,7 @@ std::string AmfNasStateConverter::amf_app_convert_guti_m5_to_string(
 
 // HelperFunction: Converts std:: string back to guti_m5_t
 void AmfNasStateConverter::amf_app_convert_string_to_guti_m5(
-    const std::string& guti_str, guti_m5_t* guti_m5_p) {
+    const std::string &guti_str, guti_m5_t *guti_m5_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int idx = 0;
   std::size_t chars_to_read = 1;
@@ -111,10 +111,10 @@ void AmfNasStateConverter::amf_app_convert_string_to_guti_m5(
 // Converts Map<guti_m5_t,uint64_t> to proto
 void AmfNasStateConverter::map_guti_uint64_to_proto(
     const map_guti_m5_uint64_t guti_map,
-    google::protobuf::Map<std::string, uint64_t>* proto_map) {
+    google::protobuf::Map<std::string, uint64_t> *proto_map) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   std::string guti_str;
-  for (const auto& elm : guti_map.umap) {
+  for (const auto &elm : guti_map.umap) {
     guti_str = amf_app_convert_guti_m5_to_string(elm.first);
     (*proto_map)[guti_str] = elm.second;
   }
@@ -123,10 +123,10 @@ void AmfNasStateConverter::map_guti_uint64_to_proto(
 
 // Converts Proto to Map<guti_m5_t,uint64_t>
 void AmfNasStateConverter::proto_to_guti_map(
-    const google::protobuf::Map<std::string, uint64_t>& proto_map,
-    map_guti_m5_uint64_t* guti_map) {
+    const google::protobuf::Map<std::string, uint64_t> &proto_map,
+    map_guti_m5_uint64_t *guti_map) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  for (auto const& kv : proto_map) {
+  for (auto const &kv : proto_map) {
     amf_ue_ngap_id_t amf_ue_ngap_id = kv.second;
     std::unique_ptr<guti_m5_t> guti = std::make_unique<guti_m5_t>();
     memset(guti.get(), 0, sizeof(guti_m5_t));
@@ -151,8 +151,8 @@ void AmfNasStateConverter::proto_to_guti_map(
  * The caller is responsible for all memory management    *
  **********************************************************/
 
-void AmfNasStateConverter::state_to_proto(const amf_app_desc_t* amf_nas_state_p,
-                                          MmeNasState* state_proto) {
+void AmfNasStateConverter::state_to_proto(const amf_app_desc_t *amf_nas_state_p,
+                                          MmeNasState *state_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_proto->set_nb_ue_connected(amf_nas_state_p->nb_ue_connected);
   state_proto->set_nb_ue_attached(amf_nas_state_p->nb_ue_attached);
@@ -179,8 +179,8 @@ void AmfNasStateConverter::state_to_proto(const amf_app_desc_t* amf_nas_state_p,
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-void AmfNasStateConverter::proto_to_state(const MmeNasState& state_proto,
-                                          amf_app_desc_t* amf_nas_state_p) {
+void AmfNasStateConverter::proto_to_state(const MmeNasState &state_proto,
+                                          amf_app_desc_t *amf_nas_state_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_nas_state_p->nb_ue_connected = state_proto.nb_ue_connected();
   amf_nas_state_p->nb_ue_attached = state_proto.nb_ue_attached();
@@ -190,7 +190,7 @@ void AmfNasStateConverter::proto_to_state(const MmeNasState& state_proto,
   amf_nas_state_p->amf_app_ue_ngap_id_generator =
       state_proto.mme_app_ue_s1ap_id_generator();
 
-  if (amf_nas_state_p->amf_app_ue_ngap_id_generator == 0) {  // uninitialized
+  if (amf_nas_state_p->amf_app_ue_ngap_id_generator == 0) { // uninitialized
     amf_nas_state_p->amf_app_ue_ngap_id_generator = 1;
   }
   OAILOG_INFO(LOG_AMF_APP, "Done reading AMF statistics from data store");
@@ -198,7 +198,7 @@ void AmfNasStateConverter::proto_to_state(const MmeNasState& state_proto,
   magma::lte::oai::MmeUeContext amf_ue_ctxts_proto =
       state_proto.mme_ue_contexts();
 
-  amf_ue_context_t* amf_ue_ctxt_state = &amf_nas_state_p->amf_ue_contexts;
+  amf_ue_context_t *amf_ue_ctxt_state = &amf_nas_state_p->amf_ue_contexts;
 
   // proto to maps
   OAILOG_INFO(LOG_AMF_APP, "Hashtable AMF UE ID => IMSI");
@@ -216,16 +216,16 @@ void AmfNasStateConverter::proto_to_state(const MmeNasState& state_proto,
 }
 
 void AmfNasStateConverter::ue_to_proto(
-    const ue_m5gmm_context_t* ue_ctxt,
-    magma::lte::oai::UeContext* ue_ctxt_proto) {
+    const ue_m5gmm_context_t *ue_ctxt,
+    magma::lte::oai::UeContext *ue_ctxt_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_m5gmm_context_to_proto(ue_ctxt, ue_ctxt_proto);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 void AmfNasStateConverter::proto_to_ue(
-    const magma::lte::oai::UeContext& ue_ctxt_proto,
-    ue_m5gmm_context_t* ue_ctxt) {
+    const magma::lte::oai::UeContext &ue_ctxt_proto,
+    ue_m5gmm_context_t *ue_ctxt) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   proto_to_ue_m5gmm_context(ue_ctxt_proto, ue_ctxt);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -238,8 +238,8 @@ void AmfNasStateConverter::proto_to_ue(
  **********************************************************/
 
 void AmfNasStateConverter::ue_m5gmm_context_to_proto(
-    const ue_m5gmm_context_t* state_ue_m5gmm_context,
-    magma::lte::oai::UeContext* ue_context_proto) {
+    const ue_m5gmm_context_t *state_ue_m5gmm_context,
+    magma::lte::oai::UeContext *ue_context_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ue_context_proto->set_amf_ue_ngap_id(state_ue_m5gmm_context->amf_ue_ngap_id);
   ue_context_proto->set_rel_cause(state_ue_m5gmm_context->ue_context_rel_cause);
@@ -247,7 +247,7 @@ void AmfNasStateConverter::ue_m5gmm_context_to_proto(
   ue_context_proto->set_mm_state(state_ue_m5gmm_context->mm_state);
   ue_context_proto->set_ecm_state(state_ue_m5gmm_context->cm_state);
 
-  EmmContext* emm_ctx = ue_context_proto->mutable_emm_context();
+  EmmContext *emm_ctx = ue_context_proto->mutable_emm_context();
   AmfNasStateConverter::amf_context_to_proto(
       &state_ue_m5gmm_context->amf_context, emm_ctx);
   ue_context_proto->set_sctp_assoc_id_key(
@@ -270,8 +270,8 @@ void AmfNasStateConverter::ue_m5gmm_context_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_ue_m5gmm_context(
-    const magma::lte::oai::UeContext& ue_context_proto,
-    ue_m5gmm_context_t* state_ue_m5gmm_context) {
+    const magma::lte::oai::UeContext &ue_context_proto,
+    ue_m5gmm_context_t *state_ue_m5gmm_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_ue_m5gmm_context->amf_ue_ngap_id = ue_context_proto.amf_ue_ngap_id();
   state_ue_m5gmm_context->ue_context_rel_cause =
@@ -318,8 +318,8 @@ void AmfNasStateConverter::proto_to_ue_m5gmm_context(
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-void AmfNasStateConverter::tai_to_proto(const tai_t* state_tai,
-                                        magma::lte::oai::Tai* tai_proto) {
+void AmfNasStateConverter::tai_to_proto(const tai_t *state_tai,
+                                        magma::lte::oai::Tai *tai_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_DEBUG(LOG_AMF_APP, "State PLMN " PLMN_FMT "to proto",
                PLMN_ARG(&state_tai->plmn));
@@ -335,8 +335,8 @@ void AmfNasStateConverter::tai_to_proto(const tai_t* state_tai,
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-void AmfNasStateConverter::proto_to_tai(const magma::lte::oai::Tai& tai_proto,
-                                        tai_t* state_tai) {
+void AmfNasStateConverter::proto_to_tai(const magma::lte::oai::Tai &tai_proto,
+                                        tai_t *state_tai) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_tai->plmn.mcc_digit1 =
       static_cast<int>(tai_proto.mcc_mnc()[0]) - ASCII_ZERO;
@@ -357,7 +357,7 @@ void AmfNasStateConverter::proto_to_tai(const magma::lte::oai::Tai& tai_proto,
 }
 
 void AmfNasStateConverter::guti_m5_to_proto(
-    const guti_m5_t& state_guti_m5, magma::lte::oai::Guti_m5* guti_m5_proto) {
+    const guti_m5_t &state_guti_m5, magma::lte::oai::Guti_m5 *guti_m5_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   guti_m5_proto->Clear();
   char plmn_array[PLMN_BYTES] = {0};
@@ -371,7 +371,7 @@ void AmfNasStateConverter::guti_m5_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_guti_m5(
-    const magma::lte::oai::Guti_m5& guti_m5_proto, guti_m5_t* state_guti_m5) {
+    const magma::lte::oai::Guti_m5 &guti_m5_proto, guti_m5_t *state_guti_m5) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   AmfNasStateConverter::chars_to_plmn(guti_m5_proto.plmn().c_str(),
                                       &state_guti_m5->guamfi.plmn);
@@ -382,8 +382,8 @@ void AmfNasStateConverter::proto_to_guti_m5(
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-void AmfNasStateConverter::amf_context_to_proto(const amf_context_t* amf_ctx,
-                                                EmmContext* emm_context_proto) {
+void AmfNasStateConverter::amf_context_to_proto(const amf_context_t *amf_ctx,
+                                                EmmContext *emm_context_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   emm_context_proto->set_imsi64(amf_ctx->imsi64);
   identity_tuple_to_proto<imsi_t>(
@@ -423,7 +423,7 @@ void AmfNasStateConverter::amf_context_to_proto(const amf_context_t* amf_ctx,
 }
 
 void AmfNasStateConverter::proto_to_amf_context(
-    const EmmContext& emm_context_proto, amf_context_t* amf_ctx) {
+    const EmmContext &emm_context_proto, amf_context_t *amf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_ctx->imsi64 = emm_context_proto.imsi64();
   proto_to_identity_tuple<imsi_t>(emm_context_proto.imsi(), &amf_ctx->imsi,
@@ -460,8 +460,8 @@ void AmfNasStateConverter::proto_to_amf_context(
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 void AmfNasStateConverter::amf_security_context_to_proto(
-    const amf_security_context_t* state_amf_security_context,
-    EmmSecurityContext* emm_security_context_proto) {
+    const amf_security_context_t *state_amf_security_context,
+    EmmSecurityContext *emm_security_context_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   emm_security_context_proto->set_sc_type(state_amf_security_context->sc_type);
   emm_security_context_proto->set_eksi(state_amf_security_context->eksi);
@@ -473,13 +473,13 @@ void AmfNasStateConverter::amf_security_context_to_proto(
                                            AUTH_KNAS_INT_SIZE);
 
   // Count values
-  auto* dl_count_proto = emm_security_context_proto->mutable_dl_count();
+  auto *dl_count_proto = emm_security_context_proto->mutable_dl_count();
   dl_count_proto->set_overflow(state_amf_security_context->dl_count.overflow);
   dl_count_proto->set_seq_num(state_amf_security_context->dl_count.seq_num);
-  auto* ul_count_proto = emm_security_context_proto->mutable_ul_count();
+  auto *ul_count_proto = emm_security_context_proto->mutable_ul_count();
   ul_count_proto->set_overflow(state_amf_security_context->ul_count.overflow);
   ul_count_proto->set_seq_num(state_amf_security_context->ul_count.seq_num);
-  auto* kenb_ul_count_proto =
+  auto *kenb_ul_count_proto =
       emm_security_context_proto->mutable_kenb_ul_count();
   kenb_ul_count_proto->set_overflow(
       state_amf_security_context->kenb_ul_count.overflow);
@@ -487,7 +487,7 @@ void AmfNasStateConverter::amf_security_context_to_proto(
       state_amf_security_context->kenb_ul_count.seq_num);
 
   // Security algorithm
-  auto* selected_algorithms_proto =
+  auto *selected_algorithms_proto =
       emm_security_context_proto->mutable_selected_algos();
   selected_algorithms_proto->set_encryption(
       state_amf_security_context->selected_algorithms.encryption);
@@ -501,8 +501,8 @@ void AmfNasStateConverter::amf_security_context_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_amf_security_context(
-    const EmmSecurityContext& emm_security_context_proto,
-    amf_security_context_t* state_amf_security_context) {
+    const EmmSecurityContext &emm_security_context_proto,
+    amf_security_context_t *state_amf_security_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_amf_security_context->sc_type =
       (amf_sc_type_t)emm_security_context_proto.sc_type();
@@ -515,20 +515,20 @@ void AmfNasStateConverter::proto_to_amf_security_context(
          emm_security_context_proto.knas_int().c_str(), AUTH_KNAS_INT_SIZE);
 
   // Count values
-  const auto& dl_count_proto = emm_security_context_proto.dl_count();
+  const auto &dl_count_proto = emm_security_context_proto.dl_count();
   state_amf_security_context->dl_count.overflow = dl_count_proto.overflow();
   state_amf_security_context->dl_count.seq_num = dl_count_proto.seq_num();
-  const auto& ul_count_proto = emm_security_context_proto.ul_count();
+  const auto &ul_count_proto = emm_security_context_proto.ul_count();
   state_amf_security_context->ul_count.overflow = ul_count_proto.overflow();
   state_amf_security_context->ul_count.seq_num = ul_count_proto.seq_num();
-  const auto& kenb_ul_count_proto = emm_security_context_proto.kenb_ul_count();
+  const auto &kenb_ul_count_proto = emm_security_context_proto.kenb_ul_count();
   state_amf_security_context->kenb_ul_count.overflow =
       kenb_ul_count_proto.overflow();
   state_amf_security_context->kenb_ul_count.seq_num =
       kenb_ul_count_proto.seq_num();
 
   // Security algorithm
-  const auto& selected_algorithms_proto =
+  const auto &selected_algorithms_proto =
       emm_security_context_proto.selected_algos();
   state_amf_security_context->selected_algorithms.encryption =
       selected_algorithms_proto.encryption();
@@ -542,8 +542,8 @@ void AmfNasStateConverter::proto_to_amf_security_context(
 }
 
 void AmfNasStateConverter::smf_proc_data_to_proto(
-    const smf_proc_data_t* state_smf_proc_data,
-    magma::lte::oai::Smf_Proc_Data* smf_proc_data_proto) {
+    const smf_proc_data_t *state_smf_proc_data,
+    magma::lte::oai::Smf_Proc_Data *smf_proc_data_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   smf_proc_data_proto->set_pdu_session_id(state_smf_proc_data->pdu_session_id);
   smf_proc_data_proto->set_pti(state_smf_proc_data->pti);
@@ -558,8 +558,8 @@ void AmfNasStateConverter::smf_proc_data_to_proto(
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 void AmfNasStateConverter::proto_to_smf_proc_data(
-    const magma::lte::oai::Smf_Proc_Data& smf_proc_data_proto,
-    smf_proc_data_t* state_smf_proc_data) {
+    const magma::lte::oai::Smf_Proc_Data &smf_proc_data_proto,
+    smf_proc_data_t *state_smf_proc_data) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_smf_proc_data->pdu_session_id = smf_proc_data_proto.pdu_session_id();
   state_smf_proc_data->pti = smf_proc_data_proto.pti();
@@ -574,25 +574,26 @@ void AmfNasStateConverter::proto_to_smf_proc_data(
 }
 
 void AmfNasStateConverter::s_nssai_to_proto(
-    const s_nssai_t* state_s_nssai, magma::lte::oai::SNssai* snassi_proto) {
+    const s_nssai_t *state_s_nssai, magma::lte::oai::SNssai *snassi_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   snassi_proto->set_sst(state_s_nssai->sst);
-  snassi_proto->set_sd((char*)state_s_nssai->sd, SD_LENGTH);
+  snassi_proto->set_sd((char *)state_s_nssai->sd, SD_LENGTH);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 void AmfNasStateConverter::proto_to_s_nssai(
-    const magma::lte::oai::SNssai& snassi_proto, s_nssai_t* state_s_nssai) {
+    const magma::lte::oai::SNssai &snassi_proto, s_nssai_t *state_s_nssai) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_s_nssai->sst = snassi_proto.sst();
-  memcpy((void*)state_s_nssai->sd, (void*)snassi_proto.sd().c_str(), SD_LENGTH);
+  memcpy((void *)state_s_nssai->sd, (void *)snassi_proto.sd().c_str(),
+         SD_LENGTH);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 void AmfNasStateConverter::pco_protocol_or_container_id_to_proto(
-    const protocol_configuration_options_t&
-        state_protocol_configuration_options,
-    magma::lte::oai::ProtocolConfigurationOptions*
-        protocol_configuration_options_proto) {
+    const protocol_configuration_options_t
+        &state_protocol_configuration_options,
+    magma::lte::oai::ProtocolConfigurationOptions
+        *protocol_configuration_options_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   for (int i = 0;
        i < state_protocol_configuration_options.num_protocol_or_container_id;
@@ -614,15 +615,15 @@ void AmfNasStateConverter::pco_protocol_or_container_id_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_pco_protocol_or_container_id(
-    const magma::lte::oai::ProtocolConfigurationOptions&
-        protocol_configuration_options_proto,
-    protocol_configuration_options_t* state_protocol_configuration_options) {
+    const magma::lte::oai::ProtocolConfigurationOptions
+        &protocol_configuration_options_proto,
+    protocol_configuration_options_t *state_protocol_configuration_options) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   auto proto_pco_ids =
       protocol_configuration_options_proto.proto_or_container_id();
   int i = 0;
   for (auto ptr = proto_pco_ids.begin(); ptr < proto_pco_ids.end(); ptr++) {
-    pco_protocol_or_container_id_t* state_pco_protocol_or_container_id =
+    pco_protocol_or_container_id_t *state_pco_protocol_or_container_id =
         &state_protocol_configuration_options->protocol_or_container_ids[i];
     state_pco_protocol_or_container_id->id = ptr->id();
     state_pco_protocol_or_container_id->length = ptr->length();
@@ -636,10 +637,10 @@ void AmfNasStateConverter::proto_to_pco_protocol_or_container_id(
 }
 
 void AmfNasStateConverter::protocol_configuration_options_to_proto(
-    const protocol_configuration_options_t&
-        state_protocol_configuration_options,
-    magma::lte::oai::ProtocolConfigurationOptions*
-        protocol_configuration_options_proto) {
+    const protocol_configuration_options_t
+        &state_protocol_configuration_options,
+    magma::lte::oai::ProtocolConfigurationOptions
+        *protocol_configuration_options_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   protocol_configuration_options_proto->set_ext(
       state_protocol_configuration_options.ext);
@@ -657,9 +658,9 @@ void AmfNasStateConverter::protocol_configuration_options_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_protocol_configuration_options(
-    const magma::lte::oai::ProtocolConfigurationOptions&
-        protocol_configuration_options_proto,
-    protocol_configuration_options_t* state_protocol_configuration_options) {
+    const magma::lte::oai::ProtocolConfigurationOptions
+        &protocol_configuration_options_proto,
+    protocol_configuration_options_t *state_protocol_configuration_options) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_protocol_configuration_options->ext =
       protocol_configuration_options_proto.ext();
@@ -676,8 +677,8 @@ void AmfNasStateConverter::proto_to_protocol_configuration_options(
 }
 
 void AmfNasStateConverter::session_ambr_to_proto(
-    const session_ambr_t& state_session_ambr,
-    magma::lte::oai::Ambr* ambr_proto) {
+    const session_ambr_t &state_session_ambr,
+    magma::lte::oai::Ambr *ambr_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   ambr_proto->set_br_ul(state_session_ambr.ul_session_ambr);
   ambr_proto->set_br_dl(state_session_ambr.dl_session_ambr);
@@ -686,8 +687,8 @@ void AmfNasStateConverter::session_ambr_to_proto(
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 void AmfNasStateConverter::proto_to_session_ambr(
-    const magma::lte::oai::Ambr& ambr_proto,
-    session_ambr_t* state_session_ambr) {
+    const magma::lte::oai::Ambr &ambr_proto,
+    session_ambr_t *state_session_ambr) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_session_ambr->dl_ambr_unit =
       static_cast<M5GSessionAmbrUnit>(ambr_proto.br_unit());
@@ -699,8 +700,8 @@ void AmfNasStateConverter::proto_to_session_ambr(
 }
 
 void AmfNasStateConverter::qos_flow_level_parameters_to_proto(
-    const qos_flow_level_qos_parameters& state_qos_flow_parameters,
-    magma::lte::oai::QosFlowParameters* qos_flow_parameters_proto) {
+    const qos_flow_level_qos_parameters &state_qos_flow_parameters,
+    magma::lte::oai::QosFlowParameters *qos_flow_parameters_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   qos_flow_parameters_proto->set_fiveqi(
       state_qos_flow_parameters.qos_characteristic.non_dynamic_5QI_desc.fiveQI);
@@ -714,8 +715,8 @@ void AmfNasStateConverter::qos_flow_level_parameters_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_qos_flow_level_parameters(
-    const magma::lte::oai::QosFlowParameters& qos_flow_parameters_proto,
-    qos_flow_level_qos_parameters* state_qos_flow_parameters) {
+    const magma::lte::oai::QosFlowParameters &qos_flow_parameters_proto,
+    qos_flow_level_qos_parameters *state_qos_flow_parameters) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_qos_flow_parameters->qos_characteristic.non_dynamic_5QI_desc.fiveQI =
       qos_flow_parameters_proto.fiveqi();
@@ -731,8 +732,8 @@ void AmfNasStateConverter::proto_to_qos_flow_level_parameters(
 }
 
 void AmfNasStateConverter::qos_flow_setup_request_item_to_proto(
-    const qos_flow_setup_request_item& state_qos_flow_request_item,
-    magma::lte::oai::M5GQosFlowItem* qos_flow_item_proto) {
+    const qos_flow_setup_request_item &state_qos_flow_request_item,
+    magma::lte::oai::M5GQosFlowItem *qos_flow_item_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   qos_flow_item_proto->set_qfi(state_qos_flow_request_item.qos_flow_identifier);
   AmfNasStateConverter::qos_flow_level_parameters_to_proto(
@@ -742,8 +743,8 @@ void AmfNasStateConverter::qos_flow_setup_request_item_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_qos_flow_setup_request_item(
-    const magma::lte::oai::M5GQosFlowItem& qos_flow_item_proto,
-    qos_flow_setup_request_item* state_qos_flow_request_item) {
+    const magma::lte::oai::M5GQosFlowItem &qos_flow_item_proto,
+    qos_flow_setup_request_item *state_qos_flow_request_item) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_qos_flow_request_item->qos_flow_identifier = qos_flow_item_proto.qfi();
   AmfNasStateConverter::proto_to_qos_flow_level_parameters(
@@ -753,11 +754,11 @@ void AmfNasStateConverter::proto_to_qos_flow_setup_request_item(
 }
 
 void AmfNasStateConverter::smf_context_map_to_proto(
-    const std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>&
-        smf_ctxt_map,
-    google::protobuf::Map<uint32_t, magma::lte::oai::SmfContext>* proto_map) {
+    const std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>
+        &smf_ctxt_map,
+    google::protobuf::Map<uint32_t, magma::lte::oai::SmfContext> *proto_map) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  for (const auto& it : smf_ctxt_map) {
+  for (const auto &it : smf_ctxt_map) {
     magma::lte::oai::SmfContext smf_context_proto =
         magma::lte::oai::SmfContext();
     AmfNasStateConverter::smf_context_to_proto(it.second.get(),
@@ -768,11 +769,11 @@ void AmfNasStateConverter::smf_context_map_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_smf_context_map(
-    const google::protobuf::Map<uint32_t, magma::lte::oai::SmfContext>&
-        proto_map,
-    std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>>* smf_ctxt_map) {
+    const google::protobuf::Map<uint32_t, magma::lte::oai::SmfContext>
+        &proto_map,
+    std::unordered_map<uint8_t, std::shared_ptr<smf_context_t>> *smf_ctxt_map) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  for (auto const& kv : proto_map) {
+  for (auto const &kv : proto_map) {
     smf_context_t smf_ctx;
     AmfNasStateConverter::proto_to_smf_context(kv.second, &smf_ctx);
     (*smf_ctxt_map)[kv.first] = std::make_shared<smf_context_t>(smf_ctx);
@@ -781,8 +782,8 @@ void AmfNasStateConverter::proto_to_smf_context_map(
 }
 // smf_context to proto and proto to smf_context
 void AmfNasStateConverter::smf_context_to_proto(
-    const smf_context_t* state_smf_context,
-    magma::lte::oai::SmfContext* smf_context_proto) {
+    const smf_context_t *state_smf_context,
+    magma::lte::oai::SmfContext *smf_context_proto) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   smf_context_proto->set_sm_session_state(state_smf_context->pdu_session_state);
   smf_context_proto->set_pdu_session_version(
@@ -802,7 +803,7 @@ void AmfNasStateConverter::smf_context_to_proto(
   smf_context_proto->set_gnb_gtp_teid_ip_addr(gnb_gtp_teid_ip_addr_str);
 
   smf_context_proto->set_upf_gtp_teid(
-      (char*)state_smf_context->gtp_tunnel_id.upf_gtp_teid, 4);
+      (char *)state_smf_context->gtp_tunnel_id.upf_gtp_teid, 4);
 
   char upf_gtp_teid_ip_addr_str[16] = {0};
   inet_ntop(AF_INET, state_smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr,
@@ -836,8 +837,8 @@ void AmfNasStateConverter::smf_context_to_proto(
 }
 
 void AmfNasStateConverter::proto_to_smf_context(
-    const magma::lte::oai::SmfContext& smf_context_proto,
-    smf_context_t* state_smf_context) {
+    const magma::lte::oai::SmfContext &smf_context_proto,
+    smf_context_t *state_smf_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_smf_context->pdu_session_state =
       (SMSessionFSMState)smf_context_proto.sm_session_state();
@@ -855,8 +856,8 @@ void AmfNasStateConverter::proto_to_smf_context(
   inet_pton(AF_INET, smf_context_proto.gnb_gtp_teid_ip_addr().c_str(),
             &(state_smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
 
-  memcpy((void*)state_smf_context->gtp_tunnel_id.upf_gtp_teid,
-         (void*)smf_context_proto.upf_gtp_teid().c_str(), 4);
+  memcpy((void *)state_smf_context->gtp_tunnel_id.upf_gtp_teid,
+         (void *)smf_context_proto.upf_gtp_teid().c_str(), 4);
 
   memset(&state_smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr, '\0',
          sizeof(state_smf_context->gtp_tunnel_id.upf_gtp_teid_ip_addr));
@@ -890,4 +891,4 @@ void AmfNasStateConverter::proto_to_smf_context(
       &state_smf_context->smf_proc_data.qos_flow_list.item[0]
            .qos_flow_req_item);
 }
-}  // namespace magma5g
+} // namespace magma5g

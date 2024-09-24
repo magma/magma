@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
-int decode_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t* buffer,
+int decode_detach_type(detach_type_t *detachtype, uint8_t iei, uint8_t *buffer,
                        uint32_t len) {
   int decoded = 0;
 
@@ -46,10 +46,10 @@ int decode_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t* buffer,
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t value,
+int decode_u8_detach_type(detach_type_t *detachtype, uint8_t iei, uint8_t value,
                           uint32_t len) {
   int decoded = 0;
-  uint8_t* buffer = &value;
+  uint8_t *buffer = &value;
 
   detachtype->switchoff = (*(buffer + decoded) >> 3) & 0x1;
   detachtype->typeofdetach = *(buffer + decoded) & 0x7;
@@ -58,7 +58,7 @@ int decode_u8_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t value,
 }
 
 //------------------------------------------------------------------------------
-int encode_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t* buffer,
+int encode_detach_type(detach_type_t *detachtype, uint8_t iei, uint8_t *buffer,
                        uint32_t len) {
   uint8_t encoded = 0;
 
@@ -74,9 +74,9 @@ int encode_detach_type(detach_type_t* detachtype, uint8_t iei, uint8_t* buffer,
 }
 
 //------------------------------------------------------------------------------
-uint8_t encode_u8_detach_type(detach_type_t* detachtype) {
+uint8_t encode_u8_detach_type(detach_type_t *detachtype) {
   uint8_t bufferReturn;
-  uint8_t* buffer = &bufferReturn;
+  uint8_t *buffer = &bufferReturn;
   uint8_t encoded = 0;
   uint8_t iei = 0;
 

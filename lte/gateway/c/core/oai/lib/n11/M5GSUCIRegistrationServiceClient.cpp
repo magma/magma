@@ -13,15 +13,15 @@
 
 #include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.hpp"
 
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
-#include <cassert>
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,11 +35,11 @@ extern "C" {
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
 
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/protos/subscriberdb.grpc.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -53,10 +53,11 @@ using magma5g::amf_proc_registration_reject;
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
-static void handle_decrypted_imsi_info_ans(
-    grpc::Status status, magma::lte::M5GSUCIRegistrationAnswer response,
-    amf_ue_ngap_id_t ue_id) {
-  MessageDef* message_p;
+static void
+handle_decrypted_imsi_info_ans(grpc::Status status,
+                               magma::lte::M5GSUCIRegistrationAnswer response,
+                               amf_ue_ngap_id_t ue_id) {
+  MessageDef *message_p;
 
   if (!status.ok() || (response.ue_msin_recv().length() == 0)) {
     OAILOG_ERROR(LOG_AMF_APP,
@@ -72,7 +73,7 @@ static void handle_decrypted_imsi_info_ans(
   message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_APP_DECRYPT_MSIN_INFO_RESP);
 
-  itti_amf_decrypted_msin_info_ans_t* amf_app_decrypted_msin_info_resp;
+  itti_amf_decrypted_msin_info_ans_t *amf_app_decrypted_msin_info_resp;
   amf_app_decrypted_msin_info_resp =
       &message_p->ittiMsg.amf_app_decrypt_info_resp;
   memset(amf_app_decrypted_msin_info_resp, 0,
@@ -96,15 +97,15 @@ AsyncM5GSUCIRegistrationServiceClient::AsyncM5GSUCIRegistrationServiceClient() {
   resp_loop_thread.detach();
 }
 
-AsyncM5GSUCIRegistrationServiceClient&
+AsyncM5GSUCIRegistrationServiceClient &
 AsyncM5GSUCIRegistrationServiceClient::getInstance() {
   static AsyncM5GSUCIRegistrationServiceClient instance;
   return instance;
 }
 
 M5GSUCIRegistrationRequest create_decrypt_msin_request(
-    const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
-    const std::string& ciphertext, const std::string& mac_tag) {
+    const uint8_t ue_pubkey_identifier, const std::string &ue_pubkey,
+    const std::string &ciphertext, const std::string &mac_tag) {
   M5GSUCIRegistrationRequest request;
 
   request.Clear();
@@ -117,22 +118,22 @@ M5GSUCIRegistrationRequest create_decrypt_msin_request(
 }
 
 bool AsyncM5GSUCIRegistrationServiceClient::get_decrypt_msin_info(
-    const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
-    const std::string& ciphertext, const std::string& mac_tag,
+    const uint8_t ue_pubkey_identifier, const std::string &ue_pubkey,
+    const std::string &ciphertext, const std::string &mac_tag,
     amf_ue_ngap_id_t ue_id) {
   M5GSUCIRegistrationRequest request = create_decrypt_msin_request(
       ue_pubkey_identifier, ue_pubkey, ciphertext, mac_tag);
 
-  GetSuciInfoRPC(request, [ue_id](const Status& status,
-                                  const M5GSUCIRegistrationAnswer& response) {
+  GetSuciInfoRPC(request, [ue_id](const Status &status,
+                                  const M5GSUCIRegistrationAnswer &response) {
     handle_decrypted_imsi_info_ans(status, response, ue_id);
   });
   return true;
 }
 
 void AsyncM5GSUCIRegistrationServiceClient::GetSuciInfoRPC(
-    const M5GSUCIRegistrationRequest& request,
-    const std::function<void(Status, M5GSUCIRegistrationAnswer)>& callback) {
+    const M5GSUCIRegistrationRequest &request,
+    const std::function<void(Status, M5GSUCIRegistrationAnswer)> &callback) {
   auto localResp = new AsyncLocalResponse<M5GSUCIRegistrationAnswer>(
       std::move(callback), RESPONSE_TIMEOUT);
   localResp->set_response_reader(
@@ -140,4 +141,4 @@ void AsyncM5GSUCIRegistrationServiceClient::GetSuciInfoRPC(
           localResp->get_context(), request, &queue_)));
 }
 
-}  // namespace magma5g
+} // namespace magma5g

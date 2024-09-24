@@ -31,5 +31,5 @@ TEST(test_s1ap_state_manager, free_state_idempotent) {
   S1apStateManager::getInstance().free_state();
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

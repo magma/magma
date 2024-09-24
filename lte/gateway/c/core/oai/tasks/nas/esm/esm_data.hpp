@@ -36,8 +36,8 @@ Description Defines internal private data handled by EPS Session
 #pragma once
 
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
@@ -76,7 +76,7 @@ typedef enum {
 
 /* ESM message timer retransmission data */
 typedef struct esm_ebr_timer_data_s {
-  struct emm_context_s* ctx;
+  struct emm_context_s *ctx;
   mme_ue_s1ap_id_t ue_id; /* Lower layers UE identifier       */
   ebi_t ebi;              /* EPS bearer identity          */
   unsigned int count;     /* Retransmission counter       */
@@ -95,17 +95,17 @@ typedef struct esm_ebr_context_s {
   bitrate_t gbr_ul;
   bitrate_t mbr_dl;
   bitrate_t mbr_ul;
-  traffic_flow_template_t* tft;
-  protocol_configuration_options_t* pco;
+  traffic_flow_template_t *tft;
+  protocol_configuration_options_t *pco;
   struct nas_timer_s timer;   /* Retransmission timer         */
-  esm_ebr_timer_data_t* args; /* Retransmission timer parameters */
+  esm_ebr_timer_data_t *args; /* Retransmission timer parameters */
 } esm_ebr_context_t;
 
 typedef struct esm_ebr_data_s {
   unsigned char index; /* Index of the next EPS bearer context
                         * identity to be used */
 #define ESM_EBR_DATA_SIZE (ESM_EBI_MAX - ESM_EBI_MIN + 1)
-  esm_ebr_context_t* context[ESM_EBR_DATA_SIZE + 1];
+  esm_ebr_context_t *context[ESM_EBR_DATA_SIZE + 1];
 } esm_ebr_data_t;
 
 /*
@@ -157,7 +157,7 @@ typedef struct esm_pdn_s {
                      * than the one already activated       */
   int n_bearers;    /* Number of allocated EPS bearers;
                      * default EPS bearer is defined at index 0 */
-  esm_pt_state_e pt_state;  // procedure transaction state
+  esm_pt_state_e pt_state; // procedure transaction state
   esm_cause_t esm_cause;
 } esm_pdn_t;
 
@@ -175,9 +175,9 @@ typedef struct esm_context_s {
   int n_active_ebrs; /* Total number of active EPS bearer contexts   */
   bool is_emergency; /* Indicates whether a PDN connection for emergency bearer
                         services is established       */
-  struct esm_proc_data_s* esm_proc_data;
+  struct esm_proc_data_s *esm_proc_data;
   struct nas_timer_s T3489;
-  void* t3489_arg;
+  void *t3489_arg;
   int32_t pending_standalone;
   bool is_pdn_disconnect;
 } esm_context_t;
@@ -203,20 +203,20 @@ typedef struct esm_data_s {
 } esm_data_t;
 
 void nas_start_T3489(const mme_ue_s1ap_id_t ue_id,
-                     struct nas_timer_s* const T3470, time_out_t time_out_cb);
-void nas_stop_T3489(esm_context_t* const esm_ctx);
-void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context);
-void esm_bearer_context_init(esm_ebr_context_t* esm_ebr_context);
-void free_esm_context_content(esm_context_t* esm_ctx);
-void esm_init_context(struct esm_context_s* esm_ctx);
+                     struct nas_timer_s *const T3470, time_out_t time_out_cb);
+void nas_stop_T3489(esm_context_t *const esm_ctx);
+void free_esm_bearer_context(esm_ebr_context_t *esm_ebr_context);
+void esm_bearer_context_init(esm_ebr_context_t *esm_ebr_context);
+void free_esm_context_content(esm_context_t *esm_ctx);
+void esm_init_context(struct esm_context_s *esm_ctx);
 
-struct esm_context_s* esm_data_context_get(esm_data_t* esm_data,
+struct esm_context_s *esm_data_context_get(esm_data_t *esm_data,
                                            unsigned int _ueid);
 
-struct esm_context_s* esm_data_context_remove(esm_data_t* esm_data,
-                                              struct esm_context_s* elm);
+struct esm_context_s *esm_data_context_remove(esm_data_t *esm_data,
+                                              struct esm_context_s *elm);
 
-void esm_data_context_add(esm_data_t* esm_data, struct esm_context_s* elm);
+void esm_data_context_add(esm_data_t *esm_data, struct esm_context_s *elm);
 
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/
@@ -234,8 +234,8 @@ extern esm_data_t _esm_data;
 
 extern char ip_addr_str[100];
 
-extern char* esm_data_get_ipv4_addr(const_bstring ip_addr);
+extern char *esm_data_get_ipv4_addr(const_bstring ip_addr);
 
-extern char* esm_data_get_ipv6_addr(const_bstring ip_addr);
+extern char *esm_data_get_ipv6_addr(const_bstring ip_addr);
 
-extern char* esm_data_get_ipv4v6_addr(const_bstring ip_addr);
+extern char *esm_data_get_ipv4v6_addr(const_bstring ip_addr);

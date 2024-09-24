@@ -53,8 +53,8 @@
 //------------------------------------------------------------------------------
 // 10.5.5.4 TMSI status
 //------------------------------------------------------------------------------
-int decode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
-                       uint8_t* buffer, const uint32_t len) {
+int decode_tmsi_status(tmsi_status_t *tmsistatus, const bool iei_present,
+                       uint8_t *buffer, const uint32_t len) {
   int decoded = 0;
 
   CHECK_IEI_DECODER(GMM_TMSI_STATUS_IEI, (*buffer & 0xF0));
@@ -63,8 +63,8 @@ int decode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
   return decoded;
 }
 
-int encode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
-                       uint8_t* buffer, const uint32_t len) {
+int encode_tmsi_status(tmsi_status_t *tmsistatus, const bool iei_present,
+                       uint8_t *buffer, const uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -80,8 +80,8 @@ int encode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
 //------------------------------------------------------------------------------
 // 10.5.5.6 DRX parameter
 //------------------------------------------------------------------------------
-int decode_drx_parameter_ie(drx_parameter_t* drxparameter,
-                            const bool iei_present, uint8_t* buffer,
+int decode_drx_parameter_ie(drx_parameter_t *drxparameter,
+                            const bool iei_present, uint8_t *buffer,
                             const uint32_t len) {
   int decoded = 0;
 
@@ -106,8 +106,8 @@ int decode_drx_parameter_ie(drx_parameter_t* drxparameter,
 }
 
 //------------------------------------------------------------------------------
-int encode_drx_parameter_ie(drx_parameter_t* drxparameter,
-                            const bool iei_present, uint8_t* buffer,
+int encode_drx_parameter_ie(drx_parameter_t *drxparameter,
+                            const bool iei_present, uint8_t *buffer,
                             const uint32_t len) {
   uint32_t encoded = 0;
 
@@ -137,8 +137,8 @@ int encode_drx_parameter_ie(drx_parameter_t* drxparameter,
 //------------------------------------------------------------------------------
 // 10.5.5.8 P-TMSI signature
 //------------------------------------------------------------------------------
-int decode_p_tmsi_signature_ie(p_tmsi_signature_t* ptmsisignature,
-                               const bool iei_present, uint8_t* buffer,
+int decode_p_tmsi_signature_ie(p_tmsi_signature_t *ptmsisignature,
+                               const bool iei_present, uint8_t *buffer,
                                const uint32_t len) {
   int decoded = 0;
 
@@ -158,7 +158,7 @@ int decode_p_tmsi_signature_ie(p_tmsi_signature_t* ptmsisignature,
 
 //------------------------------------------------------------------------------
 int encode_p_tmsi_signature_ie(p_tmsi_signature_t ptmsisignature,
-                               const bool iei_present, uint8_t* buffer,
+                               const bool iei_present, uint8_t *buffer,
                                const uint32_t len) {
   uint32_t encoded = 0;
 
@@ -179,8 +179,8 @@ int encode_p_tmsi_signature_ie(p_tmsi_signature_t ptmsisignature,
 //------------------------------------------------------------------------------
 // 10.5.5.9 Identity type 2
 //------------------------------------------------------------------------------
-int decode_identity_type_2_ie(identity_type2_t* identitytype2,
-                              bool is_ie_present, uint8_t* buffer,
+int decode_identity_type_2_ie(identity_type2_t *identitytype2,
+                              bool is_ie_present, uint8_t *buffer,
                               const uint32_t len) {
   int decoded = 0;
 
@@ -198,8 +198,8 @@ int decode_identity_type_2_ie(identity_type2_t* identitytype2,
 }
 
 //------------------------------------------------------------------------------
-int encode_identity_type_2_ie(identity_type2_t* identitytype2,
-                              bool is_ie_present, uint8_t* buffer,
+int encode_identity_type_2_ie(identity_type2_t *identitytype2,
+                              bool is_ie_present, uint8_t *buffer,
                               const uint32_t len) {
   uint8_t encoded = 0;
 
@@ -222,8 +222,8 @@ int encode_identity_type_2_ie(identity_type2_t* identitytype2,
 // 10.5.5.10 IMEISV request
 //------------------------------------------------------------------------------
 
-int decode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
-                             bool is_ie_present, uint8_t* buffer,
+int decode_imeisv_request_ie(imeisv_request_t *imeisvrequest,
+                             bool is_ie_present, uint8_t *buffer,
                              const uint32_t len) {
   int decoded = 0;
 
@@ -240,8 +240,8 @@ int decode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
 }
 
 //------------------------------------------------------------------------------
-int encode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
-                             bool is_ie_present, uint8_t* buffer,
+int encode_imeisv_request_ie(imeisv_request_t *imeisvrequest,
+                             bool is_ie_present, uint8_t *buffer,
                              const uint32_t len) {
   uint8_t encoded = 0;
 
@@ -263,8 +263,8 @@ int encode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
 // 10.5.5.12 MS network capability
 //------------------------------------------------------------------------------
 int decode_ms_network_capability_ie(
-    ms_network_capability_t* msnetworkcapability, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
+    ms_network_capability_t *msnetworkcapability, const bool iei_present,
+    uint8_t *buffer, const uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
   uint8_t b = 0;
@@ -356,9 +356,9 @@ int decode_ms_network_capability_ie(
 
 //------------------------------------------------------------------------------
 int encode_ms_network_capability_ie(
-    ms_network_capability_t* msnetworkcapability, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
-  uint8_t* lenPtr;
+    ms_network_capability_t *msnetworkcapability, const bool iei_present,
+    uint8_t *buffer, const uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*
@@ -376,7 +376,7 @@ int encode_ms_network_capability_ie(
   encoded++;
 
   *(buffer + encoded) =
-      ((msnetworkcapability->gea1 & 0x1) << 7) |  // spare coded as zero
+      ((msnetworkcapability->gea1 & 0x1) << 7) | // spare coded as zero
       ((msnetworkcapability->smdc & 0x1) << 6) |
       ((msnetworkcapability->smgc & 0x1) << 5) |
       ((msnetworkcapability->ucs2 & 0x1) << 4) |
@@ -386,13 +386,13 @@ int encode_ms_network_capability_ie(
   encoded++;
 
   *(buffer + encoded) =
-      ((msnetworkcapability->pfc & 0x1) << 7) |  // spare coded as zero
+      ((msnetworkcapability->pfc & 0x1) << 7) | // spare coded as zero
       ((msnetworkcapability->egea & 0x3F) << 1) |
       (msnetworkcapability->lcs & 0x1);
   encoded++;
 
   *(buffer + encoded) =
-      ((msnetworkcapability->ps_ho_utran & 0x1) << 7) |  // spare coded as zero
+      ((msnetworkcapability->ps_ho_utran & 0x1) << 7) | // spare coded as zero
       ((msnetworkcapability->ps_ho_eutran & 0x1) << 6) |
       ((msnetworkcapability->emm_cpc & 0x1) << 5) |
       ((msnetworkcapability->isr & 0x1) << 4) |
@@ -404,7 +404,7 @@ int encode_ms_network_capability_ie(
 
   *(buffer + encoded) =
       ((msnetworkcapability->up_integ_prot_support & 0x1)
-       << 7) |  // spare coded as zero
+       << 7) | // spare coded as zero
       ((msnetworkcapability->gia4 & 0x1) << 6) |
       ((msnetworkcapability->gia5 & 0x1) << 5) |
       ((msnetworkcapability->gia6 & 0x1) << 4) |
@@ -422,9 +422,9 @@ int encode_ms_network_capability_ie(
 // 10.5.5.28 Voice domain preference and UE's usage setting
 //------------------------------------------------------------------------------
 int decode_voice_domain_preference_and_ue_usage_setting(
-    voice_domain_preference_and_ue_usage_setting_t*
-        voicedomainpreferenceandueusagesetting,
-    const bool iei_present, uint8_t* buffer, const uint32_t len) {
+    voice_domain_preference_and_ue_usage_setting_t
+        *voicedomainpreferenceandueusagesetting,
+    const bool iei_present, uint8_t *buffer, const uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -449,10 +449,10 @@ int decode_voice_domain_preference_and_ue_usage_setting(
 
 //------------------------------------------------------------------------------
 int encode_voice_domain_preference_and_ue_usage_setting(
-    voice_domain_preference_and_ue_usage_setting_t*
-        voicedomainpreferenceandueusagesetting,
-    const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  uint8_t* lenPtr;
+    voice_domain_preference_and_ue_usage_setting_t
+        *voicedomainpreferenceandueusagesetting,
+    const bool iei_present, uint8_t *buffer, const uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*

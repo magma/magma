@@ -19,22 +19,22 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasMessageContainer.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define GUTI_REALLOCATION_COMMAND_MINIMUM_LENGTH \
+#define GUTI_REALLOCATION_COMMAND_MINIMUM_LENGTH                               \
   (EPS_MOBILE_IDENTITY_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define GUTI_REALLOCATION_COMMAND_MAXIMUM_LENGTH \
-  (EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH +          \
+#define GUTI_REALLOCATION_COMMAND_MAXIMUM_LENGTH                               \
+  (EPS_MOBILE_IDENTITY_MAXIMUM_LENGTH +                                        \
    TRACKING_AREA_IDENTITY_LIST_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -66,9 +66,9 @@ typedef struct guti_reallocation_command_msg_tag {
 } guti_reallocation_command_msg;
 
 int decode_guti_reallocation_command(
-    guti_reallocation_command_msg* gutireallocationcommand, uint8_t* buffer,
+    guti_reallocation_command_msg *gutireallocationcommand, uint8_t *buffer,
     uint32_t len);
 
 int encode_guti_reallocation_command(
-    guti_reallocation_command_msg* gutireallocationcommand, uint8_t* buffer,
+    guti_reallocation_command_msg *gutireallocationcommand, uint8_t *buffer,
     uint32_t len);

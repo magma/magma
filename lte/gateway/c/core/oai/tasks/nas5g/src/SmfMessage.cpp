@@ -18,10 +18,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
 
 namespace magma5g {
 SMsg_u::SMsg_u(){};
@@ -30,7 +30,7 @@ SmfMsg::SmfMsg(){};
 SmfMsg::~SmfMsg(){};
 
 // Decode SMF Message Header
-int SmfMsg::SmfMsgDecodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer,
+int SmfMsg::SmfMsgDecodeHeaderMsg(SmfMsgHeader *hdr, uint8_t *buffer,
                                   uint32_t len) {
   int size = 0;
 
@@ -61,7 +61,7 @@ int SmfMsg::SmfMsgDecodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer,
 }
 
 // Encode SMF Message Header
-int SmfMsg::SmfMsgEncodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer,
+int SmfMsg::SmfMsgEncodeHeaderMsg(SmfMsgHeader *hdr, uint8_t *buffer,
                                   uint32_t len) {
   int size = 0;
 
@@ -92,7 +92,7 @@ int SmfMsg::SmfMsgEncodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer,
 }
 
 // Decode SMF Message
-int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
+int SmfMsg::SmfMsgDecodeMsg(SmfMsg *msg, uint8_t *buffer, uint32_t len) {
   int decode_result = 0;
   int header_result = 0;
 
@@ -114,51 +114,50 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
 
   switch (
       static_cast<M5GMessageType>((unsigned char)msg->header.message_type)) {
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
-      decode_result = msg->msg.pdu_session_estab_request
-                          .DecodePDUSessionEstablishmentRequestMsg(
-                              &msg->msg.pdu_session_estab_request, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REJECT:
-      decode_result = msg->msg.pdu_session_estab_reject
-                          .DecodePDUSessionEstablishmentRejectMsg(
-                              &msg->msg.pdu_session_estab_reject, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT:
-      decode_result = msg->msg.pdu_session_estab_accept
-                          .DecodePDUSessionEstablishmentAcceptMsg(
-                              &msg->msg.pdu_session_estab_accept, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_RELEASE_REQUEST:
-    case M5GMessageType::PDU_SESSION_RELEASE_COMPLETE:
-      decode_result =
-          msg->msg.pdu_session_release_request
-              .DecodePDUSessionReleaseRequestMsg(
-                  &msg->msg.pdu_session_release_request, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_REQUEST:
-      decode_result = msg->msg.pdu_session_modif_request
-                          .DecodePDUSessionModificationRequestMsg(
-                              &msg->msg.pdu_session_modif_request, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE:
-      decode_result =
-          msg->msg.pdu_sess_mod_com.DecodePDUSessionModificationComplete(
-              &msg->msg.pdu_sess_mod_com, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT:
-      decode_result = msg->msg.pdu_sess_mod_cmd_rej
-                          .DecodePDUSessionModificationCommandReject(
-                              &msg->msg.pdu_sess_mod_cmd_rej, buffer, len);
-      break;
-    default:
-      decode_result = TLV_WRONG_MESSAGE_TYPE;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
+    decode_result = msg->msg.pdu_session_estab_request
+                        .DecodePDUSessionEstablishmentRequestMsg(
+                            &msg->msg.pdu_session_estab_request, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REJECT:
+    decode_result = msg->msg.pdu_session_estab_reject
+                        .DecodePDUSessionEstablishmentRejectMsg(
+                            &msg->msg.pdu_session_estab_reject, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT:
+    decode_result = msg->msg.pdu_session_estab_accept
+                        .DecodePDUSessionEstablishmentAcceptMsg(
+                            &msg->msg.pdu_session_estab_accept, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_RELEASE_REQUEST:
+  case M5GMessageType::PDU_SESSION_RELEASE_COMPLETE:
+    decode_result =
+        msg->msg.pdu_session_release_request.DecodePDUSessionReleaseRequestMsg(
+            &msg->msg.pdu_session_release_request, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_REQUEST:
+    decode_result = msg->msg.pdu_session_modif_request
+                        .DecodePDUSessionModificationRequestMsg(
+                            &msg->msg.pdu_session_modif_request, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE:
+    decode_result =
+        msg->msg.pdu_sess_mod_com.DecodePDUSessionModificationComplete(
+            &msg->msg.pdu_sess_mod_com, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT:
+    decode_result =
+        msg->msg.pdu_sess_mod_cmd_rej.DecodePDUSessionModificationCommandReject(
+            &msg->msg.pdu_sess_mod_cmd_rej, buffer, len);
+    break;
+  default:
+    decode_result = TLV_WRONG_MESSAGE_TYPE;
   }
   return (decode_result);
 }
 
 // Encode SMF Message
-int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
+int SmfMsg::SmfMsgEncodeMsg(SmfMsg *msg, uint8_t *buffer, uint32_t len) {
   int encode_result = 0;
   int header_result = 0;
 
@@ -180,45 +179,44 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
 
   switch (
       static_cast<M5GMessageType>((unsigned char)msg->header.message_type)) {
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
-      encode_result = msg->msg.pdu_session_estab_request
-                          .EncodePDUSessionEstablishmentRequestMsg(
-                              &msg->msg.pdu_session_estab_request, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT:
-      encode_result = msg->msg.pdu_session_estab_accept
-                          .EncodePDUSessionEstablishmentAcceptMsg(
-                              &msg->msg.pdu_session_estab_accept, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REJECT:
-      encode_result = msg->msg.pdu_session_estab_reject
-                          .EncodePDUSessionEstablishmentRejectMsg(
-                              &msg->msg.pdu_session_estab_reject, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_REJECT:
-      encode_result = msg->msg.pdu_session_modif_reject
-                          .EncodePDUSessionModificationRejectMsg(
-                              &msg->msg.pdu_session_modif_reject, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND:
-      encode_result =
-          msg->msg.pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(
-              &msg->msg.pdu_sess_mod_cmd, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_RELEASE_REJECT:
-      encode_result =
-          msg->msg.pdu_session_release_reject.EncodePDUSessionReleaseRejectMsg(
-              &msg->msg.pdu_session_release_reject, buffer, len);
-      break;
-    case M5GMessageType::PDU_SESSION_RELEASE_COMMAND:
-      encode_result =
-          msg->msg.pdu_session_release_command
-              .EncodePDUSessionReleaseCommandMsg(
-                  &msg->msg.pdu_session_release_command, buffer, len);
-      break;
-    default:
-      encode_result = TLV_WRONG_MESSAGE_TYPE;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
+    encode_result = msg->msg.pdu_session_estab_request
+                        .EncodePDUSessionEstablishmentRequestMsg(
+                            &msg->msg.pdu_session_estab_request, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT:
+    encode_result = msg->msg.pdu_session_estab_accept
+                        .EncodePDUSessionEstablishmentAcceptMsg(
+                            &msg->msg.pdu_session_estab_accept, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REJECT:
+    encode_result = msg->msg.pdu_session_estab_reject
+                        .EncodePDUSessionEstablishmentRejectMsg(
+                            &msg->msg.pdu_session_estab_reject, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_REJECT:
+    encode_result =
+        msg->msg.pdu_session_modif_reject.EncodePDUSessionModificationRejectMsg(
+            &msg->msg.pdu_session_modif_reject, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND:
+    encode_result =
+        msg->msg.pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(
+            &msg->msg.pdu_sess_mod_cmd, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_RELEASE_REJECT:
+    encode_result =
+        msg->msg.pdu_session_release_reject.EncodePDUSessionReleaseRejectMsg(
+            &msg->msg.pdu_session_release_reject, buffer, len);
+    break;
+  case M5GMessageType::PDU_SESSION_RELEASE_COMMAND:
+    encode_result =
+        msg->msg.pdu_session_release_command.EncodePDUSessionReleaseCommandMsg(
+            &msg->msg.pdu_session_release_command, buffer, len);
+    break;
+  default:
+    encode_result = TLV_WRONG_MESSAGE_TYPE;
   }
   return (encode_result);
 }
-}  // namespace magma5g
+} // namespace magma5g

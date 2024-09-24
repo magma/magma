@@ -34,7 +34,7 @@ struct Monitor {
 
   Monitor() {}
 
-  explicit Monitor(const StoredMonitor& marshaled) {
+  explicit Monitor(const StoredMonitor &marshaled) {
     credit = SessionCredit(marshaled.credit);
     level = marshaled.level;
   }
@@ -68,4 +68,4 @@ struct Monitor {
   }
 };
 
-}  // namespace magma
+} // namespace magma

@@ -18,8 +18,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
 
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -79,21 +79,21 @@ extern "C" {
  **      Others:    _esm_data                                  **
  **                                                                        **
  ***************************************************************************/
-ebi_t esm_ebr_context_create(emm_context_t* emm_context, const proc_tid_t pti,
+ebi_t esm_ebr_context_create(emm_context_t *emm_context, const proc_tid_t pti,
                              pdn_cid_t pid, ebi_t ebi, bool is_default,
                              const qci_t qci, const bitrate_t gbr_dl,
                              const bitrate_t gbr_ul, const bitrate_t mbr_dl,
                              const bitrate_t mbr_ul,
-                             traffic_flow_template_t* tft,
-                             protocol_configuration_options_t* pco,
-                             fteid_t* sgw_fteid) {
+                             traffic_flow_template_t *tft,
+                             protocol_configuration_options_t *pco,
+                             fteid_t *sgw_fteid) {
   int bidx = 0;
-  esm_context_t* esm_ctx = NULL;
-  esm_pdn_t* pdn = NULL;
+  esm_context_t *esm_ctx = NULL;
+  esm_pdn_t *pdn = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_ctx = &emm_context->esm_ctx;
-  ue_mm_context_t* ue_mm_context =
+  ue_mm_context_t *ue_mm_context =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(LOG_NAS_ESM, "ESM-PROC  - ue_mm_context null\n ");
@@ -145,7 +145,7 @@ ebi_t esm_ebr_context_create(emm_context_t* emm_context, const proc_tid_t pti,
     /*
      * Create new EPS bearer context
      */
-    bearer_context_t* bearer_context = NULL;
+    bearer_context_t *bearer_context = NULL;
     if (ue_mm_context->bearer_contexts[bidx]) {
       bearer_context = ue_mm_context->bearer_contexts[bidx];
     } else {
@@ -220,7 +220,7 @@ ebi_t esm_ebr_context_create(emm_context_t* emm_context, const proc_tid_t pti,
 }
 
 //------------------------------------------------------------------------------
-void esm_ebr_context_init(esm_ebr_context_t* esm_ebr_context) {
+void esm_ebr_context_init(esm_ebr_context_t *esm_ebr_context) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   if (esm_ebr_context) {
     memset(esm_ebr_context, 0, sizeof(*esm_ebr_context));
@@ -257,14 +257,14 @@ void esm_ebr_context_init(esm_ebr_context_t* esm_ebr_context) {
  **      Others:    _esm_data                                  **
  **                                                                        **
  ***************************************************************************/
-ebi_t esm_ebr_context_release(emm_context_t* emm_context, ebi_t ebi,
-                              pdn_cid_t* pid, int* bid) {
+ebi_t esm_ebr_context_release(emm_context_t *emm_context, ebi_t ebi,
+                              pdn_cid_t *pid, int *bid) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int found = false;
-  esm_pdn_t* pdn = NULL;
+  esm_pdn_t *pdn = NULL;
   // esm_cause_t esm_cause = ESM_CAUSE_SUCCESS;
 
-  ue_mm_context_t* ue_mm_context =
+  ue_mm_context_t *ue_mm_context =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
   if (ebi != ESM_EBI_UNASSIGNED) {
@@ -435,7 +435,7 @@ ebi_t esm_ebr_context_release(emm_context_t* emm_context, ebi_t ebi,
           /*
            * Release dedicated EPS bearer data
            */
-          free_wrapper((void**)&ue_mm_context->bearer_contexts[idx]);
+          free_wrapper((void **)&ue_mm_context->bearer_contexts[idx]);
           /*
            * Decrement the number of EPS bearer context allocated
            * * * * to the PDN connection

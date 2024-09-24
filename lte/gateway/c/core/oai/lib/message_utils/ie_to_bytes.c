@@ -33,7 +33,7 @@
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
 
 // 18.4.24 in 3GPP TS 29.018
-void tmsi_status_to_bytes(const bool* tmsi_status, char* byte_arr) {
+void tmsi_status_to_bytes(const bool *tmsi_status, char *byte_arr) {
   if (*tmsi_status) {
     byte_arr[0] = 0x01;
   } else {
@@ -43,7 +43,7 @@ void tmsi_status_to_bytes(const bool* tmsi_status, char* byte_arr) {
 }
 
 // 9.9.3.32 in 3GPP TS 24.301
-void tai_to_bytes(const tai_t* tai, char* byte_arr) {
+void tai_to_bytes(const tai_t *tai, char *byte_arr) {
   byte_arr[0] = (tai->plmn.mcc_digit2 << 4) | (tai->plmn.mcc_digit1 & 0x0F);
   byte_arr[1] = (tai->plmn.mnc_digit3 << 4) | (tai->plmn.mcc_digit3 & 0x0F);
   byte_arr[2] = (tai->plmn.mnc_digit2 << 4) | (tai->plmn.mnc_digit1 & 0x0F);
@@ -53,7 +53,7 @@ void tai_to_bytes(const tai_t* tai, char* byte_arr) {
 }
 
 // 10.5.1.3 in 3GPP TS 24.008
-void lai_to_bytes(const lai_t* lai, char* byte_arr) {
+void lai_to_bytes(const lai_t *lai, char *byte_arr) {
   /*byte_arr[0] = (lai->plmn.mcc_digit2 << 4) | (lai->plmn.mcc_digit1 & 0x0F);
   byte_arr[1] = (lai->plmn.mnc_digit3 << 4) | (lai->plmn.mcc_digit3 & 0x0F);
   byte_arr[2] = (lai->plmn.mnc_digit2 << 4) | (lai->plmn.mnc_digit1 & 0x0F);*/
@@ -66,7 +66,7 @@ void lai_to_bytes(const lai_t* lai, char* byte_arr) {
 }
 
 // 8.21.5 in 3GPP TS 29.274
-void ecgi_to_bytes(const ecgi_t* ecgi, char* byte_arr) {
+void ecgi_to_bytes(const ecgi_t *ecgi, char *byte_arr) {
   byte_arr[0] = (ecgi->plmn.mcc_digit2 << 4) | (ecgi->plmn.mcc_digit1 & 0x0F);
   byte_arr[1] = (ecgi->plmn.mnc_digit3 << 4) | (ecgi->plmn.mcc_digit3 & 0x0F);
   byte_arr[2] = (ecgi->plmn.mnc_digit2 << 4) | (ecgi->plmn.mnc_digit1 & 0x0F);
@@ -78,8 +78,8 @@ void ecgi_to_bytes(const ecgi_t* ecgi, char* byte_arr) {
 }
 
 // 10.5.1.6 in 3GPP TS 24.008
-void mobile_station_classmark2_to_bytes(const MobileStationClassmark2_t* mscm2,
-                                        char* byte_arr) {
+void mobile_station_classmark2_to_bytes(const MobileStationClassmark2_t *mscm2,
+                                        char *byte_arr) {
   byte_arr[0] = (mscm2->revisionlevel << 5) | (mscm2->esind << 4) |
                 (mscm2->a51 << 3) | mscm2->rfpowercapability;
   byte_arr[1] = (mscm2->pscapability << 6) | (mscm2->ssscreenindicator << 4) |
@@ -92,7 +92,7 @@ void mobile_station_classmark2_to_bytes(const MobileStationClassmark2_t* mscm2,
 }
 
 // 7.3.9 in 3GPP TS 29.272
-void plmn_to_bytes(const plmn_t* plmn, char* byte_arr) {
+void plmn_to_bytes(const plmn_t *plmn, char *byte_arr) {
   byte_arr[0] = (plmn->mcc_digit2 << 4) | (plmn->mcc_digit1 & 0x0F);
   byte_arr[1] = (plmn->mnc_digit3 << 4) | (plmn->mcc_digit3 & 0x0F);
   byte_arr[2] = (plmn->mnc_digit2 << 4) | (plmn->mnc_digit1 & 0x0F);

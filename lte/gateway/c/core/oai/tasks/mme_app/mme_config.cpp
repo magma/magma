@@ -36,16 +36,16 @@
 */
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <string.h>
 #include <arpa/inet.h> /* To provide inet_addr */
-#include <pthread.h>
 #include <libconfig.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -74,18 +74,18 @@ extern "C" {
 #if EMBEDDED_SGW
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #endif
-static bool parse_bool(const char* str);
+static bool parse_bool(const char *str);
 
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 
-void log_config_init(log_config_t* log_conf) {
+void log_config_init(log_config_t *log_conf) {
   memset(log_conf, 0, sizeof(*log_conf));
 
   log_conf->output = NULL;
   log_conf->is_output_thread_safe = false;
   log_conf->color = false;
 
-  log_conf->udp_log_level = MAX_LOG_LEVEL;  // Means invalid TODO wtf
+  log_conf->udp_log_level = MAX_LOG_LEVEL; // Means invalid TODO wtf
   log_conf->gtpv1u_log_level = MAX_LOG_LEVEL;
   log_conf->gtpv2c_log_level = MAX_LOG_LEVEL;
   log_conf->sctp_log_level = MAX_LOG_LEVEL;
@@ -102,14 +102,14 @@ void log_config_init(log_config_t* log_conf) {
   log_conf->asn1_verbosity_level = 0;
 }
 
-void eps_network_feature_config_init(eps_network_feature_config_t* eps_conf) {
+void eps_network_feature_config_init(eps_network_feature_config_t *eps_conf) {
   eps_conf->emergency_bearer_services_in_s1_mode = 0;
   eps_conf->extended_service_request = 0;
   eps_conf->ims_voice_over_ps_session_in_s1 = 0;
   eps_conf->location_services_via_epc = 0;
 }
 
-void ipv4_config_init(ip_t* ip) {
+void ipv4_config_init(ip_t *ip) {
   memset(ip, 0, sizeof(*ip));
 
   ip->if_name_s1_mme = NULL;
@@ -121,36 +121,36 @@ void ipv4_config_init(ip_t* ip) {
   ip->port_s11 = 2123;
 }
 
-void s1ap_config_init(s1ap_config_t* s1ap_conf) {
+void s1ap_config_init(s1ap_config_t *s1ap_conf) {
   s1ap_conf->port_number = S1AP_PORT_NUMBER;
   s1ap_conf->outcome_drop_timer_sec = S1AP_OUTCOME_TIMER_DEFAULT;
 }
 
-void s6a_config_init(s6a_config_t* s6a_conf) {
+void s6a_config_init(s6a_config_t *s6a_conf) {
   s6a_conf->hss_host_name = NULL;
   s6a_conf->hss_realm = NULL;
   s6a_conf->conf_file = bfromcstr(S6A_CONF_FILE);
 }
 
-void itti_config_init(itti_config_t* itti_conf) {
+void itti_config_init(itti_config_t *itti_conf) {
   itti_conf->queue_size = ITTI_QUEUE_MAX_ELEMENTS;
   itti_conf->log_file = NULL;
 }
 
-void sctp_config_init(sctp_config_t* sctp_conf) {
+void sctp_config_init(sctp_config_t *sctp_conf) {
   sctp_conf->upstream_sctp_sock =
       bfromcstr(MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK);
   sctp_conf->downstream_sctp_sock =
       bfromcstr(MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK_DEFAULT);
 }
 
-void apn_map_config_init(apn_map_config_t* apn_map_config) {
+void apn_map_config_init(apn_map_config_t *apn_map_config) {
   apn_map_config->nb = 0;
   apn_map_config->apn_map[0].imsi_prefix = NULL;
   apn_map_config->apn_map[0].apn_override = NULL;
 }
 
-void nas_config_init(nas_config_t* nas_conf) {
+void nas_config_init(nas_config_t *nas_conf) {
   nas_conf->t3402_min = T3402_DEFAULT_VALUE;
   nas_conf->t3412_min = T3412_DEFAULT_VALUE;
   nas_conf->t3412_msec = 60000 * T3412_DEFAULT_VALUE;
@@ -172,7 +172,7 @@ void nas_config_init(nas_config_t* nas_conf) {
   apn_map_config_init(&nas_conf->apn_map_config);
 }
 
-void gummei_config_init(gummei_config_t* gummei_conf) {
+void gummei_config_init(gummei_config_t *gummei_conf) {
   gummei_conf->nb = 1;
   gummei_conf->gummei[0].mme_code = MMEC;
   gummei_conf->gummei[0].mme_gid = MMEGID;
@@ -187,16 +187,16 @@ void gummei_config_init(gummei_config_t* gummei_conf) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-void served_tai_config_init(served_tai_t* served_tai) {
+void served_tai_config_init(served_tai_t *served_tai) {
   served_tai->nb_tai = 1;
   served_tai->plmn_mcc =
-      reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->plmn_mcc)));
+      reinterpret_cast<uint16_t *>(calloc(1, sizeof(*served_tai->plmn_mcc)));
   served_tai->plmn_mnc =
-      reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->plmn_mnc)));
-  served_tai->plmn_mnc_len =
-      reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->plmn_mnc_len)));
+      reinterpret_cast<uint16_t *>(calloc(1, sizeof(*served_tai->plmn_mnc)));
+  served_tai->plmn_mnc_len = reinterpret_cast<uint16_t *>(
+      calloc(1, sizeof(*served_tai->plmn_mnc_len)));
   served_tai->tac =
-      reinterpret_cast<uint16_t*>(calloc(1, sizeof(*served_tai->tac)));
+      reinterpret_cast<uint16_t *>(calloc(1, sizeof(*served_tai->tac)));
   served_tai->plmn_mcc[0] = PLMN_MCC;
   served_tai->plmn_mnc[0] = PLMN_MNC;
   served_tai->plmn_mnc_len[0] = PLMN_MNC_LEN;
@@ -206,22 +206,22 @@ void served_tai_config_init(served_tai_t* served_tai) {
 }
 #endif
 
-void service303_config_init(service303_data_t* service303_conf) {
+void service303_config_init(service303_data_t *service303_conf) {
   service303_conf->name = bfromcstr(SERVICE303_MME_PACKAGE_NAME);
   service303_conf->version = bfromcstr(SERVICE303_MME_PACKAGE_VERSION);
 }
 
-void blocked_imei_config_init(blocked_imei_list_t* blocked_imeis) {
+void blocked_imei_config_init(blocked_imei_list_t *blocked_imeis) {
   blocked_imeis->num = 0;
   blocked_imeis->imei_htbl = NULL;
 }
 
-void sac_to_tacs_map_config_init(sac_to_tacs_map_config_t* sac_to_tacs_map) {
+void sac_to_tacs_map_config_init(sac_to_tacs_map_config_t *sac_to_tacs_map) {
   sac_to_tacs_map->sac_to_tacs_map_htbl = NULL;
 }
 
 //------------------------------------------------------------------------------
-void mme_config_init(mme_config_t* config) {
+void mme_config_init(mme_config_t *config) {
   memset(config, 0, sizeof(*config));
 
   pthread_rwlock_init(&config->rw_lock, NULL);
@@ -255,17 +255,18 @@ void mme_config_init(mme_config_t* config) {
   sac_to_tacs_map_config_init(&config->sac_to_tacs_map);
 }
 
-void free_partial_lists(partial_list_t* partial_list, uint8_t num_par_lists) {
-  if ((!partial_list) || (!num_par_lists)) return;
+void free_partial_lists(partial_list_t *partial_list, uint8_t num_par_lists) {
+  if ((!partial_list) || (!num_par_lists))
+    return;
 
   for (uint8_t itr = 0; itr < num_par_lists; itr++) {
-    free_wrapper((void**)&(partial_list[itr].plmn));
-    free_wrapper((void**)&(partial_list[itr].tac));
+    free_wrapper((void **)&(partial_list[itr].plmn));
+    free_wrapper((void **)&(partial_list[itr].tac));
   }
-  free_wrapper((void**)&partial_list);
+  free_wrapper((void **)&partial_list);
 }
 
-void free_mme_config(mme_config_t* mme_config) {
+void free_mme_config(mme_config_t *mme_config) {
   bdestroy_wrapper(&mme_config->pid_dir);
   bdestroy_wrapper(&mme_config->non_eps_service_control);
   bdestroy_wrapper(&mme_config->log_config.output);
@@ -283,10 +284,10 @@ void free_mme_config(mme_config_t* mme_config) {
   bdestroy_wrapper(&mme_config->s6a_config.conf_file);
   bdestroy_wrapper(&mme_config->itti_config.log_file);
 
-  free_wrapper((void**)&mme_config->served_tai.plmn_mcc);
-  free_wrapper((void**)&mme_config->served_tai.plmn_mnc);
-  free_wrapper((void**)&mme_config->served_tai.plmn_mnc_len);
-  free_wrapper((void**)&mme_config->served_tai.tac);
+  free_wrapper((void **)&mme_config->served_tai.plmn_mcc);
+  free_wrapper((void **)&mme_config->served_tai.plmn_mnc);
+  free_wrapper((void **)&mme_config->served_tai.plmn_mnc_len);
+  free_wrapper((void **)&mme_config->served_tai.tac);
 
   clear_served_tai_config(&mme_config->served_tai);
   free_partial_lists(mme_config->partial_list, mme_config->num_par_lists);
@@ -330,8 +331,8 @@ void mme_config_exit(void) {
  **                  Others:                                               **
  **                                                                        **
  ***************************************************************************/
-int copy_plmn_from_config(const served_tai_t* served_tai, int index,
-                          plmn_t* plmn) {
+int copy_plmn_from_config(const served_tai_t *served_tai, int index,
+                          plmn_t *plmn) {
   plmn->mcc_digit1 = (served_tai->plmn_mcc[index] / 100) % 10;
   plmn->mcc_digit2 = (served_tai->plmn_mcc[index] / 10) % 10;
   plmn->mcc_digit3 = served_tai->plmn_mcc[index] % 10;
@@ -349,9 +350,9 @@ int copy_plmn_from_config(const served_tai_t* served_tai, int index,
   return RETURNok;
 }
 
-void parse_sctp_settings(config_setting_t* setting_mme,
-                         mme_config_t* config_pP) {
-  config_setting_t* setting =
+void parse_sctp_settings(config_setting_t *setting_mme,
+                         mme_config_t *config_pP) {
+  config_setting_t *setting =
       config_setting_get_member(setting_mme, MME_CONFIG_STRING_SCTP_CONFIG);
 
   if (setting == NULL) {
@@ -363,13 +364,13 @@ void parse_sctp_settings(config_setting_t* setting_mme,
     return;
   }
 
-  const char* upstream_sock = MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK_DEFAULT;
-  const char* downstream_sock = MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK_DEFAULT;
+  const char *upstream_sock = MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK_DEFAULT;
+  const char *downstream_sock = MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK_DEFAULT;
 
-  const char* astring = NULL;
+  const char *astring = NULL;
   if ((config_setting_lookup_string(setting,
                                     MME_CONFIG_STRING_SCTP_UPSTREAM_SOCK,
-                                    (const char**)&astring)) &&
+                                    (const char **)&astring)) &&
       (astring != NULL)) {
     upstream_sock = astring;
   }
@@ -377,7 +378,7 @@ void parse_sctp_settings(config_setting_t* setting_mme,
   astring = NULL;
   if ((config_setting_lookup_string(setting,
                                     MME_CONFIG_STRING_SCTP_DOWNSTREAM_SOCK,
-                                    (const char**)&astring)) &&
+                                    (const char **)&astring)) &&
       (astring != NULL)) {
     downstream_sock = astring;
   }
@@ -397,7 +398,7 @@ void parse_sctp_settings(config_setting_t* setting_mme,
   }
 }
 
-void create_partial_lists(mme_config_t* config_pP) {
+void create_partial_lists(mme_config_t *config_pP) {
   uint8_t elem_idx = 0, list_idx = 0;
   /* Copy TAIs from served_tai to partial lists. If there are more that 16 TAIs,
    * add the TAIs to a new partial list
@@ -405,7 +406,7 @@ void create_partial_lists(mme_config_t* config_pP) {
   uint8_t served_tai_size = config_pP->served_tai.nb_tai > MAX_TAI_SUPPORTED
                                 ? MAX_TAI_SUPPORTED
                                 : config_pP->served_tai.nb_tai;
-  config_pP->partial_list = reinterpret_cast<partial_list_t*>(
+  config_pP->partial_list = reinterpret_cast<partial_list_t *>(
       calloc(served_tai_size, sizeof(partial_list_t)));
   for (uint8_t itr = 0; itr < config_pP->served_tai.nb_tai; itr++) {
     if (elem_idx == MAX_TAI_SUPPORTED) {
@@ -414,11 +415,11 @@ void create_partial_lists(mme_config_t* config_pP) {
     }
     if (!config_pP->partial_list[list_idx].plmn) {
       config_pP->partial_list[list_idx].plmn =
-          reinterpret_cast<plmn_t*>(calloc(served_tai_size, sizeof(plmn_t)));
+          reinterpret_cast<plmn_t *>(calloc(served_tai_size, sizeof(plmn_t)));
     }
     if (!config_pP->partial_list[list_idx].tac) {
       config_pP->partial_list[list_idx].tac =
-          reinterpret_cast<uint16_t*>(calloc(served_tai_size, sizeof(tac_t)));
+          reinterpret_cast<uint16_t *>(calloc(served_tai_size, sizeof(tac_t)));
     }
     copy_plmn_from_config(&config_pP->served_tai, itr,
                           &config_pP->partial_list[list_idx].plmn[elem_idx]);
@@ -488,44 +489,44 @@ void create_partial_lists(mme_config_t* config_pP) {
  **          int retval:       Zero on success, other on failure           **
  **                                                                        **
  ***************************************************************************/
-int mme_config_parse_string(const char* config_string,
-                            mme_config_t* config_pP) {
+int mme_config_parse_string(const char *config_string,
+                            mme_config_t *config_pP) {
   config_t cfg = {0};
-  config_setting_t* setting_mme = NULL;
-  config_setting_t* setting = NULL;
-  config_setting_t* subsetting = NULL;
-  config_setting_t* sub2setting = NULL;
-  config_setting_t* sub3setting = NULL;
+  config_setting_t *setting_mme = NULL;
+  config_setting_t *setting = NULL;
+  config_setting_t *subsetting = NULL;
+  config_setting_t *sub2setting = NULL;
+  config_setting_t *sub3setting = NULL;
   int aint = 0;
   double adouble = 0.0;
   int i = 0, n = 0, stop_index = 0, num = 0;
-  const char* astring = NULL;
-  const char* tac = NULL;
-  const char* mcc = NULL;
-  const char* mnc = NULL;
-  char* if_name_s1_mme = NULL;
-  char* s1_mme = NULL;
-  char* s1_mme_ipv6_addr = NULL;
-  char* s1_ipv6_enabled = NULL;
-  char* if_name_s11 = NULL;
-  char* s11 = NULL;
-  char* imsi_low_tmp = NULL;
-  char* imsi_high_tmp = NULL;
+  const char *astring = NULL;
+  const char *tac = NULL;
+  const char *mcc = NULL;
+  const char *mnc = NULL;
+  char *if_name_s1_mme = NULL;
+  char *s1_mme = NULL;
+  char *s1_mme_ipv6_addr = NULL;
+  char *s1_ipv6_enabled = NULL;
+  char *if_name_s11 = NULL;
+  char *s11 = NULL;
+  char *imsi_low_tmp = NULL;
+  char *imsi_high_tmp = NULL;
 #if !EMBEDDED_SGW
-  char* sgw_ip_address_for_s11 = NULL;
+  char *sgw_ip_address_for_s11 = NULL;
 #endif
   bool swap = false;
   bstring address = NULL;
   bstring cidr = NULL;
   bstring mask = NULL;
-  const char* imsi_prefix = NULL;
-  const char* apn_override = NULL;
+  const char *imsi_prefix = NULL;
+  const char *apn_override = NULL;
   struct in_addr in_addr_var = {0};
-  const char* csfb_mcc = NULL;
-  const char* csfb_mnc = NULL;
-  const char* lac = NULL;
-  const char* tac_str = NULL;
-  const char* snr_str = NULL;
+  const char *csfb_mcc = NULL;
+  const char *csfb_mnc = NULL;
+  const char *lac = NULL;
+  const char *tac_str = NULL;
+  const char *snr_str = NULL;
 
   config_init(&cfg);
 
@@ -551,7 +552,7 @@ int mme_config_parse_string(const char* config_string,
 
     if (setting != NULL) {
       if (config_setting_lookup_string(setting, LOG_CONFIG_STRING_OUTPUT,
-                                       (const char**)&astring)) {
+                                       (const char **)&astring)) {
         if (astring != NULL) {
           if (config_pP->log_config.output) {
             bassigncstr(config_pP->log_config.output, astring);
@@ -563,14 +564,14 @@ int mme_config_parse_string(const char* config_string,
 
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_OUTPUT_THREAD_SAFE,
-                                       (const char**)&astring)) {
+                                       (const char **)&astring)) {
         if (astring != NULL) {
           config_pP->log_config.is_output_thread_safe = parse_bool(astring);
         }
       }
 
       if (config_setting_lookup_string(setting, LOG_CONFIG_STRING_COLOR,
-                                       (const char**)&astring)) {
+                                       (const char **)&astring)) {
         if (strcasecmp("yes", astring) == 0)
           config_pP->log_config.color = true;
         else
@@ -579,75 +580,75 @@ int mme_config_parse_string(const char* config_string,
 
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_SCTP_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.sctp_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_S1AP_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.s1ap_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting, LOG_CONFIG_STRING_NAS_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.nas_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_MME_APP_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.mme_app_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting, LOG_CONFIG_STRING_S6A_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.s6a_log_level = OAILOG_LEVEL_STR2INT(astring);
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_SECU_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.secu_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting, LOG_CONFIG_STRING_UDP_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.udp_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_UTIL_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.util_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_ITTI_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.itti_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_SERVICE303_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.service303_log_level =
             OAILOG_LEVEL_STR2INT(astring);
 #if EMBEDDED_SGW
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_GTPV1U_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.gtpv1u_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_SPGW_APP_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.spgw_app_log_level =
             OAILOG_LEVEL_STR2INT(astring);
 
 #else
       if (config_setting_lookup_string(setting,
                                        LOG_CONFIG_STRING_GTPV2C_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.gtpv2c_log_level = OAILOG_LEVEL_STR2INT(astring);
 
       if (config_setting_lookup_string(setting, LOG_CONFIG_STRING_S11_LOG_LEVEL,
-                                       (const char**)&astring))
+                                       (const char **)&astring))
         config_pP->log_config.s11_log_level = OAILOG_LEVEL_STR2INT(astring);
 #endif
       if ((config_setting_lookup_string(setting_mme,
                                         MME_CONFIG_STRING_ASN1_VERBOSITY,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         if (strcasecmp(astring, MME_CONFIG_STRING_ASN1_VERBOSITY_NONE) == 0)
           config_pP->log_config.asn1_verbosity_level = 0;
         else if (strcasecmp(astring,
@@ -663,19 +664,19 @@ int mme_config_parse_string(const char* config_string,
 
     // GENERAL MME SETTINGS
     if ((config_setting_lookup_string(setting_mme, MME_CONFIG_STRING_REALM,
-                                      (const char**)&astring))) {
+                                      (const char **)&astring))) {
       config_pP->realm = bfromcstr(astring);
     }
 
     if ((config_setting_lookup_string(setting_mme,
                                       MME_CONFIG_STRING_FULL_NETWORK_NAME,
-                                      (const char**)&astring))) {
+                                      (const char **)&astring))) {
       config_pP->full_network_name = bfromcstr(astring);
     }
 
     if ((config_setting_lookup_string(setting_mme,
                                       MME_CONFIG_STRING_SHORT_NETWORK_NAME,
-                                      (const char**)&astring))) {
+                                      (const char **)&astring))) {
       config_pP->short_network_name = bfromcstr(astring);
     }
 
@@ -686,7 +687,7 @@ int mme_config_parse_string(const char* config_string,
 
     if ((config_setting_lookup_string(setting_mme,
                                       MME_CONFIG_STRING_PID_DIRECTORY,
-                                      (const char**)&astring))) {
+                                      (const char **)&astring))) {
       config_pP->pid_dir = bfromcstr(astring);
     }
 
@@ -713,30 +714,30 @@ int mme_config_parse_string(const char* config_string,
 
     if ((config_setting_lookup_string(setting_mme,
                                       MME_CONFIG_STRING_USE_STATELESS,
-                                      (const char**)&astring))) {
+                                      (const char **)&astring))) {
       config_pP->use_stateless = parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(setting_mme,
                                       MME_CONFIG_STRING_ENABLE5G_FEATURES,
-                                      (const char**)&astring))) {
+                                      (const char **)&astring))) {
       config_pP->enable5g_features = parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(setting_mme, MME_CONFIG_STRING_USE_HA,
-                                      (const char**)&astring))) {
+                                      (const char **)&astring))) {
       config_pP->use_ha = parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(
             setting_mme, MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION,
-            (const char**)&astring))) {
+            (const char **)&astring))) {
       config_pP->enable_gtpu_private_ip_correction = parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(
             setting_mme, MME_CONFIG_STRING_CONGESTION_CONTROL_ENABLED,
-            (const char**)&astring))) {
+            (const char **)&astring))) {
       config_pP->enable_congestion_control = parse_bool(astring);
     }
 
@@ -768,33 +769,33 @@ int mme_config_parse_string(const char* config_string,
     if ((config_setting_lookup_string(
             setting_mme,
             EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE,
-            (const char**)&astring))) {
+            (const char **)&astring))) {
       config_pP->eps_network_feature_support
           .emergency_bearer_services_in_s1_mode = parse_bool(astring);
     }
     if ((config_setting_lookup_string(
             setting_mme, EPS_NETWORK_FEATURE_SUPPORT_EXTENDED_SERVICE_REQUEST,
-            (const char**)&astring))) {
+            (const char **)&astring))) {
       config_pP->eps_network_feature_support.extended_service_request =
           parse_bool(astring);
     }
     if ((config_setting_lookup_string(
             setting_mme,
             EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1,
-            (const char**)&astring))) {
+            (const char **)&astring))) {
       config_pP->eps_network_feature_support.ims_voice_over_ps_session_in_s1 =
           parse_bool(astring);
     }
     if ((config_setting_lookup_string(
             setting_mme, EPS_NETWORK_FEATURE_SUPPORT_LOCATION_SERVICES_VIA_EPC,
-            (const char**)&astring))) {
+            (const char **)&astring))) {
       config_pP->eps_network_feature_support.location_services_via_epc =
           parse_bool(astring);
     }
 
     if ((config_setting_lookup_string(
             setting_mme, MME_CONFIG_STRING_UNAUTHENTICATED_IMSI_SUPPORTED,
-            (const char**)&astring))) {
+            (const char **)&astring))) {
       config_pP->unauthenticated_imsi_supported = parse_bool(astring);
     }
 
@@ -817,7 +818,7 @@ int mme_config_parse_string(const char* config_string,
     if (setting != NULL) {
       if ((config_setting_lookup_string(setting,
                                         MME_CONFIG_STRING_S6A_CONF_FILE_PATH,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         if (astring != NULL) {
           if (config_pP->s6a_config.conf_file) {
             bassigncstr(config_pP->s6a_config.conf_file, astring);
@@ -829,7 +830,7 @@ int mme_config_parse_string(const char* config_string,
 
       if ((config_setting_lookup_string(setting,
                                         MME_CONFIG_STRING_S6A_HSS_HOSTNAME,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         if (astring != NULL) {
           if (config_pP->s6a_config.hss_host_name) {
             bassigncstr(config_pP->s6a_config.hss_host_name, astring);
@@ -842,7 +843,7 @@ int mme_config_parse_string(const char* config_string,
       }
       if ((config_setting_lookup_string(setting,
                                         MME_CONFIG_STRING_S6A_HSS_REALM,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         if (astring != NULL) {
           if (config_pP->s6a_config.hss_realm) {
             bassigncstr(config_pP->s6a_config.hss_realm, astring);
@@ -886,24 +887,24 @@ int mme_config_parse_string(const char* config_string,
 
       if (config_pP->served_tai.nb_tai != num) {
         if (config_pP->served_tai.plmn_mcc != NULL)
-          free_wrapper((void**)&config_pP->served_tai.plmn_mcc);
+          free_wrapper((void **)&config_pP->served_tai.plmn_mcc);
 
         if (config_pP->served_tai.plmn_mnc != NULL)
-          free_wrapper((void**)&config_pP->served_tai.plmn_mnc);
+          free_wrapper((void **)&config_pP->served_tai.plmn_mnc);
 
         if (config_pP->served_tai.plmn_mnc_len != NULL)
-          free_wrapper((void**)&config_pP->served_tai.plmn_mnc_len);
+          free_wrapper((void **)&config_pP->served_tai.plmn_mnc_len);
 
         if (config_pP->served_tai.tac != NULL)
-          free_wrapper((void**)&config_pP->served_tai.tac);
+          free_wrapper((void **)&config_pP->served_tai.tac);
 
-        config_pP->served_tai.plmn_mcc = reinterpret_cast<uint16_t*>(
+        config_pP->served_tai.plmn_mcc = reinterpret_cast<uint16_t *>(
             calloc(num, sizeof(*config_pP->served_tai.plmn_mcc)));
-        config_pP->served_tai.plmn_mnc = reinterpret_cast<uint16_t*>(
+        config_pP->served_tai.plmn_mnc = reinterpret_cast<uint16_t *>(
             calloc(num, sizeof(*config_pP->served_tai.plmn_mnc)));
-        config_pP->served_tai.plmn_mnc_len = reinterpret_cast<uint16_t*>(
+        config_pP->served_tai.plmn_mnc_len = reinterpret_cast<uint16_t *>(
             calloc(num, sizeof(*config_pP->served_tai.plmn_mnc_len)));
-        config_pP->served_tai.tac = reinterpret_cast<uint16_t*>(
+        config_pP->served_tai.tac = reinterpret_cast<uint16_t *>(
             calloc(num, sizeof(*config_pP->served_tai.tac)));
       }
 
@@ -1158,10 +1159,10 @@ int mme_config_parse_string(const char* config_string,
             // Convert to 3gpp PLMN (MCC and MNC) format
             // First 3 chars in astring is MCC next 3 or 2 chars is MNC
             memcpy(fed_mode_mcc, astring, MAX_MCC_LENGTH);
-            fed_mode_mcc[MAX_MCC_LENGTH] = '\0';  // null terminated string
+            fed_mode_mcc[MAX_MCC_LENGTH] = '\0'; // null terminated string
             n = strlen(astring) - MAX_MCC_LENGTH;
             memcpy(fed_mode_mnc, astring + MAX_MCC_LENGTH, n);
-            fed_mode_mnc[n] = '\0';  // null terminated string
+            fed_mode_mnc[n] = '\0'; // null terminated string
             AssertFatal(strlen(fed_mode_mcc) == MAX_MCC_LENGTH,
                         "Bad MCC length (%ld), it must be %u digit ex: 001\n",
                         strlen(fed_mode_mcc), MAX_MCC_LENGTH);
@@ -1210,16 +1211,14 @@ int mme_config_parse_string(const char* config_string,
             if (strlen(astring)) {
               imsi_high_tmp = strdup(astring);
               imsi_low_tmp = strsep(&imsi_high_tmp, ":");
-              memcpy((char*)config_pP->mode_map_config.mode_map[i].imsi_low,
+              memcpy((char *)config_pP->mode_map_config.mode_map[i].imsi_low,
                      imsi_low_tmp, strlen(imsi_low_tmp));
-              AssertFatal(
-                  strlen(
-                      (char*)config_pP->mode_map_config.mode_map[i].imsi_low) <=
-                      MAX_IMSI_LENGTH,
-                  "Invalid imsi_low length\n");
-              memcpy((char*)config_pP->mode_map_config.mode_map[i].imsi_high,
+              AssertFatal(strlen((char *)config_pP->mode_map_config.mode_map[i]
+                                     .imsi_low) <= MAX_IMSI_LENGTH,
+                          "Invalid imsi_low length\n");
+              memcpy((char *)config_pP->mode_map_config.mode_map[i].imsi_high,
                      imsi_high_tmp, strlen(imsi_high_tmp));
-              AssertFatal(strlen((char*)config_pP->mode_map_config.mode_map[i]
+              AssertFatal(strlen((char *)config_pP->mode_map_config.mode_map[i]
                                      .imsi_high) <= MAX_IMSI_LENGTH,
                           "Invalid imsi_high length\n");
             }
@@ -1322,7 +1321,7 @@ int mme_config_parse_string(const char* config_string,
                 uint8_t num_tacs = config_setting_length(sub3setting);
                 if (num_tacs > 0) {
                   config_pP->sac_to_tacs_map.tac_list =
-                      reinterpret_cast<tac_list_per_sac_t*>(
+                      reinterpret_cast<tac_list_per_sac_t *>(
                           calloc(1, sizeof(tac_list_per_sac_t)));
                   AssertFatal(config_pP->sac_to_tacs_map.tac_list != NULL,
                               "Memory allocation failed for tac_list\n");
@@ -1334,8 +1333,8 @@ int mme_config_parse_string(const char* config_string,
                   }
                   h_rc = obj_hashtable_insert(
                       config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl,
-                      (const void*)&sac_int, sizeof(uint16_t),
-                      (void*)config_pP->sac_to_tacs_map.tac_list);
+                      (const void *)&sac_int, sizeof(uint16_t),
+                      (void *)config_pP->sac_to_tacs_map.tac_list);
                   AssertFatal(h_rc == HASH_TABLE_OK,
                               "SAC_2_TACS_HTBL hashtable insertion failed\n");
                 }
@@ -1353,16 +1352,16 @@ int mme_config_parse_string(const char* config_string,
     if (setting != NULL) {
       if ((config_setting_lookup_string(
                setting, MME_CONFIG_STRING_INTERFACE_NAME_FOR_S1_MME,
-               (const char**)&if_name_s1_mme) &&
+               (const char **)&if_name_s1_mme) &&
            config_setting_lookup_string(
                setting, MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S1_MME,
-               (const char**)&s1_mme) &&
+               (const char **)&s1_mme) &&
            config_setting_lookup_string(
                setting, MME_CONFIG_STRING_INTERFACE_NAME_FOR_S11_MME,
-               (const char**)&if_name_s11) &&
+               (const char **)&if_name_s11) &&
            config_setting_lookup_string(
                setting, MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S11_MME,
-               (const char**)&s11) &&
+               (const char **)&s11) &&
            config_setting_lookup_int(
                setting, MME_CONFIG_STRING_MME_PORT_FOR_S11, &aint))) {
         // S1AP IPv4 address
@@ -1370,14 +1369,14 @@ int mme_config_parse_string(const char* config_string,
 
         config_pP->ip.if_name_s1_mme = bfromcstr(if_name_s1_mme);
         cidr = bfromcstr(s1_mme);
-        struct bstrList* list = bsplit(cidr, '/');
+        struct bstrList *list = bsplit(cidr, '/');
         AssertFatal(list->qty == CIDR_SPLIT_LIST_COUNT,
                     "Bad S1-MME CIDR address: %s", bdata(cidr));
         address = list->entry[0];
         mask = list->entry[1];
         IPV4_STR_ADDR_TO_INADDR(bdata(address), config_pP->ip.s1_mme_v4,
                                 "BAD IP ADDRESS FORMAT FOR S1-MME !\n");
-        config_pP->ip.netmask_s1_mme = atoi((const char*)mask->data);
+        config_pP->ip.netmask_s1_mme = atoi((const char *)mask->data);
         bstrListDestroy(list);
         in_addr_var.s_addr = config_pP->ip.s1_mme_v4.s_addr;
         OAILOG_INFO(LOG_MME_APP,
@@ -1397,7 +1396,7 @@ int mme_config_parse_string(const char* config_string,
         mask = list->entry[1];
         IPV4_STR_ADDR_TO_INADDR(bdata(address), config_pP->ip.s11_mme_v4,
                                 "BAD IP ADDRESS FORMAT FOR S11 !\n");
-        config_pP->ip.netmask_s11 = atoi((const char*)mask->data);
+        config_pP->ip.netmask_s11 = atoi((const char *)mask->data);
         bstrListDestroy(list);
         bdestroy_wrapper(&cidr);
         in_addr_var.s_addr = config_pP->ip.s11_mme_v4.s_addr;
@@ -1409,10 +1408,10 @@ int mme_config_parse_string(const char* config_string,
       }
       if (config_setting_lookup_string(
               setting, MME_CONFIG_STRING_IPV6_ADDRESS_FOR_S1_MME,
-              (const char**)&s1_mme_ipv6_addr) &&
+              (const char **)&s1_mme_ipv6_addr) &&
           config_setting_lookup_string(setting,
                                        MME_CONFIG_STRING_S1_IPV6_ENABLED,
-                                       (const char**)&s1_ipv6_enabled)) {
+                                       (const char **)&s1_ipv6_enabled)) {
         // S1AP IPv6 address
         config_pP->ip.s1_ipv6_enabled = parse_bool(s1_ipv6_enabled);
         if (config_pP->ip.s1_ipv6_enabled) {
@@ -1421,7 +1420,7 @@ int mme_config_parse_string(const char* config_string,
           IPV6_STR_ADDR_TO_INADDR(
               s1_mme_ipv6_addr, config_pP->ip.s1_mme_v6,
               "BAD IPv6 ADDRESS FORMAT FOR S1AP IPv6 address !\n");
-          inet_ntop(AF_INET6, (const void*)&config_pP->ip.s1_mme_v6,
+          inet_ntop(AF_INET6, (const void *)&config_pP->ip.s1_mme_v6,
                     parsed_ipv6, INET6_ADDRSTRLEN);
           OAILOG_INFO(LOG_MME_APP,
                       "Parsing configuration file found S1-MME-IPv6: %s\n",
@@ -1436,12 +1435,12 @@ int mme_config_parse_string(const char* config_string,
     if (setting != NULL) {
       if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_NON_EPS_SERVICE_CONTROL,
-              (const char**)&astring))) {
+              (const char **)&astring))) {
         if (astring != NULL) {
           config_pP->non_eps_service_control = bfromcstr(astring);
         }
       }
-      if (strcasecmp((const char*)config_pP->non_eps_service_control->data,
+      if (strcasecmp((const char *)config_pP->non_eps_service_control->data,
                      "OFF") != 0) {
         // Check CSFB MCC. MNC and LAC only if NON-EPS feature is enabled.
         if ((config_setting_lookup_string(setting, MME_CONFIG_STRING_CSFB_MCC,
@@ -1484,7 +1483,7 @@ int mme_config_parse_string(const char* config_string,
 
     if ((config_setting_lookup_string(
             setting_mme, MME_CONFIG_STRING_ACCEPT_COMBINED_ATTACH_TAU_WO_CSFB,
-            (const char**)&astring))) {
+            (const char **)&astring))) {
       config_pP->accept_combined_attach_tau_wo_csfb = parse_bool(astring);
     }
 
@@ -1516,9 +1515,8 @@ int mme_config_parse_string(const char* config_string,
               config_pP->nas_config.prefered_integrity_algorithm[i] =
                   EIA2_128_ALG_ID;
             else
-              Fatal(
-                  "Unrecognized algorithm in "
-                  "ORDERED_SUPPORTED_INTEGRITY_ALGORITHM_LIST\n");
+              Fatal("Unrecognized algorithm in "
+                    "ORDERED_SUPPORTED_INTEGRITY_ALGORITHM_LIST\n");
           }
 
           char default_integrity_algorithm =
@@ -1603,22 +1601,22 @@ int mme_config_parse_string(const char* config_string,
       }
       if ((config_setting_lookup_string(setting,
                                         MME_CONFIG_STRING_NAS_FORCE_REJECT_TAU,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         config_pP->nas_config.force_reject_tau = parse_bool(astring);
       }
       if ((config_setting_lookup_string(setting,
                                         MME_CONFIG_STRING_NAS_FORCE_REJECT_SR,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         config_pP->nas_config.force_reject_sr = parse_bool(astring);
       }
       if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_NAS_DISABLE_ESM_INFORMATION_PROCEDURE,
-              (const char**)&astring))) {
+              (const char **)&astring))) {
         config_pP->nas_config.disable_esm_information = parse_bool(astring);
       }
       if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_NAS_ENABLE_APN_CORRECTION,
-              (const char**)&astring))) {
+              (const char **)&astring))) {
         config_pP->nas_config.enable_apn_correction = parse_bool(astring);
       }
 
@@ -1644,7 +1642,7 @@ int mme_config_parse_string(const char* config_string,
               if ((config_setting_lookup_string(
                       sub2setting,
                       MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_IMSI_PREFIX,
-                      (const char**)&imsi_prefix))) {
+                      (const char **)&imsi_prefix))) {
                 if (config_pP->nas_config.apn_map_config.apn_map[i]
                         .imsi_prefix) {
                   bassigncstr(config_pP->nas_config.apn_map_config.apn_map[i]
@@ -1658,7 +1656,7 @@ int mme_config_parse_string(const char* config_string,
               if ((config_setting_lookup_string(
                       sub2setting,
                       MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_APN_OVERRIDE,
-                      (const char**)&apn_override))) {
+                      (const char **)&apn_override))) {
                 if (config_pP->nas_config.apn_map_config.apn_map[i]
                         .apn_override) {
                   bassigncstr(config_pP->nas_config.apn_map_config.apn_map[i]
@@ -1688,11 +1686,11 @@ int mme_config_parse_string(const char* config_string,
       }
       if ((config_setting_lookup_string(setting,
                                         MME_CONFIG_STRING_UPLOAD_MME_LOG,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         config_pP->sentry_config.upload_mme_log = parse_bool(astring);
       }
       if ((config_setting_lookup_string(setting, MME_CONFIG_STRING_URL_NATIVE,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         strncpy(config_pP->sentry_config.url_native, astring, MAX_URL_LENGTH);
       }
     }
@@ -1731,7 +1729,7 @@ int mme_config_parse_string(const char* config_string,
     if (setting != NULL) {
       if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_SGW_IPV4_ADDRESS_FOR_S11,
-              (const char**)&sgw_ip_address_for_s11))) {
+              (const char **)&sgw_ip_address_for_s11))) {
         OAILOG_DEBUG(LOG_MME_APP, "sgw interface IP information %s\n",
                      sgw_ip_address_for_s11);
 
@@ -1765,8 +1763,8 @@ int mme_config_parse_string(const char* config_string,
  ** Outputs: int retval:       Zero on success, other on failure           **
  **                                                                        **
  ***************************************************************************/
-int mme_config_parse_file(mme_config_t* config_pP) {
-  FILE* fp = NULL;
+int mme_config_parse_file(mme_config_t *config_pP) {
+  FILE *fp = NULL;
   fp = fopen(bdata(config_pP->config_file), "r");
   if (fp == NULL) {
     OAILOG_CRITICAL(LOG_CONFIG,
@@ -1791,7 +1789,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-void mme_config_display(mme_config_t* config_pP) {
+void mme_config_display(mme_config_t *config_pP) {
   int j;
 
   OAILOG_INFO(LOG_CONFIG, "==== EURECOM %s v%s ====\n", PACKAGE_NAME,
@@ -1840,14 +1838,14 @@ void mme_config_display(mme_config_t* config_pP) {
       config_pP->eps_network_feature_support.location_services_via_epc == 0
           ? "false"
           : "true");
-  OAILOG_INFO(
-      LOG_CONFIG, "- Extended service request .............: %s\n",
-      config_pP->eps_network_feature_support.extended_service_request == 0
-          ? "false"
-          : "true");
-  OAILOG_INFO(
-      LOG_CONFIG, "- Unauth IMSI support ..................: %s\n",
-      config_pP->unauthenticated_imsi_supported == 0 ? "false" : "true");
+  OAILOG_INFO(LOG_CONFIG, "- Extended service request .............: %s\n",
+              config_pP->eps_network_feature_support.extended_service_request ==
+                      0
+                  ? "false"
+                  : "true");
+  OAILOG_INFO(LOG_CONFIG, "- Unauth IMSI support ..................: %s\n",
+              config_pP->unauthenticated_imsi_supported == 0 ? "false"
+                                                             : "true");
   OAILOG_INFO(LOG_CONFIG, "- Relative capa ........................: %u\n",
               config_pP->relative_capacity);
   OAILOG_INFO(LOG_CONFIG,
@@ -1891,7 +1889,7 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(LOG_CONFIG, "    s1-MME iface .....: %s\n",
               bdata(config_pP->ip.if_name_s1_mme));
   OAILOG_INFO(LOG_CONFIG, "    s1-MME ip ........: %s\n",
-              inet_ntoa(*((struct in_addr*)&config_pP->ip.s1_mme_v4)));
+              inet_ntoa(*((struct in_addr *)&config_pP->ip.s1_mme_v4)));
   if (config_pP->ip.s1_ipv6_enabled) {
     char strv6[INET6_ADDRSTRLEN];
     OAILOG_INFO(
@@ -1904,20 +1902,20 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(LOG_CONFIG, "    s11 MME port .....: %d\n",
               config_pP->ip.port_s11);
   OAILOG_INFO(LOG_CONFIG, "    s11 MME ip .......: %s\n",
-              inet_ntoa(*((struct in_addr*)&config_pP->ip.s11_mme_v4)));
+              inet_ntoa(*((struct in_addr *)&config_pP->ip.s11_mme_v4)));
 
   if (config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr == AF_INET) {
     OAILOG_INFO(
         LOG_CONFIG, " Address : %s\n",
-        inet_ntoa(*((struct in_addr*)&config_pP->e_dns_emulation.sgw_ip_addr[0]
+        inet_ntoa(*((struct in_addr *)&config_pP->e_dns_emulation.sgw_ip_addr[0]
                         .s_addr)));
 
   } else if (config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr == AF_INET6) {
     char strv6[16];
-    OAILOG_INFO(
-        LOG_CONFIG, " Address : %s\n",
-        inet_ntop(AF_INET6, &config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr,
-                  strv6, 16));
+    OAILOG_INFO(LOG_CONFIG, " Address : %s\n",
+                inet_ntop(AF_INET6,
+                          &config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr,
+                          strv6, 16));
   } else {
     OAILOG_INFO(LOG_CONFIG, "  Address : Unknown address family %d\n",
                 config_pP->e_dns_emulation.sgw_ip_addr[0].s_addr);
@@ -1954,26 +1952,25 @@ void mme_config_display(mme_config_t* config_pP) {
   for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
     if (config_pP->partial_list) {
       switch (config_pP->partial_list[itr].list_type) {
-        case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
-          OAILOG_DEBUG(
-              LOG_CONFIG,
-              "- List [%d] - TAI list type one PLMN consecutive TACs\n", itr);
-          break;
-        case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
-          OAILOG_DEBUG(
-              LOG_CONFIG,
-              "- List [%d] - TAI list type one PLMN non consecutive TACs\n",
-              itr);
-          break;
-        case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
-          OAILOG_DEBUG(LOG_CONFIG,
-                       "- List [%d] - TAI list type multiple PLMNs\n", itr);
-          break;
-        default:
-          OAILOG_ERROR(LOG_CONFIG,
-                       "Invalid served TAI list type (%u) configured\n",
-                       config_pP->partial_list[itr].list_type);
-          break;
+      case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
+        OAILOG_DEBUG(LOG_CONFIG,
+                     "- List [%d] - TAI list type one PLMN consecutive TACs\n",
+                     itr);
+        break;
+      case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
+        OAILOG_DEBUG(
+            LOG_CONFIG,
+            "- List [%d] - TAI list type one PLMN non consecutive TACs\n", itr);
+        break;
+      case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
+        OAILOG_DEBUG(LOG_CONFIG, "- List [%d] - TAI list type multiple PLMNs\n",
+                     itr);
+        break;
+      default:
+        OAILOG_ERROR(LOG_CONFIG,
+                     "Invalid served TAI list type (%u) configured\n",
+                     config_pP->partial_list[itr].list_type);
+        break;
       }
     }
   }
@@ -2060,15 +2057,14 @@ void mme_config_display(mme_config_t* config_pP) {
               (config_pP->nas_config.force_reject_tau) ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "      Force reject SR .............: %s\n",
               (config_pP->nas_config.force_reject_sr) ? "true" : "false");
-  OAILOG_INFO(
-      LOG_CONFIG, "      Disable Esm information .....: %s\n",
-      (config_pP->nas_config.disable_esm_information) ? "true" : "false");
+  OAILOG_INFO(LOG_CONFIG, "      Disable Esm information .....: %s\n",
+              (config_pP->nas_config.disable_esm_information) ? "true"
+                                                              : "false");
   OAILOG_INFO(LOG_CONFIG, "      Enable APN Correction .......: %s\n",
               (config_pP->nas_config.enable_apn_correction) ? "true" : "false");
 
-  OAILOG_INFO(LOG_CONFIG,
-              "      APN CORRECTION MAP LIST (IMSI_PREFIX | "
-              "APN_OVERRIDE):\n");
+  OAILOG_INFO(LOG_CONFIG, "      APN CORRECTION MAP LIST (IMSI_PREFIX | "
+                          "APN_OVERRIDE):\n");
   for (j = 0; j < config_pP->nas_config.apn_map_config.nb; j++) {
     OAILOG_INFO(
         LOG_CONFIG, "                                %s | %s \n",
@@ -2125,7 +2121,7 @@ void mme_config_display(mme_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-static void usage(char* target) {
+static void usage(char *target) {
   OAI_FPRINTF_INFO("==== EURECOM %s version: %s ====\n", PACKAGE_NAME,
                    PACKAGE_VERSION);
   OAI_FPRINTF_INFO("Please report any bug to: %s\n", PACKAGE_BUGREPORT);
@@ -2142,7 +2138,7 @@ static void usage(char* target) {
 }
 
 //------------------------------------------------------------------------------
-int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
+int mme_config_parse_opt_line(int argc, char *argv[], mme_config_t *config_pP) {
   int c;
 
   mme_config_init(config_pP);
@@ -2152,38 +2148,37 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
    */
   while ((c = getopt(argc, argv, "c:s:h:v:V")) != -1) {
     switch (c) {
-      case 'c': {
-        /*
-         * Store the given configuration file. If no file is given,
-         * * * * then the default values will be used.
-         */
-        config_pP->config_file = blk2bstr(optarg, strlen(optarg));
-        OAI_FPRINTF_INFO("%s mme_config.config_file %s\n", __FUNCTION__,
-                         bdata(config_pP->config_file));
-      } break;
+    case 'c': {
+      /*
+       * Store the given configuration file. If no file is given,
+       * * * * then the default values will be used.
+       */
+      config_pP->config_file = blk2bstr(optarg, strlen(optarg));
+      OAI_FPRINTF_INFO("%s mme_config.config_file %s\n", __FUNCTION__,
+                       bdata(config_pP->config_file));
+    } break;
 
-      case 'v': {
-        config_pP->log_config.asn1_verbosity_level = atoi(optarg);
-      } break;
+    case 'v': {
+      config_pP->log_config.asn1_verbosity_level = atoi(optarg);
+    } break;
 
-      case 'V': {
-        OAI_FPRINTF_INFO(
-            "==== EURECOM %s v%s ===="
-            "Please report any bug to: %s\n",
-            PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
-      } break;
+    case 'V': {
+      OAI_FPRINTF_INFO("==== EURECOM %s v%s ===="
+                       "Please report any bug to: %s\n",
+                       PACKAGE_NAME, PACKAGE_VERSION, PACKAGE_BUGREPORT);
+    } break;
 
-      case 's': {
-        OAI_FPRINTF_INFO(
-            "Ignoring command line option s as there is no embedded sgw \n");
-      } break;
+    case 's': {
+      OAI_FPRINTF_INFO(
+          "Ignoring command line option s as there is no embedded sgw \n");
+    } break;
 
-      case 'h': /* Fall through */
+    case 'h': /* Fall through */
 
-      default:
-        OAI_FPRINTF_ERR("Unknown command line option %c\n", c);
-        usage(argv[0]);
-        exit(0);
+    default:
+      OAI_FPRINTF_ERR("Unknown command line option %c\n", c);
+      usage(argv[0]);
+      exit(0);
     }
   }
 
@@ -2205,12 +2200,17 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
   return 0;
 }
 
-static bool parse_bool(const char* str) {
-  if (strcasecmp(str, "yes") == 0) return true;
-  if (strcasecmp(str, "true") == 0) return true;
-  if (strcasecmp(str, "no") == 0) return false;
-  if (strcasecmp(str, "false") == 0) return false;
-  if (strcasecmp(str, "") == 0) return false;
+static bool parse_bool(const char *str) {
+  if (strcasecmp(str, "yes") == 0)
+    return true;
+  if (strcasecmp(str, "true") == 0)
+    return true;
+  if (strcasecmp(str, "no") == 0)
+    return false;
+  if (strcasecmp(str, "false") == 0)
+    return false;
+  if (strcasecmp(str, "") == 0)
+    return false;
 
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }
@@ -2218,7 +2218,7 @@ static bool parse_bool(const char* str) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-void clear_served_tai_config(served_tai_t* served_tai) {
+void clear_served_tai_config(served_tai_t *served_tai) {
   if (served_tai->plmn_mcc) {
     free(served_tai->plmn_mcc);
     served_tai->plmn_mcc = NULL;

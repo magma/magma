@@ -29,15 +29,15 @@
  */
 
 #define _GNU_SOURCE
+#include <liblfds710.h>
+#include <malloc.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
 #include <string.h>
-#include <malloc.h>
-#include <stdint.h>
-#include <liblfds710.h>
+#include <unistd.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -65,14 +65,15 @@
 
 const int itti_debug = ITTI_DEBUG_ISSUES | ITTI_DEBUG_MP_STATISTICS;
 
-#define ITTI_DEBUG(m, x, args...)                                    \
-  do {                                                               \
-    /* stdout is redirected to syslog when MME is run via systemd */ \
-    if ((m)&itti_debug) fprintf(stdout, "[ITTI][D]" x, ##args);      \
+#define ITTI_DEBUG(m, x, args...)                                              \
+  do {                                                                         \
+    /* stdout is redirected to syslog when MME is run via systemd */           \
+    if ((m)&itti_debug)                                                        \
+      fprintf(stdout, "[ITTI][D]" x, ##args);                                  \
   } while (0);
 
 /* Global message size */
-#define MESSAGE_SIZE(mESSAGEiD) \
+#define MESSAGE_SIZE(mESSAGEiD)                                                \
   (sizeof(MessageHeader) + itti_desc.messages_info[mESSAGEiD].size)
 
 #define likely(x) __builtin_expect(!!(x), 1)
@@ -87,14 +88,14 @@ typedef volatile enum task_state_s {
 } task_state_t;
 
 typedef struct thread_desc_s {
-  pthread_t task_thread;  // pthread associated with the thread
+  pthread_t task_thread; // pthread associated with the thread
 
-  volatile task_state_t task_state;  // State of the thread
+  volatile task_state_t task_state; // State of the thread
 
 } thread_desc_t;
 
 typedef struct itti_desc_s {
-  thread_desc_t* threads;
+  thread_desc_t *threads;
   thread_id_t thread_max;
   task_id_t task_max;
   MessagesIds messages_id_max;
@@ -102,8 +103,8 @@ typedef struct itti_desc_s {
   bool thread_handling_signals;
   pthread_t thread_ref;
 
-  const task_info_t* tasks_info;
-  const message_info_t* messages_info;
+  const task_info_t *tasks_info;
+  const message_info_t *messages_info;
 
   int running;
 
@@ -113,9 +114,9 @@ typedef struct itti_desc_s {
 
 static itti_desc_t itti_desc;
 
-status_code_e send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
+status_code_e send_msg_to_task(task_zmq_ctx_t *task_zmq_ctx_p,
                                task_id_t destination_task_id,
-                               MessageDef* message) {
+                               MessageDef *message) {
   if (likely(task_zmq_ctx_p->ready)) {
     AssertFatal(task_zmq_ctx_p->push_socks[destination_task_id],
                 "Sending to task without push socket. id: %s to %s!\n",
@@ -123,7 +124,7 @@ status_code_e send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
                 itti_get_task_name(destination_task_id));
 
     // TODO: can we use zframe_frommem to avoid memcopy
-    zframe_t* frame = zframe_new(
+    zframe_t *frame = zframe_new(
         message, sizeof(MessageHeader) + message->ittiMsgHeader.ittiMsgSize);
     assert(frame);
 
@@ -144,12 +145,12 @@ status_code_e send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
   return RETURNok;
 }
 
-MessageDef* receive_msg(zsock_t* reader) {
-  zframe_t* msg_frame = zframe_recv(reader);
+MessageDef *receive_msg(zsock_t *reader) {
+  zframe_t *msg_frame = zframe_recv(reader);
   assert(msg_frame);
 
   // Copy message to avoid memory alignment problems
-  MessageDef* msg = (MessageDef*)malloc(zframe_size(msg_frame));
+  MessageDef *msg = (MessageDef *)malloc(zframe_size(msg_frame));
   AssertFatal(msg != NULL, "Message memory allocation failed!\n");
   memcpy(msg, zframe_data(msg_frame), zframe_size(msg_frame));
 
@@ -157,9 +158,9 @@ MessageDef* receive_msg(zsock_t* reader) {
   return msg;
 }
 
-void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message) {
-  zframe_t* frame = zframe_new(
-      message, sizeof(MessageHeader) + message->ittiMsgHeader.ittiMsgSize);
+void send_broadcast_msg(task_zmq_ctx_t *task_zmq_ctx_p, MessageDef *message) {
+  zframe_t *frame = zframe_new(message, sizeof(MessageHeader) +
+                                            message->ittiMsgHeader.ittiMsgSize);
   assert(frame);
 
   for (int i = 0; i < TASK_MAX; i++) {
@@ -175,8 +176,8 @@ void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message) {
   free(message);
 }
 
-int start_timer(task_zmq_ctx_t* task_zmq_ctx_p, size_t msec,
-                timer_repeat_t repeat, zloop_timer_fn handler, void* arg) {
+int start_timer(task_zmq_ctx_t *task_zmq_ctx_p, size_t msec,
+                timer_repeat_t repeat, zloop_timer_fn handler, void *arg) {
   int timer_id =
       zloop_timer(task_zmq_ctx_p->event_loop, msec,
                   repeat == TIMER_REPEAT_FOREVER ? 0 : 1, handler, arg);
@@ -187,13 +188,13 @@ int start_timer(task_zmq_ctx_t* task_zmq_ctx_p, size_t msec,
   return timer_id;
 }
 
-void stop_timer(task_zmq_ctx_t* task_zmq_ctx_p, int timer_id) {
+void stop_timer(task_zmq_ctx_t *task_zmq_ctx_p, int timer_id) {
   zloop_timer_end(task_zmq_ctx_p->event_loop, timer_id);
 }
 
-void init_task_context(task_id_t task_id, const task_id_t* remote_task_ids,
+void init_task_context(task_id_t task_id, const task_id_t *remote_task_ids,
                        uint8_t remote_tasks_count, zloop_reader_fn msg_handler,
-                       task_zmq_ctx_t* task_zmq_ctx_p) {
+                       task_zmq_ctx_t *task_zmq_ctx_p) {
   task_zmq_ctx_p->task_id = task_id;
 
   task_zmq_ctx_p->event_loop = zloop_new();
@@ -223,7 +224,7 @@ void init_task_context(task_id_t task_id, const task_id_t* remote_task_ids,
   task_zmq_ctx_p->ready = true;
 }
 
-void destroy_task_context(task_zmq_ctx_t* task_zmq_ctx_p) {
+void destroy_task_context(task_zmq_ctx_t *task_zmq_ctx_p) {
   task_zmq_ctx_p->ready = false;
   zloop_destroy(&task_zmq_ctx_p->event_loop);
   zsock_destroy(&task_zmq_ctx_p->pull_sock);
@@ -234,14 +235,14 @@ void destroy_task_context(task_zmq_ctx_t* task_zmq_ctx_p) {
   }
 }
 
-const char* itti_get_message_name(MessagesIds message_id) {
+const char *itti_get_message_name(MessagesIds message_id) {
   AssertFatal(message_id < itti_desc.messages_id_max,
               "Message id (%d) is out of range (%d)!\n", message_id,
               itti_desc.messages_id_max);
   return (itti_desc.messages_info[message_id].name);
 }
 
-const char* itti_get_task_name(task_id_t task_id) {
+const char *itti_get_task_name(task_id_t task_id) {
   if (itti_desc.task_max > 0) {
     AssertFatal(task_id < itti_desc.task_max,
                 "Task id (%d) is out of range (%d)!\n", task_id,
@@ -269,10 +270,10 @@ static task_id_t itti_get_current_task_id(void) {
   return TASK_UNKNOWN;
 }
 
-static MessageDef* itti_alloc_new_message_sized(task_id_t origin_task_id,
+static MessageDef *itti_alloc_new_message_sized(task_id_t origin_task_id,
                                                 MessagesIds message_id,
                                                 MessageHeaderSize size) {
-  MessageDef* new_msg = NULL;
+  MessageDef *new_msg = NULL;
 
   AssertFatal(message_id < itti_desc.messages_id_max,
               "Message id (%d) is out of range (%d)!\n", message_id,
@@ -280,10 +281,10 @@ static MessageDef* itti_alloc_new_message_sized(task_id_t origin_task_id,
 
   if (origin_task_id == TASK_UNKNOWN) {
     origin_task_id =
-        itti_get_current_task_id();  // Try to identify real origin task ID
+        itti_get_current_task_id(); // Try to identify real origin task ID
   }
 
-  new_msg = (MessageDef*)malloc(sizeof(MessageHeader) + size);
+  new_msg = (MessageDef *)malloc(sizeof(MessageHeader) + size);
   AssertFatal(new_msg != NULL, "Message memory allocation failed!\n");
 
   // better to do it here than in client code
@@ -298,32 +299,32 @@ static MessageDef* itti_alloc_new_message_sized(task_id_t origin_task_id,
   return new_msg;
 }
 
-MessageDef* itti_alloc_new_message(task_id_t origin_task_id,
+MessageDef *itti_alloc_new_message(task_id_t origin_task_id,
                                    MessagesIds message_id) {
   return itti_alloc_new_message_sized(origin_task_id, message_id,
                                       itti_desc.messages_info[message_id].size);
 }
 
-MessageDef* DEPRECATEDitti_alloc_new_message_fatal(task_id_t origin_task_id,
+MessageDef *DEPRECATEDitti_alloc_new_message_fatal(task_id_t origin_task_id,
                                                    MessagesIds message_id) {
-  MessageDef* message_p = itti_alloc_new_message_sized(
+  MessageDef *message_p = itti_alloc_new_message_sized(
       origin_task_id, message_id, itti_desc.messages_info[message_id].size);
   AssertFatal(message_p, "DEPRECATEDitti_alloc_new_message_fatal Failed");
   return message_p;
 }
 
-status_code_e itti_create_task(task_id_t task_id, void* (*start_routine)(void*),
-                               void* args_p) {
+status_code_e itti_create_task(task_id_t task_id,
+                               void *(*start_routine)(void *), void *args_p) {
   thread_id_t thread_id = TASK_GET_THREAD_ID(task_id);
 
   AssertFatal(start_routine != NULL, "Start routine is NULL!\n");
   AssertFatal(thread_id < itti_desc.thread_max,
               "Thread id (%d) is out of range (%d)!\n", thread_id,
               itti_desc.thread_max);
-  AssertFatal(
-      itti_desc.threads[thread_id].task_state == TASK_STATE_NOT_CONFIGURED,
-      "Task %d, thread %d state is not correct (%d)!\n", task_id, thread_id,
-      itti_desc.threads[thread_id].task_state);
+  AssertFatal(itti_desc.threads[thread_id].task_state ==
+                  TASK_STATE_NOT_CONFIGURED,
+              "Task %d, thread %d state is not correct (%d)!\n", task_id,
+              thread_id, itti_desc.threads[thread_id].task_state);
 
   itti_desc.threads[thread_id].task_state = TASK_STATE_STARTING;
 
@@ -369,10 +370,10 @@ void itti_mark_task_ready(task_id_t task_id) {
 void itti_exit_task(void) { pthread_exit(NULL); }
 
 int itti_init(task_id_t task_max, thread_id_t thread_max,
-              MessagesIds messages_id_max, const task_info_t* tasks_info,
-              const message_info_t* messages_info,
-              const char* const messages_definition_xml,
-              const char* const dump_file_name) {
+              MessagesIds messages_id_max, const task_info_t *tasks_info,
+              const message_info_t *messages_info,
+              const char *const messages_definition_xml,
+              const char *const dump_file_name) {
   thread_id_t thread_id;
 
   ITTI_DEBUG(ITTI_DEBUG_INIT, " Init: %d tasks, %d threads, %d messages\n",
@@ -408,11 +409,11 @@ int itti_init(task_id_t task_max, thread_id_t thread_max,
   return 0;
 }
 
-imsi64_t itti_get_associated_imsi(MessageDef* msg) {
+imsi64_t itti_get_associated_imsi(MessageDef *msg) {
   return msg != NULL ? msg->ittiMsgHeader.imsi : 0;
 }
 
-void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx) {
+void itti_wait_tasks_end(task_zmq_ctx_t *task_ctx) {
   int end = 0;
   int thread_id;
   task_id_t task_id;
@@ -470,7 +471,7 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx) {
   ITTI_DEBUG(ITTI_DEBUG_EXIT, "ready_tasks %d", ready_tasks);
   itti_desc.running = 0;
 
-  free_wrapper((void**)&itti_desc.threads);
+  free_wrapper((void **)&itti_desc.threads);
 
   if (ready_tasks > 0) {
     ITTI_DEBUG(ITTI_DEBUG_ISSUES,
@@ -480,12 +481,12 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx) {
 }
 
 void itti_free_desc_threads() {
-  free_wrapper((void**)&itti_desc.threads);
+  free_wrapper((void **)&itti_desc.threads);
   return;
 }
 
-void send_terminate_message_fatal(task_zmq_ctx_t* task_zmq_ctx) {
-  MessageDef* terminate_message_p;
+void send_terminate_message_fatal(task_zmq_ctx_t *task_zmq_ctx) {
+  MessageDef *terminate_message_p;
 
   terminate_message_p = DEPRECATEDitti_alloc_new_message_fatal(
       task_zmq_ctx->task_id, TERMINATE_MESSAGE);

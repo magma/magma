@@ -12,12 +12,12 @@
  */
 
 #pragma once
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include <pthread.h>
 #include <string>
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
-#include <iostream>
 #include <google/protobuf/map.h>
+#include <iostream>
 
 namespace magma {
 
@@ -45,42 +45,42 @@ typedef enum proto_map_return_code_e {
 **                                                                        **
 ***************************************************************************/
 
-static inline const char* map_rc_code2string(proto_map_rc_t rc) {
+static inline const char *map_rc_code2string(proto_map_rc_t rc) {
   switch (rc) {
-    case PROTO_MAP_OK:
-      return "MAP_OK";
-      break;
+  case PROTO_MAP_OK:
+    return "MAP_OK";
+    break;
 
-    case PROTO_MAP_KEY_NOT_EXISTS:
-      return "MAP_KEY_NOT_EXISTS";
-      break;
+  case PROTO_MAP_KEY_NOT_EXISTS:
+    return "MAP_KEY_NOT_EXISTS";
+    break;
 
-    case PROTO_MAP_SEARCH_NO_RESULT:
-      return "MAP_SEARCH_NO_RESULT";
-      break;
+  case PROTO_MAP_SEARCH_NO_RESULT:
+    return "MAP_SEARCH_NO_RESULT";
+    break;
 
-    case PROTO_MAP_KEY_ALREADY_EXISTS:
-      return "MAP_KEY_ALREADY_EXISTS";
-      break;
+  case PROTO_MAP_KEY_ALREADY_EXISTS:
+    return "MAP_KEY_ALREADY_EXISTS";
+    break;
 
-    case PROTO_MAP_BAD_PARAMETER_KEY:
-      return "MAP_BAD_PARAMETER_KEY";
-      break;
+  case PROTO_MAP_BAD_PARAMETER_KEY:
+    return "MAP_BAD_PARAMETER_KEY";
+    break;
 
-    case PROTO_MAP_BAD_PARAMETER_VALUE:
-      return "MAP_BAD_PARAMETER_VALUE";
-      break;
+  case PROTO_MAP_BAD_PARAMETER_VALUE:
+    return "MAP_BAD_PARAMETER_VALUE";
+    break;
 
-    case PROTO_MAP_EMPTY:
-      return "MAP_EMPTY";
-      break;
+  case PROTO_MAP_EMPTY:
+    return "MAP_EMPTY";
+    break;
 
-    case PROTO_MAP_DUMP_FAIL:
-      return "MAP_DUMP_FAIL";
-      break;
+  case PROTO_MAP_DUMP_FAIL:
+    return "MAP_DUMP_FAIL";
+    break;
 
-    default:
-      return "UNKNOWN proto_map_rc_t";
+  default:
+    return "UNKNOWN proto_map_rc_t";
   }
 }
 
@@ -97,20 +97,19 @@ static inline const char* map_rc_code2string(proto_map_rc_t rc) {
 **                                                                        **
 ***************************************************************************/
 
-template <typename keyT, typename valueT>
-struct proto_map_s {
-  google::protobuf::Map<keyT, valueT>* map;
+template <typename keyT, typename valueT> struct proto_map_s {
+  google::protobuf::Map<keyT, valueT> *map;
   /* TODO (rsarwad): on final conversion to cpp,
    replace char array with std::string */
   char name[1024];
-  void (*free_callback_func)(void**);
+  void (*free_callback_func)(void **);
 
   proto_map_s() : free_callback_func(nullptr) {}
-  void bind_callback(void (*freefun)(void**)) { free_callback_func = freefun; }
-  void set_name(const char* umap_name) {
+  void bind_callback(void (*freefun)(void **)) { free_callback_func = freefun; }
+  void set_name(const char *umap_name) {
     strncpy(name, umap_name, strlen(umap_name));
   }
-  char* get_name() { return name; }
+  char *get_name() { return name; }
   /***************************************************************************
   **                                                                        **
   ** Name:    get()                                                         **
@@ -121,7 +120,7 @@ struct proto_map_s {
   **                                                                        **
   ***************************************************************************/
 
-  proto_map_rc_t get(const keyT key, valueT* valueP) {
+  proto_map_rc_t get(const keyT key, valueT *valueP) {
     if (!map) {
       return PROTO_MAP_NOT_CREATED;
     }
@@ -187,7 +186,7 @@ struct proto_map_s {
     if (free_callback_func && free_an_entry) {
       valueT value;
       if (get(key, &value) == PROTO_MAP_OK) {
-        free_callback_func(reinterpret_cast<void**>(&value));
+        free_callback_func(reinterpret_cast<void **>(&value));
       } else {
         return PROTO_MAP_KEY_NOT_EXISTS;
       }
@@ -229,7 +228,7 @@ struct proto_map_s {
       for (auto itr = map->begin(); itr != map->end(); itr++) {
         if (free_callback_func) {
           valueT value = itr->second;
-          free_callback_func(reinterpret_cast<void**>(&value));
+          free_callback_func(reinterpret_cast<void **>(&value));
         }
       }
     }
@@ -265,7 +264,7 @@ struct proto_map_s {
       for (auto itr = map->begin(); itr != map->end(); itr++) {
         if (free_callback_func) {
           valueT value = itr->second;
-          free_callback_func(reinterpret_cast<void**>(&value));
+          free_callback_func(reinterpret_cast<void **>(&value));
         }
       }
     }
@@ -284,9 +283,9 @@ struct proto_map_s {
   **                                                                        **
   ***************************************************************************/
   proto_map_rc_t map_apply_callback_on_all_elements(
-      bool funct_cb(const keyT key, const valueT value, void* parameterP,
-                    void** resultP),
-      void* parameterP, void** resultP) {
+      bool funct_cb(const keyT key, const valueT value, void *parameterP,
+                    void **resultP),
+      void *parameterP, void **resultP) {
     if (!map) {
       return PROTO_MAP_NOT_CREATED;
     }
@@ -311,7 +310,7 @@ struct proto_map_s {
   **                                                                        **
   ***************************************************************************/
 
-  proto_map_rc_t update_val(const keyT key, valueT* valueP) {
+  proto_map_rc_t update_val(const keyT key, valueT *valueP) {
     if (!map) {
       return PROTO_MAP_NOT_CREATED;
     }
@@ -342,4 +341,4 @@ typedef magma::proto_map_s<uint32_t, uint32_t> proto_map_uint32_uint32_t;
 // Map- Key: uint64_t, Data: uint32_t
 typedef magma::proto_map_s<uint64_t, uint32_t> proto_map_uint64_uint32_t;
 
-}  // namespace magma
+} // namespace magma

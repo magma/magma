@@ -20,8 +20,8 @@
 *****************************************************************************/
 #pragma once
 
-#include <stdint.h>
 #include "Ngap_NGAP-PDU.h"
+#include <stdint.h>
 
-int ngap_amf_encode_pdu(Ngap_NGAP_PDU_t* message, uint8_t** buffer,
-                        uint32_t* len) __attribute__((warn_unused_result));
+int ngap_amf_encode_pdu(Ngap_NGAP_PDU_t *message, uint8_t **buffer,
+                        uint32_t *len) __attribute__((warn_unused_result));

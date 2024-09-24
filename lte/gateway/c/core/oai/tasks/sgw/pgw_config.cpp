@@ -27,20 +27,20 @@
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
-#include <errno.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <pthread.h>
-#include <libconfig.h>
+#include <errno.h>
 #include <inttypes.h>
+#include <libconfig.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,13 +65,13 @@ extern "C" {
 #define MOBILITYD_API_RETRY_LIMIT 100
 
 //------------------------------------------------------------------------------
-void pgw_config_init(pgw_config_t* config_pP) {
-  memset((char*)config_pP, 0, sizeof(*config_pP));
+void pgw_config_init(pgw_config_t *config_pP) {
+  memset((char *)config_pP, 0, sizeof(*config_pP));
   pthread_rwlock_init(&config_pP->rw_lock, NULL);
 }
 
 //------------------------------------------------------------------------------
-status_code_e pgw_config_process(pgw_config_t* config_pP) {
+status_code_e pgw_config_process(pgw_config_t *config_pP) {
   // Get ipv4 address
   char str[INET_ADDRSTRLEN];
 
@@ -82,7 +82,7 @@ status_code_e pgw_config_process(pgw_config_t* config_pP) {
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     ifr.ifr_addr.sa_family = AF_INET;
 
-    strncpy(ifr.ifr_name, (const char*)config_pP->ipv4.if_name_SGI->data,
+    strncpy(ifr.ifr_name, (const char *)config_pP->ipv4.if_name_SGI->data,
             IFNAMSIZ - 1);
     if (ioctl(fd, SIOCGIFMTU, &ifr)) {
       OAILOG_CRITICAL(LOG_SPGW_APP, "Failed to probe SGI MTU: error %s\n",
@@ -100,15 +100,15 @@ status_code_e pgw_config_process(pgw_config_t* config_pP) {
     memset(&ifr, 0, sizeof(ifr));
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     ifr.ifr_addr.sa_family = AF_INET;
-    strncpy(ifr.ifr_name, (const char*)config_pP->ipv4.if_name_S5_S8->data,
+    strncpy(ifr.ifr_name, (const char *)config_pP->ipv4.if_name_S5_S8->data,
             IFNAMSIZ - 1);
     if (ioctl(fd, SIOCGIFADDR, &ifr)) {
       OAILOG_INFO(LOG_SPGW_APP, "No interface for S5_S8 user plane: error %s\n",
                   strerror(errno));
       close(fd);
     } else {
-      struct sockaddr_in* ipaddr = (struct sockaddr_in*)&ifr.ifr_addr;
-      if (inet_ntop(AF_INET, (const void*)&ipaddr->sin_addr, str,
+      struct sockaddr_in *ipaddr = (struct sockaddr_in *)&ifr.ifr_addr;
+      if (inet_ntop(AF_INET, (const void *)&ipaddr->sin_addr, str,
                     INET_ADDRSTRLEN) == NULL) {
         OAILOG_ERROR(LOG_SPGW_APP, "inet_ntop");
         close(fd);
@@ -162,18 +162,18 @@ status_code_e pgw_config_process(pgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
+status_code_e pgw_config_parse_file(pgw_config_t *config_pP) {
   config_t cfg = {0};
-  config_setting_t* setting_pgw = NULL;
-  config_setting_t* subsetting = NULL;
-  config_setting_t* sub2setting = NULL;
-  char* if_S5_S8 = NULL;
-  char* if_SGI = NULL;
-  char* masquerade_SGI = NULL;
-  char* ue_tcp_mss_clamping = NULL;
-  char* default_dns = NULL;
-  char* default_dns_sec = NULL;
-  const char* astring = NULL;
+  config_setting_t *setting_pgw = NULL;
+  config_setting_t *subsetting = NULL;
+  config_setting_t *sub2setting = NULL;
+  char *if_S5_S8 = NULL;
+  char *if_SGI = NULL;
+  char *masquerade_SGI = NULL;
+  char *ue_tcp_mss_clamping = NULL;
+  char *default_dns = NULL;
+  char *default_dns_sec = NULL;
+  const char *astring = NULL;
   bstring address = NULL;
   bstring cidr = NULL;
   bstring mask = NULL;
@@ -184,10 +184,10 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
   bstring system_cmd = NULL;
   libconfig_int mtu = 0;
   int prefix_mask = 0;
-  char* pcscf_ipv4 = NULL;
-  char* pcscf_ipv6 = NULL;
-  char* dns_ipv6_addr = NULL;
-  char* nat_enabled = NULL;
+  char *pcscf_ipv4 = NULL;
+  char *pcscf_ipv6 = NULL;
+  char *dns_ipv6_addr = NULL;
+  char *nat_enabled = NULL;
 
   config_init(&cfg);
 
@@ -222,16 +222,16 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
     if (subsetting) {
       if ((config_setting_lookup_string(
                subsetting, PGW_CONFIG_STRING_PGW_INTERFACE_NAME_FOR_S5_S8,
-               (const char**)&if_S5_S8) &&
+               (const char **)&if_S5_S8) &&
            config_setting_lookup_string(
                subsetting, PGW_CONFIG_STRING_PGW_INTERFACE_NAME_FOR_SGI,
-               (const char**)&if_SGI) &&
+               (const char **)&if_SGI) &&
            config_setting_lookup_string(subsetting,
                                         PGW_CONFIG_STRING_PGW_MASQUERADE_SGI,
-                                        (const char**)&masquerade_SGI) &&
+                                        (const char **)&masquerade_SGI) &&
            config_setting_lookup_string(subsetting,
                                         PGW_CONFIG_STRING_UE_TCP_MSS_CLAMPING,
-                                        (const char**)&ue_tcp_mss_clamping))) {
+                                        (const char **)&ue_tcp_mss_clamping))) {
         config_pP->ipv4.if_name_S5_S8 = bfromcstr(if_S5_S8);
         config_pP->ipv4.if_name_SGI = bfromcstr(if_SGI);
         OAILOG_DEBUG(LOG_SPGW_APP,
@@ -280,7 +280,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
             AssertFatal(BSTR_OK == btrimws(cidr),
                         "Error in PGW_CONFIG_STRING_IPV4_ADDRESS_LIST %s",
                         astring);
-            struct bstrList* list =
+            struct bstrList *list =
                 bsplit(cidr, PGW_CONFIG_STRING_IPV4_PREFIX_DELIMITER);
             AssertFatal(2 == list->qty, "Bad CIDR address %s", bdata(cidr));
 
@@ -290,7 +290,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
             if (inet_pton(AF_INET, bdata(address), buf_in_addr) == 1) {
               memcpy(&addr_start, buf_in_addr, sizeof(struct in_addr));
               // valid address
-              prefix_mask = atoi((const char*)mask->data);
+              prefix_mask = atoi((const char *)mask->data);
 
               if ((prefix_mask >= 2) && (prefix_mask < 32) &&
                   (config_pP->num_ue_pool < PGW_NUM_UE_POOL_MAX)) {
@@ -315,10 +315,10 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
 
       if (config_setting_lookup_string(
               setting_pgw, PGW_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
-              (const char**)&default_dns) &&
+              (const char **)&default_dns) &&
           config_setting_lookup_string(
               setting_pgw, PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS,
-              (const char**)&default_dns_sec)) {
+              (const char **)&default_dns_sec)) {
         IPV4_STR_ADDR_TO_INADDR(default_dns, config_pP->ipv4.default_dns,
                                 "BAD IPv4 ADDRESS FORMAT FOR DEFAULT DNS !\n");
         IPV4_STR_ADDR_TO_INADDR(
@@ -339,7 +339,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
     }
     config_pP->enable_nat = true;
     if (config_setting_lookup_string(setting_pgw, PGW_CONFIG_STRING_NAT_ENABLED,
-                                     (const char**)&nat_enabled)) {
+                                     (const char **)&nat_enabled)) {
       if (strcasecmp(nat_enabled, "false") == 0) {
         config_pP->enable_nat = false;
       } else {
@@ -351,7 +351,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
 
     if (config_setting_lookup_string(setting_pgw,
                                      PGW_CONFIG_P_CSCF_IPV4_ADDRESS,
-                                     (const char**)&pcscf_ipv4)) {
+                                     (const char **)&pcscf_ipv4)) {
       IPV4_STR_ADDR_TO_INADDR(
           pcscf_ipv4, config_pP->pcscf.ipv4_addr,
           "BAD IPv4 ADDRESS FORMAT FOR P-CSCF IPv4 address !\n");
@@ -364,7 +364,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
 
     if (config_setting_lookup_string(setting_pgw,
                                      PGW_CONFIG_P_CSCF_IPV6_ADDRESS,
-                                     (const char**)&pcscf_ipv6)) {
+                                     (const char **)&pcscf_ipv6)) {
       IPV6_STR_ADDR_TO_INADDR(
           pcscf_ipv6, config_pP->pcscf.ipv6_addr,
           "BAD IPv6 ADDRESS FORMAT FOR P-CSCF IPv6 address !\n");
@@ -377,7 +377,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
 
     if (config_setting_lookup_string(setting_pgw,
                                      PGW_CONFIG_DNS_SERVER_IPV6_ADDRESS,
-                                     (const char**)&dns_ipv6_addr)) {
+                                     (const char **)&dns_ipv6_addr)) {
       IPV6_STR_ADDR_TO_INADDR(
           dns_ipv6_addr, config_pP->ipv6.dns_ipv6_addr,
           "BAD IPv6 ADDRESS FORMAT FOR DNS SERVER IPv6 address !\n");
@@ -390,7 +390,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
 
     if (config_setting_lookup_string(setting_pgw,
                                      PGW_CONFIG_STRING_NAS_FORCE_PUSH_PCO,
-                                     (const char**)&astring)) {
+                                     (const char **)&astring)) {
       if (strcasecmp(astring, "yes") == 0) {
         config_pP->force_push_pco = true;
         OAILOG_DEBUG(
@@ -413,13 +413,13 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
     if (subsetting) {
       if ((config_setting_lookup_string(subsetting,
                                         PGW_CONFIG_STRING_PCEF_ENABLED,
-                                        (const char**)&astring))) {
+                                        (const char **)&astring))) {
         if (strcasecmp(astring, "yes") == 0) {
           config_pP->pcef.enabled = true;
 
           if (config_setting_lookup_string(
                   subsetting, PGW_CONFIG_STRING_TRAFFIC_SHAPPING_ENABLED,
-                  (const char**)&astring)) {
+                  (const char **)&astring)) {
             if (strcasecmp(astring, "yes") == 0) {
               config_pP->pcef.traffic_shaping_enabled = true;
               OAILOG_DEBUG(LOG_SPGW_APP, "Traffic shapping enabled\n");
@@ -430,7 +430,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
 
           if (config_setting_lookup_string(subsetting,
                                            PGW_CONFIG_STRING_TCP_ECN_ENABLED,
-                                           (const char**)&astring)) {
+                                           (const char **)&astring)) {
             if (strcasecmp(astring, "yes") == 0) {
               config_pP->pcef.tcp_ecn_enabled = true;
               OAILOG_DEBUG(LOG_SPGW_APP, "TCP ECN enabled\n");
@@ -512,7 +512,7 @@ status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-void pgw_config_display(pgw_config_t* config_p) {
+void pgw_config_display(pgw_config_t *config_p) {
   OAILOG_INFO(LOG_SPGW_APP, "==== EURECOM %s v%s ====\n", PACKAGE_NAME,
               PACKAGE_VERSION);
   OAILOG_INFO(LOG_SPGW_APP, "Configuration:\n");
@@ -523,7 +523,7 @@ void pgw_config_display(pgw_config_t* config_p) {
   OAILOG_INFO(LOG_SPGW_APP, "    S5_S8 iface ..........: %s\n",
               bdata(config_p->ipv4.if_name_S5_S8));
   OAILOG_INFO(LOG_SPGW_APP, "    S5_S8 ip  (read)......: %s\n",
-              inet_ntoa(*((struct in_addr*)&config_p->ipv4.S5_S8)));
+              inet_ntoa(*((struct in_addr *)&config_p->ipv4.S5_S8)));
   OAILOG_INFO(LOG_SPGW_APP, "    S5_S8 MTU (read)......: %u\n",
               config_p->ipv4.mtu_S5_S8);
   OAILOG_INFO(LOG_SPGW_APP, "- SGi:\n");
@@ -581,15 +581,15 @@ void pgw_config_display(pgw_config_t* config_p) {
   }
   OAILOG_INFO(LOG_SPGW_APP, "- DNS Configuration:\n");
   OAILOG_INFO(LOG_SPGW_APP, "    IPv4 Primary Address ..........: %s\n",
-              inet_ntoa(*((struct in_addr*)&config_p->ipv4.default_dns)));
+              inet_ntoa(*((struct in_addr *)&config_p->ipv4.default_dns)));
   OAILOG_INFO(LOG_SPGW_APP, "    IPv4 Secondary Address ..........: %s\n",
-              inet_ntoa(*((struct in_addr*)&config_p->ipv4.default_dns_sec)));
+              inet_ntoa(*((struct in_addr *)&config_p->ipv4.default_dns_sec)));
   OAILOG_INFO(LOG_SPGW_APP, "- Helpers:\n");
   OAILOG_INFO(LOG_SPGW_APP, "    Push PCO (DNS+MTU) ........: %s\n",
               config_p->force_push_pco == 0 ? "false" : "true");
 }
 
-void free_pgw_config(pgw_config_t* pgw_config_p) {
+void free_pgw_config(pgw_config_t *pgw_config_p) {
   bdestroy_wrapper(&pgw_config_p->ipv4.if_name_S5_S8);
   bdestroy_wrapper(&pgw_config_p->ipv4.if_name_SGI);
   return;

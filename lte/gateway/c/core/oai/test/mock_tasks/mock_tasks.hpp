@@ -19,10 +19,10 @@ extern "C" {
 #define CHECK_PROTOTYPE_ONLY
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 }
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
@@ -30,7 +30,7 @@ extern "C" {
 
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD) \
+#define TASK_DEF(tHREADiD)                                                     \
   {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
 #include "lte/gateway/c/core/oai/include/tasks_def.h"
 #undef TASK_DEF
@@ -48,7 +48,7 @@ const message_info_t messages_info[] = {
 #define END_OF_TESTCASE_SLEEP_MS 100
 #define SLEEP_AT_INITIALIZATION_TIME_MS 500
 class MockS1apHandler {
- public:
+public:
   MOCK_METHOD1(s1ap_generate_downlink_nas_transport,
                void(itti_s1ap_nas_dl_data_req_t cb_req));
   MOCK_METHOD1(s1ap_handle_conn_est_cnf, void(bstring nas_pdu));
@@ -67,7 +67,7 @@ class MockS1apHandler {
 };
 
 class MockMmeAppHandler {
- public:
+public:
   MOCK_METHOD0(mme_app_handle_initial_ue_message, void());
   MOCK_METHOD0(mme_app_handle_s1ap_ue_context_release_req, void());
   MOCK_METHOD0(mme_app_handle_create_sess_resp, void());
@@ -92,12 +92,12 @@ class MockMmeAppHandler {
 };
 
 class MockSctpHandler {
- public:
+public:
   MOCK_METHOD0(sctpd_send_dl, void());
 };
 
 class MockS6aHandler {
- public:
+public:
   MOCK_METHOD0(s6a_viface_authentication_info_req, void());
   MOCK_METHOD0(s6a_viface_update_location_req, void());
   MOCK_METHOD0(s6a_viface_purge_ue, void());
@@ -105,7 +105,7 @@ class MockS6aHandler {
 };
 
 class MockSpgwHandler {
- public:
+public:
   MOCK_METHOD0(sgw_handle_s11_create_session_request, void());
   MOCK_METHOD0(sgw_handle_delete_session_request, void());
   MOCK_METHOD0(sgw_handle_modify_bearer_request, void());
@@ -115,12 +115,12 @@ class MockSpgwHandler {
 };
 
 class MockService303Handler {
- public:
+public:
   MOCK_METHOD0(service303_set_application_health, void());
 };
 
 class MockS8Handler {
- public:
+public:
   MOCK_METHOD1(sgw_s8_handle_create_bearer_request,
                bool(s8_create_bearer_request_t cb_req));
   MOCK_METHOD1(sgw_s8_handle_delete_bearer_request,

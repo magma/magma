@@ -24,8 +24,8 @@
 
 typedef uint8_t paging_identity_t;
 
-int encode_paging_identity(paging_identity_t* pagingidentity, uint8_t iei,
-                           uint8_t* buffer, uint32_t len);
+int encode_paging_identity(paging_identity_t *pagingidentity, uint8_t iei,
+                           uint8_t *buffer, uint32_t len);
 
-int decode_paging_identity(paging_identity_t* pagingidentity, uint8_t iei,
-                           uint8_t* buffer, uint32_t len);
+int decode_paging_identity(paging_identity_t *pagingidentity, uint8_t iei,
+                           uint8_t *buffer, uint32_t len);

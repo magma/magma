@@ -49,7 +49,7 @@ extern "C" {
 */
 
 /* String representation of EMM events */
-static const char* emm_fsm_event_str[] = {
+static const char *emm_fsm_event_str[] = {
     "COMMON_PROC_REQ",
     "COMMON_PROC_CNF",
     "COMMON_PROC_REJ",
@@ -74,7 +74,7 @@ static const char* emm_fsm_event_str[] = {
 };
 
 /* String representation of EMM state */
-static const char* const emm_fsm_status_str[EMM_STATE_MAX] = {
+static const char *const emm_fsm_status_str[EMM_STATE_MAX] = {
     "INVALID",
     "EMM-DEREGISTERED",
     "EMM-REGISTERED",
@@ -89,12 +89,12 @@ static const char* const emm_fsm_status_str[EMM_STATE_MAX] = {
 */
 
 /* Type of the EPS Mobility Management state machine handler */
-typedef status_code_e (*emm_fsm_handler_t)(emm_reg_t* const);
+typedef status_code_e (*emm_fsm_handler_t)(emm_reg_t *const);
 
-status_code_e EmmDeregistered(emm_reg_t* const);
-status_code_e EmmRegistered(emm_reg_t* const);
-status_code_e EmmDeregisteredInitiated(emm_reg_t* const);
-status_code_e EmmCommonProcedureInitiated(emm_reg_t* const);
+status_code_e EmmDeregistered(emm_reg_t *const);
+status_code_e EmmRegistered(emm_reg_t *const);
+status_code_e EmmDeregisteredInitiated(emm_reg_t *const);
+status_code_e EmmCommonProcedureInitiated(emm_reg_t *const);
 
 /* EMM state machine handlers */
 static const emm_fsm_handler_t emm_fsm_handlers[EMM_STATE_MAX] = {
@@ -150,7 +150,7 @@ void emm_fsm_initialize(void) {
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ue_id,
-                                struct emm_context_s* const emm_context,
+                                struct emm_context_s *const emm_context,
                                 const emm_fsm_state_t state) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
@@ -193,8 +193,8 @@ status_code_e emm_fsm_set_state(const mme_ue_s1ap_id_t ue_id,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-emm_fsm_state_t emm_fsm_get_state(
-    const struct emm_context_s* const emm_context) {
+emm_fsm_state_t
+emm_fsm_get_state(const struct emm_context_s *const emm_context) {
   if (emm_context) {
     AssertFatal((emm_context->_emm_fsm_state < EMM_STATE_MAX) &&
                     (emm_context->_emm_fsm_state >= EMM_STATE_MIN),
@@ -208,8 +208,8 @@ emm_fsm_state_t emm_fsm_get_state(
 }
 
 //------------------------------------------------------------------------------
-const char* emm_fsm_get_state_str(
-    const struct emm_context_s* const emm_context) {
+const char *
+emm_fsm_get_state_str(const struct emm_context_s *const emm_context) {
   if (emm_context) {
     emm_fsm_state_t state = emm_fsm_get_state(emm_context);
     return emm_fsm_status_str[state];
@@ -231,14 +231,14 @@ const char* emm_fsm_get_state_str(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_fsm_process(struct emm_reg_s* const evt) {
+status_code_e emm_fsm_process(struct emm_reg_s *const evt) {
   status_code_e rc = RETURNerror;
   emm_fsm_state_t state;
   emm_reg_primitive_t primitive;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   primitive = evt->primitive;
-  emm_context_t* emm_ctx = (emm_context_t*)evt->ctx;
+  emm_context_t *emm_ctx = (emm_context_t *)evt->ctx;
 
   if (emm_ctx) {
     state = emm_fsm_get_state(emm_ctx);

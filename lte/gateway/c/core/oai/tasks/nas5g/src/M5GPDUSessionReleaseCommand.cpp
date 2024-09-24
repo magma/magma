@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseCommand.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseCommand.hpp"
 
 namespace magma5g {
 PDUSessionReleaseCommandMsg::PDUSessionReleaseCommandMsg(){};
@@ -26,7 +26,7 @@ PDUSessionReleaseCommandMsg::~PDUSessionReleaseCommandMsg(){};
 
 // Decode PDUSessionReleaseCommand Message and its IEs
 int PDUSessionReleaseCommandMsg::DecodePDUSessionReleaseCommandMsg(
-    PDUSessionReleaseCommandMsg* pdu_session_release_command, uint8_t* buffer,
+    PDUSessionReleaseCommandMsg *pdu_session_release_command, uint8_t *buffer,
     uint32_t len) {
   // Not yet implemented, will be supported POST MVC
   return 0;
@@ -34,7 +34,7 @@ int PDUSessionReleaseCommandMsg::DecodePDUSessionReleaseCommandMsg(
 
 // Encode PDUSessionReleaseCommand Message and its IEs
 int PDUSessionReleaseCommandMsg::EncodePDUSessionReleaseCommandMsg(
-    PDUSessionReleaseCommandMsg* pdu_session_release_command, uint8_t* buffer,
+    PDUSessionReleaseCommandMsg *pdu_session_release_command, uint8_t *buffer,
     uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
@@ -80,4 +80,4 @@ int PDUSessionReleaseCommandMsg::EncodePDUSessionReleaseCommandMsg(
     encoded += encoded_result;
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

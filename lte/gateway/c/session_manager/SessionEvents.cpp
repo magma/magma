@@ -16,12 +16,12 @@
 #include <folly/json.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
-#include <stdint.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <orc8r/protos/common.pb.h>
 #include <orc8r/protos/eventd.pb.h>
 #include <ostream>
+#include <stdint.h>
 #include <unordered_map>
 #include <utility>
 #include <vector>
@@ -38,7 +38,7 @@
 using magma::orc8r::Event;
 using magma::orc8r::Void;
 
-namespace {  // anonymous
+namespace { // anonymous
 
 const std::string SESSIOND_SERVICE_EV = "sessiond";
 const std::string SESSION_CREATED_EV = "session_created";
@@ -84,24 +84,24 @@ const std::string CHARGING_RX = "charging_rx";
 const std::string MONITORING_TX = "monitoring_tx";
 const std::string MONITORING_RX = "monitoring_rx";
 
-enum CauseForRecordClosing {  // TS 132 298
+enum CauseForRecordClosing { // TS 132 298
   NORMAL_RELEASE = 0,
 };
-enum ServiceConditionChange {  // TS 132 298
+enum ServiceConditionChange { // TS 132 298
   SERVICE_STOP = 1 << 9,
 };
-}  // namespace
+} // namespace
 
 namespace magma {
 namespace lte {
 
-EventsReporterImpl::EventsReporterImpl(EventdClient& eventd_client)
+EventsReporterImpl::EventsReporterImpl(EventdClient &eventd_client)
     : eventd_client_(eventd_client) {}
 
 void EventsReporterImpl::session_created(
-    const std::string& imsi, const std::string& session_id,
-    const SessionConfig& session_context,
-    const std::unique_ptr<SessionState>& session) {
+    const std::string &imsi, const std::string &session_id,
+    const SessionConfig &session_context,
+    const std::unique_ptr<SessionState> &session) {
   auto event = magma::orc8r::Event();
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_CREATED_EV);
@@ -137,7 +137,7 @@ void EventsReporterImpl::session_created(
 }
 
 void EventsReporterImpl::session_create_failure(
-    const SessionConfig& session_context, const std::string& failure_reason) {
+    const SessionConfig &session_context, const std::string &failure_reason) {
   auto event = magma::orc8r::Event();
   const std::string imsi = session_context.get_imsi();
   event.set_stream_name(SESSIOND_SERVICE_EV);
@@ -162,9 +162,9 @@ void EventsReporterImpl::session_create_failure(
   });
 }
 
-void EventsReporterImpl::session_updated(const std::string& session_id,
-                                         const SessionConfig& session_context,
-                                         const UpdateRequests& update_request) {
+void EventsReporterImpl::session_updated(const std::string &session_id,
+                                         const SessionConfig &session_context,
+                                         const UpdateRequests &update_request) {
   auto event = magma::orc8r::Event();
   const std::string imsi = session_context.get_imsi();
 
@@ -194,8 +194,8 @@ void EventsReporterImpl::session_updated(const std::string& session_id,
 }
 
 void EventsReporterImpl::session_update_failure(
-    const std::string& session_id, const SessionConfig& session_context,
-    const UpdateRequests& failed_request, const std::string& failure_reason) {
+    const std::string &session_id, const SessionConfig &session_context,
+    const UpdateRequests &failed_request, const std::string &failure_reason) {
   auto event = magma::orc8r::Event();
   const std::string imsi = session_context.get_imsi();
 
@@ -225,7 +225,7 @@ void EventsReporterImpl::session_update_failure(
 }
 
 void EventsReporterImpl::session_terminated(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session) {
+    const std::string &imsi, const std::unique_ptr<SessionState> &session) {
   auto event = magma::orc8r::Event();
   auto session_cfg = session->get_config();
 
@@ -296,10 +296,10 @@ void EventsReporterImpl::session_terminated(
   });
 }
 
-folly::dynamic EventsReporterImpl::get_update_summary(
-    const UpdateRequests& updates) {
+folly::dynamic
+EventsReporterImpl::get_update_summary(const UpdateRequests &updates) {
   folly::dynamic update_array = folly::dynamic::array;
-  for (const auto& charging : updates.charging_requests) {
+  for (const auto &charging : updates.charging_requests) {
     folly::dynamic data = folly::dynamic::object;
     data[RATING_GROUP] = charging.usage().charging_key();
     if (charging.usage().has_service_identifier()) {
@@ -308,7 +308,7 @@ folly::dynamic EventsReporterImpl::get_update_summary(
     data[UPDATE_REASON] = credit_update_type_to_str(charging.usage().type());
     update_array.push_back(data);
   }
-  for (const auto& monitor : updates.monitor_requests) {
+  for (const auto &monitor : updates.monitor_requests) {
     folly::dynamic data = folly::dynamic::object;
     data[UPDATE_REASON] = event_trigger_to_str(monitor.event_trigger());
     if (monitor.has_update()) {
@@ -319,9 +319,9 @@ folly::dynamic EventsReporterImpl::get_update_summary(
   return update_array;
 }
 
-std::string EventsReporterImpl::get_mac_addr(const SessionConfig& config) {
+std::string EventsReporterImpl::get_mac_addr(const SessionConfig &config) {
   // MacAddr is only relevant for WLAN
-  const auto& rat_specific = config.rat_specific_context;
+  const auto &rat_specific = config.rat_specific_context;
   std::string mac_addr = "";
   if (rat_specific.has_wlan_context()) {
     mac_addr = rat_specific.wlan_context().mac_addr();
@@ -329,9 +329,9 @@ std::string EventsReporterImpl::get_mac_addr(const SessionConfig& config) {
   return mac_addr;
 }
 
-std::string EventsReporterImpl::get_imei(const SessionConfig& config) {
+std::string EventsReporterImpl::get_imei(const SessionConfig &config) {
   // IMEI is only relevant for LTE
-  const auto& rat_specific = config.rat_specific_context;
+  const auto &rat_specific = config.rat_specific_context;
   std::string imei = "";
   if (rat_specific.has_lte_context()) {
     imei = rat_specific.lte_context().imei();
@@ -339,9 +339,9 @@ std::string EventsReporterImpl::get_imei(const SessionConfig& config) {
   return imei;
 }
 
-std::string EventsReporterImpl::get_spgw_ipv4(const SessionConfig& config) {
+std::string EventsReporterImpl::get_spgw_ipv4(const SessionConfig &config) {
   // SPGW_IPV4 is only relevant for LTE
-  const auto& rat_specific = config.rat_specific_context;
+  const auto &rat_specific = config.rat_specific_context;
   std::string spgw_ipv4 = "";
   if (rat_specific.has_lte_context()) {
     spgw_ipv4 = rat_specific.lte_context().spgw_ipv4();
@@ -349,9 +349,9 @@ std::string EventsReporterImpl::get_spgw_ipv4(const SessionConfig& config) {
   return spgw_ipv4;
 }
 
-std::string EventsReporterImpl::get_user_location(const SessionConfig& config) {
+std::string EventsReporterImpl::get_user_location(const SessionConfig &config) {
   // UserLocation is only relevant for LTE
-  const auto& rat_specific = config.rat_specific_context;
+  const auto &rat_specific = config.rat_specific_context;
   std::string user_location = "";
   if (rat_specific.has_lte_context()) {
     user_location = rat_specific.lte_context().user_location();
@@ -360,10 +360,10 @@ std::string EventsReporterImpl::get_user_location(const SessionConfig& config) {
   return magma::bytes_to_hex(user_location);
 }
 
-std::string EventsReporterImpl::get_charging_characteristics(
-    const SessionConfig& config) {
+std::string
+EventsReporterImpl::get_charging_characteristics(const SessionConfig &config) {
   // Charging Characteristics is only relevant for LTE
-  const auto& rat_specific = config.rat_specific_context;
+  const auto &rat_specific = config.rat_specific_context;
   std::string charging_characteristics = "";
   if (rat_specific.has_lte_context()) {
     charging_characteristics =
@@ -373,5 +373,5 @@ std::string EventsReporterImpl::get_charging_characteristics(
   return charging_characteristics;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

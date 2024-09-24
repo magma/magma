@@ -13,11 +13,11 @@
 
 #include "lte/gateway/c/session_manager/AAAClient.hpp"
 
+#include <feg/gateway/services/aaa/protos/accounting.grpc.pb.h>
+#include <feg/gateway/services/aaa/protos/accounting.pb.h>
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/status.h>
-#include <feg/gateway/services/aaa/protos/accounting.grpc.pb.h>
-#include <feg/gateway/services/aaa/protos/accounting.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <memory>
 #include <ostream>
@@ -28,37 +28,38 @@
 
 #include "lte/gateway/c/session_manager/SessionState.hpp"
 #include "lte/gateway/c/session_manager/Types.hpp"
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 using grpc::Status;
 
-namespace {  // anonymous
+namespace { // anonymous
 
-aaa::terminate_session_request create_deactivate_req(
-    const std::string& radius_session_id, const std::string& imsi) {
+aaa::terminate_session_request
+create_deactivate_req(const std::string &radius_session_id,
+                      const std::string &imsi) {
   aaa::terminate_session_request req;
   req.set_radius_session_id(radius_session_id);
   req.set_imsi(imsi);
   return req;
 }
 
-aaa::add_sessions_request create_add_sessions_req(
-    const magma::lte::SessionMap& session_map) {
+aaa::add_sessions_request
+create_add_sessions_req(const magma::lte::SessionMap &session_map) {
   aaa::add_sessions_request req;
   for (auto it = session_map.begin(); it != session_map.end(); it++) {
-    for (const auto& session : it->second) {
+    for (const auto &session : it->second) {
       aaa::context ctx;
       if (!session->is_radius_cwf_session()) {
         continue;
       }
-      const auto& config = session->get_config();
+      const auto &config = session->get_config();
       if (!config.rat_specific_context.has_wlan_context()) {
         MLOG(MWARNING) << "Session " << session->get_session_id() << " does not"
                        << " have WLAN specific session context";
         continue;
       }
-      const auto& wlan_context = config.rat_specific_context.wlan_context();
+      const auto &wlan_context = config.rat_specific_context.wlan_context();
       ctx.set_imsi(session->get_imsi());
       ctx.set_session_id(wlan_context.radius_session_id());
       ctx.set_acct_session_id(session->get_session_id());
@@ -71,7 +72,7 @@ aaa::add_sessions_request create_add_sessions_req(
   return req;
 }
 
-}  // namespace
+} // namespace
 
 namespace aaa {
 
@@ -83,8 +84,8 @@ AsyncAAAClient::AsyncAAAClient()
           magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
               "aaa_server", magma::ServiceRegistrySingleton::LOCAL)) {}
 
-bool AsyncAAAClient::terminate_session(const std::string& radius_session_id,
-                                       const std::string& imsi) {
+bool AsyncAAAClient::terminate_session(const std::string &radius_session_id,
+                                       const std::string &imsi) {
   auto req = create_deactivate_req(radius_session_id, imsi);
   terminate_session_rpc(req, [radius_session_id, imsi](Status status,
                                                        acct_resp resp) {
@@ -100,7 +101,7 @@ bool AsyncAAAClient::terminate_session(const std::string& radius_session_id,
   return true;
 }
 
-bool AsyncAAAClient::add_sessions(const magma::lte::SessionMap& session_map) {
+bool AsyncAAAClient::add_sessions(const magma::lte::SessionMap &session_map) {
   auto req = create_add_sessions_req(session_map);
   if (req.sessions().size() == 0) {
     MLOG(MINFO) << "Not sending add_sessions request to AAA server. No AAA "
@@ -119,7 +120,7 @@ bool AsyncAAAClient::add_sessions(const magma::lte::SessionMap& session_map) {
 }
 
 void AsyncAAAClient::add_sessions_rpc(
-    const add_sessions_request& request,
+    const add_sessions_request &request,
     std::function<void(Status, acct_resp)> callback) {
   auto local_resp = new magma::AsyncLocalResponse<acct_resp>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -128,7 +129,7 @@ void AsyncAAAClient::add_sessions_rpc(
 }
 
 void AsyncAAAClient::terminate_session_rpc(
-    const terminate_session_request& request,
+    const terminate_session_request &request,
     std::function<void(Status, acct_resp)> callback) {
   auto local_resp = new magma::AsyncLocalResponse<acct_resp>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -136,4 +137,4 @@ void AsyncAAAClient::terminate_session_rpc(
       local_resp->get_context(), request, &queue_));
 }
 
-}  // namespace aaa
+} // namespace aaa

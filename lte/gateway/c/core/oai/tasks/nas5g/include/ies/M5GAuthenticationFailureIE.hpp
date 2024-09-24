@@ -10,14 +10,14 @@ limitations under the License.
 */
 
 #pragma once
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // M5GMMCause IE Class
 class M5GAuthenticationFailureIE {
- public:
+public:
   /* Optional Parameters */
   uint8_t iei;
   bstring authentication_failure_info;
@@ -26,7 +26,7 @@ class M5GAuthenticationFailureIE {
   M5GAuthenticationFailureIE();
   ~M5GAuthenticationFailureIE();
   int DecodeM5GAuthenticationFailureIE(
-      M5GAuthenticationFailureIE* m5g_auth_failure_ie, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      M5GAuthenticationFailureIE *m5g_auth_failure_ie, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

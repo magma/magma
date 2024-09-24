@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include <stdint.h>
 
 #define EPS_BEARER_IDENTITY_MINIMUM_LENGTH 1
 #define EPS_BEARER_IDENTITY_MAXIMUM_LENGTH 1

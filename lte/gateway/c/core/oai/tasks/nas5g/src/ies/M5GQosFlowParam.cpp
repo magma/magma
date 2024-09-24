@@ -8,8 +8,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,136 +26,136 @@ namespace magma5g {
 M5GQosFlowParam::M5GQosFlowParam() {}
 M5GQosFlowParam::~M5GQosFlowParam() {}
 
-int M5GQosFlowParam::EncodeM5GQosFlowParam(M5GQosFlowParam* param,
-                                           uint8_t* buffer, uint32_t len) {
+int M5GQosFlowParam::EncodeM5GQosFlowParam(M5GQosFlowParam *param,
+                                           uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   OAILOG_DEBUG(LOG_NAS5G, "EncodeQosFlowParamemeter: ");
   switch (param->iei) {
-    case param_id_5qi: {
-      *(buffer + encoded) = param->iei;
-      OAILOG_DEBUG(LOG_NAS5G, "5Qi iei = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+  case param_id_5qi: {
+    *(buffer + encoded) = param->iei;
+    OAILOG_DEBUG(LOG_NAS5G, "5Qi iei = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->length;
-      OAILOG_DEBUG(LOG_NAS5G, "5Qi length = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->length;
+    OAILOG_DEBUG(LOG_NAS5G, "5Qi length = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->element;
-      OAILOG_DEBUG(LOG_NAS5G, "5Qi = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-    } break;
-    case param_id_mfbr_uplink: {
-      *(buffer + encoded) = param->iei;
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink iei = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->element;
+    OAILOG_DEBUG(LOG_NAS5G, "5Qi = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+  } break;
+  case param_id_mfbr_uplink: {
+    *(buffer + encoded) = param->iei;
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink iei = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->length;
-      OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->length;
+    OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->units;
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink units = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->units;
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink units = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = (param->element & 0Xff00) >> 8;
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink element octet1 = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-      *(buffer + encoded) = param->element & (0X00ff);
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink element octet2 = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-    } break;
-    case param_id_mfbr_downlink: {
-      *(buffer + encoded) = param->iei;
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink iei = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = (param->element & 0Xff00) >> 8;
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink element octet1 = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+    *(buffer + encoded) = param->element & (0X00ff);
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink element octet2 = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+  } break;
+  case param_id_mfbr_downlink: {
+    *(buffer + encoded) = param->iei;
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink iei = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->length;
-      OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->length;
+    OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->units;
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink units = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->units;
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink units = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = (param->element & 0Xff00) >> 8;
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink element octet1 = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-      *(buffer + encoded) = param->element & (0X00ff);
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink element octet2 = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-    } break;
-    case param_id_gfbr_uplink: {
-      *(buffer + encoded) = param->iei;
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink iei = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = (param->element & 0Xff00) >> 8;
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink element octet1 = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+    *(buffer + encoded) = param->element & (0X00ff);
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink element octet2 = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+  } break;
+  case param_id_gfbr_uplink: {
+    *(buffer + encoded) = param->iei;
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink iei = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->length;
-      OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->length;
+    OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->units;
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink units = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->units;
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink units = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = (param->element & 0Xff00) >> 8;
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink element octet1 = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-      *(buffer + encoded) = param->element & (0X00ff);
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink element octet2 = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-    } break;
-    case param_id_gfbr_downlink: {
-      *(buffer + encoded) = param->iei;
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink iei = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = (param->element & 0Xff00) >> 8;
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink element octet1 = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+    *(buffer + encoded) = param->element & (0X00ff);
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink element octet2 = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+  } break;
+  case param_id_gfbr_downlink: {
+    *(buffer + encoded) = param->iei;
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink iei = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->length;
-      OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->length;
+    OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = param->units;
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink units = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
+    *(buffer + encoded) = param->units;
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink units = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
 
-      *(buffer + encoded) = (param->element & 0Xff00) >> 8;
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink element octet1 = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-      *(buffer + encoded) = param->element & (0X00ff);
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink element octet2 = 0X%x",
-                   static_cast<int>(*(buffer + encoded)));
-      encoded++;
-    } break;
-    default: {
-    } break;
+    *(buffer + encoded) = (param->element & 0Xff00) >> 8;
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink element octet1 = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+    *(buffer + encoded) = param->element & (0X00ff);
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink element octet2 = 0X%x",
+                 static_cast<int>(*(buffer + encoded)));
+    encoded++;
+  } break;
+  default: {
+  } break;
   }
   return encoded;
 }
 
-int M5GQosFlowParam::DecodeM5GQosFlowParam(M5GQosFlowParam* param,
-                                           uint8_t* buffer, uint32_t len) {
+int M5GQosFlowParam::DecodeM5GQosFlowParam(M5GQosFlowParam *param,
+                                           uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
 
   OAILOG_DEBUG(LOG_NAS5G, "DecodeM5GQosFlowParam :");
@@ -163,90 +163,90 @@ int M5GQosFlowParam::DecodeM5GQosFlowParam(M5GQosFlowParam* param,
   decoded++;
 
   switch (param->iei) {
-    case param_id_5qi: {
-      OAILOG_DEBUG(LOG_NAS5G, "5Qi iei = 0X%x", static_cast<int>(param->iei));
-      param->length = *(buffer + decoded);
-      decoded++;
-      OAILOG_DEBUG(LOG_NAS5G, "5Qi length = 0X%x",
-                   static_cast<int>(param->length));
-      param->element = *(buffer + decoded);
-      OAILOG_DEBUG(LOG_NAS5G, "5Qi = 0X%x", static_cast<int>(param->element));
-      decoded++;
-    } break;
-    case param_id_gfbr_uplink: {
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink iei = 0X%x",
-                   static_cast<int>(param->iei));
-      param->length = *(buffer + decoded);
-      decoded++;
-      OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
-                   static_cast<int>(param->length));
-      param->units = *(buffer + decoded);
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink units = 0X%x",
-                   static_cast<int>(param->units));
-      decoded++;
-      param->element = *(buffer + decoded);
-      decoded++;
-      param->element |= *(buffer + decoded);
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink element = 0X%x",
-                   static_cast<int>(param->element));
-      decoded++;
-    } break;
-    case param_id_gfbr_downlink: {
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink iei = 0X%x",
-                   static_cast<int>(param->iei));
-      param->length = *(buffer + decoded);
-      decoded++;
-      OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
-                   static_cast<int>(param->length));
-      param->units = *(buffer + decoded);
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink units = 0X%x",
-                   static_cast<int>(param->units));
-      decoded++;
-      param->element = *(buffer + decoded);
-      decoded++;
-      param->element |= *(buffer + decoded);
-      OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink element = 0X%x",
-                   static_cast<int>(param->element));
-      decoded++;
-    } break;
-    case param_id_mfbr_uplink: {
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink iei = 0X%x",
-                   static_cast<int>(param->iei));
-      param->length = *(buffer + decoded);
-      decoded++;
-      OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
-                   static_cast<int>(param->length));
-      param->units = *(buffer + decoded);
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink units = 0X%x",
-                   static_cast<int>(param->units));
-      decoded++;
-      param->element = *(buffer + decoded);
-      decoded++;
-      param->element |= *(buffer + decoded);
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink element = 0X%x",
-                   static_cast<int>(param->element));
-      decoded++;
-    } break;
-    case param_id_mfbr_downlink: {
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink iei = 0X%x",
-                   static_cast<int>(param->iei));
-      param->length = *(buffer + decoded);
-      decoded++;
-      OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
-                   static_cast<int>(param->length));
-      param->units = *(buffer + decoded);
-      decoded++;
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink units = 0X%x",
-                   static_cast<int>(param->units));
-      param->element = *(buffer + decoded);
-      decoded++;
-      param->element |= *(buffer + decoded);
-      OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink element = 0X%x",
-                   static_cast<int>(param->element));
-      decoded++;
-    } break;
-    default: {
-    } break;
+  case param_id_5qi: {
+    OAILOG_DEBUG(LOG_NAS5G, "5Qi iei = 0X%x", static_cast<int>(param->iei));
+    param->length = *(buffer + decoded);
+    decoded++;
+    OAILOG_DEBUG(LOG_NAS5G, "5Qi length = 0X%x",
+                 static_cast<int>(param->length));
+    param->element = *(buffer + decoded);
+    OAILOG_DEBUG(LOG_NAS5G, "5Qi = 0X%x", static_cast<int>(param->element));
+    decoded++;
+  } break;
+  case param_id_gfbr_uplink: {
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink iei = 0X%x",
+                 static_cast<int>(param->iei));
+    param->length = *(buffer + decoded);
+    decoded++;
+    OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
+                 static_cast<int>(param->length));
+    param->units = *(buffer + decoded);
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink units = 0X%x",
+                 static_cast<int>(param->units));
+    decoded++;
+    param->element = *(buffer + decoded);
+    decoded++;
+    param->element |= *(buffer + decoded);
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_uplink element = 0X%x",
+                 static_cast<int>(param->element));
+    decoded++;
+  } break;
+  case param_id_gfbr_downlink: {
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink iei = 0X%x",
+                 static_cast<int>(param->iei));
+    param->length = *(buffer + decoded);
+    decoded++;
+    OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
+                 static_cast<int>(param->length));
+    param->units = *(buffer + decoded);
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink units = 0X%x",
+                 static_cast<int>(param->units));
+    decoded++;
+    param->element = *(buffer + decoded);
+    decoded++;
+    param->element |= *(buffer + decoded);
+    OAILOG_DEBUG(LOG_NAS5G, "gfbr_downlink element = 0X%x",
+                 static_cast<int>(param->element));
+    decoded++;
+  } break;
+  case param_id_mfbr_uplink: {
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink iei = 0X%x",
+                 static_cast<int>(param->iei));
+    param->length = *(buffer + decoded);
+    decoded++;
+    OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
+                 static_cast<int>(param->length));
+    param->units = *(buffer + decoded);
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink units = 0X%x",
+                 static_cast<int>(param->units));
+    decoded++;
+    param->element = *(buffer + decoded);
+    decoded++;
+    param->element |= *(buffer + decoded);
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_uplink element = 0X%x",
+                 static_cast<int>(param->element));
+    decoded++;
+  } break;
+  case param_id_mfbr_downlink: {
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink iei = 0X%x",
+                 static_cast<int>(param->iei));
+    param->length = *(buffer + decoded);
+    decoded++;
+    OAILOG_DEBUG(LOG_NAS5G, "iei length = 0X%x",
+                 static_cast<int>(param->length));
+    param->units = *(buffer + decoded);
+    decoded++;
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink units = 0X%x",
+                 static_cast<int>(param->units));
+    param->element = *(buffer + decoded);
+    decoded++;
+    param->element |= *(buffer + decoded);
+    OAILOG_DEBUG(LOG_NAS5G, "mfbr_downlink element = 0X%x",
+                 static_cast<int>(param->element));
+    decoded++;
+  } break;
+  default: {
+  } break;
   }
 
   return decoded;
@@ -254,7 +254,7 @@ int M5GQosFlowParam::DecodeM5GQosFlowParam(M5GQosFlowParam* param,
 
 // Convert mfbr and gfbr values in proper format
 void M5GQosFlowParam::mfbr_gbr_convert(
-    magma5g::M5GQosFlowParam* flow_des_paramList, uint64_t element) {
+    magma5g::M5GQosFlowParam *flow_des_paramList, uint64_t element) {
   int count = 0;
   while (element > UINT16_MAX) {
     element /= 1024;
@@ -273,4 +273,4 @@ void M5GQosFlowParam::mfbr_gbr_convert(
   }
 }
 
-}  // namespace magma5g
+} // namespace magma5g

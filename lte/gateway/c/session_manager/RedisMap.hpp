@@ -14,14 +14,14 @@
 
 #include <cpp_redis/core/client.hpp>
 #include <cpp_redis/core/reply.hpp>
-#include <glog/logging.h>
-#include <orc8r/protos/redis.pb.h>
-#include <stdint.h>
 #include <cpp_redis/cpp_redis>
 #include <functional>
 #include <future>
+#include <glog/logging.h>
 #include <memory>
+#include <orc8r/protos/redis.pb.h>
 #include <ostream>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -36,24 +36,21 @@ namespace magma {
  * RedisMap stores objects using the redis hash structure. This map requires a
  * serializer and deserializer to store objects as strings in the redis store
  */
-template <typename ObjectType>
-class RedisMap : public ObjectMap<ObjectType> {
- public:
-  RedisMap(std::shared_ptr<cpp_redis::client> client, const std::string& hash,
-           std::function<bool(const ObjectType&, std::string&, uint64_t&)>
+template <typename ObjectType> class RedisMap : public ObjectMap<ObjectType> {
+public:
+  RedisMap(std::shared_ptr<cpp_redis::client> client, const std::string &hash,
+           std::function<bool(const ObjectType &, std::string &, uint64_t &)>
                serializer,
-           std::function<bool(const std::string&, ObjectType&)> deserializer)
-      : client_(client),
-        hash_(hash),
-        serializer_(serializer),
+           std::function<bool(const std::string &, ObjectType &)> deserializer)
+      : client_(client), hash_(hash), serializer_(serializer),
         deserializer_(deserializer) {}
 
   /**
    * set serializes the object passed into a string and stores it at the key.
    * Returns false if the operation was unsuccessful
    */
-  ObjectMapResult set(const std::string& key,
-                      const ObjectType& object) override {
+  ObjectMapResult set(const std::string &key,
+                      const ObjectType &object) override {
     uint64_t version;
     auto res = this->get_version(key, version);
     if (res != SUCCESS) {
@@ -80,7 +77,7 @@ class RedisMap : public ObjectMap<ObjectType> {
    * get returns the object located at key. If the key was not found or the
    * operation was unsuccessful, this returns false
    */
-  ObjectMapResult get(const std::string& key, ObjectType& object_out) override {
+  ObjectMapResult get(const std::string &key, ObjectType &object_out) override {
     auto hget_future = client_->hget(hash_, key);
     client_->sync_commit();
     auto reply = hget_future.get();
@@ -105,7 +102,7 @@ class RedisMap : public ObjectMap<ObjectType> {
   /**
    * getall returns all values stored in the hash
    */
-  ObjectMapResult getall(std::vector<ObjectType>& values_out) override {
+  ObjectMapResult getall(std::vector<ObjectType> &values_out) override {
     return getall(values_out, nullptr);
   }
 
@@ -113,8 +110,8 @@ class RedisMap : public ObjectMap<ObjectType> {
    * getall is an extra overloaded function that also returns the keys of values
    * that failed to be deserialized.
    */
-  ObjectMapResult getall(std::vector<ObjectType>& values_out,
-                         std::vector<std::string>* failed_keys) {
+  ObjectMapResult getall(std::vector<ObjectType> &values_out,
+                         std::vector<std::string> *failed_keys) {
     auto hgetall_future = client_->hgetall(hash_);
     client_->sync_commit();
     auto reply = hgetall_future.get();
@@ -136,13 +133,15 @@ class RedisMap : public ObjectMap<ObjectType> {
       auto value_reply = array[i + 1];
       if (!value_reply.is_string()) {
         MLOG(MERROR) << "Non string value found";
-        if (failed_keys != nullptr) failed_keys->push_back(key);
+        if (failed_keys != nullptr)
+          failed_keys->push_back(key);
         continue;
       }
       ObjectType obj;
       if (!deserializer_(value_reply.as_string(), obj)) {
         MLOG(MERROR) << "Unable to deserialize value in map";
-        if (failed_keys != nullptr) failed_keys->push_back(key);
+        if (failed_keys != nullptr)
+          failed_keys->push_back(key);
         continue;
       }
       values_out.push_back(obj);
@@ -150,12 +149,12 @@ class RedisMap : public ObjectMap<ObjectType> {
     return SUCCESS;
   }
 
- private:
+private:
   /*
    * Return the version of the value for key *key*. Returns 0 if
    * key is not in the map
    */
-  ObjectMapResult get_version(const std::string& key, uint64_t& version) {
+  ObjectMapResult get_version(const std::string &key, uint64_t &version) {
     auto redis_state = RedisState();
     auto res = this->get_redis_state(key, redis_state);
     if (res == KEY_NOT_FOUND) {
@@ -171,8 +170,8 @@ class RedisMap : public ObjectMap<ObjectType> {
   /**
    * Gets the RedisState result that stores the actual value we want
    */
-  ObjectMapResult get_redis_state(const std::string& key,
-                                  RedisState& redis_state) {
+  ObjectMapResult get_redis_state(const std::string &key,
+                                  RedisState &redis_state) {
     auto hget_future = client_->hget(hash_, key);
     client_->sync_commit();
     auto reply = hget_future.get();
@@ -196,8 +195,9 @@ class RedisMap : public ObjectMap<ObjectType> {
 
   std::shared_ptr<cpp_redis::client> client_;
   std::string hash_;
-  std::function<bool(const ObjectType&, std::string&, uint64_t&)> serializer_;
-  std::function<bool(const std::string&, ObjectType&)> deserializer_;
+  std::function<bool(const ObjectType &, std::string &, uint64_t &)>
+      serializer_;
+  std::function<bool(const std::string &, ObjectType &)> deserializer_;
 };
 
-}  // namespace magma
+} // namespace magma

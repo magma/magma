@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,8 +18,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASSecurityAlgorithms.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASSecurityAlgorithms.hpp"
 
 namespace magma5g {
 NASSecurityAlgorithmsMsg::NASSecurityAlgorithmsMsg(){};
@@ -27,7 +27,7 @@ NASSecurityAlgorithmsMsg::~NASSecurityAlgorithmsMsg(){};
 
 // Decode NASSecurityAlgorithms IE
 int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
-    NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei, uint8_t* buffer,
+    NASSecurityAlgorithmsMsg *nas_sec_algorithms, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   uint8_t decoded = 0;
 
@@ -45,7 +45,7 @@ int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
 
 // Encode NASSecurityAlgorithms IE
 int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
-    NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei, uint8_t* buffer,
+    NASSecurityAlgorithmsMsg *nas_sec_algorithms, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
 
@@ -64,4 +64,4 @@ int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
   encoded++;
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

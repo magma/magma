@@ -24,8 +24,8 @@
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
-#include <string.h>
 #include <errno.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -57,13 +57,13 @@ status_code_e s6a_fd_init_dict_objs(void) {
    * Pre-loading vendor object
    */
   CHECK_FD_FCT(fd_dict_search(fd_g_config->cnf_dict, DICT_VENDOR, VENDOR_BY_ID,
-                              (void*)&vendor_3gpp,
+                              (void *)&vendor_3gpp,
                               &s6a_fd_cnf.dataobj_s6a_vendor, ENOENT));
   /*
    * Pre-loading application object
    */
   CHECK_FD_FCT(fd_dict_search(fd_g_config->cnf_dict, DICT_APPLICATION,
-                              APPLICATION_BY_ID, (void*)&app_s6a,
+                              APPLICATION_BY_ID, (void *)&app_s6a,
                               &s6a_fd_cnf.dataobj_s6a_app, ENOENT));
   /*
    * Pre-loading commands objects

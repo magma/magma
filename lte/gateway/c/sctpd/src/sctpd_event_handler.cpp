@@ -20,12 +20,12 @@
 namespace magma {
 namespace sctpd {
 
-SctpdEventHandler::SctpdEventHandler(SctpdUplinkClient& client)
+SctpdEventHandler::SctpdEventHandler(SctpdUplinkClient &client)
     : _client(client) {}
 
 int SctpdEventHandler::HandleNewAssoc(uint32_t ppid, uint32_t assoc_id,
                                       uint32_t instreams, uint32_t outstreams,
-                                      std::string& ran_cp_ipaddr) {
+                                      std::string &ran_cp_ipaddr) {
   NewAssocReq req;
   NewAssocRes res;
 
@@ -52,7 +52,7 @@ void SctpdEventHandler::HandleCloseAssoc(uint32_t ppid, uint32_t assoc_id,
 
 void SctpdEventHandler::HandleRecv(uint32_t ppid, uint32_t assoc_id,
                                    uint32_t stream,
-                                   const std::string& payload) {
+                                   const std::string &payload) {
   SendUlReq req;
   SendUlRes res;
 
@@ -64,5 +64,5 @@ void SctpdEventHandler::HandleRecv(uint32_t ppid, uint32_t assoc_id,
   _client.sendUl(req, &res);
 }
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

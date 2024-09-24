@@ -166,4 +166,4 @@ typedef struct emm_sap_s {
 
 void emm_sap_initialize(void);
 
-status_code_e emm_sap_send(emm_sap_t* msg);
+status_code_e emm_sap_send(emm_sap_t *msg);

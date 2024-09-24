@@ -14,10 +14,10 @@ limitations under the License.
 // --C includes
 #include <stdexcept>
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
 // --C++ includes
@@ -45,7 +45,7 @@ void s1ap_stop_timer(int timer_id) {
 }
 
 //------------------------------------------------------------------------------
-bool s1ap_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id) {
+bool s1ap_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t *ue_id) {
   s1ap_timer_arg_t arg;
   bool result = S1apUeContext::Instance().PopTimerById(timer_id, &arg);
   *ue_id = arg.ue_id;
@@ -71,15 +71,15 @@ void S1apUeContext::StopTimer(int timer_id) {
 }
 
 //------------------------------------------------------------------------------
-bool S1apUeContext::PopTimerById(const int timer_id, s1ap_timer_arg_t* arg) {
+bool S1apUeContext::PopTimerById(const int timer_id, s1ap_timer_arg_t *arg) {
   try {
     *arg = s1ap_timers.at(timer_id);
     s1ap_timers.erase(timer_id);
     return true;
-  } catch (std::out_of_range& e) {
+  } catch (std::out_of_range &e) {
     return false;
   }
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

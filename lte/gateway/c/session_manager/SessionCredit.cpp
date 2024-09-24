@@ -13,10 +13,10 @@
 
 #include "lte/gateway/c/session_manager/SessionCredit.hpp"
 
-#include <glog/logging.h>
-#include <stdlib.h>
 #include <cstdint>
+#include <glog/logging.h>
 #include <ostream>
+#include <stdlib.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -41,15 +41,12 @@ SessionCredit::SessionCredit(ServiceState start_state)
 
 SessionCredit::SessionCredit(ServiceState start_state,
                              CreditLimitType credit_limit_type)
-    : buckets_{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-      reporting_(false),
+    : buckets_{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, reporting_(false),
       credit_limit_type_(credit_limit_type),
-      grant_tracking_type_(TRACKING_UNSET),
-      report_last_credit_(false),
-      time_of_first_usage_(0),
-      time_of_last_usage_(0) {}
+      grant_tracking_type_(TRACKING_UNSET), report_last_credit_(false),
+      time_of_first_usage_(0), time_of_last_usage_(0) {}
 
-SessionCredit::SessionCredit(const StoredSessionCredit& marshaled) {
+SessionCredit::SessionCredit(const StoredSessionCredit &marshaled) {
   reporting_ = marshaled.reporting;
   credit_limit_type_ = marshaled.credit_limit_type;
   grant_tracking_type_ = marshaled.grant_tracking_type;
@@ -103,7 +100,7 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() const {
 }
 
 void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx,
-                                    SessionCreditUpdateCriteria* credit_uc) {
+                                    SessionCreditUpdateCriteria *credit_uc) {
   if (used_tx > 0 || used_rx > 0) {
     buckets_[USED_TX] += used_tx;
     buckets_[USED_RX] += used_rx;
@@ -118,7 +115,7 @@ void SessionCredit::add_used_credit(uint64_t used_tx, uint64_t used_rx,
 }
 
 void SessionCredit::update_usage_timestamps(
-    SessionCreditUpdateCriteria* credit_uc) {
+    SessionCreditUpdateCriteria *credit_uc) {
   auto now = magma::get_time_in_sec_since_epoch();
   if (time_of_first_usage_ == 0) {
     time_of_first_usage_ = now;
@@ -132,7 +129,7 @@ void SessionCredit::update_usage_timestamps(
 }
 
 void SessionCredit::reset_reporting_credit(
-    SessionCreditUpdateCriteria* credit_uc) {
+    SessionCreditUpdateCriteria *credit_uc) {
   buckets_[REPORTING_RX] = 0;
   buckets_[REPORTING_TX] = 0;
   reporting_ = false;
@@ -142,7 +139,7 @@ void SessionCredit::reset_reporting_credit(
 }
 
 void SessionCredit::mark_failure(uint32_t code,
-                                 SessionCreditUpdateCriteria* credit_uc) {
+                                 SessionCreditUpdateCriteria *credit_uc) {
   if (DiameterCodeHandler::is_transient_failure(code)) {
     MLOG(MDEBUG) << "Found transient failure code in mark_failure. Resetting "
                     "'REPORTING' values";
@@ -159,8 +156,8 @@ void SessionCredit::mark_failure(uint32_t code,
 // receive_credit will add received grant to current credits. Note that if
 // there is over-usage, the extra amount will be added to the counters by
 // calculate_delta_allowed_floor and calculate_delta_allowed
-void SessionCredit::receive_credit(const GrantedUnits& gsu,
-                                   SessionCreditUpdateCriteria* credit_uc) {
+void SessionCredit::receive_credit(const GrantedUnits &gsu,
+                                   SessionCreditUpdateCriteria *credit_uc) {
   // only decide the grant tracking type on the very first refill
   if (grant_tracking_type_ == TRACKING_UNSET) {
     grant_tracking_type_ = determine_grant_tracking_type(gsu);
@@ -290,30 +287,30 @@ bool SessionCredit::is_quota_exhausted(float threshold) const {
 
   bool is_exhausted = false;
   switch (grant_tracking_type_) {
-    case TRACKING_UNSET:
-      // in case we haven't even initialized the credit at all but we have
-      // received traffic, then the session should be marked as exhausted
-      is_exhausted = true;
-      break;
-    case ALL_TOTAL_TX_RX:
-      is_exhausted = rx_exhausted || tx_exhausted || total_exhausted;
-      break;
-    case RX_ONLY:
-      is_exhausted = rx_exhausted;
-      break;
-    case TX_ONLY:
-      is_exhausted = tx_exhausted;
-      break;
-    case TX_AND_RX:
-      is_exhausted = rx_exhausted || tx_exhausted;
-      break;
-    case TOTAL_ONLY:
-      is_exhausted = total_exhausted;
-      break;
-    default:
-      MLOG(MERROR) << "Invalid grant_tracking_type="
-                   << grant_type_to_str(grant_tracking_type_);
-      return false;
+  case TRACKING_UNSET:
+    // in case we haven't even initialized the credit at all but we have
+    // received traffic, then the session should be marked as exhausted
+    is_exhausted = true;
+    break;
+  case ALL_TOTAL_TX_RX:
+    is_exhausted = rx_exhausted || tx_exhausted || total_exhausted;
+    break;
+  case RX_ONLY:
+    is_exhausted = rx_exhausted;
+    break;
+  case TX_ONLY:
+    is_exhausted = tx_exhausted;
+    break;
+  case TX_AND_RX:
+    is_exhausted = rx_exhausted || tx_exhausted;
+    break;
+  case TOTAL_ONLY:
+    is_exhausted = total_exhausted;
+    break;
+  default:
+    MLOG(MERROR) << "Invalid grant_tracking_type="
+                 << grant_type_to_str(grant_tracking_type_);
+    return false;
   }
   if (is_exhausted) {
     if (threshold == 1) {
@@ -329,7 +326,7 @@ bool SessionCredit::is_quota_exhausted(float threshold) const {
 }
 
 Usage SessionCredit::get_all_unreported_usage_for_reporting(
-    SessionCreditUpdateCriteria* credit_uc) {
+    SessionCreditUpdateCriteria *credit_uc) {
   auto usage = get_unreported_usage();
   buckets_[REPORTING_TX] += usage.bytes_tx;
   buckets_[REPORTING_RX] += usage.bytes_rx;
@@ -354,7 +351,7 @@ SessionCredit::Summary SessionCredit::get_credit_summary() const {
 }
 
 Usage SessionCredit::get_usage_for_reporting(
-    SessionCreditUpdateCriteria* credit_uc) {
+    SessionCreditUpdateCriteria *credit_uc) {
   auto usage = get_unreported_usage();
   // Apply reporting limits since the user is not getting terminated.
   // We never want to report more than the amount we've received
@@ -475,7 +472,7 @@ uint64_t SessionCredit::get_credit(Bucket bucket) const {
 }
 
 void SessionCredit::set_report_last_credit(
-    bool report_last_credit, SessionCreditUpdateCriteria* credit_uc) {
+    bool report_last_credit, SessionCreditUpdateCriteria *credit_uc) {
   report_last_credit_ = report_last_credit;
   if (credit_uc) {
     credit_uc->report_last_credit = report_last_credit;
@@ -489,7 +486,7 @@ bool SessionCredit::is_report_last_credit() const {
 }
 
 void SessionCredit::apply_update_criteria(
-    const SessionCreditUpdateCriteria& credit_uc) {
+    const SessionCreditUpdateCriteria &credit_uc) {
   grant_tracking_type_ = credit_uc.grant_tracking_type;
   received_granted_units_ = credit_uc.received_granted_units;
   report_last_credit_ = credit_uc.report_last_credit;
@@ -506,8 +503,8 @@ void SessionCredit::apply_update_criteria(
 }
 
 // Determine the grant's tracking type by looking at which values are valid.
-GrantTrackingType SessionCredit::determine_grant_tracking_type(
-    const GrantedUnits& grant) const {
+GrantTrackingType
+SessionCredit::determine_grant_tracking_type(const GrantedUnits &grant) const {
   bool total_valid = grant.total().is_valid() && grant.total().volume() != 0;
   bool tx_valid = grant.tx().is_valid() && grant.tx().volume() != 0;
   bool rx_valid = grant.rx().is_valid() && grant.rx().volume() != 0;
@@ -533,36 +530,36 @@ GrantTrackingType SessionCredit::determine_grant_tracking_type(
 
 bool SessionCredit::current_grant_contains_zero() const {
   switch (grant_tracking_type_) {
-    case ALL_TOTAL_TX_RX:
-      // Monitors should not have this mode enabled
-      MLOG(MWARNING) << "Possible monitor with ALL_TOTAL_TX_RX enabled";
-      return is_received_grented_unit_zero(received_granted_units_.total()) ||
-             is_received_grented_unit_zero(received_granted_units_.tx()) ||
-             is_received_grented_unit_zero(received_granted_units_.rx());
-      break;
-    case RX_ONLY:
-      return is_received_grented_unit_zero(received_granted_units_.rx());
-      break;
-    case TX_ONLY:
-      return is_received_grented_unit_zero(received_granted_units_.tx());
-      break;
-    case TX_AND_RX:
-      return is_received_grented_unit_zero(received_granted_units_.tx()) ||
-             is_received_grented_unit_zero(received_granted_units_.rx());
-      break;
-    case TOTAL_ONLY:
-      return is_received_grented_unit_zero(received_granted_units_.total());
-      break;
-    default:
-      MLOG(MERROR) << "Can't determine if grant has zeroes. "
-                      "tracking type is probably unexpected: "
-                   << grant_tracking_type_;
-      return true;
-      break;
+  case ALL_TOTAL_TX_RX:
+    // Monitors should not have this mode enabled
+    MLOG(MWARNING) << "Possible monitor with ALL_TOTAL_TX_RX enabled";
+    return is_received_grented_unit_zero(received_granted_units_.total()) ||
+           is_received_grented_unit_zero(received_granted_units_.tx()) ||
+           is_received_grented_unit_zero(received_granted_units_.rx());
+    break;
+  case RX_ONLY:
+    return is_received_grented_unit_zero(received_granted_units_.rx());
+    break;
+  case TX_ONLY:
+    return is_received_grented_unit_zero(received_granted_units_.tx());
+    break;
+  case TX_AND_RX:
+    return is_received_grented_unit_zero(received_granted_units_.tx()) ||
+           is_received_grented_unit_zero(received_granted_units_.rx());
+    break;
+  case TOTAL_ONLY:
+    return is_received_grented_unit_zero(received_granted_units_.total());
+    break;
+  default:
+    MLOG(MERROR) << "Can't determine if grant has zeroes. "
+                    "tracking type is probably unexpected: "
+                 << grant_tracking_type_;
+    return true;
+    break;
   }
 }
 
-bool SessionCredit::is_received_grented_unit_zero(const CreditUnit& cu) const {
+bool SessionCredit::is_received_grented_unit_zero(const CreditUnit &cu) const {
   if (!cu.is_valid() || cu.volume() == 0) {
     return true;
   }
@@ -633,4 +630,4 @@ void SessionCredit::log_usage_report(Usage usage) const {
                << " tx=" << buckets_[REPORTING_TX]
                << " rx=" << buckets_[REPORTING_RX];
 }
-}  // namespace magma
+} // namespace magma

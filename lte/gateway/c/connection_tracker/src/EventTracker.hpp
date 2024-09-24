@@ -21,7 +21,7 @@ namespace lte {
 class PacketGenerator;
 
 class EventTracker {
- public:
+public:
   EventTracker(std::shared_ptr<PacketGenerator> pkt_gen, int zone);
 
   int init_conntrack_event_loop();
@@ -30,5 +30,5 @@ class EventTracker {
   int zone_;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

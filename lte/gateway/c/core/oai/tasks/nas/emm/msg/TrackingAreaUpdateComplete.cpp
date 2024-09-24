@@ -22,15 +22,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_tracking_area_update_complete(
-    tracking_area_update_complete_msg* tracking_area_update_complete,
-    uint8_t* buffer, uint32_t len) {
+    tracking_area_update_complete_msg *tracking_area_update_complete,
+    uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
 
   // Check if we got a NULL pointer and if buffer length is >= minimum length
@@ -44,8 +44,8 @@ int decode_tracking_area_update_complete(
 }
 
 int encode_tracking_area_update_complete(
-    tracking_area_update_complete_msg* tracking_area_update_complete,
-    uint8_t* buffer, uint32_t len) {
+    tracking_area_update_complete_msg *tracking_area_update_complete,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   /*

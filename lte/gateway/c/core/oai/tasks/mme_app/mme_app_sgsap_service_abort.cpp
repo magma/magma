@@ -18,14 +18,14 @@
 /*! \file mme_app_sgsap_service_abort.cpp
  */
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
@@ -50,10 +50,10 @@ extern "C" {
  ** Outputs:             Return:    RETURNok, RETURNerror **
  ***********************************************************************************/
 status_code_e mme_app_handle_sgsap_service_abort_request(
-    mme_app_desc_t* mme_app_desc_p,
-    itti_sgsap_service_abort_req_t* const itti_sgsap_service_abort_req_p) {
+    mme_app_desc_t *mme_app_desc_p,
+    itti_sgsap_service_abort_req_t *const itti_sgsap_service_abort_req_p) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
   sgs_fsm_t sgs_fsm;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -88,8 +88,8 @@ status_code_e mme_app_handle_sgsap_service_abort_request(
   sgs_fsm.primitive = _SGS_SERVICE_ABORT_REQUEST;
   sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
   sgs_fsm.ctx = ue_context_p->sgs_context;
-  ((sgs_context_t*)sgs_fsm.ctx)->sgsap_msg =
-      (void*)itti_sgsap_service_abort_req_p;
+  ((sgs_context_t *)sgs_fsm.ctx)->sgsap_msg =
+      (void *)itti_sgsap_service_abort_req_p;
 
   if (sgs_fsm_process(&sgs_fsm) != RETURNok) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -110,10 +110,10 @@ status_code_e mme_app_handle_sgsap_service_abort_request(
  ** Inputs:              sgs_fsm_t **
  ** Outputs:             Return:    RETURNok, RETURNerror **
  ***********************************************************************************/
-status_code_e sgs_fsm_associated_service_abort_request(
-    const sgs_fsm_t* fsm_evt) {
+status_code_e
+sgs_fsm_associated_service_abort_request(const sgs_fsm_t *fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
+  sgs_context_t *sgs_context = (sgs_context_t *)fsm_evt->ctx;
 
   if (sgs_context == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -147,7 +147,7 @@ status_code_e sgs_fsm_associated_service_abort_request(
  ** Inputs:              sgs_fsm_t **
  ** Outputs:             Return:    RETURNok, RETURNerror **
  ***********************************************************************************/
-status_code_e sgs_fsm_null_service_abort_request(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_null_service_abort_request(const sgs_fsm_t *fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(
       LOG_MME_APP,
@@ -166,8 +166,8 @@ status_code_e sgs_fsm_null_service_abort_request(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** Outputs:             Return:    RETURNok, RETURNerror **
 ***********************************************************************************/
-status_code_e sgs_fsm_la_update_req_service_abort_request(
-    const sgs_fsm_t* fsm_evt) {
+status_code_e
+sgs_fsm_la_update_req_service_abort_request(const sgs_fsm_t *fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(
       LOG_MME_APP,

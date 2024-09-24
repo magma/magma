@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
-int decode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
+int decode_pdn_address(PdnAddress *pdnaddress, uint8_t iei, uint8_t *buffer,
                        uint32_t len) {
   int signed_len = len;
   int decoded = 0;
@@ -61,9 +61,9 @@ int decode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
 }
 
 //------------------------------------------------------------------------------
-int encode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
+int encode_pdn_address(PdnAddress *pdnaddress, uint8_t iei, uint8_t *buffer,
                        uint32_t len) {
-  uint8_t* lenPtr;
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
   int encode_result;
 

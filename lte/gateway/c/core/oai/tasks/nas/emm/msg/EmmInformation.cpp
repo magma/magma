@@ -28,10 +28,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"  // decode_time_zone, ...
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h" // decode_time_zone, ...
 
-int decode_emm_information(emm_information_msg* emm_information,
-                           uint8_t* buffer, uint32_t len) {
+int decode_emm_information(emm_information_msg *emm_information,
+                           uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -52,95 +52,95 @@ int decode_emm_information(emm_information_msg* emm_information,
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case EMM_INFORMATION_FULL_NAME_FOR_NETWORK_IEI:
-        if ((decoded_result = decode_network_name_ie(
-                 &emm_information->fullnamefornetwork,
-                 EMM_INFORMATION_FULL_NAME_FOR_NETWORK_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case EMM_INFORMATION_FULL_NAME_FOR_NETWORK_IEI:
+      if ((decoded_result =
+               decode_network_name_ie(&emm_information->fullnamefornetwork,
+                                      EMM_INFORMATION_FULL_NAME_FOR_NETWORK_IEI,
+                                      buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        emm_information->presencemask |=
-            EMM_INFORMATION_FULL_NAME_FOR_NETWORK_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      emm_information->presencemask |=
+          EMM_INFORMATION_FULL_NAME_FOR_NETWORK_PRESENT;
+      break;
 
-      case EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_IEI:
-        if ((decoded_result = decode_network_name_ie(
-                 &emm_information->shortnamefornetwork,
-                 EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_IEI:
+      if ((decoded_result = decode_network_name_ie(
+               &emm_information->shortnamefornetwork,
+               EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_IEI, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        emm_information->presencemask |=
-            EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      emm_information->presencemask |=
+          EMM_INFORMATION_SHORT_NAME_FOR_NETWORK_PRESENT;
+      break;
 
-      case EMM_INFORMATION_LOCAL_TIME_ZONE_IEI:
-        if ((decoded_result =
-                 decode_time_zone(&emm_information->localtimezone,
-                                  EMM_INFORMATION_LOCAL_TIME_ZONE_IEI != 0,
-                                  buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case EMM_INFORMATION_LOCAL_TIME_ZONE_IEI:
+      if ((decoded_result =
+               decode_time_zone(&emm_information->localtimezone,
+                                EMM_INFORMATION_LOCAL_TIME_ZONE_IEI != 0,
+                                buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        emm_information->presencemask |=
-            EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      emm_information->presencemask |= EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT;
+      break;
 
-      case EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI:
-        if ((decoded_result = decode_time_zone_and_time(
-                 &emm_information->universaltimeandlocaltimezone,
-                 EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI != 0,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI:
+      if ((decoded_result = decode_time_zone_and_time(
+               &emm_information->universaltimeandlocaltimezone,
+               EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_IEI != 0,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        emm_information->presencemask |=
-            EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      emm_information->presencemask |=
+          EMM_INFORMATION_UNIVERSAL_TIME_AND_LOCAL_TIME_ZONE_PRESENT;
+      break;
 
-      case MM_DAYLIGHT_SAVING_TIME_IEI:
-        if ((decoded_result = decode_daylight_saving_time_ie(
-                 &emm_information->networkdaylightsavingtime,
-                 MM_DAYLIGHT_SAVING_TIME_IEI != 0, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case MM_DAYLIGHT_SAVING_TIME_IEI:
+      if ((decoded_result = decode_daylight_saving_time_ie(
+               &emm_information->networkdaylightsavingtime,
+               MM_DAYLIGHT_SAVING_TIME_IEI != 0, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        emm_information->presencemask |=
-            EMM_INFORMATION_NETWORK_DAYLIGHT_SAVING_TIME_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      emm_information->presencemask |=
+          EMM_INFORMATION_NETWORK_DAYLIGHT_SAVING_TIME_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
   return decoded;
 }
 
-int encode_emm_information(emm_information_msg* emm_information,
-                           uint8_t* buffer, uint32_t len) {
+int encode_emm_information(emm_information_msg *emm_information,
+                           uint8_t *buffer, uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
 

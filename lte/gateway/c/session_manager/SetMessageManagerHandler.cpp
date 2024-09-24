@@ -19,13 +19,13 @@
 *****************************************************************************/
 #include "lte/gateway/c/session_manager/SetMessageManagerHandler.hpp"
 
+#include <experimental/optional>
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/status_code_enum.h>
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include <experimental/optional>
 #include <ostream>
 #include <string>
 #include <unordered_map>
@@ -43,14 +43,14 @@
 namespace google {
 namespace protobuf {
 class Message;
-}  // namespace protobuf
-}  // namespace google
+} // namespace protobuf
+} // namespace google
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 struct SessionStateUpdateCriteria;
-}  // namespace magma
+} // namespace magma
 
 using grpc::Status;
 
@@ -65,19 +65,17 @@ namespace magma {
 /*Constructor*/
 SetMessageManagerHandler::SetMessageManagerHandler(
     std::shared_ptr<SessionStateEnforcer> m5genforcer,
-    SessionStore& session_store, SessionReporter* reporter,
+    SessionStore &session_store, SessionReporter *reporter,
     std::shared_ptr<EventsReporter> events_reporter)
-    : session_store_(session_store),
-      m5g_enforcer_(m5genforcer),
-      reporter_(reporter),
-      events_reporter_(events_reporter) {}
+    : session_store_(session_store), m5g_enforcer_(m5genforcer),
+      reporter_(reporter), events_reporter_(events_reporter) {}
 
 /* Building session config with required parameters
  * TODO Note: this function can be removed by implementing 5G specific
  * SeesionConfig constructor
  */
 SessionConfig SetMessageManagerHandler::m5g_build_session_config(
-    const SetSMSessionContext& request) {
+    const SetSMSessionContext &request) {
   SessionConfig cfg;
   /*copying only 5G specific data to respective elements*/
   cfg.common_context = request.common_context();
@@ -99,11 +97,11 @@ SessionConfig SetMessageManagerHandler::m5g_build_session_config(
  */
 
 void SetMessageManagerHandler::SetAmfSessionContext(
-    ServerContext* context, const SetSMSessionContext* request,
+    ServerContext *context, const SetSMSessionContext *request,
     std::function<void(Status, SmContextVoid)> response_callback) {
-  auto& request_cpy = *request;
+  auto &request_cpy = *request;
   // Print the message from AMF
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request_cpy));
 
   // Requested message from AMF to release the session
   m5g_enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
@@ -197,40 +195,41 @@ void SetMessageManagerHandler::SetAmfSessionContext(
  * state and version  accordingly take action, write to memory by SessionStore
  */
 void SetMessageManagerHandler::SetSmfNotification(
-    ServerContext* context, const SetSmNotificationContext* notif,
+    ServerContext *context, const SetSmNotificationContext *notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // Print the message from AMF
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(*notif));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(*notif));
   // Read the event type from the proto message
-  auto& noti = *notif;
+  auto &noti = *notif;
   m5g_enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
                                                         noti]() {
     NotifyUeEvents Uevent = noti.rat_specific_notification().notify_ue_event();
     MLOG(MINFO) << "Notification of imsi: " << noti.common_context().sid().id()
                 << " from AMF  Event value:" << Uevent;
     switch (Uevent) {
-      case PDU_SESSION_INACTIVE_NOTIFY:
-        pdu_session_inactive(noti, response_callback);
-        return;
-      case UE_IDLE_MODE_NOTIFY:
-        idle_mode_change_sessions_handle(noti, response_callback);
-        return;
-      case UE_PAGING_NOTIFY:
-        return;
-      case UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY:
-        return;
-      case UE_SERVICE_REQUEST_ON_PAGING:
-        service_handle_request_on_paging(noti, response_callback);
-        return;
-      default:
-        return;
+    case PDU_SESSION_INACTIVE_NOTIFY:
+      pdu_session_inactive(noti, response_callback);
+      return;
+    case UE_IDLE_MODE_NOTIFY:
+      idle_mode_change_sessions_handle(noti, response_callback);
+      return;
+    case UE_PAGING_NOTIFY:
+      return;
+    case UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY:
+      return;
+    case UE_SERVICE_REQUEST_ON_PAGING:
+      service_handle_request_on_paging(noti, response_callback);
+      return;
+    default:
+      return;
     }
   });
 }
 
-static CreateSessionRequest make_create_session_request(
-    const SessionConfig& cfg, const std::string& session_id,
-    const std::unique_ptr<Timezone>& access_timezone) {
+static CreateSessionRequest
+make_create_session_request(const SessionConfig &cfg,
+                            const std::string &session_id,
+                            const std::unique_ptr<Timezone> &access_timezone) {
   CreateSessionRequest create_request;
   create_request.set_session_id(session_id);
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
@@ -246,8 +245,8 @@ static CreateSessionRequest make_create_session_request(
 
 /* Creeate respective SessionState and context*/
 void SetMessageManagerHandler::send_create_session(
-    SessionMap& session_map, const std::string& imsi, SessionConfig& new_cfg,
-    uint32_t& pdu_id,
+    SessionMap &session_map, const std::string &imsi, SessionConfig &new_cfg,
+    uint32_t &pdu_id,
     std::function<void(Status, SmContextVoid)> response_callback) {
   /* If it is new session to be created, check for same PDU_ID exists
    * for same IMSI, i.e if IMSI found and respective PDU_ID found in
@@ -258,7 +257,7 @@ void SetMessageManagerHandler::send_create_session(
   SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_it = session_store_.find_session(session_map, criteria);
   if (session_it) {
-    auto& session = **session_it;
+    auto &session = **session_it;
     /* check if session state is in "CREATING" state
      * then update the state, otherwise fire an error
      */
@@ -358,7 +357,7 @@ void SetMessageManagerHandler::send_create_session(
           MLOG(MINFO) << "Processing a CreateSessionResponse for "
                       << session_id;
           PrintGrpcMessage(
-              static_cast<const google::protobuf::Message&>(response));
+              static_cast<const google::protobuf::Message &>(response));
           auto session_map = session_store_.read_sessions({imsi});
           SessionUpdate update =
               SessionStore::get_default_session_update(session_map);
@@ -370,8 +369,8 @@ void SetMessageManagerHandler::send_create_session(
             response_callback(status, SmContextVoid());
             return;
           }
-          auto& session = **session_it;
-          SessionStateUpdateCriteria* session_uc = &update[imsi][session_id];
+          auto &session = **session_it;
+          SessionStateUpdateCriteria *session_uc = &update[imsi][session_id];
           m5g_enforcer_->update_session_with_policy(session, response,
                                                     session_uc);
           session_store_.update_sessions(update);
@@ -394,7 +393,7 @@ void SetMessageManagerHandler::send_create_session(
 /* This starts releasing the session in main session enforcer thread context
  * Before startting it checks if respective session */
 void SetMessageManagerHandler::initiate_release_session(
-    SessionMap& session_map, const uint32_t& pdu_id, const std::string& imsi) {
+    SessionMap &session_map, const uint32_t &pdu_id, const std::string &imsi) {
   // TODO as modification and dynamic rules are not implemented this may
   // return empty map.
   auto update = SessionStore::get_default_session_update(session_map);
@@ -423,7 +422,7 @@ void SetMessageManagerHandler::initiate_release_session(
  * idle state
  */
 void SetMessageManagerHandler::pdu_session_inactive(
-    const SetSmNotificationContext& notif,
+    const SetSmNotificationContext &notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract values from proto
   uint32_t pdu_id = notif.rat_specific_notification().pdu_session_id();
@@ -432,7 +431,7 @@ void SetMessageManagerHandler::pdu_session_inactive(
   SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_map = session_store_.read_sessions({imsi});
   auto session_it = session_store_.find_session(session_map, criteria);
-  auto& session = **session_it;
+  auto &session = **session_it;
   if (!session_it) {
     MLOG(MINFO) << " No session found for IMSI: " << imsi << " pdu id "
                 << pdu_id;
@@ -463,7 +462,7 @@ void SetMessageManagerHandler::pdu_session_inactive(
   }
   auto session_update = SessionStore::get_default_session_update(session_map);
   auto session_id = session->get_session_id();
-  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+  SessionStateUpdateCriteria &session_uc = session_update[imsi][session_id];
   m5g_enforcer_->m5g_move_to_inactive_state(imsi, **session_it, notif,
                                             &session_uc);
   bool update_success = session_store_.update_sessions(session_update);
@@ -481,17 +480,17 @@ void SetMessageManagerHandler::pdu_session_inactive(
  * sessions moved to idle mode
  */
 void SetMessageManagerHandler::idle_mode_change_sessions_handle(
-    const SetSmNotificationContext& notif,
+    const SetSmNotificationContext &notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract IMSI value from proto
   auto imsi = notif.common_context().sid().id();
   auto session_map = session_store_.read_sessions({imsi});
   int count = 0;
   auto session_update = SessionStore::get_default_session_update(session_map);
-  for (auto& session : session_map[imsi]) {
+  for (auto &session : session_map[imsi]) {
     if (session->get_state() != SESSION_RELEASED) {
       auto session_id = session->get_session_id();
-      SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+      SessionStateUpdateCriteria &session_uc = session_update[imsi][session_id];
       m5g_enforcer_->m5g_move_to_inactive_state(imsi, session, notif,
                                                 &session_uc);
       bool update_success = session_store_.update_sessions(session_update);
@@ -529,7 +528,7 @@ void SetMessageManagerHandler::idle_mode_change_sessions_handle(
  * request is received from AMF.
  */
 void SetMessageManagerHandler::service_handle_request_on_paging(
-    const SetSmNotificationContext& notif,
+    const SetSmNotificationContext &notif,
     std::function<void(Status, SmContextVoid)> response_callback) {
   // extract IMSI value from proto
   auto imsi = notif.common_context().sid().id();
@@ -543,11 +542,11 @@ void SetMessageManagerHandler::service_handle_request_on_paging(
     response_callback(status, SmContextVoid());
     return;
   }
-  auto& session = **session_it;
+  auto &session = **session_it;
   auto session_update = SessionStore::get_default_session_update(session_map);
   if (session->get_state() == INACTIVE) {
     const std::string session_id = session->get_session_id();
-    SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+    SessionStateUpdateCriteria &session_uc = session_update[imsi][session_id];
     m5g_enforcer_->m5g_move_to_active_state(session, notif, &session_uc);
     bool update_success = session_store_.update_sessions(session_update);
     if (!update_success) {
@@ -574,8 +573,8 @@ void SetMessageManagerHandler::service_handle_request_on_paging(
 }
 
 void SetMessageManagerHandler::request_modification_session(
-    SessionMap& session_map, const std::string& imsi, SessionConfig& new_cfg,
-    uint32_t& pdu_id,
+    SessionMap &session_map, const std::string &imsi, SessionConfig &new_cfg,
+    uint32_t &pdu_id,
     std::function<void(Status, SmContextVoid)> response_callback) {
   SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_it = session_store_.find_session(session_map, criteria);
@@ -586,7 +585,7 @@ void SetMessageManagerHandler::request_modification_session(
     response_callback(status, SmContextVoid());
     return;
   }
-  auto& session = **session_it;
+  auto &session = **session_it;
   SessionConfig cfg = session->get_config();
   cfg.rat_specific_context.mutable_m5gsm_session_context()
       ->mutable_gnode_endpoint()
@@ -612,4 +611,4 @@ void SetMessageManagerHandler::request_modification_session(
   return;
 }
 
-}  // end namespace magma
+} // end namespace magma

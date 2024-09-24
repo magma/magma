@@ -12,9 +12,9 @@
  */
 #pragma once
 
+#include <experimental/optional>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <experimental/optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -31,11 +31,11 @@ struct SessionConfig {
   RatSpecificContext rat_specific_context;
 
   SessionConfig() {}
-  explicit SessionConfig(const LocalCreateSessionRequest& request);
-  bool operator==(const SessionConfig& config) const;
+  explicit SessionConfig(const LocalCreateSessionRequest &request);
+  bool operator==(const SessionConfig &config) const;
   std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
-  AggregatedMaximumBitrate_BitrateUnitsAMBR get_apn_ambr_units(
-      QosInformationRequest_BitrateUnitsAMBR units) const;
+  AggregatedMaximumBitrate_BitrateUnitsAMBR
+  get_apn_ambr_units(QosInformationRequest_BitrateUnitsAMBR units) const;
   std::string get_imsi() const { return common_context.sid().id(); }
 };
 
@@ -47,9 +47,9 @@ struct FinalActionInfo {
 };
 
 enum EventTriggerState {
-  PENDING = 0,  // trigger installed
-  READY = 1,    // ready to be reported on
-  CLEARED = 2,  // successfully reported
+  PENDING = 0, // trigger installed
+  READY = 1,   // ready to be reported on
+  CLEARED = 2, // successfully reported
 };
 typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState>
     EventTriggerStatus;
@@ -147,13 +147,13 @@ enum SessionFsmState {
 };
 
 struct RuleLifetime {
-  std::time_t activation_time;    // Unix timestamp
-  std::time_t deactivation_time;  // Unix timestamp
+  std::time_t activation_time;   // Unix timestamp
+  std::time_t deactivation_time; // Unix timestamp
   RuleLifetime() : activation_time(0), deactivation_time(0) {}
   RuleLifetime(const time_t activation, const time_t deactivation)
       : activation_time(activation), deactivation_time(deactivation) {}
-  explicit RuleLifetime(const StaticRuleInstall& rule_install);
-  explicit RuleLifetime(const DynamicRuleInstall& rule_install);
+  explicit RuleLifetime(const StaticRuleInstall &rule_install);
+  explicit RuleLifetime(const DynamicRuleInstall &rule_install);
   bool is_within_lifetime(std::time_t time);
   bool exceeded_lifetime(std::time_t time);
   bool before_lifetime(std::time_t time);
@@ -175,27 +175,27 @@ struct PolicyID {
     rule_id = r_id;
   }
 
-  bool operator==(const PolicyID& id) const {
+  bool operator==(const PolicyID &id) const {
     return rule_id == id.rule_id && policy_type == id.policy_type;
   }
 };
 
 // Custom hash for PolicyID
 struct PolicyIDHash {
-  std::size_t operator()(const PolicyID& id) const {
+  std::size_t operator()(const PolicyID &id) const {
     std::size_t h1 = std::hash<std::string>{}(id.rule_id);
     std::size_t h2 = std::hash<int>{}(int(id.policy_type));
     return h1 ^ (h2 << 1);
   }
 };
 
-bool operator==(const Teids& lhs, const Teids& rhs);
+bool operator==(const Teids &lhs, const Teids &rhs);
 
 struct BearerIDAndTeid {
   uint32_t bearer_id;
   Teids teids;
 
-  bool operator==(const BearerIDAndTeid& id) const {
+  bool operator==(const BearerIDAndTeid &id) const {
     return bearer_id == id.bearer_id && teids == id.teids;
   }
 };
@@ -234,9 +234,7 @@ struct RuleToSchedule {
   RuleToSchedule() {}
   RuleToSchedule(PolicyType _p_type, std::string _rule_id,
                  PolicyAction _p_action, std::time_t _time)
-      : p_type(_p_type),
-        rule_id(_rule_id),
-        p_action(_p_action),
+      : p_type(_p_type), rule_id(_rule_id), p_action(_p_action),
         scheduled_time(_time) {}
 };
 
@@ -259,14 +257,14 @@ struct StatsPerPolicy {
 typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
 
 struct TeidHash {
-  std::size_t operator()(const Teids& teid) const {
+  std::size_t operator()(const Teids &teid) const {
     std::size_t h1 = std::hash<uint32_t>{}(teid.enb_teid());
     std::size_t h2 = std::hash<uint32_t>{}(teid.agw_teid());
     return h1 ^ h2;
   }
 };
 struct TeidEqual {
-  bool operator()(const Teids& lhs, const Teids& rhs) const {
+  bool operator()(const Teids &lhs, const Teids &rhs) const {
     return lhs.agw_teid() == rhs.agw_teid() && lhs.enb_teid() == rhs.enb_teid();
   }
 };
@@ -275,4 +273,4 @@ typedef std::unordered_map<Teids, ActivateFlowsRequest, TeidHash, TeidEqual>
 typedef std::unordered_map<Teids, DeactivateFlowsRequest, TeidHash, TeidEqual>
     DeactivateReqByTeids;
 
-}  // namespace magma
+} // namespace magma

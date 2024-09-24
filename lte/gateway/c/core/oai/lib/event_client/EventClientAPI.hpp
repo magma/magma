@@ -25,7 +25,7 @@ void init_eventd_client();
 
 // This call is async so the return code does not matter here.
 // TODO return void?
-int log_event(const magma::orc8r::Event& event);
+int log_event(const magma::orc8r::Event &event);
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

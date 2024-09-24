@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
@@ -27,7 +27,7 @@ RegistrationAcceptMsg::~RegistrationAcceptMsg(){};
 
 // Decoding Registration Accept Message and its IEs
 int RegistrationAcceptMsg::DecodeRegistrationAcceptMsg(
-    RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len) {
+    RegistrationAcceptMsg *reg_accept, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
@@ -70,7 +70,7 @@ int RegistrationAcceptMsg::DecodeRegistrationAcceptMsg(
 
 // Encoding Registration Accept Message and its IEs
 int RegistrationAcceptMsg::EncodeRegistrationAcceptMsg(
-    RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len) {
+    RegistrationAcceptMsg *reg_accept, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
@@ -138,4 +138,4 @@ int RegistrationAcceptMsg::EncodeRegistrationAcceptMsg(
 
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

@@ -17,10 +17,10 @@
 
 #include "lte/gateway/c/core/oai/lib/event_client/EventClientAPI.hpp"
 
-#include <iostream>
-#include <thread>
 #include <grpcpp/support/status.h>
+#include <iostream>
 #include <orc8r/protos/common.pb.h>
+#include <thread>
 
 #include "orc8r/gateway/c/common/eventd/EventdClient.hpp"
 
@@ -35,12 +35,12 @@ namespace magma {
 namespace lte {
 
 void init_eventd_client() {
-  auto& client = AsyncEventdClient::getInstance();
+  auto &client = AsyncEventdClient::getInstance();
   std::thread resp_loop_thread([&]() { client.rpc_response_loop(); });
   resp_loop_thread.detach();
 }
 
-int log_event(const Event& event) {
+int log_event(const Event &event) {
   AsyncEventdClient::getInstance().log_event(event, [=](Status status, Void v) {
     if (status.ok()) {
       std::cout << "[DEBUG] Success logging event: " << event.event_type()
@@ -49,7 +49,7 @@ int log_event(const Event& event) {
     }
     if (status.error_code() == DEADLINE_EXCEEDED ||
         status.error_code() == UNAVAILABLE) {
-      return 0;  // Suppress error logs if EventD is unavailable
+      return 0; // Suppress error logs if EventD is unavailable
     }
     std::cout << "[ERROR] Failed to log event: " << event.event_type()
               << "; Status: " << status.error_message() << std::endl;
@@ -58,5 +58,5 @@ int log_event(const Event& event) {
   return 0;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

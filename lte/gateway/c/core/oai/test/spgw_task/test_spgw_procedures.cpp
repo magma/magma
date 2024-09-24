@@ -11,13 +11,13 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <cstdint>
+#include <gtest/gtest.h>
 #include <string>
 #include <thread>
 
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 namespace magma {
 namespace lte {
@@ -45,7 +45,7 @@ TEST_F(SPGWAppProcedureTest, TestModifyBearerFailure) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestReleaseBearerSuccess) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
@@ -69,7 +69,7 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerSuccess) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
@@ -95,13 +95,13 @@ TEST_F(SPGWAppProcedureTest, TestReleaseBearerWithInvalidImsi64) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // trigger suspend notification to SPGW task
@@ -127,13 +127,13 @@ TEST_F(SPGWAppProcedureTest, TestSuspendNotification) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // Activate dedicated bearer
@@ -175,5 +175,5 @@ TEST_F(SPGWAppProcedureTest, TestDeleteBearerCommand) {
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

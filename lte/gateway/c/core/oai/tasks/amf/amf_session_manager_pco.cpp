@@ -22,14 +22,14 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/common/rfc_1332.h"
 #include "lte/gateway/c/core/oai/common/rfc_1877.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 
 namespace magma5g {
 
 void sm_clear_protocol_configuration_options(
-    protocol_configuration_options_t* const pco) {
+    protocol_configuration_options_t *const pco) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (pco) {
     for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
@@ -43,9 +43,9 @@ void sm_clear_protocol_configuration_options(
 }
 
 void sm_free_protocol_configuration_options(
-    protocol_configuration_options_t** const protocol_configuration_options) {
+    protocol_configuration_options_t **const protocol_configuration_options) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  protocol_configuration_options_t* pco = *protocol_configuration_options;
+  protocol_configuration_options_t *pco = *protocol_configuration_options;
   if (pco) {
     for (int i = 0; i < pco->num_protocol_or_container_id; i++) {
       if (pco->protocol_or_container_ids[i].contents &&
@@ -58,8 +58,8 @@ void sm_free_protocol_configuration_options(
 }
 
 void sm_copy_protocol_configuration_options(
-    protocol_configuration_options_t* const pco_dst,
-    const protocol_configuration_options_t* const pco_src) {
+    protocol_configuration_options_t *const pco_dst,
+    const protocol_configuration_options_t *const pco_src) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if ((pco_dst) && (pco_src)) {
     memset(pco_dst, 0, sizeof(protocol_configuration_options_t));
@@ -85,8 +85,8 @@ void sm_copy_protocol_configuration_options(
 }
 
 static void sm_pco_push_protocol_or_container_id(
-    protocol_configuration_options_t* const pco,
-    pco_protocol_or_container_id_t* const poc_id) {
+    protocol_configuration_options_t *const pco,
+    pco_protocol_or_container_id_t *const poc_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   pco->protocol_or_container_ids[pco->num_protocol_or_container_id].id =
       poc_id->id;
@@ -100,7 +100,7 @@ static void sm_pco_push_protocol_or_container_id(
 }
 
 uint16_t sm_process_pco_dns_server_request(
-    protocol_configuration_options_t* const pco_resp) {
+    protocol_configuration_options_t *const pco_resp) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
   pco_protocol_or_container_id_t poc_id_resp = {0};
@@ -125,7 +125,7 @@ uint16_t sm_process_pco_dns_server_request(
 }
 
 uint16_t sm_process_pco_p_cscf_address_request(
-    protocol_configuration_options_t* const pco_resp) {
+    protocol_configuration_options_t *const pco_resp) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   in_addr_t pcscf_prim_ipv4_addr = INADDR_NONE;
   pco_protocol_or_container_id_t poc_id_resp = {0};
@@ -150,8 +150,8 @@ uint16_t sm_process_pco_p_cscf_address_request(
 }
 
 uint16_t sm_process_pco_request_ipcp(
-    protocol_configuration_options_t* pco_resp,
-    const pco_protocol_or_container_id_t* const poc_id) {
+    protocol_configuration_options_t *pco_resp,
+    const pco_protocol_or_container_id_t *const poc_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   pco_protocol_or_container_id_t poc_id_resp = {0};
   in_addr_t ipcp_out_dns_prim_ipv4_addr = INADDR_NONE;
@@ -235,7 +235,7 @@ uint16_t sm_process_pco_request_ipcp(
                "0x%x\n",
                ipcp_out_dns_sec_ipv4_addr);
   // finally we can fill code, length
-  poc_id_resp.length = ipcp_out_length;  // fill value after parsing req
+  poc_id_resp.length = ipcp_out_length; // fill value after parsing req
   poc_id_resp.contents->data[0] = IPCP_CODE_CONFIGURE_NACK;
   poc_id_resp.contents->data[1] = 0;
   poc_id_resp.contents->data[2] = (uint8_t)(ipcp_out_length >> 8);
@@ -246,31 +246,31 @@ uint16_t sm_process_pco_request_ipcp(
   OAILOG_FUNC_RETURN(LOG_AMF_APP, ipcp_out_length + SM_PCO_IPCP_HDR_LENGTH);
 }
 
-uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
-                                protocol_configuration_options_t* pco_resp) {
+uint16_t sm_process_pco_request(protocol_configuration_options_t *pco_req,
+                                protocol_configuration_options_t *pco_resp) {
   auto length = 0;
   OAILOG_FUNC_IN(LOG_AMF_APP);
   for (auto id = 0; id < pco_req->num_protocol_or_container_id; id++) {
     switch (pco_req->protocol_or_container_ids[id].id) {
-      case PCO_PI_IPCP:
-        length += sm_process_pco_request_ipcp(
-            pco_resp, &pco_req->protocol_or_container_ids[id]);
-        break;
+    case PCO_PI_IPCP:
+      length += sm_process_pco_request_ipcp(
+          pco_resp, &pco_req->protocol_or_container_ids[id]);
+      break;
 
-      case PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST:
-        length += sm_process_pco_p_cscf_address_request(pco_resp);
-        break;
+    case PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST:
+      length += sm_process_pco_p_cscf_address_request(pco_resp);
+      break;
 
-      case PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST:
-        length += sm_process_pco_dns_server_request(pco_resp);
-        break;
+    case PCO_CI_DNS_SERVER_IPV4_ADDRESS_REQUEST:
+      length += sm_process_pco_dns_server_request(pco_resp);
+      break;
 
-      default:
-        break;
+    default:
+      break;
     }
   }
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, length);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

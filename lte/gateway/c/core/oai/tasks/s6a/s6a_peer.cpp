@@ -23,8 +23,8 @@
 */
 
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -51,7 +51,7 @@ extern "C" {
 
 extern __pid_t g_pid;
 
-void s6a_peer_connected_cb(struct peer_info* info, void* arg) {
+void s6a_peer_connected_cb(struct peer_info *info, void *arg) {
   if (info == NULL) {
     OAILOG_ERROR(LOG_S6A, "Failed to connect to HSS entity\n");
   } else {
@@ -84,7 +84,7 @@ status_code_e s6a_fd_new_peer(void) {
   }
   DiamId_t diamid = bdata(hss_name);
   size_t diamidlen = blength(hss_name);
-  struct peer_hdr* peer = NULL;
+  struct peer_hdr *peer = NULL;
   int nb_tries = 0;
   int timeout = fd_g_config->cnf_timer_tc;
   for (nb_tries = 0; nb_tries < NB_MAX_TRIES; nb_tries++) {
@@ -104,7 +104,7 @@ status_code_e s6a_fd_new_peer(void) {
           send_activate_messages();
 
           {
-            FILE* fp = NULL;
+            FILE *fp = NULL;
             bstring filename = bformat("/tmp/mme_%d.status", g_pid);
             fp = fopen(bdata(filename), "w+");
             bdestroy(filename);
@@ -123,7 +123,7 @@ status_code_e s6a_fd_new_peer(void) {
     sleep(timeout);
   }
   bdestroy(hss_name);
-  free_wrapper((void**)&fd_g_config->cnf_diamid);
+  free_wrapper((void **)&fd_g_config->cnf_diamid);
   fd_g_config->cnf_diamid_len = 0;
 #endif
   return RETURNerror;
@@ -133,7 +133,7 @@ status_code_e s6a_fd_new_peer(void) {
  * Inform S1AP and MME that connection to HSS is established
  */
 void send_activate_messages(void) {
-  MessageDef* message_p;
+  MessageDef *message_p;
   message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, ACTIVATE_MESSAGE);
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);

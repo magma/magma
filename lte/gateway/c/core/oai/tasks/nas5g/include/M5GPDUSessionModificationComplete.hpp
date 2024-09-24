@@ -14,16 +14,16 @@
 #include <vector>
 
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
 
 namespace magma5g {
 
 // PDUSessionModificationCommandComplete Message Class
 class PDUSessionModificationComplete {
- public:
+public:
 #define PDU_SESSION_MODIFICATION_COMPLETE_MIN_LEN 4
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   PDUSessionIdentityMsg pdu_session_identity;
@@ -33,10 +33,10 @@ class PDUSessionModificationComplete {
   PDUSessionModificationComplete();
   ~PDUSessionModificationComplete();
   int DecodePDUSessionModificationComplete(
-      PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
+      PDUSessionModificationComplete *pdu_sess_mod_com, uint8_t *buffer,
       uint32_t len);
   int EncodePDUSessionModificationComplete(
-      PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
+      PDUSessionModificationComplete *pdu_sess_mod_com, uint8_t *buffer,
       uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

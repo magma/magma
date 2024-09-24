@@ -59,7 +59,7 @@ extern "C" {
 */
 
 /* String representation of SGS events */
-static const char* sgs_fsm_event_str[] = {
+static const char *sgs_fsm_event_str[] = {
     "_SGS_LOCATION_UPDATE_ACCEPT", "_SGS_LOCATION_UPDATE_REJECT",
     "_SGS_PAGING_REQUEST",         "_SGS_SERVICE_ABORT_REQUEST",
     "_SGS_EPS_DETACH_IND",         "_SGS_IMSI_DETACH_IND",
@@ -67,7 +67,7 @@ static const char* sgs_fsm_event_str[] = {
 };
 
 /* String representation of SGS state */
-static const char* sgs_fsm_state_str[SGS_STATE_MAX] = {
+static const char *sgs_fsm_state_str[SGS_STATE_MAX] = {
     "_SGS_INVALID",
     "_SGS_NULL",
     "_SGS_LA-UPDATE-REQUESTED",
@@ -81,11 +81,11 @@ static const char* sgs_fsm_state_str[SGS_STATE_MAX] = {
 */
 
 /* Type of the SGS state machine handler */
-typedef status_code_e (*sgs_fsm_handler_t)(const sgs_fsm_t*);
+typedef status_code_e (*sgs_fsm_handler_t)(const sgs_fsm_t *);
 
-status_code_e sgs_null_handler(const sgs_fsm_t*);
-status_code_e sgs_la_update_requested_handler(const sgs_fsm_t*);
-status_code_e sgs_associated_handler(const sgs_fsm_t*);
+status_code_e sgs_null_handler(const sgs_fsm_t *);
+status_code_e sgs_la_update_requested_handler(const sgs_fsm_t *);
+status_code_e sgs_associated_handler(const sgs_fsm_t *);
 
 /* SGS state machine handlers */
 static const sgs_fsm_handler_t sgs_fsm_handlers[SGS_STATE_MAX] = {
@@ -129,7 +129,7 @@ void sgs_fsm_initialize(void) {
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-status_code_e sgs_fsm_process(const sgs_fsm_t* sgs_evt) {
+status_code_e sgs_fsm_process(const sgs_fsm_t *sgs_evt) {
   status_code_e rc = RETURNerror;
   sgs_fsm_state_t state;
   sgs_primitive_t primitive;
@@ -137,7 +137,7 @@ status_code_e sgs_fsm_process(const sgs_fsm_t* sgs_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   primitive = sgs_evt->primitive;
-  sgs_context_t* sgs_ctx = (sgs_context_t*)(sgs_evt->ctx);
+  sgs_context_t *sgs_ctx = (sgs_context_t *)(sgs_evt->ctx);
 
   if (sgs_ctx) {
     state = sgs_fsm_get_status(sgs_evt->ue_id, sgs_ctx);
@@ -173,10 +173,10 @@ status_code_e sgs_fsm_process(const sgs_fsm_t* sgs_evt) {
  **      Others:    _sgs_fsm_state                            **
  **                                                                        **
  ***************************************************************************/
-status_code_e sgs_fsm_set_status(mme_ue_s1ap_id_t ue_id, void* ctx,
+status_code_e sgs_fsm_set_status(mme_ue_s1ap_id_t ue_id, void *ctx,
                                  sgs_fsm_state_t state) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  sgs_context_t* sgs_ctx = (sgs_context_t*)ctx;
+  sgs_context_t *sgs_ctx = (sgs_context_t *)ctx;
 
   if (sgs_ctx == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -215,8 +215,8 @@ status_code_e sgs_fsm_set_status(mme_ue_s1ap_id_t ue_id, void* ctx,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ue_id, void* ctx) {
-  sgs_context_t* sgs_ctx = (sgs_context_t*)ctx;
+sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ue_id, void *ctx) {
+  sgs_context_t *sgs_ctx = (sgs_context_t *)ctx;
 
   if (sgs_ctx) {
     if ((sgs_ctx->sgs_state >= SGS_STATE_MAX) ||

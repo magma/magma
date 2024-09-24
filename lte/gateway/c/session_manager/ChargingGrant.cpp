@@ -13,9 +13,9 @@
 
 #include "lte/gateway/c/session_manager/ChargingGrant.hpp"
 
-#include <glog/logging.h>
 #include <algorithm>
 #include <ctime>
+#include <glog/logging.h>
 #include <limits>
 #include <sstream>
 #include <string>
@@ -27,7 +27,7 @@
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
-ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {
+ChargingGrant::ChargingGrant(const StoredChargingGrant &marshaled) {
   credit = SessionCredit(marshaled.credit);
 
   final_action_info.final_action = marshaled.final_action_info.final_action;
@@ -58,7 +58,7 @@ StoredChargingGrant ChargingGrant::marshal() {
 }
 
 CreditValidity ChargingGrant::get_credit_response_validity_type(
-    const CreditUpdateResponse& update) {
+    const CreditUpdateResponse &update) {
   const uint32_t key = update.charging_key();
   const std::string session_id = update.session_id();
   CreditValidity credit_validity = VALID_CREDIT;
@@ -84,7 +84,7 @@ CreditValidity ChargingGrant::get_credit_response_validity_type(
       update.limit_type() == INFINITE_METERED) {
     return credit_validity;
   }
-  const auto& gsu = update.credit().granted_units();
+  const auto &gsu = update.credit().granted_units();
   bool gsu_all_invalid =
       !gsu.total().is_valid() && !gsu.rx().is_valid() && !gsu.tx().is_valid();
   if (gsu_all_invalid) {
@@ -105,8 +105,8 @@ CreditValidity ChargingGrant::get_credit_response_validity_type(
 }
 
 void ChargingGrant::receive_charging_grant(
-    const CreditUpdateResponse& update,
-    SessionCreditUpdateCriteria* credit_uc) {
+    const CreditUpdateResponse &update,
+    SessionCreditUpdateCriteria *credit_uc) {
   auto p_credit = update.credit();
   credit.receive_credit(p_credit.granted_units(), credit_uc);
 
@@ -115,18 +115,18 @@ void ChargingGrant::receive_charging_grant(
   if (is_final_grant) {
     final_action_info.final_action = p_credit.final_action();
     switch (final_action_info.final_action) {
-      case ChargingCredit_FinalAction_REDIRECT:
-        final_action_info.redirect_server = p_credit.redirect_server();
-        break;
-      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-        // Clear the previous restrict rules
-        final_action_info.restrict_rules.clear();
-        for (auto rule : p_credit.restrict_rules()) {
-          final_action_info.restrict_rules.push_back(rule);
-        }
-        break;
-      default:  // do nothing
-        break;
+    case ChargingCredit_FinalAction_REDIRECT:
+      final_action_info.redirect_server = p_credit.redirect_server();
+      break;
+    case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+      // Clear the previous restrict rules
+      final_action_info.restrict_rules.clear();
+      for (auto rule : p_credit.restrict_rules()) {
+        final_action_info.restrict_rules.push_back(rule);
+      }
+      break;
+    default: // do nothing
+      break;
     }
   }
 
@@ -159,9 +159,10 @@ SessionCreditUpdateCriteria ChargingGrant::get_update_criteria() {
   return credit_uc;
 }
 
-CreditUsage ChargingGrant::get_credit_usage(
-    CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria* credit_uc,
-    bool is_terminate) {
+CreditUsage
+ChargingGrant::get_credit_usage(CreditUsage::UpdateType update_type,
+                                SessionCreditUpdateCriteria *credit_uc,
+                                bool is_terminate) {
   CreditUsage p_usage;
   Usage credit_usage;
 
@@ -188,10 +189,10 @@ CreditUsage ChargingGrant::get_credit_usage(
 }
 
 bool ChargingGrant::get_update_type(
-    CreditUsage::UpdateType* update_type) const {
+    CreditUsage::UpdateType *update_type) const {
   if (credit.is_reporting()) {
     MLOG(MDEBUG) << "is_reporting is True , not sending update";
-    return false;  // No update
+    return false; // No update
   }
   if (reauth_state == REAUTH_REQUIRED) {
     *update_type = CreditUsage::REAUTH_REQUIRED;
@@ -243,24 +244,23 @@ bool ChargingGrant::should_deactivate_service() const {
   return false;
 }
 
-ServiceActionType ChargingGrant::get_action(
-    SessionCreditUpdateCriteria* credit_uc) {
+ServiceActionType
+ChargingGrant::get_action(SessionCreditUpdateCriteria *credit_uc) {
   switch (service_state) {
-    case SERVICE_NEEDS_DEACTIVATION:
-      set_service_state(SERVICE_DISABLED, credit_uc);
-      if (!is_final_grant) {
-        return TERMINATE_SERVICE;
-      }
-      return final_action_to_action(final_action_info.final_action);
-    case SERVICE_NEEDS_ACTIVATION:
-      set_service_state(SERVICE_ENABLED, credit_uc);
-      return ACTIVATE_SERVICE;
-    case SERVICE_NEEDS_SUSPENSION:
-      set_service_state(SERVICE_DISABLED, credit_uc);
-      return final_action_to_action_on_suspension(
-          final_action_info.final_action);
-    default:
-      return CONTINUE_SERVICE;
+  case SERVICE_NEEDS_DEACTIVATION:
+    set_service_state(SERVICE_DISABLED, credit_uc);
+    if (!is_final_grant) {
+      return TERMINATE_SERVICE;
+    }
+    return final_action_to_action(final_action_info.final_action);
+  case SERVICE_NEEDS_ACTIVATION:
+    set_service_state(SERVICE_ENABLED, credit_uc);
+    return ACTIVATE_SERVICE;
+  case SERVICE_NEEDS_SUSPENSION:
+    set_service_state(SERVICE_DISABLED, credit_uc);
+    return final_action_to_action_on_suspension(final_action_info.final_action);
+  default:
+    return CONTINUE_SERVICE;
   }
 }
 
@@ -279,31 +279,31 @@ bool ChargingGrant::should_be_unsuspended() const {
 ServiceActionType ChargingGrant::final_action_to_action(
     const ChargingCredit_FinalAction action) const {
   switch (action) {
-    case ChargingCredit_FinalAction_REDIRECT:
-      return REDIRECT;
-    case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-      return RESTRICT_ACCESS;
-    case ChargingCredit_FinalAction_TERMINATE:
-    default:
-      return TERMINATE_SERVICE;
+  case ChargingCredit_FinalAction_REDIRECT:
+    return REDIRECT;
+  case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+    return RESTRICT_ACCESS;
+  case ChargingCredit_FinalAction_TERMINATE:
+  default:
+    return TERMINATE_SERVICE;
   }
 }
 
 ServiceActionType ChargingGrant::final_action_to_action_on_suspension(
     const ChargingCredit_FinalAction action) const {
   switch (action) {
-    case ChargingCredit_FinalAction_REDIRECT:
-      return REDIRECT;
-    case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-      return RESTRICT_ACCESS;
-    case ChargingCredit_FinalAction_TERMINATE:
-    default:
-      return CONTINUE_SERVICE;
+  case ChargingCredit_FinalAction_REDIRECT:
+    return REDIRECT;
+  case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+    return RESTRICT_ACCESS;
+  case ChargingCredit_FinalAction_TERMINATE:
+  default:
+    return CONTINUE_SERVICE;
   }
 }
 
 void ChargingGrant::set_reauth_state(const ReAuthState new_state,
-                                     SessionCreditUpdateCriteria* credit_uc) {
+                                     SessionCreditUpdateCriteria *credit_uc) {
   if (reauth_state != new_state) {
     MLOG(MDEBUG) << "ReAuth state change from "
                  << reauth_state_to_str(reauth_state) << " to "
@@ -316,7 +316,7 @@ void ChargingGrant::set_reauth_state(const ReAuthState new_state,
 }
 
 void ChargingGrant::set_service_state(const ServiceState new_service_state,
-                                      SessionCreditUpdateCriteria* credit_uc) {
+                                      SessionCreditUpdateCriteria *credit_uc) {
   if (service_state != new_service_state) {
     MLOG(MDEBUG) << "Service state change from "
                  << service_state_to_str(service_state) << " to "
@@ -329,7 +329,7 @@ void ChargingGrant::set_service_state(const ServiceState new_service_state,
 }
 
 void ChargingGrant::set_suspended(bool new_suspended,
-                                  SessionCreditUpdateCriteria* credit_uc) {
+                                  SessionCreditUpdateCriteria *credit_uc) {
   if (suspended != new_suspended) {
     MLOG(MDEBUG) << "Credit suspension set to: " << new_suspended;
   }
@@ -340,33 +340,33 @@ void ChargingGrant::set_suspended(bool new_suspended,
 }
 
 void ChargingGrant::reset_reporting_grant(
-    SessionCreditUpdateCriteria* credit_uc) {
+    SessionCreditUpdateCriteria *credit_uc) {
   credit.reset_reporting_credit(credit_uc);
   if (reauth_state == REAUTH_PROCESSING) {
     set_reauth_state(REAUTH_REQUIRED, credit_uc);
   }
 }
 
-void ChargingGrant::log_received_grant(const CreditUpdateResponse& update) {
+void ChargingGrant::log_received_grant(const CreditUpdateResponse &update) {
   std::ostringstream log;
   log << update.session_id() << " received a credit " << CreditKey(update);
   if (is_final_grant) {
     log << " with final action "
         << final_action_to_str(final_action_info.final_action);
     switch (final_action_info.final_action) {
-      case ChargingCredit_FinalAction_REDIRECT:
-        log << ", redirect_server: "
-            << final_action_info.redirect_server.redirect_server_address();
-        break;
-      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-        log << ", restrict_rules: { ";
-        for (auto rule : final_action_info.restrict_rules) {
-          log << (rule + " ");
-        }
-        log << "}";
-        break;
-      default:  // do nothing;
-        break;
+    case ChargingCredit_FinalAction_REDIRECT:
+      log << ", redirect_server: "
+          << final_action_info.redirect_server.redirect_server_address();
+      break;
+    case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+      log << ", restrict_rules: { ";
+      for (auto rule : final_action_info.restrict_rules) {
+        log << (rule + " ");
+      }
+      log << "}";
+      break;
+    default: // do nothing;
+      break;
     }
   }
   if (update.credit().validity_time() != 0) {
@@ -381,20 +381,20 @@ void ChargingGrant::set_reporting(bool reporting) {
 }
 
 // TODO: make session_manager.proto and policydb.proto to use common field
-static RedirectInformation_AddressType address_type_converter(
-    RedirectServer_RedirectAddressType address_type) {
+static RedirectInformation_AddressType
+address_type_converter(RedirectServer_RedirectAddressType address_type) {
   switch (address_type) {
-    case RedirectServer_RedirectAddressType_IPV4:
-      return RedirectInformation_AddressType_IPv4;
-    case RedirectServer_RedirectAddressType_IPV6:
-      return RedirectInformation_AddressType_IPv6;
-    case RedirectServer_RedirectAddressType_URL:
-      return RedirectInformation_AddressType_URL;
-    case RedirectServer_RedirectAddressType_SIP_URI:
-      return RedirectInformation_AddressType_SIP_URI;
-    default:
-      MLOG(MWARNING) << "Unknown redirect address type!";
-      return RedirectInformation_AddressType_IPv4;
+  case RedirectServer_RedirectAddressType_IPV4:
+    return RedirectInformation_AddressType_IPv4;
+  case RedirectServer_RedirectAddressType_IPV6:
+    return RedirectInformation_AddressType_IPv6;
+  case RedirectServer_RedirectAddressType_URL:
+    return RedirectInformation_AddressType_URL;
+  case RedirectServer_RedirectAddressType_SIP_URI:
+    return RedirectInformation_AddressType_SIP_URI;
+  default:
+    MLOG(MWARNING) << "Unknown redirect address type!";
+    return RedirectInformation_AddressType_IPv4;
   }
 }
 
@@ -402,7 +402,7 @@ PolicyRule ChargingGrant::make_redirect_rule() {
   PolicyRule redirect_rule;
   redirect_rule.set_id("redirect");
   redirect_rule.set_priority(ChargingGrant::REDIRECT_FLOW_PRIORITY);
-  RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
+  RedirectInformation *redirect_info = redirect_rule.mutable_redirect();
   redirect_info->set_support(RedirectInformation_Support_ENABLED);
 
   auto redirect_server = final_action_info.redirect_server;
@@ -411,4 +411,4 @@ PolicyRule ChargingGrant::make_redirect_rule() {
   redirect_info->set_server_address(redirect_server.redirect_server_address());
   return redirect_rule;
 }
-}  // namespace magma
+} // namespace magma

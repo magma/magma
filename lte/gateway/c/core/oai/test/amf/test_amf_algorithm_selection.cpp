@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+#include <gtest/gtest.h>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -39,16 +39,16 @@ TEST(test_algorithm_selection, ue_security_capabilities) {
 
   // If UE supports all the above mentioned algortithms, then AMF should select
   // IA2 and EA0.
-  in_IA = 0xE0;  // 1110 0000
-  in_EA = 0xE0;  // 1110 0000
+  in_IA = 0xE0; // 1110 0000
+  in_EA = 0xE0; // 1110 0000
   EXPECT_EQ(m5g_security_select_algorithms(in_IA, in_EA, &out_IA, &out_EA),
             RETURNok);
   EXPECT_EQ(out_IA, 2);
   EXPECT_EQ(out_EA, 0);
 
   // If UE supports IA0, IA1 and EA0, EA1 , then AMF should select IA1 and EA0.
-  in_IA = 0xC0;  // 1100 0000
-  in_EA = 0xC0;  // 1100 0000
+  in_IA = 0xC0; // 1100 0000
+  in_EA = 0xC0; // 1100 0000
   EXPECT_EQ(m5g_security_select_algorithms(in_IA, in_EA, &out_IA, &out_EA),
             RETURNok);
   EXPECT_EQ(out_IA, 1);
@@ -56,12 +56,12 @@ TEST(test_algorithm_selection, ue_security_capabilities) {
 
   // If UE supports IA0, IA1, IA2 and EA1 EA2, then AMF should select IA2 and
   // EA1.
-  in_IA = 0x60;  // 0110 0000
-  in_EA = 0x60;  // 0110 0000
+  in_IA = 0x60; // 0110 0000
+  in_EA = 0x60; // 0110 0000
   EXPECT_EQ(m5g_security_select_algorithms(in_IA, in_EA, &out_IA, &out_EA),
             RETURNok);
   EXPECT_EQ(out_IA, 2);
   EXPECT_EQ(out_EA, 1);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

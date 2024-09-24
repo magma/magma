@@ -48,7 +48,7 @@ Description Timer utilities
  * failed to be started)
  */
 #define NAS_TIMER_INACTIVE_ID (-1)
-typedef int (*time_out_t)(zloop_t* loop, int timer_id, void* args);
+typedef int (*time_out_t)(zloop_t *loop, int timer_id, void *args);
 
 /****************************************************************************/
 /************************  G L O B A L    T Y P E S  ************************/
@@ -66,11 +66,11 @@ typedef struct timer_arg_s {
 } timer_arg_t;
 
 /* Type of the callback executed when the timer expired */
-typedef void (*nas_timer_callback_t)(void*, imsi64_t* imsi64);
+typedef void (*nas_timer_callback_t)(void *, imsi64_t *imsi64);
 
 typedef struct nas_itti_timer_arg_s {
   nas_timer_callback_t nas_timer_callback;
-  void* nas_timer_callback_arg;
+  void *nas_timer_callback_arg;
 } nas_itti_timer_arg_t;
 
 /****************************************************************************/
@@ -83,6 +83,6 @@ typedef struct nas_itti_timer_arg_s {
 status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);
 
-void nas_timer_start(nas_timer_t* const timer, time_out_t time_out_cb,
-                     timer_arg_t* time_out_cb_args);
-void nas_timer_stop(nas_timer_t* const timer);
+void nas_timer_start(nas_timer_t *const timer, time_out_t time_out_cb,
+                     timer_arg_t *time_out_cb_args);
+void nas_timer_stop(nas_timer_t *const timer);

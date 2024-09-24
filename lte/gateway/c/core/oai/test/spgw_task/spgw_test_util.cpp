@@ -34,7 +34,7 @@ namespace magma {
 namespace lte {
 
 bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
-  map_uint64_spgw_ue_context_t* state_ue_map = get_spgw_ue_state();
+  map_uint64_spgw_ue_context_t *state_ue_map = get_spgw_ue_state();
   if (!state_ue_map) {
     std::cout << "Failed to find spgw_ue_state" << std::endl;
     return false;
@@ -43,12 +43,13 @@ bool is_num_ue_contexts_valid(int expected_num_ue_contexts) {
 }
 
 bool is_num_cp_teids_valid(uint64_t imsi64, int expected_num_teids) {
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(imsi64);
 
-  if (!ue_context_p) return expected_num_teids == 0;
+  if (!ue_context_p)
+    return expected_num_teids == 0;
 
   int num_teids = 0;
-  sgw_s11_teid_t* s11_teid_p = nullptr;
+  sgw_s11_teid_t *s11_teid_p = nullptr;
 
   LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
     if (s11_teid_p &&
@@ -62,12 +63,12 @@ bool is_num_cp_teids_valid(uint64_t imsi64, int expected_num_teids) {
 
 bool is_num_s1_bearers_valid(teid_t context_teid,
                              int expected_num_active_bearers) {
-  magma::lte::oai::S11BearerContext* ctxt_p =
+  magma::lte::oai::S11BearerContext *ctxt_p =
       sgw_cm_get_spgw_context(context_teid);
   if (ctxt_p == nullptr) {
     return false;
   }
-  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+  magma::lte::oai::SgwEpsBearerContextInfo *sgw_context_p =
       ctxt_p->mutable_sgw_eps_bearer_context();
   int num_active_bearers = 0;
   map_uint32_spgw_eps_bearer_context_t eps_bearer_map;
@@ -87,7 +88,7 @@ bool is_num_s1_bearers_valid(teid_t context_teid,
 }
 
 int get_num_pending_create_bearer_procedures(
-    magma::lte::oai::SgwEpsBearerContextInfo* ctxt_p) {
+    magma::lte::oai::SgwEpsBearerContextInfo *ctxt_p) {
   if (ctxt_p == nullptr) {
     return 0;
   }
@@ -95,11 +96,11 @@ int get_num_pending_create_bearer_procedures(
 }
 
 void fill_create_session_request(
-    itti_s11_create_session_request_t* session_request_p,
-    const std::string& imsi_str, teid_t mme_s11_teid, int bearer_id,
+    itti_s11_create_session_request_t *session_request_p,
+    const std::string &imsi_str, teid_t mme_s11_teid, int bearer_id,
     bearer_context_to_be_created_t sample_bearer_context, plmn_t sample_plmn) {
   session_request_p->teid = 0;
-  strncpy((char*)session_request_p->imsi.digit, imsi_str.c_str(),
+  strncpy((char *)session_request_p->imsi.digit, imsi_str.c_str(),
           imsi_str.size());
   session_request_p->imsi.length = imsi_str.size();
   session_request_p->sender_fteid_for_cp.teid = mme_s11_teid;
@@ -129,7 +130,7 @@ void fill_create_session_request(
   session_request_p->sender_fteid_for_cp.teid = (teid_t)1;
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
-      0xc0a83c8e;  // 192.168.60.142
+      0xc0a83c8e; // 192.168.60.142
   session_request_p->sender_fteid_for_cp.ipv4 = 1;
 
   const char default_apn[] = "magma.ipv4";
@@ -150,7 +151,7 @@ void fill_create_session_request(
   session_request_p->serving_network.mnc[2] = sample_plmn.mnc_digit3;
 }
 
-void fill_ip_allocation_response(itti_ip_allocation_response_t* ip_alloc_resp_p,
+void fill_ip_allocation_response(itti_ip_allocation_response_t *ip_alloc_resp_p,
                                  SGIStatus_t status,
                                  teid_t sgw_s11_context_teid,
                                  ebi_t eps_bearer_id, unsigned long ue_ip,
@@ -164,7 +165,7 @@ void fill_ip_allocation_response(itti_ip_allocation_response_t* ip_alloc_resp_p,
 }
 
 void fill_pcef_create_session_response(
-    itti_pcef_create_session_response_t* pcef_csr_resp_p,
+    itti_pcef_create_session_response_t *pcef_csr_resp_p,
     PcefRpcStatus_t rpc_status, teid_t sgw_s11_context_teid,
     ebi_t eps_bearer_id, SGIStatus_t sgi_status) {
   pcef_csr_resp_p->rpc_status = rpc_status;
@@ -174,7 +175,7 @@ void fill_pcef_create_session_response(
 }
 
 void fill_modify_bearer_request(
-    itti_s11_modify_bearer_request_t* modify_bearer_req, teid_t mme_s11_teid,
+    itti_s11_modify_bearer_request_t *modify_bearer_req, teid_t mme_s11_teid,
     teid_t sgw_s11_context_teid, teid_t enb_gtp_teid, int bearer_id,
     ebi_t eps_bearer_id) {
   modify_bearer_req->local_teid = mme_s11_teid;
@@ -209,7 +210,7 @@ void fill_modify_bearer_request(
 }
 
 void fill_delete_session_request(
-    itti_s11_delete_session_request_t* delete_session_req, teid_t mme_s11_teid,
+    itti_s11_delete_session_request_t *delete_session_req, teid_t mme_s11_teid,
     teid_t sgw_s11_context_teid, ebi_t eps_bearer_id, plmn_t test_plmn) {
   delete_session_req->local_teid = mme_s11_teid;
   delete_session_req->teid = sgw_s11_context_teid;
@@ -234,7 +235,7 @@ void fill_delete_session_request(
 }
 
 void fill_release_access_bearer_request(
-    itti_s11_release_access_bearers_request_t* release_access_bearers_req,
+    itti_s11_release_access_bearers_request_t *release_access_bearers_req,
     teid_t mme_s11_teid, teid_t sgw_s11_context_teid) {
   release_access_bearers_req->local_teid = mme_s11_teid;
   release_access_bearers_req->teid = sgw_s11_context_teid;
@@ -244,7 +245,7 @@ void fill_release_access_bearer_request(
   release_access_bearers_req->originating_node = NODE_TYPE_MME;
 }
 
-void fill_packet_filter_content(packet_filter_contents_t* pf_content) {
+void fill_packet_filter_content(packet_filter_contents_t *pf_content) {
   // TODO : Parameterize the protocol, IP Address and port numbers
   pf_content->flags = TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG |
                       TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG |
@@ -267,8 +268,8 @@ void fill_packet_filter_content(packet_filter_contents_t* pf_content) {
 }
 
 void fill_nw_initiated_activate_bearer_request(
-    itti_gx_nw_init_actv_bearer_request_t* gx_nw_init_actv_req_p,
-    const std::string& imsi_str, ebi_t lbi, bearer_qos_t qos) {
+    itti_gx_nw_init_actv_bearer_request_t *gx_nw_init_actv_req_p,
+    const std::string &imsi_str, ebi_t lbi, bearer_qos_t qos) {
   gx_nw_init_actv_req_p->imsi_length = imsi_str.size();
   strncpy(gx_nw_init_actv_req_p->imsi, imsi_str.c_str(), imsi_str.size());
   gx_nw_init_actv_req_p->lbi = lbi;
@@ -279,8 +280,8 @@ void fill_nw_initiated_activate_bearer_request(
   gx_nw_init_actv_req_p->policy_rule_name[DEFAULT_POLICY_RULE_NAME_LEN] = '\0';
   gx_nw_init_actv_req_p->policy_rule_name_length = DEFAULT_POLICY_RULE_NAME_LEN;
 
-  traffic_flow_template_t* ul_tft = &gx_nw_init_actv_req_p->ul_tft;
-  traffic_flow_template_t* dl_tft = &gx_nw_init_actv_req_p->dl_tft;
+  traffic_flow_template_t *ul_tft = &gx_nw_init_actv_req_p->ul_tft;
+  traffic_flow_template_t *dl_tft = &gx_nw_init_actv_req_p->dl_tft;
   memset(ul_tft, 0, sizeof(traffic_flow_template_t));
   memset(dl_tft, 0, sizeof(traffic_flow_template_t));
 
@@ -307,7 +308,7 @@ void fill_nw_initiated_activate_bearer_request(
 }
 
 void fill_nw_initiated_activate_bearer_response(
-    itti_s11_nw_init_actv_bearer_rsp_t* nw_actv_bearer_resp,
+    itti_s11_nw_init_actv_bearer_rsp_t *nw_actv_bearer_resp,
     teid_t mme_s11_teid, teid_t sgw_s11_cp_teid, teid_t sgw_s11_ded_teid,
     teid_t s1u_enb_ded_teid, ebi_t eps_bearer_id, gtpv2c_cause_value_t cause,
     plmn_t plmn) {
@@ -339,8 +340,8 @@ void fill_nw_initiated_activate_bearer_response(
 }
 
 void fill_nw_initiated_deactivate_bearer_request(
-    itti_gx_nw_init_deactv_bearer_request_t* gx_nw_init_deactv_req_p,
-    const std::string& imsi_str, ebi_t lbi, ebi_t eps_bearer_id) {
+    itti_gx_nw_init_deactv_bearer_request_t *gx_nw_init_deactv_req_p,
+    const std::string &imsi_str, ebi_t lbi, ebi_t eps_bearer_id) {
   gx_nw_init_deactv_req_p->imsi_length = imsi_str.size();
   strncpy(gx_nw_init_deactv_req_p->imsi, imsi_str.c_str(), imsi_str.size());
   gx_nw_init_deactv_req_p->lbi = lbi;
@@ -349,7 +350,7 @@ void fill_nw_initiated_deactivate_bearer_request(
 }
 
 void fill_nw_initiated_deactivate_bearer_response(
-    itti_s11_nw_init_deactv_bearer_rsp_t* nw_deactv_bearer_resp,
+    itti_s11_nw_init_deactv_bearer_rsp_t *nw_deactv_bearer_resp,
     uint64_t test_imsi64, bool delete_default_bearer,
     gtpv2c_cause_value_t cause, ebi_t ebi[], unsigned int num_bearer_context,
     teid_t sgw_s11_context_teid) {
@@ -358,7 +359,7 @@ void fill_nw_initiated_deactivate_bearer_response(
 
   if (delete_default_bearer) {
     nw_deactv_bearer_resp->lbi =
-        reinterpret_cast<ebi_t*>(calloc(1, sizeof(ebi_t)));
+        reinterpret_cast<ebi_t *>(calloc(1, sizeof(ebi_t)));
     *nw_deactv_bearer_resp->lbi = ebi[0];
     nw_deactv_bearer_resp->bearer_contexts.bearer_contexts[0]
         .cause.cause_value = cause;
@@ -377,17 +378,17 @@ void fill_nw_initiated_deactivate_bearer_response(
 }
 
 void fill_s11_suspend_notification(
-    itti_s11_suspend_notification_t* suspend_notif, teid_t sgw_s11_context_teid,
-    const std::string& imsi_str, ebi_t link_bearer_id) {
+    itti_s11_suspend_notification_t *suspend_notif, teid_t sgw_s11_context_teid,
+    const std::string &imsi_str, ebi_t link_bearer_id) {
   suspend_notif->teid = sgw_s11_context_teid;
   suspend_notif->lbi = link_bearer_id;
   suspend_notif->imsi.length = imsi_str.size();
-  strncpy((char*)suspend_notif->imsi.digit, imsi_str.c_str(),
+  strncpy((char *)suspend_notif->imsi.digit, imsi_str.c_str(),
           suspend_notif->imsi.length);
 }
 
 void fill_s11_delete_bearer_command(
-    itti_s11_delete_bearer_command_t* delete_bearer_cmd,
+    itti_s11_delete_bearer_command_t *delete_bearer_cmd,
     teid_t sgw_s11_context_teid, teid_t mme_teid_s11, ebi_t ebi) {
   delete_bearer_cmd->teid = sgw_s11_context_teid;
   delete_bearer_cmd->local_teid = mme_teid_s11;
@@ -395,5 +396,5 @@ void fill_s11_delete_bearer_command(
   delete_bearer_cmd->ebi_list.ebis[0] = ebi;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

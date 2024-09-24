@@ -28,9 +28,9 @@
 
  *******************************************************************************/
 
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,9 +65,10 @@ extern "C" {
  * @param ue_context - ue_context pointer
  * @param sgs_detach_type - SGS EPS detach type
  */
-static void mme_app_send_sgs_eps_detach_indication(
-    ue_mm_context_t* ue_context_p, uint8_t detach_type) {
-  MessageDef* message_p = NULL;
+static void
+mme_app_send_sgs_eps_detach_indication(ue_mm_context_t *ue_context_p,
+                                       uint8_t detach_type) {
+  MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(LOG_MME_APP,
@@ -82,7 +83,7 @@ static void mme_app_send_sgs_eps_detach_indication(
                  ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  memset((void*)&message_p->ittiMsg.sgsap_eps_detach_ind, 0,
+  memset((void *)&message_p->ittiMsg.sgsap_eps_detach_ind, 0,
          sizeof(itti_sgsap_eps_detach_ind_t));
 
   IMSI64_TO_STRING(ue_context_p->emm_context._imsi64,
@@ -146,8 +147,8 @@ static void mme_app_send_sgs_eps_detach_indication(
 }
 
 // handle the SGS EPS detach timer expiry
-int mme_app_handle_sgs_eps_detach_timer_expiry(zloop_t* loop, int timer_id,
-                                               void* args) {
+int mme_app_handle_sgs_eps_detach_timer_expiry(zloop_t *loop, int timer_id,
+                                               void *args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -156,7 +157,7 @@ int mme_app_handle_sgs_eps_detach_timer_expiry(zloop_t* loop, int timer_id,
                    timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
-  struct ue_mm_context_s* ue_context_p =
+  struct ue_mm_context_s *ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs eps detach timer");
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
@@ -205,9 +206,9 @@ int mme_app_handle_sgs_eps_detach_timer_expiry(zloop_t* loop, int timer_id,
 }
 
 // handle the SGS Implicit EPS detach timer expiry
-int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(zloop_t* loop,
+int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(zloop_t *loop,
                                                         int timer_id,
-                                                        void* args) {
+                                                        void *args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -216,7 +217,7 @@ int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(zloop_t* loop,
                    timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+  struct ue_mm_context_s *ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "sgs implicit eps detach timer");
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
@@ -264,8 +265,8 @@ int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(zloop_t* loop,
 }
 //------------------------------------------------------------------------------
 void mme_app_send_sgs_imsi_detach_indication(
-    struct ue_mm_context_s* ue_context_p, uint8_t detach_type) {
-  MessageDef* message_p = NULL;
+    struct ue_mm_context_s *ue_context_p, uint8_t detach_type) {
+  MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(LOG_MME_APP,
@@ -280,7 +281,7 @@ void mme_app_send_sgs_imsi_detach_indication(
                  ue_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  memset((void*)&message_p->ittiMsg.sgsap_imsi_detach_ind, 0,
+  memset((void *)&message_p->ittiMsg.sgsap_imsi_detach_ind, 0,
          sizeof(itti_sgsap_imsi_detach_ind_t));
   IMSI64_TO_STRING(ue_context_p->emm_context._imsi64,
                    SGSAP_IMSI_DETACH_IND(message_p).imsi,
@@ -342,8 +343,8 @@ void mme_app_send_sgs_imsi_detach_indication(
 }
 
 /* handle the SGS IMSI detach timer expiry. */
-int mme_app_handle_sgs_imsi_detach_timer_expiry(zloop_t* loop, int timer_id,
-                                                void* args) {
+int mme_app_handle_sgs_imsi_detach_timer_expiry(zloop_t *loop, int timer_id,
+                                                void *args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -352,7 +353,7 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(zloop_t* loop, int timer_id,
                    timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
-  struct ue_mm_context_s* ue_context_p =
+  struct ue_mm_context_s *ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs imsi detach timer");
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
@@ -416,7 +417,7 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(zloop_t* loop, int timer_id,
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context,
                                         ue_context_p->emm_context._imsi64);
-    free_wrapper((void**)&(ue_context_p->sgs_context));
+    free_wrapper((void **)&(ue_context_p->sgs_context));
     increment_counter("sgs_imsi_detach_timer_expired", 1, 1, "cause",
                       "Ts9 timer expired after max retransmission");
   }
@@ -424,9 +425,9 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(zloop_t* loop, int timer_id,
 }
 
 /* handle the SGS Implicit IMSI detach timer expiry. */
-int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(zloop_t* loop,
+int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(zloop_t *loop,
                                                          int timer_id,
-                                                         void* args) {
+                                                         void *args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -435,7 +436,7 @@ int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(zloop_t* loop,
                    timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
+  struct ue_mm_context_s *ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "sgs implicit imsi detach timer");
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
@@ -485,7 +486,7 @@ int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(zloop_t* loop,
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
+void mme_app_handle_sgs_detach_req(ue_mm_context_t *ue_context_p,
                                    emm_proc_sgs_detach_type_t detach_type) {
   sgs_fsm_t evnt = {};
 
@@ -502,50 +503,49 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
     OAILOG_DEBUG(LOG_MME_APP, "SGS Detach type = ( %u )\n", detach_type);
     if (sgs_fsm_get_status(evnt.ue_id, evnt.ctx) != SGS_NULL) {
       switch (detach_type) {
-        // Handle Ue initiated EPS detach towards SGS
-        case EMM_SGS_UE_INITIATED_EPS_DETACH: {
-          ue_context_p->sgs_detach_type = SGS_UE_INITIATED_IMSI_DETACH_FROM_EPS;
-          mme_app_send_sgs_eps_detach_indication(ue_context_p,
-                                                 ue_context_p->sgs_detach_type);
-          evnt.primitive = _SGS_EPS_DETACH_IND;
-        } break;
-        // Handle Ue initiated IMSI detach towards SGS
-        case EMM_SGS_UE_INITIATED_EXPLICIT_NONEPS_DETACH: {
-          ue_context_p->sgs_detach_type =
-              SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS;
-          mme_app_send_sgs_imsi_detach_indication(
-              ue_context_p, ue_context_p->sgs_detach_type);
-          evnt.primitive = _SGS_IMSI_DETACH_IND;
-        } break;
-        // Handle Ue initiated Combined EPS/IMSI detach towards SGS
-        case EMM_SGS_UE_INITIATED_COMBINED_DETACH: {
-          ue_context_p->sgs_detach_type =
-              SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
-          mme_app_send_sgs_imsi_detach_indication(
-              ue_context_p, ue_context_p->sgs_detach_type);
-          evnt.primitive = _SGS_IMSI_DETACH_IND;
-        } break;
-        // Handle Network initiated EPS detach towards SGS
-        case EMM_SGS_NW_INITIATED_EPS_DETACH: {
-          ue_context_p->sgs_detach_type = SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS;
-          mme_app_send_sgs_eps_detach_indication(ue_context_p,
-                                                 ue_context_p->sgs_detach_type);
-          evnt.primitive = _SGS_EPS_DETACH_IND;
-        } break;
-        // Handle Network initiated Implicit IMSI detach towards SGS
-        case EMM_SGS_NW_INITIATED_IMPLICIT_NONEPS_DETACH: {
-          ue_context_p->sgs_detach_type =
-              SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
-          mme_app_send_sgs_imsi_detach_indication(
-              ue_context_p, ue_context_p->sgs_detach_type);
-          evnt.primitive = _SGS_IMSI_DETACH_IND;
-        } break;
-        default:
-          OAILOG_INFO(LOG_MME_APP,
-                      "SGS-DETACH REQ: Ue Id %u Invalid detach type : %u \n",
-                      ue_context_p->mme_ue_s1ap_id,
-                      ue_context_p->sgs_detach_type);
-          break;
+      // Handle Ue initiated EPS detach towards SGS
+      case EMM_SGS_UE_INITIATED_EPS_DETACH: {
+        ue_context_p->sgs_detach_type = SGS_UE_INITIATED_IMSI_DETACH_FROM_EPS;
+        mme_app_send_sgs_eps_detach_indication(ue_context_p,
+                                               ue_context_p->sgs_detach_type);
+        evnt.primitive = _SGS_EPS_DETACH_IND;
+      } break;
+      // Handle Ue initiated IMSI detach towards SGS
+      case EMM_SGS_UE_INITIATED_EXPLICIT_NONEPS_DETACH: {
+        ue_context_p->sgs_detach_type =
+            SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS;
+        mme_app_send_sgs_imsi_detach_indication(ue_context_p,
+                                                ue_context_p->sgs_detach_type);
+        evnt.primitive = _SGS_IMSI_DETACH_IND;
+      } break;
+      // Handle Ue initiated Combined EPS/IMSI detach towards SGS
+      case EMM_SGS_UE_INITIATED_COMBINED_DETACH: {
+        ue_context_p->sgs_detach_type =
+            SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
+        mme_app_send_sgs_imsi_detach_indication(ue_context_p,
+                                                ue_context_p->sgs_detach_type);
+        evnt.primitive = _SGS_IMSI_DETACH_IND;
+      } break;
+      // Handle Network initiated EPS detach towards SGS
+      case EMM_SGS_NW_INITIATED_EPS_DETACH: {
+        ue_context_p->sgs_detach_type = SGS_NW_INITIATED_IMSI_DETACH_FROM_EPS;
+        mme_app_send_sgs_eps_detach_indication(ue_context_p,
+                                               ue_context_p->sgs_detach_type);
+        evnt.primitive = _SGS_EPS_DETACH_IND;
+      } break;
+      // Handle Network initiated Implicit IMSI detach towards SGS
+      case EMM_SGS_NW_INITIATED_IMPLICIT_NONEPS_DETACH: {
+        ue_context_p->sgs_detach_type =
+            SGS_IMPLICIT_NW_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS;
+        mme_app_send_sgs_imsi_detach_indication(ue_context_p,
+                                                ue_context_p->sgs_detach_type);
+        evnt.primitive = _SGS_IMSI_DETACH_IND;
+      } break;
+      default:
+        OAILOG_INFO(
+            LOG_MME_APP, "SGS-DETACH REQ: Ue Id %u Invalid detach type : %u \n",
+            ue_context_p->mme_ue_s1ap_id, ue_context_p->sgs_detach_type);
+        break;
       }
       /*
        * Call the SGS FSM to process the respective message
@@ -563,10 +563,10 @@ void mme_app_handle_sgs_detach_req(ue_mm_context_t* ue_context_p,
 }
 
 status_code_e mme_app_handle_sgs_eps_detach_ack(
-    mme_app_desc_t* mme_app_desc_p,
-    const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p) {
+    mme_app_desc_t *mme_app_desc_p,
+    const itti_sgsap_eps_detach_ack_t *const eps_detach_ack_p) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (eps_detach_ack_p == NULL) {
@@ -602,7 +602,7 @@ status_code_e mme_app_handle_sgs_eps_detach_ack(
     if (ue_context_p->sgs_context != NULL) {
       // free the sgs context
       mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context, imsi64);
-      free_wrapper((void**)&(ue_context_p->sgs_context));
+      free_wrapper((void **)&(ue_context_p->sgs_context));
     }
   } else {
     OAILOG_ERROR(
@@ -614,10 +614,10 @@ status_code_e mme_app_handle_sgs_eps_detach_ack(
 }
 
 status_code_e mme_app_handle_sgs_imsi_detach_ack(
-    mme_app_desc_t* mme_app_desc_p,
-    const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p) {
+    mme_app_desc_t *mme_app_desc_p,
+    const itti_sgsap_imsi_detach_ack_t *const imsi_detach_ack_p) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
   status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -687,7 +687,7 @@ status_code_e mme_app_handle_sgs_imsi_detach_ack(
     // Free the UE SGS context
     mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context,
                                         ue_context_p->emm_context._imsi64);
-    free_wrapper((void**)&(ue_context_p->sgs_context));
+    free_wrapper((void **)&(ue_context_p->sgs_context));
   } else {
     OAILOG_ERROR(
         LOG_MME_APP,

@@ -24,8 +24,8 @@
 
 typedef uint8_t ss_code_t;
 
-int encode_ss_code(ss_code_t* sscode, uint8_t iei, uint8_t* buffer,
+int encode_ss_code(ss_code_t *sscode, uint8_t iei, uint8_t *buffer,
                    uint32_t len);
 
-int decode_ss_code(ss_code_t* sscode, uint8_t iei, uint8_t* buffer,
+int decode_ss_code(ss_code_t *sscode, uint8_t iei, uint8_t *buffer,
                    uint32_t len);

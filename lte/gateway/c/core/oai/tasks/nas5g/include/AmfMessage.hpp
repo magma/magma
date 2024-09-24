@@ -10,27 +10,27 @@
  */
 
 #pragma once
-#include <sstream>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationResponse.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityResponse.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationReject.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityResponse.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationResponse.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationReject.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeCommand.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.hpp"
+#include <sstream>
 
 namespace magma5g {
 // Amf NAS Msg Header
@@ -70,19 +70,19 @@ union MMsg_u {
 
 // Amf NAS Msg Class
 class AmfMsg {
- public:
+public:
   AmfMsgHeader_s header;
   MMsg_u msg;
 
   AmfMsg();
   ~AmfMsg();
-  int M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
-  int M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
-  int AmfMsgDecodeHeaderMsg(AmfMsgHeader_s* header, uint8_t* buffer,
+  int M5gNasMessageEncodeMsg(AmfMsg *msg, uint8_t *buffer, uint32_t len);
+  int M5gNasMessageDecodeMsg(AmfMsg *msg, uint8_t *buffer, uint32_t len);
+  int AmfMsgDecodeHeaderMsg(AmfMsgHeader_s *header, uint8_t *buffer,
                             uint32_t len);
-  int AmfMsgEncodeHeaderMsg(AmfMsgHeader_s* header, uint8_t* buffer,
+  int AmfMsgEncodeHeaderMsg(AmfMsgHeader_s *header, uint8_t *buffer,
                             uint32_t len);
-  int AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
-  int AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
+  int AmfMsgDecodeMsg(AmfMsg *msg, uint8_t *buffer, uint32_t len);
+  int AmfMsgEncodeMsg(AmfMsg *msg, uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

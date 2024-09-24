@@ -10,11 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cstdint>
 #include <gtest/gtest.h>
+#include <memory>
 #include <metrics.pb.h>
 #include <orc8r/protos/metricsd.pb.h>
-#include <cstdint>
-#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -29,19 +29,19 @@ using ::testing::Test;
 namespace magma {
 
 class MeteringReporterTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     reporter = std::make_shared<MeteringReporter>();
     magma_service =
         std::make_shared<service303::MagmaService>("test_service", "1.0");
   }
-  bool is_equal(io::prometheus::client::LabelPair label_pair, const char*& name,
-                const char*& value) {
+  bool is_equal(io::prometheus::client::LabelPair label_pair, const char *&name,
+                const char *&value) {
     return label_pair.name().compare(name) == 0 &&
            label_pair.value().compare(value) == 0;
   }
 
- protected:
+protected:
   std::shared_ptr<service303::MagmaService> magma_service;
   std::shared_ptr<MeteringReporter> reporter;
 };
@@ -71,10 +71,10 @@ TEST_F(MeteringReporterTest, test_reporting) {
   // verify if UE traffic metrics are recorded properly
   MetricsContainer resp;
   magma_service->GetMetrics(nullptr, nullptr, &resp);
-  for (auto const& fam : resp.family()) {
+  for (auto const &fam : resp.family()) {
     if (fam.name().compare("ue_traffic") == 0) {
-      for (auto const& m : fam.metric()) {
-        for (auto const& l : m.label()) {
+      for (auto const &m : fam.metric()) {
+        for (auto const &l : m.label()) {
           EXPECT_TRUE(is_equal(l, IMSI_LABEL, IMSI) ||
                       is_equal(l, SESSION_ID_LABEL, SESSION_ID) ||
                       l.name().compare(DIRECTION_LABEL) == 0);
@@ -90,4 +90,4 @@ TEST_F(MeteringReporterTest, test_reporting) {
     }
   }
 }
-}  // namespace magma
+} // namespace magma

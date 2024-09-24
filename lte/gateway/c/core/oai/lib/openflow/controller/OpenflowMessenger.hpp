@@ -17,15 +17,15 @@
 
 #pragma once
 
-#include <fluid/of13msg.hh>
 #include <fluid/OFServer.hh>
+#include <fluid/of13msg.hh>
 
 namespace openflow {
 /**
  * Abstract helper class with libfluid message utilities
  */
 class OpenflowMessenger {
- public:
+public:
   /**
    * Create a standard flow mod, where every parameter is the default except the
    * table id, command, and priority.
@@ -35,9 +35,10 @@ class OpenflowMessenger {
    * @param priority - int priority of the flow
    * @return a filled-in FlowMod object
    */
-  virtual fluid_msg::of13::FlowMod create_default_flow_mod(
-      uint8_t table_id, fluid_msg::of13::ofp_flow_mod_command command,
-      uint16_t priority) const = 0;
+  virtual fluid_msg::of13::FlowMod
+  create_default_flow_mod(uint8_t table_id,
+                          fluid_msg::of13::ofp_flow_mod_command command,
+                          uint16_t priority) const = 0;
 
   /**
    * Sends a completed flow modification to OVS
@@ -45,21 +46,22 @@ class OpenflowMessenger {
    * @param flow_mod - a flow modification (add/delete) to make
    * @param ofconn - the connection to send the flow mod to
    */
-  virtual void send_of_msg(fluid_msg::OFMsg& of_msg,
-                           fluid_base::OFConnection* ofconn) const {}
+  virtual void send_of_msg(fluid_msg::OFMsg &of_msg,
+                           fluid_base::OFConnection *ofconn) const {}
 };
 
 /**
  * Implemented messenger class
  */
 class DefaultMessenger : public OpenflowMessenger {
- public:
-  fluid_msg::of13::FlowMod create_default_flow_mod(
-      uint8_t table_id, fluid_msg::of13::ofp_flow_mod_command command,
-      uint16_t priority) const;
+public:
+  fluid_msg::of13::FlowMod
+  create_default_flow_mod(uint8_t table_id,
+                          fluid_msg::of13::ofp_flow_mod_command command,
+                          uint16_t priority) const;
 
-  void send_of_msg(fluid_msg::OFMsg& of_msg,
-                   fluid_base::OFConnection* ofconn) const;
+  void send_of_msg(fluid_msg::OFMsg &of_msg,
+                   fluid_base::OFConnection *ofconn) const;
 };
 
-}  // namespace openflow
+} // namespace openflow

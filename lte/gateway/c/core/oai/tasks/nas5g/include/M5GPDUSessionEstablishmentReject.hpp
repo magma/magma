@@ -10,17 +10,17 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
+#include <sstream>
 
 namespace magma5g {
 // PDUSessionEstablishmentReject Message Class
 class PDUSessionEstablishmentRejectMsg {
- public:
+public:
 #define PDU_SESSION_ESTABLISHMENT_REJ_MIN_LEN 5
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   PDUSessionIdentityMsg pdu_session_identity;
@@ -31,13 +31,13 @@ class PDUSessionEstablishmentRejectMsg {
   PDUSessionEstablishmentRejectMsg();
   ~PDUSessionEstablishmentRejectMsg();
   int DecodePDUSessionEstablishmentRejectMsg(
-      PDUSessionEstablishmentRejectMsg* pdu_session_estab_reject,
-      uint8_t* buffer, uint32_t len);
+      PDUSessionEstablishmentRejectMsg *pdu_session_estab_reject,
+      uint8_t *buffer, uint32_t len);
   int EncodePDUSessionEstablishmentRejectMsg(
-      PDUSessionEstablishmentRejectMsg* pdu_session_estab_reject,
-      uint8_t* buffer, uint32_t len);
+      PDUSessionEstablishmentRejectMsg *pdu_session_estab_reject,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    TS-24.501 Table 8.3.3.1.1: PDU SESSION ESTABLISHMENT REJECT message content

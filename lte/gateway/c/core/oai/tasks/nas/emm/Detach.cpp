@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -32,8 +32,8 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_statistics.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/mme_events.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
@@ -55,13 +55,13 @@ extern "C" {
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-status_code_e esm_sap_send(esm_sap_t* msg);
+status_code_e esm_sap_send(esm_sap_t *msg);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
 /* String representation of the detach type */
-static const char* emm_detach_type_str[] = {"EPS",
+static const char *emm_detach_type_str[] = {"EPS",
                                             "IMSI",
                                             "EPS/IMSI",
                                             "RE-ATTACH REQUIRED",
@@ -69,7 +69,7 @@ static const char* emm_detach_type_str[] = {"EPS",
                                             "RESERVED"};
 
 /* String representation of the sgs detach type */
-static const char* emm_sgs_detach_type_str[] = {"EPS",
+static const char *emm_sgs_detach_type_str[] = {"EPS",
                                                 "UE-INITIATED-EXPLICIT-NONEPS",
                                                 "COMBINED",
                                                 "NW-INITIATED-EPS",
@@ -94,17 +94,17 @@ static const char* emm_sgs_detach_type_str[] = {"EPS",
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
-                                                 void* args) {
+status_code_e mme_app_handle_detach_t3422_expiry(zloop_t *loop, int timer_id,
+                                                 void *args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  nw_detach_data_t* data = NULL;
-  emm_context_t* emm_ctx = NULL;
+  nw_detach_data_t *data = NULL;
+  emm_context_t *emm_ctx = NULL;
   // if args is not NULL, then the function is called during start up
   // as part of resumed timers.
   if (args) {
-    data = (nw_detach_data_t*)(args);
+    data = (nw_detach_data_t *)(args);
     mme_ue_s1ap_id = data->ue_id;
     emm_ctx = emm_context_get(&_emm_data, mme_ue_s1ap_id);
   } else {
@@ -114,8 +114,8 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
 
-    struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-        mme_ue_s1ap_id, const_cast<char*>("Detach Procedure T3422 Timer"));
+    struct ue_mm_context_s *ue_context_p = mme_app_get_ue_context_for_timer(
+        mme_ue_s1ap_id, const_cast<char *>("Detach Procedure T3422 Timer"));
     if (ue_context_p == NULL) {
       OAILOG_ERROR(
           LOG_MME_APP,
@@ -126,7 +126,7 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
     }
 
     emm_ctx = &ue_context_p->emm_context;
-    data = (nw_detach_data_t*)emm_ctx->t3422_arg;
+    data = (nw_detach_data_t *)emm_ctx->t3422_arg;
   }
 
   if (!data) {
@@ -155,19 +155,19 @@ status_code_e mme_app_handle_detach_t3422_expiry(zloop_t* loop, int timer_id,
        * switched-off to avoid sending of detach accept message
        */
       emm_detach_request_params.switch_off = 1;
-      emm_detach_request_params.type = EMM_DETACH_TYPE_EPS;  // 0
+      emm_detach_request_params.type = EMM_DETACH_TYPE_EPS; // 0
       emm_proc_detach_request(mme_ue_s1ap_id, &emm_detach_request_params);
     }
     if (data) {
       // Free timer argument
-      free_wrapper((void**)&data);
+      free_wrapper((void **)&data);
       emm_ctx->t3422_arg = NULL;
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
-status_code_e release_esm_pdn_context(emm_context_t* emm_context,
+status_code_e release_esm_pdn_context(emm_context_t *emm_context,
                                       mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   esm_sap_t esm_sap = {};
@@ -181,7 +181,7 @@ status_code_e release_esm_pdn_context(emm_context_t* emm_context,
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-void clear_emm_ctxt(emm_context_t* emm_context) {
+void clear_emm_ctxt(emm_context_t *emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!emm_context) {
     return;
@@ -246,8 +246,9 @@ void clear_emm_ctxt(emm_context_t* emm_context) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_sgs_detach_request(
-    mme_ue_s1ap_id_t ue_id, emm_proc_sgs_detach_type_t sgs_detach_type) {
+status_code_e
+emm_proc_sgs_detach_request(mme_ue_s1ap_id_t ue_id,
+                            emm_proc_sgs_detach_type_t sgs_detach_type) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   OAILOG_INFO(LOG_NAS_EMM,
@@ -258,7 +259,7 @@ status_code_e emm_proc_sgs_detach_request(
    * Get the UE emm context
    */
 
-  emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
+  emm_context_t *emm_ctx = emm_context_get(&_emm_data, ue_id);
 
   if (emm_ctx != NULL) {
     /* check if the non EPS service control is enable and combined attach*/
@@ -310,7 +311,7 @@ status_code_e emm_proc_sgs_detach_request(
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
-                                      emm_detach_request_ies_t* params)
+                                      emm_detach_request_ies_t *params)
 
 {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -323,9 +324,9 @@ status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
   /*
    * Get the UE context and emm context
    */
-  ue_mm_context_t* ue_context_p = NULL;
+  ue_mm_context_t *ue_context_p = NULL;
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
-  emm_context_t* emm_ctx = NULL;
+  emm_context_t *emm_ctx = NULL;
   if (ue_context_p) {
     emm_ctx = &ue_context_p->emm_context;
   }
@@ -355,7 +356,7 @@ status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
      * Normal detach without UE switch-off
      */
     emm_sap_t emm_sap = {};
-    emm_as_data_t* emm_as = &emm_sap.u.emm_as.u.data;
+    emm_as_data_t *emm_as = &emm_sap.u.emm_as.u.data;
 
     /*
      * Setup NAS information message to transfer
@@ -420,7 +421,7 @@ status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
  ***************************************************************************/
 status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_t* emm_ctx = NULL;
+  emm_context_t *emm_ctx = NULL;
 
   /*
    * Get the UE context
@@ -480,7 +481,7 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
                                                    uint8_t detach_type) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNok;
-  emm_context_t* emm_ctx = NULL;
+  emm_context_t *emm_ctx = NULL;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "EMM-PROC  - NW Initiated Detach Requested for the UE "
@@ -503,7 +504,7 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
    * Send Detach Request to UE
    */
   emm_sap_t emm_sap = {};
-  emm_as_data_t* emm_as = &emm_sap.u.emm_as.u.data;
+  emm_as_data_t *emm_as = &emm_sap.u.emm_as.u.data;
 
   /*
    * Setup NAS information message to transfer
@@ -542,7 +543,7 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
         nas_start_T3422(ue_id, &(emm_ctx->T3422),
                         (time_out_t)mme_app_handle_detach_t3422_expiry);
       } else {
-        nw_detach_data_t* data = reinterpret_cast<nw_detach_data_t*>(
+        nw_detach_data_t *data = reinterpret_cast<nw_detach_data_t *>(
             calloc(1, sizeof(nw_detach_data_t)));
         if (!data) {
           OAILOG_ERROR_UE(
@@ -555,7 +556,7 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
         data->ue_id = ue_id;
         data->retransmission_count = 0;
         data->detach_type = detach_type;
-        emm_ctx->t3422_arg = (void*)data;
+        emm_ctx->t3422_arg = (void *)data;
         nas_start_T3422(ue_id, &(emm_ctx->T3422),
                         (time_out_t)mme_app_handle_detach_t3422_expiry);
       }
@@ -564,17 +565,17 @@ status_code_e emm_proc_nw_initiated_detach_request(mme_ue_s1ap_id_t ue_id,
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 //------------------------------------------------------------------------------
-void free_emm_detach_request_ies(emm_detach_request_ies_t** const ies) {
+void free_emm_detach_request_ies(emm_detach_request_ies_t **const ies) {
   if ((*ies)->guti) {
-    free_wrapper((void**)&(*ies)->guti);
+    free_wrapper((void **)&(*ies)->guti);
   }
   if ((*ies)->imsi) {
-    free_wrapper((void**)&(*ies)->imsi);
+    free_wrapper((void **)&(*ies)->imsi);
   }
   if ((*ies)->imei) {
-    free_wrapper((void**)&(*ies)->imei);
+    free_wrapper((void **)&(*ies)->imei);
   }
-  free_wrapper((void**)ies);
+  free_wrapper((void **)ies);
 }
 
 /****************************************************************************/

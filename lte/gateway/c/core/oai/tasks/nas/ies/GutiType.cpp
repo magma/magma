@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
-int decode_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t* buffer,
+int decode_guti_type(guti_type_t *gutitype, uint8_t iei, uint8_t *buffer,
                      uint32_t len) {
   int decoded = 0;
 
@@ -45,10 +45,10 @@ int decode_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t* buffer,
 }
 
 //------------------------------------------------------------------------------
-int decode_u8_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t value,
+int decode_u8_guti_type(guti_type_t *gutitype, uint8_t iei, uint8_t value,
                         uint32_t len) {
   int decoded = 0;
-  uint8_t* buffer = &value;
+  uint8_t *buffer = &value;
 
   *gutitype = *buffer & 0x7;
   decoded++;
@@ -56,7 +56,7 @@ int decode_u8_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t value,
 }
 
 //------------------------------------------------------------------------------
-int encode_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t* buffer,
+int encode_guti_type(guti_type_t *gutitype, uint8_t iei, uint8_t *buffer,
                      uint32_t len) {
   uint8_t encoded = 0;
 
@@ -70,9 +70,9 @@ int encode_guti_type(guti_type_t* gutitype, uint8_t iei, uint8_t* buffer,
 }
 
 //------------------------------------------------------------------------------
-uint8_t encode_u8_guti_type(guti_type_t* gutitype) {
+uint8_t encode_u8_guti_type(guti_type_t *gutitype) {
   uint8_t bufferReturn;
-  uint8_t* buffer = &bufferReturn;
+  uint8_t *buffer = &bufferReturn;
   uint8_t encoded = 0;
   uint8_t iei = 0;
 

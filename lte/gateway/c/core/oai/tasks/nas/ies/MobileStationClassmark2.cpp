@@ -17,22 +17,22 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_mobile_station_classmark_2(
-    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    MobileStationClassmark2 *mobilestationclassmark2, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -71,9 +71,9 @@ int decode_mobile_station_classmark_2(
 }
 
 int encode_mobile_station_classmark_2(
-    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+    MobileStationClassmark2 *mobilestationclassmark2, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*
@@ -119,7 +119,7 @@ int encode_mobile_station_classmark_2(
 }
 
 void dump_mobile_station_classmark_2_xml(
-    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei) {
+    MobileStationClassmark2 *mobilestationclassmark2, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Mobile Station Classmark 2>\n");
 
   if (iei > 0)

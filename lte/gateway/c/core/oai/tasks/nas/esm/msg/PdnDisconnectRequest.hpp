@@ -29,15 +29,15 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define PDN_DISCONNECT_REQUEST_MINIMUM_LENGTH \
+#define PDN_DISCONNECT_REQUEST_MINIMUM_LENGTH                                  \
   (LINKED_EPS_BEARER_IDENTITY_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define PDN_DISCONNECT_REQUEST_MAXIMUM_LENGTH  \
-  (LINKED_EPS_BEARER_IDENTITY_MAXIMUM_LENGTH + \
+#define PDN_DISCONNECT_REQUEST_MAXIMUM_LENGTH                                  \
+  (LINKED_EPS_BEARER_IDENTITY_MAXIMUM_LENGTH +                                 \
    PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -70,9 +70,9 @@ typedef struct pdn_disconnect_request_msg_tag {
 } pdn_disconnect_request_msg;
 
 int decode_pdn_disconnect_request(
-    pdn_disconnect_request_msg* pdndisconnectrequest, uint8_t* buffer,
+    pdn_disconnect_request_msg *pdndisconnectrequest, uint8_t *buffer,
     uint32_t len);
 
 int encode_pdn_disconnect_request(
-    pdn_disconnect_request_msg* pdndisconnectrequest, uint8_t* buffer,
+    pdn_disconnect_request_msg *pdndisconnectrequest, uint8_t *buffer,
     uint32_t len);

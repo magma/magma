@@ -43,12 +43,12 @@ typedef struct MobileStationClassmark2_tag {
 } MobileStationClassmark2;
 
 int encode_mobile_station_classmark_2(
-    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    MobileStationClassmark2 *mobilestationclassmark2, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 int decode_mobile_station_classmark_2(
-    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    MobileStationClassmark2 *mobilestationclassmark2, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 void dump_mobile_station_classmark_2_xml(
-    MobileStationClassmark2* mobilestationclassmark2, uint8_t iei);
+    MobileStationClassmark2 *mobilestationclassmark2, uint8_t iei);

@@ -11,17 +11,17 @@
  * limitations under the License.
  */
 
-#include <iostream>
 #include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
+#include <iostream>
 
 namespace magma5g {
 
 //  API for testing decode registration request
-bool decode_service_request_msg(ServiceRequestMsg* reg_request,
-                                const uint8_t* buffer, uint32_t len) {
+bool decode_service_request_msg(ServiceRequestMsg *reg_request,
+                                const uint8_t *buffer, uint32_t len) {
   bool decode_success = true;
-  uint8_t* decode_reg_buffer =
-      const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
+  uint8_t *decode_reg_buffer =
+      const_cast<uint8_t *>(reinterpret_cast<const uint8_t *>(buffer));
 
   if (reg_request->DecodeServiceRequestMsg(reg_request, decode_reg_buffer,
                                            len) < 0) {
@@ -31,4 +31,4 @@ bool decode_service_request_msg(ServiceRequestMsg* reg_request,
   return (decode_success);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

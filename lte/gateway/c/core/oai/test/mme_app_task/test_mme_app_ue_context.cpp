@@ -14,9 +14,9 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <stdlib.h>
-#include <stdint.h>
 #include <gtest/gtest.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"
@@ -33,8 +33,8 @@ extern "C" {
  * @param imsi_dst
  * @param imsi_src
  */
-void mme_app_convert_imsi_to_imsi_mme(mme_app_imsi_t* imsi_dst,
-                                      const imsi_t* imsi_src) {
+void mme_app_convert_imsi_to_imsi_mme(mme_app_imsi_t *imsi_dst,
+                                      const imsi_t *imsi_src) {
   memset(imsi_dst->data, (uint8_t)'\0', sizeof(imsi_dst->data));
   IMSI_TO_STRING(imsi_src, imsi_dst->data, IMSI_BCD_DIGITS_MAX + 1);
   imsi_dst->length = strlen(imsi_dst->data);
@@ -239,17 +239,17 @@ TEST(imsi_convert_common_struct_test, ok) {
   imsi_structs[9].u.num.digit14 = 0xf;
   imsi_structs[9].u.num.digit15 = 0xf;
 
-  char* imsi_compare[TEST_CASE_COMMON_CONVERT_MAX] = {0};
-  imsi_compare[0] = const_cast<char*>("001011234567890");
-  imsi_compare[1] = const_cast<char*>("262011234567890");
-  imsi_compare[2] = const_cast<char*>("310150123456789");
-  imsi_compare[3] = const_cast<char*>("460001357924680");
-  imsi_compare[4] = const_cast<char*>("520031234567890");
-  imsi_compare[5] = const_cast<char*>("470010171566423");
-  imsi_compare[6] = const_cast<char*>("41004123456789");
-  imsi_compare[7] = const_cast<char*>("4100412345678");
-  imsi_compare[8] = const_cast<char*>("410041234567");
-  imsi_compare[9] = const_cast<char*>("4100412");
+  char *imsi_compare[TEST_CASE_COMMON_CONVERT_MAX] = {0};
+  imsi_compare[0] = const_cast<char *>("001011234567890");
+  imsi_compare[1] = const_cast<char *>("262011234567890");
+  imsi_compare[2] = const_cast<char *>("310150123456789");
+  imsi_compare[3] = const_cast<char *>("460001357924680");
+  imsi_compare[4] = const_cast<char *>("520031234567890");
+  imsi_compare[5] = const_cast<char *>("470010171566423");
+  imsi_compare[6] = const_cast<char *>("41004123456789");
+  imsi_compare[7] = const_cast<char *>("4100412345678");
+  imsi_compare[8] = const_cast<char *>("410041234567");
+  imsi_compare[9] = const_cast<char *>("4100412");
 
   for (int i = 0; i < TEST_CASE_COMMON_CONVERT_MAX; i++) {
     mme_app_convert_imsi_to_imsi_mme(&imsi_mme, &imsi_structs[i]);

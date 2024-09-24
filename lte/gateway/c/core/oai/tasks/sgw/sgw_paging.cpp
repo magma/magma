@@ -18,9 +18,9 @@
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.hpp"
 
 #include <arpa/inet.h>
-#include <string.h>
 #include <netinet/in.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 
 #ifdef __cplusplus
@@ -39,15 +39,15 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
-void sgw_send_paging_request(const struct in_addr* dest_ipv4,
-                             const struct in6_addr* dest_ipv6) {
-  MessageDef* message_p = NULL;
-  itti_s11_paging_request_t* paging_request_p = NULL;
+void sgw_send_paging_request(const struct in_addr *dest_ipv4,
+                             const struct in6_addr *dest_ipv6) {
+  MessageDef *message_p = NULL;
+  itti_s11_paging_request_t *paging_request_p = NULL;
 
   message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SPGW_APP, S11_PAGING_REQUEST);
   paging_request_p = &message_p->ittiMsg.s11_paging_request;
-  memset((void*)paging_request_p, 0, sizeof(itti_s11_paging_request_t));
+  memset((void *)paging_request_p, 0, sizeof(itti_s11_paging_request_t));
 
   if (dest_ipv6) {
     char ip6_str[INET6_ADDRSTRLEN];

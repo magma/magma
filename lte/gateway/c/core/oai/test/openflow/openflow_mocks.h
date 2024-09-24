@@ -27,24 +27,25 @@ using namespace fluid_base;
  * inspect if an application has received an event.
  */
 class MockApplication : public Application {
- public:
+public:
   MOCK_METHOD2(event_callback,
-               void(const ControllerEvent&, const OpenflowMessenger&));
+               void(const ControllerEvent &, const OpenflowMessenger &));
 };
 
 /**
  * Mock Openflow Messenger that doesn't send any messages to OVS
  */
 class MockMessenger : public OpenflowMessenger {
- public:
-  inline fluid_msg::of13::FlowMod create_default_flow_mod(
-      uint8_t table_id, fluid_msg::of13::ofp_flow_mod_command command,
-      uint16_t priority) const {
+public:
+  inline fluid_msg::of13::FlowMod
+  create_default_flow_mod(uint8_t table_id,
+                          fluid_msg::of13::ofp_flow_mod_command command,
+                          uint16_t priority) const {
     // Use DefaultMessenger
     DefaultMessenger messenger;
     return messenger.create_default_flow_mod(table_id, command, priority);
   }
 
-  MOCK_CONST_METHOD2(send_of_msg, void(fluid_msg::OFMsg& of_msg,
-                                       fluid_base::OFConnection* ofconn));
+  MOCK_CONST_METHOD2(send_of_msg, void(fluid_msg::OFMsg &of_msg,
+                                       fluid_base::OFConnection *ofconn));
 };

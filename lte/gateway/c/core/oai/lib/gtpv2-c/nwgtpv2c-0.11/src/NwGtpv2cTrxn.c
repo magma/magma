@@ -31,20 +31,20 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   ----------------------------------------------------------------------------*/
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwUtils.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cLog.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cLog.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cPrivate.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cTrxn.h"
-#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwUtils.h"
 
 /*--------------------------------------------------------------------------*
                    P R I V A T E  D E C L A R A T I O N S
@@ -54,7 +54,7 @@
 extern "C" {
 #endif
 
-static nw_gtpv2c_trxn_t* gpGtpv2cTrxnPool = NULL;
+static nw_gtpv2c_trxn_t *gpGtpv2cTrxnPool = NULL;
 
 /*--------------------------------------------------------------------------*
                      P R I V A T E      F U N C T I O N S
@@ -64,23 +64,23 @@ static nw_gtpv2c_trxn_t* gpGtpv2cTrxnPool = NULL;
    Send msg retransmission to peer via data request to UDP Entity
   --------------------------------------------------------------------------*/
 
-static nw_rc_t nwGtpv2cTrxnSendMsgRetransmission(nw_gtpv2c_trxn_t* thiz) {
+static nw_rc_t nwGtpv2cTrxnSendMsgRetransmission(nw_gtpv2c_trxn_t *thiz) {
   nw_rc_t rc;
   NW_ASSERT(thiz);
   NW_ASSERT(thiz->pMsg);
   rc = thiz->pStack->udp.udpDataReqCallback(
       thiz->pStack->udp.hUdp, thiz->pMsg->msgBuf, thiz->pMsg->msgLen,
-      thiz->localPort, (struct sockaddr*)&thiz->peer_ip, thiz->peerPort);
+      thiz->localPort, (struct sockaddr *)&thiz->peer_ip, thiz->peerPort);
   thiz->maxRetries--;
   return rc;
 }
 
-static nw_rc_t nwGtpv2cTrxnPeerRspWaitTimeout(void* arg) {
+static nw_rc_t nwGtpv2cTrxnPeerRspWaitTimeout(void *arg) {
   nw_rc_t rc = NW_OK;
-  nw_gtpv2c_trxn_t* thiz;
-  nw_gtpv2c_stack_t* pStack;
+  nw_gtpv2c_trxn_t *thiz;
+  nw_gtpv2c_stack_t *pStack;
 
-  thiz = ((nw_gtpv2c_trxn_t*)arg);
+  thiz = ((nw_gtpv2c_trxn_t *)arg);
   pStack = thiz->pStack;
   NW_ASSERT(pStack);
   OAILOG_WARNING(LOG_GTPV2C, "T3 Response timer expired for transaction %p\n",
@@ -103,7 +103,7 @@ static nw_rc_t nwGtpv2cTrxnPeerRspWaitTimeout(void* arg) {
     /** Check if a tunnel endpoint exists. */
     nw_gtpv2c_tunnel_t *pLocalTunnel = NULL, keyTunnel = {0};
     keyTunnel.teid = thiz->teidLocal;
-    memcpy((void*)&keyTunnel.ipAddrRemote, (void*)&thiz->peer_ip,
+    memcpy((void *)&keyTunnel.ipAddrRemote, (void *)&thiz->peer_ip,
            sizeof(thiz->peer_ip));
     pLocalTunnel = RB_FIND(NwGtpv2cTunnelMap, &(pStack->tunnelMap), &keyTunnel);
     if (pLocalTunnel) {
@@ -133,10 +133,10 @@ static nw_rc_t nwGtpv2cTrxnPeerRspWaitTimeout(void* arg) {
     ulpApi.u_api_info.rspFailureInfo.msgType =
         thiz->pMsg ? thiz->pMsg->msgType : 0;
     ulpApi.u_api_info.rspFailureInfo.hUlpTunnel =
-        ((thiz->hTunnel) ? ((nw_gtpv2c_tunnel_t*)(thiz->hTunnel))->hUlpTunnel
+        ((thiz->hTunnel) ? ((nw_gtpv2c_tunnel_t *)(thiz->hTunnel))->hUlpTunnel
                          : 0);
     ulpApi.u_api_info.rspFailureInfo.teidLocal =
-        (thiz->hTunnel) ? ((nw_gtpv2c_tunnel_t*)(thiz->hTunnel))->teid : 0;
+        (thiz->hTunnel) ? ((nw_gtpv2c_tunnel_t *)(thiz->hTunnel))->teid : 0;
     /** Set the flags. */
     ulpApi.u_api_info.rspFailureInfo.trx_flags = thiz->trx_flags;
     OAILOG_ERROR(LOG_GTPV2C, "N3 retries expired for transaction %p\n", thiz);
@@ -149,12 +149,12 @@ static nw_rc_t nwGtpv2cTrxnPeerRspWaitTimeout(void* arg) {
   return rc;
 }
 
-static nw_rc_t nwGtpv2cTrxnDuplicateRequestWaitTimeout(void* arg) {
+static nw_rc_t nwGtpv2cTrxnDuplicateRequestWaitTimeout(void *arg) {
   nw_rc_t rc = NW_OK;
-  nw_gtpv2c_trxn_t* thiz;
-  nw_gtpv2c_stack_t* pStack;
+  nw_gtpv2c_trxn_t *thiz;
+  nw_gtpv2c_stack_t *pStack;
 
-  thiz = ((nw_gtpv2c_trxn_t*)arg);
+  thiz = ((nw_gtpv2c_trxn_t *)arg);
   NW_ASSERT(thiz);
   pStack = thiz->pStack;
   NW_ASSERT(pStack);
@@ -179,7 +179,7 @@ static nw_rc_t nwGtpv2cTrxnDuplicateRequestWaitTimeout(void* arg) {
    @return NW_OK on success.
 */
 
-nw_rc_t nwGtpv2cTrxnStartPeerRspWaitTimer(nw_gtpv2c_trxn_t* thiz) {
+nw_rc_t nwGtpv2cTrxnStartPeerRspWaitTimer(nw_gtpv2c_trxn_t *thiz) {
   nw_rc_t rc;
 
   rc = nwGtpv2cStartTimer(thiz->pStack, thiz->t3Timer, 0,
@@ -195,7 +195,7 @@ nw_rc_t nwGtpv2cTrxnStartPeerRspWaitTimer(nw_gtpv2c_trxn_t* thiz) {
   @return NW_OK on success.
 */
 
-nw_rc_t nwGtpv2cTrxnStartDulpicateRequestWaitTimer(nw_gtpv2c_trxn_t* thiz) {
+nw_rc_t nwGtpv2cTrxnStartDulpicateRequestWaitTimer(nw_gtpv2c_trxn_t *thiz) {
   nw_rc_t rc;
 
   rc = nwGtpv2cStartTimer(thiz->pStack, thiz->t3Timer * thiz->maxRetries, 0,
@@ -212,7 +212,7 @@ nw_rc_t nwGtpv2cTrxnStartDulpicateRequestWaitTimer(nw_gtpv2c_trxn_t* thiz) {
   @return NW_OK on success.
 */
 
-static nw_rc_t nwGtpv2cTrxnStopPeerRspTimer(nw_gtpv2c_trxn_t* thiz) {
+static nw_rc_t nwGtpv2cTrxnStopPeerRspTimer(nw_gtpv2c_trxn_t *thiz) {
   nw_rc_t rc;
 
   NW_ASSERT(thiz->pStack->tmrMgr.tmrStopCallback != NULL);
@@ -232,14 +232,14 @@ static nw_rc_t nwGtpv2cTrxnStopPeerRspTimer(nw_gtpv2c_trxn_t* thiz) {
    @param[out] ppTrxn : Pointer to pointer to Trxn object.
    @return NW_OK on success.
 */
-nw_gtpv2c_trxn_t* nwGtpv2cTrxnNew(NW_IN nw_gtpv2c_stack_t* thiz) {
-  nw_gtpv2c_trxn_t* pTrxn;
+nw_gtpv2c_trxn_t *nwGtpv2cTrxnNew(NW_IN nw_gtpv2c_stack_t *thiz) {
+  nw_gtpv2c_trxn_t *pTrxn;
 
   if (gpGtpv2cTrxnPool) {
     pTrxn = gpGtpv2cTrxnPool;
     gpGtpv2cTrxnPool = gpGtpv2cTrxnPool->next;
   } else {
-    NW_GTPV2C_MALLOC(thiz, sizeof(nw_gtpv2c_trxn_t), pTrxn, nw_gtpv2c_trxn_t*);
+    NW_GTPV2C_MALLOC(thiz, sizeof(nw_gtpv2c_trxn_t), pTrxn, nw_gtpv2c_trxn_t *);
   }
 
   if (pTrxn) {
@@ -256,9 +256,10 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnNew(NW_IN nw_gtpv2c_stack_t* thiz) {
     pTrxn->seqNum = thiz->seqNum;
     pTrxn->pt_trx = false;
 
-    thiz->seqNum++;  // Increment sequence number
+    thiz->seqNum++; // Increment sequence number
 
-    if (thiz->seqNum == 0x800000) thiz->seqNum = 0;
+    if (thiz->seqNum == 0x800000)
+      thiz->seqNum = 0;
   }
 
   OAILOG_DEBUG(LOG_GTPV2C, "Created transaction %p\n", pTrxn);
@@ -272,15 +273,15 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnNew(NW_IN nw_gtpv2c_stack_t* thiz) {
    @param[in] seqNum : Sequence number for this transaction.
    @return Pointer to Trxn object.
 */
-nw_gtpv2c_trxn_t* nwGtpv2cTrxnWithSeqNumNew(NW_IN nw_gtpv2c_stack_t* thiz,
+nw_gtpv2c_trxn_t *nwGtpv2cTrxnWithSeqNumNew(NW_IN nw_gtpv2c_stack_t *thiz,
                                             NW_IN uint32_t seqNum) {
-  nw_gtpv2c_trxn_t* pTrxn;
+  nw_gtpv2c_trxn_t *pTrxn;
 
   if (gpGtpv2cTrxnPool) {
     pTrxn = gpGtpv2cTrxnPool;
     gpGtpv2cTrxnPool = gpGtpv2cTrxnPool->next;
   } else {
-    NW_GTPV2C_MALLOC(thiz, sizeof(nw_gtpv2c_trxn_t), pTrxn, nw_gtpv2c_trxn_t*);
+    NW_GTPV2C_MALLOC(thiz, sizeof(nw_gtpv2c_trxn_t), pTrxn, nw_gtpv2c_trxn_t *);
   }
 
   if (pTrxn) {
@@ -313,10 +314,10 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnWithSeqNumNew(NW_IN nw_gtpv2c_stack_t* thiz,
    @return NW_OK on success.
 */
 
-nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(NW_IN nw_gtpv2c_stack_t* thiz,
+nw_gtpv2c_trxn_t *nwGtpv2cTrxnOutstandingRxNew(NW_IN nw_gtpv2c_stack_t *thiz,
                                                __attribute__((unused))
                                                NW_IN uint32_t teidLocal,
-                                               NW_IN struct sockaddr* peerIp,
+                                               NW_IN struct sockaddr *peerIp,
                                                NW_IN uint32_t peerPort,
                                                NW_IN uint32_t seqNum) {
   nw_rc_t rc;
@@ -328,7 +329,7 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(NW_IN nw_gtpv2c_stack_t* thiz,
     pTrxn = gpGtpv2cTrxnPool;
     gpGtpv2cTrxnPool = gpGtpv2cTrxnPool->next;
   } else {
-    NW_GTPV2C_MALLOC(thiz, sizeof(nw_gtpv2c_trxn_t), pTrxn, nw_gtpv2c_trxn_t*);
+    NW_GTPV2C_MALLOC(thiz, sizeof(nw_gtpv2c_trxn_t), pTrxn, nw_gtpv2c_trxn_t *);
   }
 
   if (pTrxn) {
@@ -340,7 +341,7 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(NW_IN nw_gtpv2c_stack_t* thiz,
     pTrxn->maxRetries = 2;
     pTrxn->t3Timer = 2;
     pTrxn->seqNum = seqNum;
-    memcpy((void*)&pTrxn->peer_ip, peerIp,
+    memcpy((void *)&pTrxn->peer_ip, peerIp,
            (peerIp->sa_family == AF_INET) ? sizeof(struct sockaddr_in)
                                           : sizeof(struct sockaddr_in6));
     pTrxn->peerPort = peerPort;
@@ -366,7 +367,7 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(NW_IN nw_gtpv2c_stack_t* thiz,
         rc = pCollision->pStack->udp.udpDataReqCallback(
             pCollision->pStack->udp.hUdp, pCollision->pMsg->msgBuf,
             pCollision->pMsg->msgLen, pCollision->localPort,
-            (struct sockaddr*)&pCollision->peer_ip, pCollision->peerPort);
+            (struct sockaddr *)&pCollision->peer_ip, pCollision->peerPort);
       } else if (pCollision->pt_trx) {
         /** Transaction is PT, continue with processing. */
         OAILOG_DEBUG(LOG_GTPV2C,
@@ -393,10 +394,10 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(NW_IN nw_gtpv2c_stack_t* thiz,
    @param[out] pthiz : Pointer to pointer to Trxn object.
    @return NW_OK on success.
 */
-nw_rc_t nwGtpv2cTrxnDelete(NW_INOUT nw_gtpv2c_trxn_t** pthiz) {
+nw_rc_t nwGtpv2cTrxnDelete(NW_INOUT nw_gtpv2c_trxn_t **pthiz) {
   nw_rc_t rc = NW_OK;
-  nw_gtpv2c_stack_t* pStack;
-  nw_gtpv2c_trxn_t* thiz = *pthiz;
+  nw_gtpv2c_stack_t *pStack;
+  nw_gtpv2c_trxn_t *thiz = *pthiz;
 
   pStack = thiz->pStack;
 

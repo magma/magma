@@ -19,16 +19,16 @@
 
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
-extern "C" void sentry_error(const char* fmt, ...) {
+extern "C" void sentry_error(const char *fmt, ...) {
   va_list args;
   size_t len;
-  char* error_message;
+  char *error_message;
 
   va_start(args, fmt);
   len = vsnprintf(nullptr, 0, fmt, args);
   va_end(args);
 
-  error_message = reinterpret_cast<char*>(malloc(len + 1));
+  error_message = reinterpret_cast<char *>(malloc(len + 1));
   if (error_message != NULL) {
     va_start(args, fmt);
     vsnprintf(error_message, len + 1, fmt, args);

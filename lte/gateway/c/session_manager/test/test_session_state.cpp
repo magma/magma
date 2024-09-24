@@ -10,16 +10,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
-#include <lte/protos/policydb.pb.h>
-#include <lte/protos/session_manager.pb.h>
-#include <sys/types.h>
 #include <algorithm>
 #include <cstdint>
 #include <experimental/optional>
+#include <gtest/gtest.h>
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/session_manager.pb.h>
 #include <memory>
 #include <set>
 #include <string>
+#include <sys/types.h>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -49,7 +49,7 @@ TEST_F(SessionStateTest, test_session_rules) {
   EXPECT_EQ(2, session_state->total_monitored_rules_count());
 
   std::vector<std::string> rules_out{};
-  std::vector<std::string>& rules_out_ptr = rules_out;
+  std::vector<std::string> &rules_out_ptr = rules_out;
 
   session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
   EXPECT_EQ(rules_out_ptr.size(), 1);
@@ -125,7 +125,7 @@ TEST_F(SessionStateTest, test_rule_scheduling) {
  * Check that on restart, sessions can be updated to match the current time
  */
 TEST_F(SessionStateTest, test_rule_time_sync) {
-  auto uc = get_default_update_criteria();  // unused
+  auto uc = get_default_update_criteria(); // unused
 
   // These should be active after sync
   schedule_rule(1, "m1", "d1", DYNAMIC, 5, 15);
@@ -410,7 +410,7 @@ TEST_F(SessionStateTest, test_session_level_key) {
   session_state->get_updates(&update, &actions, &update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.usage_monitors_size(), 1);
-  auto& single_update = update.usage_monitors(0).update();
+  auto &single_update = update.usage_monitors(0).update();
   EXPECT_EQ(single_update.level(), MonitoringLevel::SESSION_LEVEL);
   EXPECT_EQ(single_update.bytes_tx(), 5000);
   EXPECT_EQ(single_update.bytes_rx(), 2000);
@@ -437,7 +437,7 @@ TEST_F(SessionStateTest, test_session_level_key) {
   EXPECT_EQ(actions_2.size(), 0);
   EXPECT_EQ(update_2.updates_size(), 0);
   EXPECT_EQ(update_2.usage_monitors_size(), 1);
-  auto& single_update_2 = update_2.usage_monitors(0).update();
+  auto &single_update_2 = update_2.usage_monitors(0).update();
   EXPECT_EQ(single_update_2.level(), MonitoringLevel::SESSION_LEVEL);
   // Substract the values from first usage report
   EXPECT_EQ(single_update_2.bytes_rx(), 1);
@@ -486,7 +486,7 @@ TEST_F(SessionStateTest, test_reauth_key) {
   UpdateSessionRequest reauth_update;
   session_state->get_updates(&reauth_update, &actions, nullptr);
   EXPECT_EQ(reauth_update.updates_size(), 1);
-  auto& usage = reauth_update.updates(0).usage();
+  auto &usage = reauth_update.updates(0).usage();
   EXPECT_EQ(usage.bytes_tx(), 2);
   EXPECT_EQ(usage.bytes_rx(), 1);
 }
@@ -505,7 +505,7 @@ TEST_F(SessionStateTest, test_reauth_new_key) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
   session_state->get_updates(&reauth_update, &actions, &update_criteria);
   EXPECT_EQ(reauth_update.updates_size(), 1);
-  auto& usage = reauth_update.updates(0).usage();
+  auto &usage = reauth_update.updates(0).usage();
   EXPECT_EQ(usage.charging_key(), 1);
   EXPECT_EQ(usage.bytes_tx(), 0);
   EXPECT_EQ(usage.bytes_rx(), 0);
@@ -660,7 +660,7 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   EXPECT_EQ(1, version);
 
   std::vector<std::string> rules_out{};
-  std::vector<std::string>& rules_out_ptr = rules_out;
+  std::vector<std::string> &rules_out_ptr = rules_out;
 
   session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);
   EXPECT_EQ(rules_out_ptr.size(), 1);
@@ -1026,8 +1026,8 @@ TEST_F(SessionStateTest, test_get_charging_credit_summaries) {
 
   auto summaries = session_state->get_charging_credit_summaries();
   EXPECT_EQ(2, summaries.size());
-  const auto& summary_rg1 = summaries[CreditKey(1)];
-  const auto& summary_rg2 = summaries[CreditKey(2)];
+  const auto &summary_rg1 = summaries[CreditKey(1)];
+  const auto &summary_rg2 = summaries[CreditKey(2)];
   EXPECT_EQ(1000, summary_rg1.usage.bytes_rx);
   EXPECT_EQ(2000, summary_rg1.usage.bytes_tx);
   EXPECT_EQ(2000, summary_rg2.usage.bytes_rx);
@@ -1105,4 +1105,4 @@ TEST_F(SessionStateTest, test_process_dynamic_rule_installs) {
   EXPECT_EQ(2, pending_activation.size());
   EXPECT_EQ(2, pending_bearer_setup.size());
 }
-}  // namespace magma
+} // namespace magma

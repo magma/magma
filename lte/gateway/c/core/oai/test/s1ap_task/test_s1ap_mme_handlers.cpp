@@ -24,12 +24,12 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
-#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 #include "lte/gateway/c/core/oai/include/state_converter.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 #include "xer_encoder.h"
 
 extern bool hss_associated;
@@ -40,12 +40,12 @@ namespace lte {
 
 extern task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
+  default: {
+  } break;
   }
 
   itti_free_msg_content(received_message_p);
@@ -103,10 +103,10 @@ class S1apMmeHandlersTest : public ::testing::Test {
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
   }
 
- protected:
+protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::shared_ptr<MockSctpHandler> sctp_handler;
-  oai::S1apState* state;
+  oai::S1apState *state;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream_id;
 };
@@ -281,10 +281,10 @@ TEST_F(S1apMmeHandlersTest, HandleICSResponseICSRelease) {
                                  0x08, 0x00, 0x02, 0x00, 0x01, 0x00, 0x02,
                                  0x40, 0x02, 0x02, 0x80};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(ics_release_bytes, sizeof(ics_release_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(ics_release_bytes,
+                                    sizeof(ics_release_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // State validation
   ASSERT_TRUE(is_num_enbs_valid(state, 1));
@@ -511,7 +511,7 @@ TEST_F(S1apMmeHandlersTest, HandleUEContextRelease) {
   ASSERT_EQ(state->mmeid2associd_size(), 1);
 
   // Send UE context release command mimicing MME_APP
-  MessageDef* message_p;
+  MessageDef *message_p;
   message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_UE_CONTEXT_RELEASE_COMMAND);
   S1AP_UE_CONTEXT_RELEASE_COMMAND(message_p).mme_ue_s1ap_id = 7;
@@ -550,7 +550,7 @@ TEST_F(S1apMmeHandlersTest, HandleUEContextRelease) {
 
 TEST_F(S1apMmeHandlersTest, HandleConnectionEstCnf) {
   ASSERT_EQ(task_zmq_ctx_main_s1ap.ready, true);
-  itti_mme_app_connection_establishment_cnf_t* establishment_cnf_p = NULL;
+  itti_mme_app_connection_establishment_cnf_t *establishment_cnf_p = NULL;
 
   EXPECT_CALL(*sctp_handler, sctpd_send_dl()).Times(2);
   EXPECT_CALL(*mme_app_handler, mme_app_handle_initial_ue_message()).Times(1);
@@ -777,10 +777,10 @@ TEST_F(S1apMmeHandlersTest, HandleS1apErabReleaseComplete) {
       0x07, 0x00, 0x08, 0x00, 0x02, 0x00, 0x01, 0x00, 0x45, 0x40, 0x0b, 0x01,
       0x00, 0x0f, 0x40, 0x01, 0x0c, 0x00, 0x0f, 0x40, 0x01, 0x0e};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(erab_rel_comp_bytes, sizeof(erab_rel_comp_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(erab_rel_comp_bytes,
+                                    sizeof(erab_rel_comp_bytes), state,
+                                    assoc_id, stream_id),
+            RETURNok);
 
   // Freeing pdu and payload data
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
@@ -1168,10 +1168,10 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
       0xc2, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x00, 0x00,
       0x10, 0x00, 0x43, 0x40, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x01};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(attach_compl_bytes, sizeof(attach_compl_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(attach_compl_bytes,
+                                    sizeof(attach_compl_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate Handover Required
   uint8_t handover_req_bytes[] = {
@@ -1184,10 +1184,10 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
       0x00, 0x00, 0x00, 0x58, 0x30, 0x31, 0x32, 0x33, 0x34, 0x30, 0x36, 0x0a,
       0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x00};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(handover_req_bytes, sizeof(handover_req_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(handover_req_bytes,
+                                    sizeof(handover_req_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate Handover Acknowledge
   uint8_t handover_bytes[] = {
@@ -1208,7 +1208,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandover) {
   // Send S1AP_HANDOVER_COMMAND mimicing MME_APP
   ASSERT_EQ(send_s1ap_mme_handover_command(assoc_id, 7, 1, 2, 10, 2), RETURNok);
 
-  oai::UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
+  oai::UeDescription *ue_ref_p = s1ap_state_get_ue_mmeid(7);
   cv.wait_for(lock, std::chrono::milliseconds(1000));
   ASSERT_EQ(ue_ref_p->s1ap_ue_state(), oai::S1AP_UE_HANDOVER);
 
@@ -1352,10 +1352,10 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverFailure) {
       0xc2, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x00, 0x00,
       0x10, 0x00, 0x43, 0x40, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x01};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(attach_compl_bytes, sizeof(attach_compl_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(attach_compl_bytes,
+                                    sizeof(attach_compl_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate Handover Required
   uint8_t handover_req_bytes[] = {
@@ -1368,20 +1368,20 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverFailure) {
       0x00, 0x00, 0x00, 0x58, 0x30, 0x31, 0x32, 0x33, 0x34, 0x30, 0x36, 0x0a,
       0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x00};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(handover_req_bytes, sizeof(handover_req_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(handover_req_bytes,
+                                    sizeof(handover_req_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate Handover Failure
   uint8_t handover_fail_bytes[] = {0x40, 0x01, 0x00, 0x0f, 0x00, 0x00, 0x02,
                                    0x00, 0x00, 0x40, 0x02, 0x00, 0x07, 0x00,
                                    0x02, 0x40, 0x02, 0x01, 0x80};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(handover_fail_bytes, sizeof(handover_fail_bytes),
-                              state, target_assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(handover_fail_bytes,
+                                    sizeof(handover_fail_bytes), state,
+                                    target_assoc_id, stream_id),
+            RETURNok);
 }
 
 TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
@@ -1497,10 +1497,10 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
       0xc2, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x00, 0x00,
       0x10, 0x00, 0x43, 0x40, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x01};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(attach_compl_bytes, sizeof(attach_compl_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(attach_compl_bytes,
+                                    sizeof(attach_compl_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate Handover Required
   uint8_t handover_req_bytes[] = {
@@ -1513,10 +1513,10 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
       0x00, 0x00, 0x00, 0x58, 0x30, 0x31, 0x32, 0x33, 0x34, 0x30, 0x36, 0x0a,
       0x38, 0x39, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x00};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(handover_req_bytes, sizeof(handover_req_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(handover_req_bytes,
+                                    sizeof(handover_req_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate Handover Acknowledge
   uint8_t handover_bytes[] = {
@@ -1538,7 +1538,7 @@ TEST_F(S1apMmeHandlersTest, HandleMmeHandoverCancel) {
   ASSERT_EQ(send_s1ap_mme_handover_command(assoc_id, 7, 1, 2, 10, 11),
             RETURNok);
 
-  oai::UeDescription* ue_ref_p = s1ap_state_get_ue_mmeid(7);
+  oai::UeDescription *ue_ref_p = s1ap_state_get_ue_mmeid(7);
   cv.wait_for(lock, std::chrono::milliseconds(1000));
   ASSERT_EQ(ue_ref_p->s1ap_ue_state(), oai::S1AP_UE_HANDOVER);
 
@@ -1649,10 +1649,10 @@ TEST_F(S1apMmeHandlersTest, HandleErabSetupResponse) {
       0xc2, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x00, 0x00,
       0x10, 0x00, 0x43, 0x40, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x01};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(attach_compl_bytes, sizeof(attach_compl_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(attach_compl_bytes,
+                                    sizeof(attach_compl_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate Uplink NAS Transport Erab Setup Req
   uint8_t uplink_nas_bytes[] = {
@@ -1775,10 +1775,10 @@ TEST_F(S1apMmeHandlersTest, HandleErrorIndicationMessage) {
       0xc2, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x00, 0x00,
       0x10, 0x00, 0x43, 0x40, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x01};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(attach_compl_bytes, sizeof(attach_compl_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(attach_compl_bytes,
+                                    sizeof(attach_compl_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate Uplink NAS Transport
   uint8_t uplink_nas_bytes[] = {
@@ -1899,10 +1899,10 @@ TEST_F(S1apMmeHandlersTest, HandleEnbResetPartial) {
       0xc2, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x00, 0x00,
       0x10, 0x00, 0x43, 0x40, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x01};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(attach_compl_bytes, sizeof(attach_compl_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(attach_compl_bytes,
+                                    sizeof(attach_compl_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate ENB Reset
   uint8_t enb_reset[] = {0x00, 0x0e, 0x00, 0x16, 0x00, 0x00, 0x02, 0x00, 0x02,
@@ -2125,10 +2125,10 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
       0xc2, 0x00, 0x64, 0x40, 0x08, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x00, 0x00,
       0x10, 0x00, 0x43, 0x40, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x01};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(attach_compl_bytes, sizeof(attach_compl_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(attach_compl_bytes,
+                                    sizeof(attach_compl_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate ENBConfigurationTransfer PDU payload
   uint8_t enb_transfer_bytes[] = {
@@ -2138,10 +2138,10 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
       0x10, 0x00, 0xf1, 0x10, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x98,
       0x40, 0x06, 0x01, 0xf0, 0xc0, 0xa8, 0x3c, 0x8d};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(enb_transfer_bytes, sizeof(enb_transfer_bytes),
-                              state, assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(enb_transfer_bytes,
+                                    sizeof(enb_transfer_bytes), state, assoc_id,
+                                    stream_id),
+            RETURNok);
 
   // Simulate second ENBConfigurationTransfer PDU payload
   uint8_t enb_transfer_bytes_2[] = {
@@ -2164,10 +2164,10 @@ TEST_F(S1apMmeHandlersTest, HandlePathSwitchRequestSuccess) {
       0x00, 0x20, 0x00, 0x43, 0x40, 0x06, 0x00, 0x00, 0xf1, 0x10, 0x00, 0x02,
       0x00, 0x6b, 0x40, 0x05, 0x18, 0x00, 0x0c, 0x00, 0x00};
 
-  ASSERT_EQ(
-      simulate_pdu_s1_message(path_switch_bytes, sizeof(path_switch_bytes),
-                              state, switch_assoc_id, stream_id),
-      RETURNok);
+  ASSERT_EQ(simulate_pdu_s1_message(path_switch_bytes,
+                                    sizeof(path_switch_bytes), state,
+                                    switch_assoc_id, stream_id),
+            RETURNok);
 
   // Confirm UE state update (assoc_id, enb_ue_s1ap_id)
   ASSERT_TRUE(is_ue_state_valid(switch_assoc_id, 2, oai::S1AP_UE_CONNECTED));
@@ -2695,5 +2695,5 @@ TEST_F(S1apMmeHandlersTest, MalformedUplinkNasTransportMME_UE_S1AP_ID) {
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu_s1);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

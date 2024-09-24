@@ -12,17 +12,17 @@
  */
 #pragma once
 
+#include <experimental/optional>
+#include <functional>
 #include <lte/protos/abort_session.pb.h>
 #include <lte/protos/apn.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include <stdint.h>
-#include <experimental/optional>
-#include <functional>
 #include <memory>
 #include <mutex>
+#include <stdint.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -34,15 +34,15 @@
 namespace grpc {
 class Channel;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class AggregatedMaximumBitrate;
 class RuleRecordTable;
 class SubscriberID;
 class Teids;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 
@@ -57,7 +57,7 @@ using std::experimental::optional;
  * The class is intended on interfacing with the data pipeline to enforce rules.
  */
 class PipelinedClient {
- public:
+public:
   virtual ~PipelinedClient() = default;
 
   /**
@@ -73,16 +73,16 @@ class PipelinedClient {
    * @param epoch
    * @param callback
    */
-  virtual void setup_cwf(
-      const std::vector<SessionState::SessionInfo>& infos,
-      const std::vector<SubscriberQuotaUpdate>& quota_updates,
-      const std::vector<std::string> ue_mac_addrs,
-      const std::vector<std::string> msisdns,
-      const std::vector<std::string> apn_mac_addrs,
-      const std::vector<std::string> apn_names,
-      const std::vector<std::uint64_t> pdp_start_times,
-      const std::uint64_t& epoch,
-      std::function<void(Status status, SetupFlowsResult)> callback) = 0;
+  virtual void
+  setup_cwf(const std::vector<SessionState::SessionInfo> &infos,
+            const std::vector<SubscriberQuotaUpdate> &quota_updates,
+            const std::vector<std::string> ue_mac_addrs,
+            const std::vector<std::string> msisdns,
+            const std::vector<std::string> apn_mac_addrs,
+            const std::vector<std::string> apn_names,
+            const std::vector<std::uint64_t> pdp_start_times,
+            const std::uint64_t &epoch,
+            std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
   /**
    * @brief Set the up lte object
@@ -91,10 +91,10 @@ class PipelinedClient {
    * @param epoch
    * @param callback
    */
-  virtual void setup_lte(
-      const std::vector<SessionState::SessionInfo>& infos,
-      const std::uint64_t& epoch,
-      std::function<void(Status status, SetupFlowsResult)> callback) = 0;
+  virtual void
+  setup_lte(const std::vector<SessionState::SessionInfo> &infos,
+            const std::uint64_t &epoch,
+            std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
   /**
    * @brief Send a DeactivateFlowsRequest for each of the teid pair.
@@ -107,8 +107,8 @@ class PipelinedClient {
    * @param origin_type
    */
   virtual void deactivate_flows_for_rules_for_termination(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const std::vector<Teids>& teids,
+      const std::string &imsi, const std::string &ip_addr,
+      const std::string &ipv6_addr, const std::vector<Teids> &teids,
       const RequestOriginType_OriginType origin_type) = 0;
 
   /**
@@ -123,8 +123,8 @@ class PipelinedClient {
    * @param origin_type
    */
   virtual void deactivate_flows_for_rules(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids default_teids,
+      const std::string &imsi, const std::string &ip_addr,
+      const std::string &ipv6_addr, const Teids default_teids,
       const RulesToProcess to_process,
       const RequestOriginType_OriginType origin_type) = 0;
 
@@ -142,9 +142,9 @@ class PipelinedClient {
    * @param callback
    */
   virtual void activate_flows_for_rules(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids default_teids,
-      const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
+      const std::string &imsi, const std::string &ip_addr,
+      const std::string &ipv6_addr, const Teids default_teids,
+      const std::string &msisdn, const optional<AggregatedMaximumBitrate> &ambr,
       const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
@@ -160,9 +160,9 @@ class PipelinedClient {
    * @param callback
    */
   virtual void add_ue_mac_flow(
-      const SubscriberID& sid, const std::string& ue_mac_addr,
-      const std::string& msisdn, const std::string& ap_mac_addr,
-      const std::string& ap_name,
+      const SubscriberID &sid, const std::string &ue_mac_addr,
+      const std::string &msisdn, const std::string &ap_mac_addr,
+      const std::string &ap_name,
       std::function<void(Status status, FlowResponse)> callback) = 0;
 
   /**
@@ -175,12 +175,12 @@ class PipelinedClient {
    * @param ap_name
    * @param pdp_start_time
    */
-  virtual void update_ipfix_flow(const SubscriberID& sid,
-                                 const std::string& ue_mac_addr,
-                                 const std::string& msisdn,
-                                 const std::string& ap_mac_addr,
-                                 const std::string& ap_name,
-                                 const uint64_t& pdp_start_time) = 0;
+  virtual void update_ipfix_flow(const SubscriberID &sid,
+                                 const std::string &ue_mac_addr,
+                                 const std::string &msisdn,
+                                 const std::string &ap_mac_addr,
+                                 const std::string &ap_name,
+                                 const uint64_t &pdp_start_time) = 0;
 
   /**
    * @brief Send the MAC address of UE and the subscriberID
@@ -189,8 +189,8 @@ class PipelinedClient {
    * @param sid
    * @param ue_mac_addr
    */
-  virtual void delete_ue_mac_flow(const SubscriberID& sid,
-                                  const std::string& ue_mac_addr) = 0;
+  virtual void delete_ue_mac_flow(const SubscriberID &sid,
+                                  const std::string &ue_mac_addr) = 0;
 
   /**
    * @brief Propagate whether a subscriber has quota / no quota / or terminated
@@ -198,7 +198,7 @@ class PipelinedClient {
    * @param updates
    */
   virtual void update_subscriber_quota_state(
-      const std::vector<SubscriberQuotaUpdate>& updates) = 0;
+      const std::vector<SubscriberQuotaUpdate> &updates) = 0;
 
   /**
    * @brief Activate the GY final action policies
@@ -210,11 +210,11 @@ class PipelinedClient {
    * @param msisdn
    * @param to_process
    */
-  virtual void add_gy_final_action_flow(const std::string& imsi,
-                                        const std::string& ip_addr,
-                                        const std::string& ipv6_addr,
+  virtual void add_gy_final_action_flow(const std::string &imsi,
+                                        const std::string &ip_addr,
+                                        const std::string &ipv6_addr,
                                         const Teids default_teids,
-                                        const std::string& msisdn,
+                                        const std::string &msisdn,
                                         const RulesToProcess to_process) = 0;
 
   /**
@@ -232,9 +232,9 @@ class PipelinedClient {
   virtual uint32_t get_next_teid() = 0;
   virtual uint32_t get_current_teid() = 0;
 
-  virtual void poll_stats(
-      int cookie, int cookie_mask,
-      std::function<void(Status, RuleRecordTable)> callback) = 0;
+  virtual void
+  poll_stats(int cookie, int cookie_mask,
+             std::function<void(Status, RuleRecordTable)> callback) = 0;
 };
 
 /**
@@ -243,70 +243,68 @@ class PipelinedClient {
  * Please refer to PipelinedClient for documentation
  */
 class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
- public:
+public:
   AsyncPipelinedClient();
 
   explicit AsyncPipelinedClient(
       std::shared_ptr<grpc::Channel> pipelined_channel);
 
-  void setup_cwf(const std::vector<SessionState::SessionInfo>& infos,
-                 const std::vector<SubscriberQuotaUpdate>& quota_updates,
+  void setup_cwf(const std::vector<SessionState::SessionInfo> &infos,
+                 const std::vector<SubscriberQuotaUpdate> &quota_updates,
                  const std::vector<std::string> ue_mac_addrs,
                  const std::vector<std::string> msisdns,
                  const std::vector<std::string> apn_mac_addrs,
                  const std::vector<std::string> apn_names,
                  const std::vector<std::uint64_t> pdp_start_times,
-                 const std::uint64_t& epoch,
+                 const std::uint64_t &epoch,
                  std::function<void(Status status, SetupFlowsResult)> callback);
 
-  void setup_lte(const std::vector<SessionState::SessionInfo>& infos,
-                 const std::uint64_t& epoch,
+  void setup_lte(const std::vector<SessionState::SessionInfo> &infos,
+                 const std::uint64_t &epoch,
                  std::function<void(Status status, SetupFlowsResult)> callback);
 
   void deactivate_flows_for_rules_for_termination(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const std::vector<Teids>& teids,
+      const std::string &imsi, const std::string &ip_addr,
+      const std::string &ipv6_addr, const std::vector<Teids> &teids,
       const RequestOriginType_OriginType origin_type);
 
   void deactivate_flows_for_rules(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids default_teids,
+      const std::string &imsi, const std::string &ip_addr,
+      const std::string &ipv6_addr, const Teids default_teids,
       const RulesToProcess to_process,
       const RequestOriginType_OriginType origin_type);
 
-  void deactivate_flows(DeactivateFlowsRequest& request);
+  void deactivate_flows(DeactivateFlowsRequest &request);
 
   void activate_flows_for_rules(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids default_teids,
-      const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
+      const std::string &imsi, const std::string &ip_addr,
+      const std::string &ipv6_addr, const Teids default_teids,
+      const std::string &msisdn, const optional<AggregatedMaximumBitrate> &ambr,
       const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback);
 
-  void add_ue_mac_flow(
-      const SubscriberID& sid, const std::string& ue_mac_addr,
-      const std::string& msisdn, const std::string& ap_mac_addr,
-      const std::string& ap_name,
-      std::function<void(Status status, FlowResponse)> callback);
+  void
+  add_ue_mac_flow(const SubscriberID &sid, const std::string &ue_mac_addr,
+                  const std::string &msisdn, const std::string &ap_mac_addr,
+                  const std::string &ap_name,
+                  std::function<void(Status status, FlowResponse)> callback);
 
-  void update_ipfix_flow(const SubscriberID& sid,
-                         const std::string& ue_mac_addr,
-                         const std::string& msisdn,
-                         const std::string& ap_mac_addr,
-                         const std::string& ap_name,
-                         const uint64_t& pdp_start_time);
+  void
+  update_ipfix_flow(const SubscriberID &sid, const std::string &ue_mac_addr,
+                    const std::string &msisdn, const std::string &ap_mac_addr,
+                    const std::string &ap_name, const uint64_t &pdp_start_time);
 
   void update_subscriber_quota_state(
-      const std::vector<SubscriberQuotaUpdate>& updates);
+      const std::vector<SubscriberQuotaUpdate> &updates);
 
-  void delete_ue_mac_flow(const SubscriberID& sid,
-                          const std::string& ue_mac_addr);
+  void delete_ue_mac_flow(const SubscriberID &sid,
+                          const std::string &ue_mac_addr);
 
-  void add_gy_final_action_flow(const std::string& imsi,
-                                const std::string& ip_addr,
-                                const std::string& ipv6_addr,
+  void add_gy_final_action_flow(const std::string &imsi,
+                                const std::string &ip_addr,
+                                const std::string &ipv6_addr,
                                 const Teids default_teids,
-                                const std::string& msisdn,
+                                const std::string &msisdn,
                                 const RulesToProcess to_process);
 
   void set_upf_session(
@@ -332,51 +330,51 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   uint32_t get_next_teid();
   uint32_t get_current_teid();
 
- private:
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+private:
+  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<Pipelined::Stub> stub_;
   uint32_t teid;
 
- private:
+private:
   void setup_default_controllers_rpc(
-      const SetupDefaultRequest& request,
+      const SetupDefaultRequest &request,
       std::function<void(Status, SetupFlowsResult)> callback);
 
-  void setup_policy_rpc(const SetupPolicyRequest& request,
+  void setup_policy_rpc(const SetupPolicyRequest &request,
                         std::function<void(Status, SetupFlowsResult)> callback);
 
-  void setup_ue_mac_rpc(const SetupUEMacRequest& request,
+  void setup_ue_mac_rpc(const SetupUEMacRequest &request,
                         std::function<void(Status, SetupFlowsResult)> callback);
 
   void deactivate_flows_rpc(
-      const DeactivateFlowsRequest& request,
+      const DeactivateFlowsRequest &request,
       std::function<void(Status, DeactivateFlowsResult)> callback);
 
-  void activate_flows_rpc(
-      const ActivateFlowsRequest& request,
-      std::function<void(Status, ActivateFlowsResult)> callback);
+  void
+  activate_flows_rpc(const ActivateFlowsRequest &request,
+                     std::function<void(Status, ActivateFlowsResult)> callback);
 
-  void add_ue_mac_flow_rpc(const UEMacFlowRequest& request,
+  void add_ue_mac_flow_rpc(const UEMacFlowRequest &request,
                            std::function<void(Status, FlowResponse)> callback);
 
-  void update_ipfix_flow_rpc(
-      const UEMacFlowRequest& request,
-      std::function<void(Status, FlowResponse)> callback);
+  void
+  update_ipfix_flow_rpc(const UEMacFlowRequest &request,
+                        std::function<void(Status, FlowResponse)> callback);
 
   void update_subscriber_quota_state_rpc(
-      const UpdateSubscriberQuotaStateRequest& request,
+      const UpdateSubscriberQuotaStateRequest &request,
       std::function<void(Status, FlowResponse)> callback);
 
-  void delete_ue_mac_flow_rpc(
-      const UEMacFlowRequest& request,
-      std::function<void(Status, FlowResponse)> callback);
+  void
+  delete_ue_mac_flow_rpc(const UEMacFlowRequest &request,
+                         std::function<void(Status, FlowResponse)> callback);
 
   void set_upf_session_rpc(
-      const SessionSet& request,
+      const SessionSet &request,
       std::function<void(Status, UPFSessionContextState)> callback);
 
-  void poll_stats_rpc(const GetStatsRequest& request,
+  void poll_stats_rpc(const GetStatsRequest &request,
                       std::function<void(Status, RuleRecordTable)> callback);
 };
 
-}  // namespace magma
+} // namespace magma

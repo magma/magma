@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationReject.hpp"
 
 namespace magma5g {
 RegistrationRejectMsg::RegistrationRejectMsg(){};
@@ -26,7 +26,7 @@ RegistrationRejectMsg::~RegistrationRejectMsg(){};
 
 // Decoding Registration Reject Message and its IEs
 int RegistrationRejectMsg::DecodeRegistrationRejectMsg(
-    RegistrationRejectMsg* reg_reject, uint8_t* buffer, uint32_t len) {
+    RegistrationRejectMsg *reg_reject, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
@@ -67,7 +67,7 @@ int RegistrationRejectMsg::DecodeRegistrationRejectMsg(
 
 // Encoding Registration Reject Message and its IEs
 int RegistrationRejectMsg::EncodeRegistrationRejectMsg(
-    RegistrationRejectMsg* reg_reject, uint8_t* buffer, uint32_t len) {
+    RegistrationRejectMsg *reg_reject, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
@@ -104,4 +104,4 @@ int RegistrationRejectMsg::EncodeRegistrationRejectMsg(
     encoded += encoded_result;
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

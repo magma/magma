@@ -34,17 +34,17 @@
    \date 2016
    \email: lionel.gauthier@eurecom.fr
 */
+#include <errno.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <libgen.h>
 #include <stdio.h>
 #include <string.h>
-#include <errno.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <libgen.h>
+#include <unistd.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/pid_file.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define PID_DEC_BUF_SIZE 64 /* should be big enough */
 
@@ -52,8 +52,8 @@ int g_fd_pid_file = -1;
 __pid_t g_pid = -1;
 
 //------------------------------------------------------------------------------
-char* get_pid_file_name(bstring pid_dir) {
-  char* pid_file_name;
+char *get_pid_file_name(bstring pid_dir) {
+  char *pid_file_name;
 
   pid_file_name = get_exe_absolute_path(bdatae(pid_dir, "var/run"));
 
@@ -61,9 +61,9 @@ char* get_pid_file_name(bstring pid_dir) {
 }
 
 //------------------------------------------------------------------------------
-char* get_exe_absolute_path(char const* basepath) {
+char *get_exe_absolute_path(char const *basepath) {
   char pid_file_name[256] = {0};
-  char* exe_basename = NULL;
+  char *exe_basename = NULL;
   int len = 0;
 
   // get executable name
@@ -88,7 +88,7 @@ int lockfile(int fd, int lock_type) {
 }
 
 //------------------------------------------------------------------------------
-bool pid_file_lock(char const* pid_file_name) {
+bool pid_file_lock(char const *pid_file_name) {
   char pid_dec[PID_DEC_BUF_SIZE] = {0};
 
   g_fd_pid_file =

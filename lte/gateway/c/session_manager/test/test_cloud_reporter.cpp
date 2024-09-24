@@ -10,16 +10,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <chrono>
 #include <folly/io/async/EventBase.h>
+#include <future>
 #include <gmock/gmock.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
-#include <lte/protos/session_manager.pb.h>
-#include <stdint.h>
-#include <chrono>
-#include <future>
 #include <iostream>
+#include <lte/protos/session_manager.pb.h>
 #include <memory>
+#include <stdint.h>
 #include <thread>
 #include <vector>
 
@@ -35,7 +35,7 @@ using ::testing::Test;
 namespace magma {
 
 class SessionReporterTest : public ::testing::Test {
- protected:
+protected:
   /**
    * Create magma service and run in separate thread
    */
@@ -84,11 +84,11 @@ class SessionReporterTest : public ::testing::Test {
     }).detach();
   }
 
- protected:
+protected:
   std::shared_ptr<service303::MagmaService> magma_service;
   std::shared_ptr<MockCentralController> mock_cloud;
   std::shared_ptr<SessionReporter> reporter;
-  folly::EventBase* evb;
+  folly::EventBase *evb;
   MockCallback mock_callback;
 };
 
@@ -178,4 +178,4 @@ TEST_F(SessionReporterTest, test_multi_call) {
   // wait for callback
   evb->loopForever();
 }
-}  // namespace magma
+} // namespace magma

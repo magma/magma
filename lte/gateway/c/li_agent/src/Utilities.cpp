@@ -13,9 +13,9 @@
 
 #include "lte/gateway/c/li_agent/src/Utilities.hpp"
 
+#include <chrono>
 #include <glog/logging.h>
 #include <orc8r/protos/common.pb.h>
-#include <chrono>
 #include <ostream>
 
 #include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
@@ -51,5 +51,5 @@ uint64_t time_difference_from_now(const uint64_t timestamp) {
   return (now - timestamp);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

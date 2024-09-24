@@ -26,7 +26,7 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
-void send_smo_uplink_unitdata(const itti_sgsap_uplink_unitdata_t* msg);
+void send_smo_uplink_unitdata(const itti_sgsap_uplink_unitdata_t *msg);
 
 #ifdef __cplusplus
 }

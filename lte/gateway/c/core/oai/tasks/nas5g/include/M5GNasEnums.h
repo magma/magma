@@ -221,4 +221,4 @@ enum class M5GGprsTimer3ValueUnit : uint8_t {
   DEACTIVATED = 0b111,
 };
 
-}  // namespace magma5g
+} // namespace magma5g

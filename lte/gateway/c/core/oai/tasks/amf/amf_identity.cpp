@@ -25,11 +25,11 @@ extern "C" {
 }
 #endif
 #include "lte/gateway/c/core/common/common_defs.h"
-#include <unordered_map>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include <unordered_map>
 
 extern amf_config_t amf_config;
 namespace magma5g {
@@ -42,7 +42,7 @@ namespace magma5g {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_ctx_set_attribute_valid(amf_context_t* ctxt,
+void amf_ctx_set_attribute_valid(amf_context_t *ctxt,
                                  const uint32_t attribute_bit_pos) {
   ctxt->member_present_mask |= attribute_bit_pos;
   ctxt->member_valid_mask |= attribute_bit_pos;
@@ -56,7 +56,7 @@ void amf_ctx_set_attribute_valid(amf_context_t* ctxt,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_ctx_set_attribute_present(amf_context_t* ctxt,
+void amf_ctx_set_attribute_present(amf_context_t *ctxt,
                                    const int attribute_bit_pos) {
   ctxt->member_present_mask |= attribute_bit_pos;
 }
@@ -69,10 +69,10 @@ void amf_ctx_set_attribute_present(amf_context_t* ctxt,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-nas_amf_ident_proc_t* get_5g_nas_common_procedure_identification(
-    const amf_context_t* ctxt) {
-  return (nas_amf_ident_proc_t*)get_nas5g_common_procedure(ctxt,
-                                                           AMF_COMM_PROC_IDENT);
+nas_amf_ident_proc_t *
+get_5g_nas_common_procedure_identification(const amf_context_t *ctxt) {
+  return (nas_amf_ident_proc_t *)get_nas5g_common_procedure(
+      ctxt, AMF_COMM_PROC_IDENT);
 }
 
 /***************************************************************************
@@ -83,7 +83,7 @@ nas_amf_ident_proc_t* get_5g_nas_common_procedure_identification(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_ctx_set_valid_imei(amf_context_t* const ctxt, imei_t* imei) {
+void amf_ctx_set_valid_imei(amf_context_t *const ctxt, imei_t *imei) {
   ctxt->imei = *imei;
   amf_ctx_set_attribute_valid(ctxt, AMF_CTXT_MEMBER_IMEI);
 }
@@ -111,23 +111,23 @@ void amf_ctx_set_valid_imei(amf_context_t* const ctxt, imei_t* imei) {
  **                                                                        **
  ***************************************************************************/
 status_code_e amf_proc_identification_complete(
-    const amf_ue_ngap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
-    imeisv_t* const imeisv, uint32_t* const tmsi, guti_m5_t* amf_ctx_guti) {
+    const amf_ue_ngap_id_t ue_id, imsi_t *const imsi, imei_t *const imei,
+    imeisv_t *const imeisv, uint32_t *const tmsi, guti_m5_t *amf_ctx_guti) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   status_code_e rc = RETURNok;
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t *amf_ctx = NULL;
 
   OAILOG_DEBUG(LOG_NAS_AMF,
                "Identification procedure complete for "
                "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
                ue_id);
 
-  ue_m5gmm_context_s* ue_mm_context =
+  ue_m5gmm_context_s *ue_mm_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
-    nas_amf_ident_proc_t* ident_proc =
+    nas_amf_ident_proc_t *ident_proc =
         get_5g_nas_common_procedure_identification(amf_ctx);
 
     if (ident_proc == NULL) {
@@ -175,8 +175,8 @@ status_code_e amf_proc_identification_complete(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_app_generate_guti_on_supi(amf_guti_m5g_t* amf_guti,
-                                   supi_as_imsi_t* supi_imsi) {
+void amf_app_generate_guti_on_supi(amf_guti_m5g_t *amf_guti,
+                                   supi_as_imsi_t *supi_imsi) {
   /* Generate GUTI with 5g-tmsi as rand value */
   amf_guti->guamfi.plmn.mcc_digit1 = supi_imsi->plmn.mcc_digit1;
   amf_guti->guamfi.plmn.mcc_digit2 = supi_imsi->plmn.mcc_digit2;
@@ -205,4 +205,4 @@ void amf_app_generate_guti_on_supi(amf_guti_m5g_t* amf_guti,
   return;
 }
 
-}  // namespace magma5g
+} // namespace magma5g

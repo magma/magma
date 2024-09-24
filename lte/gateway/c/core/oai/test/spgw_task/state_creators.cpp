@@ -37,4 +37,4 @@ spgw_state_t make_spgw_state(uint32_t gtpv1u_teid, int fd0, int fd1u) {
   return result;
 }
 
-}  // namespace magma
+} // namespace magma

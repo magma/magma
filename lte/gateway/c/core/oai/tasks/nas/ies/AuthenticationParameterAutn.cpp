@@ -17,22 +17,22 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/AuthenticationParameterAutn.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_authentication_parameter_autn(
-    AuthenticationParameterAutn* authenticationparameterautn, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    AuthenticationParameterAutn *authenticationparameterautn, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
@@ -57,8 +57,8 @@ int decode_authentication_parameter_autn(
 
 int encode_authentication_parameter_autn(
     AuthenticationParameterAutn authenticationparameterautn, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+    uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   int encode_result;
   uint32_t encoded = 0;
 

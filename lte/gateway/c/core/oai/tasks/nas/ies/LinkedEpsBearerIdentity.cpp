@@ -22,16 +22,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
 int decode_linked_eps_bearer_identity(
-    linked_eps_bearer_identity_t* linkedepsbeareridentity, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    linked_eps_bearer_identity_t *linkedepsbeareridentity, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -48,10 +48,10 @@ int decode_linked_eps_bearer_identity(
 
 //------------------------------------------------------------------------------
 int decode_u8_linked_eps_bearer_identity(
-    linked_eps_bearer_identity_t* linkedepsbeareridentity, uint8_t iei,
+    linked_eps_bearer_identity_t *linkedepsbeareridentity, uint8_t iei,
     uint8_t value, uint32_t len) {
   int decoded = 0;
-  uint8_t* buffer = &value;
+  uint8_t *buffer = &value;
 
   *linkedepsbeareridentity = *buffer & 0xf;
   decoded++;
@@ -60,8 +60,8 @@ int decode_u8_linked_eps_bearer_identity(
 
 //------------------------------------------------------------------------------
 int encode_linked_eps_bearer_identity(
-    linked_eps_bearer_identity_t* linkedepsbeareridentity, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    linked_eps_bearer_identity_t *linkedepsbeareridentity, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -76,9 +76,9 @@ int encode_linked_eps_bearer_identity(
 
 //------------------------------------------------------------------------------
 uint8_t encode_u8_linked_eps_bearer_identity(
-    linked_eps_bearer_identity_t* linkedepsbeareridentity) {
+    linked_eps_bearer_identity_t *linkedepsbeareridentity) {
   uint8_t bufferReturn;
-  uint8_t* buffer = &bufferReturn;
+  uint8_t *buffer = &bufferReturn;
   uint8_t encoded = 0;
   uint8_t iei = 0;
 

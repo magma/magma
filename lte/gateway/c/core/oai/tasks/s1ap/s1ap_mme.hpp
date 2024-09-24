@@ -35,8 +35,8 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/common_defs.h"
 
-#define S1AP_ZMQ_LATENCY_TH \
-  s1ap_zmq_th  // absolute threshold to be used for initial UE messages
+#define S1AP_ZMQ_LATENCY_TH                                                    \
+  s1ap_zmq_th // absolute threshold to be used for initial UE messages
 
 #ifdef __cplusplus
 }
@@ -53,30 +53,30 @@ namespace lte {
 /** \Initialize an object of EnbDescription, which is passed as
  * argument
  **/
-void s1ap_new_enb(oai::EnbDescription* enb_ref);
+void s1ap_new_enb(oai::EnbDescription *enb_ref);
 
 /** \brief Allocate and add to the right eNB list a new UE descriptor
  * \param sctp_assoc_id association ID over SCTP
  * \param enb_ue_s1ap_id ue ID over S1AP
  * @returns Reference to the new UE element in list
  **/
-oai::UeDescription* s1ap_new_ue(oai::EnbDescription* enb_ref,
+oai::UeDescription *s1ap_new_ue(oai::EnbDescription *enb_ref,
                                 sctp_assoc_id_t sctp_assoc_id,
                                 enb_ue_s1ap_id_t enb_ue_s1ap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove
  **/
-void s1ap_remove_ue(oai::S1apState* state, oai::UeDescription* ue_ref);
+void s1ap_remove_ue(oai::S1apState *state, oai::UeDescription *ue_ref);
 
 /** \brief Remove target eNB from the list and remove any UE associated
  * \param enb_ref eNB structure reference to remove
  **/
-void s1ap_remove_enb(oai::S1apState* state, oai::EnbDescription* enb_ref);
+void s1ap_remove_enb(oai::S1apState *state, oai::EnbDescription *enb_ref);
 
-void free_enb_description(void** ptr);
+void free_enb_description(void **ptr);
 
-void free_ue_description(void** ptr);
+void free_ue_description(void **ptr);
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

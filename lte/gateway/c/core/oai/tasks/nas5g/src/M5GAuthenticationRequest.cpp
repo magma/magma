@@ -27,7 +27,7 @@ AuthenticationRequestMsg::~AuthenticationRequestMsg(){};
 
 // Decode AuthenticationRequest Messsage
 int AuthenticationRequestMsg::DecodeAuthenticationRequestMsg(
-    AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len) {
+    AuthenticationRequestMsg *auth_request, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   /*** Not Implemented, will be supported POST MVC ***/
   return decoded;
@@ -35,7 +35,7 @@ int AuthenticationRequestMsg::DecodeAuthenticationRequestMsg(
 
 // Encode AuthenticationRequest Messsage
 int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(
-    AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len) {
+    AuthenticationRequestMsg *auth_request, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
 
@@ -100,4 +100,4 @@ int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(
 
   return encoded;
 };
-}  // namespace magma5g
+} // namespace magma5g

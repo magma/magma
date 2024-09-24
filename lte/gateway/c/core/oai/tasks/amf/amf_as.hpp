@@ -21,48 +21,48 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
-#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 
 namespace magma5g {
 
 #define M5GSMobileIdentityMsg_GUTI_LENGTH 11
 
 // Checks PLMNs equality
-#define PLMN_ARE_EQUAL(p1, p2) \
+#define PLMN_ARE_EQUAL(p1, p2)                                                 \
   ((MCCS_ARE_EQUAL((p1), (p2))) && (MNCS_ARE_EQUAL((p1), (p2))))
 
 // Checks MCC equality
-#define MCCS_ARE_EQUAL(n1, n2)             \
-  (((n1).mcc_digit1 == (n2).mcc_digit1) && \
-   ((n1).mcc_digit2 == (n2).mcc_digit2) && \
+#define MCCS_ARE_EQUAL(n1, n2)                                                 \
+  (((n1).mcc_digit1 == (n2).mcc_digit1) &&                                     \
+   ((n1).mcc_digit2 == (n2).mcc_digit2) &&                                     \
    ((n1).mcc_digit3 == (n2).mcc_digit3))
 
 // Checks Mobile Network Code equality
-#define MNCS_ARE_EQUAL(n1, n2)             \
-  (((n1).mnc_digit1 == (n2).mnc_digit1) && \
-   ((n1).mnc_digit2 == (n2).mnc_digit2) && \
+#define MNCS_ARE_EQUAL(n1, n2)                                                 \
+  (((n1).mnc_digit1 == (n2).mnc_digit1) &&                                     \
+   ((n1).mnc_digit2 == (n2).mnc_digit2) &&                                     \
    ((n1).mnc_digit3 == (n2).mnc_digit3))
 
 // AMF_AS Service Access point primitive
-status_code_e amf_as_send(amf_as_t* msg);
+status_code_e amf_as_send(amf_as_t *msg);
 
 // Builds NAS message according to the given AMFAS Service Access Point
 // primitive
-status_code_e amf_as_send_ng(const amf_as_t* msg);
+status_code_e amf_as_send_ng(const amf_as_t *msg);
 
 status_code_e initial_context_setup_request(amf_ue_ngap_id_t ue_id,
-                                            amf_context_t* amf_ctx,
+                                            amf_context_t *amf_ctx,
                                             bstring nas_msg);
 
 // For _AMFAS_DATA_REQ primitive
-uint16_t amf_as_data_req(const amf_as_data_t* msg,
-                         m5g_dl_info_transfer_req_t* as_msg);
+uint16_t amf_as_data_req(const amf_as_data_t *msg,
+                         m5g_dl_info_transfer_req_t *as_msg);
 
 // For _AMFAS_ESTABLISH_CNF primitive
-uint16_t amf_as_establish_cnf(const amf_as_establish_t* establish,
-                              nas5g_establish_rsp_t* nas_establish_rsp);
+uint16_t amf_as_establish_cnf(const amf_as_establish_t *establish,
+                              nas5g_establish_rsp_t *nas_establish_rsp);
 
 enum nas_error_code_t {
   AS_SUCCESS = 1,          /* Success code, transaction is going on    */
@@ -78,4 +78,4 @@ typedef enum as_m5gcause_s {
   AS_CAUSE_UNKNOWN = 0,
 } as_m5gcause_t;
 
-}  // namespace magma5g
+} // namespace magma5g

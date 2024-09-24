@@ -13,21 +13,21 @@
 
 #include "lte/gateway/c/sctpd/src/sctpd.hpp"
 
-#include <systemd/sd-daemon.h>
 #include <bits/types/siginfo_t.h>
 #include <glog/logging.h>
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/credentials.h>
 #include <grpcpp/security/server_credentials.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
+#include <memory>
 #include <orc8r/protos/common.pb.h>
+#include <ostream>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <yaml-cpp/yaml.h>
-#include <memory>
-#include <ostream>
 #include <string>
+#include <systemd/sd-daemon.h>
+#include <yaml-cpp/yaml.h>
 
 #include "lte/gateway/c/sctpd/src/sctpd_downlink_impl.hpp"
 #include "lte/gateway/c/sctpd/src/sctpd_event_handler.hpp"
@@ -59,8 +59,8 @@ int signalMask(void) {
   return 0;
 }
 
-int signalHandler(int* end, std::unique_ptr<Server>& server,
-                  SctpdDownlinkImpl& downLink) {
+int signalHandler(int *end, std::unique_ptr<Server> &server,
+                  SctpdDownlinkImpl &downLink) {
   int ret;
   siginfo_t info;
   sigset_t set;
@@ -94,7 +94,7 @@ static magma::mconfig::SctpD load_sctpd_mconfig() {
   return mconfig;
 }
 
-static uint32_t get_log_verbosity(const YAML::Node& config,
+static uint32_t get_log_verbosity(const YAML::Node &config,
                                   magma::mconfig::SctpD mconfig) {
   if (!config["log_level"].IsDefined()) {
     return magma::get_log_verbosity_from_mconfig(mconfig.log_level());

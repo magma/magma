@@ -100,10 +100,10 @@ typedef struct gummei_list_s {
 typedef struct mme_api_emm_config_s {
   mme_api_feature_t features; /* Supported features           */
   gummei_list_t gummei;       /* EPS Globally Unique MME Identity List*/
-  uint8_t prefered_integrity_algorithm[8];  // choice in
-                                            // NAS_SECURITY_ALGORITHMS_EIA0, etc
-  uint8_t prefered_ciphering_algorithm[8];  // choice in
-                                            // NAS_SECURITY_ALGORITHMS_EEA0, etc
+  uint8_t prefered_integrity_algorithm[8]; // choice in
+                                           // NAS_SECURITY_ALGORITHMS_EIA0, etc
+  uint8_t prefered_ciphering_algorithm[8]; // choice in
+                                           // NAS_SECURITY_ALGORITHMS_EEA0, etc
   uint8_t eps_network_feature_support[2];
   bool force_push_pco;
   tai_list_t tai_list;
@@ -145,8 +145,8 @@ typedef struct mme_api_qos_s {
 /****************************************************************************/
 struct mme_config_s;
 
-status_code_e mme_api_get_emm_config(mme_api_emm_config_t* config,
-                                     const struct mme_config_s* mme_config_p);
+status_code_e mme_api_get_emm_config(mme_api_emm_config_t *config,
+                                     const struct mme_config_s *mme_config_p);
 
 #define REMOVE_OLD_CONTEXT true
 #define REMOVE_NEW_CONTEXT false
@@ -154,27 +154,27 @@ void mme_api_duplicate_enb_ue_s1ap_id_detected(
     const enb_s1ap_id_key_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bool is_remove_old);
 
-status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config);
+status_code_e mme_api_get_esm_config(mme_api_esm_config_t *config);
 status_code_e mme_api_unsubscribe(bstring apn);
 
 status_code_e mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid,
-                                      guti_t* const guti);
+                                      guti_t *const guti);
 
 status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id,
                                   const imsi64_t imsi64);
-status_code_e mme_api_new_guti(const imsi_t* const imsi,
-                               const guti_t* const old_guti, guti_t* const guti,
-                               const tai_t* const originating_tai,
-                               tai_list_t* const tai_list);
+status_code_e mme_api_new_guti(const imsi_t *const imsi,
+                               const guti_t *const old_guti, guti_t *const guti,
+                               const tai_t *const originating_tai,
+                               tai_list_t *const tai_list);
 bool mme_ue_context_get_ue_sgs_vlr_reliable(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 void mme_ue_context_update_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                        bool neaf);
 
-status_code_e mme_api_subscribe(bstring* apn,
+status_code_e mme_api_subscribe(bstring *apn,
                                 mme_api_ip_version_t mme_pdn_index,
-                                bstring* pdn_addr, int is_emergency,
-                                mme_api_qos_t* qos);
+                                bstring *pdn_addr, int is_emergency,
+                                mme_api_qos_t *qos);
 
 void mme_ue_context_update_ue_emm_state(mme_ue_s1ap_id_t mme_ue_s1ap_id,
                                         mm_state_t new_emm_state);
@@ -182,76 +182,76 @@ void mme_ue_context_update_ue_emm_state(mme_ue_s1ap_id_t mme_ue_s1ap_id,
 bool mme_ue_context_get_ue_sgs_neaf(mme_ue_s1ap_id_t mme_ue_s1ap_id);
 
 /* Compares the given two PLMNs */
-#define IS_PLMN_EQUAL(pLMN1, pLMN2)           \
-  (((pLMN1.mcc_digit1 == pLMN2.mcc_digit1) && \
-    (pLMN1.mcc_digit2 == pLMN2.mcc_digit2) && \
-    (pLMN1.mcc_digit3 == pLMN2.mcc_digit3) && \
-    (pLMN1.mnc_digit1 == pLMN2.mnc_digit1) && \
-    (pLMN1.mnc_digit2 == pLMN2.mnc_digit2) && \
-    (pLMN1.mnc_digit3 == pLMN2.mnc_digit3))   \
-       ? (true)                               \
+#define IS_PLMN_EQUAL(pLMN1, pLMN2)                                            \
+  (((pLMN1.mcc_digit1 == pLMN2.mcc_digit1) &&                                  \
+    (pLMN1.mcc_digit2 == pLMN2.mcc_digit2) &&                                  \
+    (pLMN1.mcc_digit3 == pLMN2.mcc_digit3) &&                                  \
+    (pLMN1.mnc_digit1 == pLMN2.mnc_digit1) &&                                  \
+    (pLMN1.mnc_digit2 == pLMN2.mnc_digit2) &&                                  \
+    (pLMN1.mnc_digit3 == pLMN2.mnc_digit3))                                    \
+       ? (true)                                                                \
        : (false))
 
-#define COPY_GUMMEI(gUTI, gUMMEIvAl)                          \
-  do {                                                        \
-    gUTI->gummei.mme_gid = gUMMEIvAl.mme_gid;                 \
-    gUTI->gummei.mme_code = gUMMEIvAl.mme_code;               \
-    gUTI->gummei.plmn.mcc_digit1 = gUMMEIvAl.plmn.mcc_digit1; \
-    gUTI->gummei.plmn.mcc_digit2 = gUMMEIvAl.plmn.mcc_digit2; \
-    gUTI->gummei.plmn.mcc_digit3 = gUMMEIvAl.plmn.mcc_digit3; \
-    gUTI->gummei.plmn.mnc_digit1 = gUMMEIvAl.plmn.mnc_digit1; \
-    gUTI->gummei.plmn.mnc_digit2 = gUMMEIvAl.plmn.mnc_digit2; \
-    gUTI->gummei.plmn.mnc_digit3 = gUMMEIvAl.plmn.mnc_digit3; \
+#define COPY_GUMMEI(gUTI, gUMMEIvAl)                                           \
+  do {                                                                         \
+    gUTI->gummei.mme_gid = gUMMEIvAl.mme_gid;                                  \
+    gUTI->gummei.mme_code = gUMMEIvAl.mme_code;                                \
+    gUTI->gummei.plmn.mcc_digit1 = gUMMEIvAl.plmn.mcc_digit1;                  \
+    gUTI->gummei.plmn.mcc_digit2 = gUMMEIvAl.plmn.mcc_digit2;                  \
+    gUTI->gummei.plmn.mcc_digit3 = gUMMEIvAl.plmn.mcc_digit3;                  \
+    gUTI->gummei.plmn.mnc_digit1 = gUMMEIvAl.plmn.mnc_digit1;                  \
+    gUTI->gummei.plmn.mnc_digit2 = gUMMEIvAl.plmn.mnc_digit2;                  \
+    gUTI->gummei.plmn.mnc_digit3 = gUMMEIvAl.plmn.mnc_digit3;                  \
   } while (0)
 
-#define COPY_PLMN(pLMN1, pLMN2)          \
-  do {                                   \
-    pLMN1.mcc_digit1 = pLMN2.mcc_digit1; \
-    pLMN1.mcc_digit2 = pLMN2.mcc_digit2; \
-    pLMN1.mcc_digit3 = pLMN2.mcc_digit3; \
-    pLMN1.mnc_digit1 = pLMN2.mnc_digit1; \
-    pLMN1.mnc_digit2 = pLMN2.mnc_digit2; \
-    pLMN1.mnc_digit3 = pLMN2.mnc_digit3; \
+#define COPY_PLMN(pLMN1, pLMN2)                                                \
+  do {                                                                         \
+    pLMN1.mcc_digit1 = pLMN2.mcc_digit1;                                       \
+    pLMN1.mcc_digit2 = pLMN2.mcc_digit2;                                       \
+    pLMN1.mcc_digit3 = pLMN2.mcc_digit3;                                       \
+    pLMN1.mnc_digit1 = pLMN2.mnc_digit1;                                       \
+    pLMN1.mnc_digit2 = pLMN2.mnc_digit2;                                       \
+    pLMN1.mnc_digit3 = pLMN2.mnc_digit3;                                       \
   } while (0)
 
-#define COPY_PLMN_IN_ARRAY_FMT(pLMN1, pLMN2) \
-  do {                                       \
-    pLMN1.mcc[0] = pLMN2.mcc_digit1;         \
-    pLMN1.mcc[1] = pLMN2.mcc_digit2;         \
-    pLMN1.mcc[2] = pLMN2.mcc_digit3;         \
-    pLMN1.mnc[0] = pLMN2.mnc_digit1;         \
-    pLMN1.mnc[1] = pLMN2.mnc_digit2;         \
-    pLMN1.mnc[2] = pLMN2.mnc_digit3;         \
+#define COPY_PLMN_IN_ARRAY_FMT(pLMN1, pLMN2)                                   \
+  do {                                                                         \
+    pLMN1.mcc[0] = pLMN2.mcc_digit1;                                           \
+    pLMN1.mcc[1] = pLMN2.mcc_digit2;                                           \
+    pLMN1.mcc[2] = pLMN2.mcc_digit3;                                           \
+    pLMN1.mnc[0] = pLMN2.mnc_digit1;                                           \
+    pLMN1.mnc[1] = pLMN2.mnc_digit2;                                           \
+    pLMN1.mnc[2] = pLMN2.mnc_digit3;                                           \
   } while (0)
 
-#define COPY_PLMN_IN_CHAR_ARRAY_FMT(pLMN1, pLMN2) \
-  do {                                            \
-    pLMN1[0] = pLMN2.mcc_digit1 + ASCII_ZERO;     \
-    pLMN1[1] = pLMN2.mcc_digit2 + ASCII_ZERO;     \
-    pLMN1[2] = pLMN2.mcc_digit3 + ASCII_ZERO;     \
-    pLMN1[3] = pLMN2.mnc_digit1 + ASCII_ZERO;     \
-    pLMN1[4] = pLMN2.mnc_digit2 + ASCII_ZERO;     \
-    pLMN1[5] = pLMN2.mnc_digit3 + ASCII_ZERO;     \
+#define COPY_PLMN_IN_CHAR_ARRAY_FMT(pLMN1, pLMN2)                              \
+  do {                                                                         \
+    pLMN1[0] = pLMN2.mcc_digit1 + ASCII_ZERO;                                  \
+    pLMN1[1] = pLMN2.mcc_digit2 + ASCII_ZERO;                                  \
+    pLMN1[2] = pLMN2.mcc_digit3 + ASCII_ZERO;                                  \
+    pLMN1[3] = pLMN2.mnc_digit1 + ASCII_ZERO;                                  \
+    pLMN1[4] = pLMN2.mnc_digit2 + ASCII_ZERO;                                  \
+    pLMN1[5] = pLMN2.mnc_digit3 + ASCII_ZERO;                                  \
   } while (0)
 
-#define COPY_PLMN_FROM_CHAR_ARRAY_FMT(pLMN1, pLMN2) \
-  do {                                              \
-    pLMN1.mcc_digit1 = pLMN2[0] - ASCII_ZERO;       \
-    pLMN1.mcc_digit2 = pLMN2[1] - ASCII_ZERO;       \
-    pLMN1.mcc_digit3 = pLMN2[2] - ASCII_ZERO;       \
-    pLMN1.mnc_digit1 = pLMN2[3] - ASCII_ZERO;       \
-    pLMN1.mnc_digit2 = pLMN2[4] - ASCII_ZERO;       \
-    pLMN1.mnc_digit3 = pLMN2[5] - ASCII_ZERO;       \
+#define COPY_PLMN_FROM_CHAR_ARRAY_FMT(pLMN1, pLMN2)                            \
+  do {                                                                         \
+    pLMN1.mcc_digit1 = pLMN2[0] - ASCII_ZERO;                                  \
+    pLMN1.mcc_digit2 = pLMN2[1] - ASCII_ZERO;                                  \
+    pLMN1.mcc_digit3 = pLMN2[2] - ASCII_ZERO;                                  \
+    pLMN1.mnc_digit1 = pLMN2[3] - ASCII_ZERO;                                  \
+    pLMN1.mnc_digit2 = pLMN2[4] - ASCII_ZERO;                                  \
+    pLMN1.mnc_digit3 = pLMN2[5] - ASCII_ZERO;                                  \
   } while (0)
 
-#define OAILOG_DEBUG_GUTI(gUTI_p)                                         \
-  do {                                                                    \
-    OAILOG_DEBUG(                                                         \
-        LOG_MME_APP,                                                      \
-        "mcc-1: %x mcc-2: %x mcc-3: %x mnc-1: %x mnc-2: %x mnc-3: %x"     \
-        " mme_group_id: %x mme_code: %x m_tmsi: %x \n",                   \
-        gUTI_p->gummei.plmn.mcc_digit1, gUTI_p->gummei.plmn.mcc_digit2,   \
-        gUTI_p->gummei.plmn.mcc_digit3, gUTI_p->gummei.plmn.mnc_digit1,   \
-        gUTI_p->gummei.plmn.mnc_digit2, gUTI_p->gummei.plmn.mnc_digit3,   \
-        gUTI_p->gummei.mme_gid, gUTI_p->gummei.mme_code, gUTI_p->m_tmsi); \
+#define OAILOG_DEBUG_GUTI(gUTI_p)                                              \
+  do {                                                                         \
+    OAILOG_DEBUG(                                                              \
+        LOG_MME_APP,                                                           \
+        "mcc-1: %x mcc-2: %x mcc-3: %x mnc-1: %x mnc-2: %x mnc-3: %x"          \
+        " mme_group_id: %x mme_code: %x m_tmsi: %x \n",                        \
+        gUTI_p->gummei.plmn.mcc_digit1, gUTI_p->gummei.plmn.mcc_digit2,        \
+        gUTI_p->gummei.plmn.mcc_digit3, gUTI_p->gummei.plmn.mnc_digit1,        \
+        gUTI_p->gummei.plmn.mnc_digit2, gUTI_p->gummei.plmn.mnc_digit3,        \
+        gUTI_p->gummei.mme_gid, gUTI_p->gummei.mme_code, gUTI_p->m_tmsi);      \
   } while (0)

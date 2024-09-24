@@ -30,9 +30,9 @@ typedef enum {
 } additional_update_type_t;
 
 int encode_additional_update_type(
-    additional_update_type_t* additionalupdatetype, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    additional_update_type_t *additionalupdatetype, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 int decode_additional_update_type(
-    additional_update_type_t* additionalupdatetype, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    additional_update_type_t *additionalupdatetype, uint8_t iei,
+    uint8_t *buffer, uint32_t len);

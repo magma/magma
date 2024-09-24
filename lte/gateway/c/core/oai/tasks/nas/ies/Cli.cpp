@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
-int decode_cli(Cli* cli, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_cli(Cli *cli, uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
   int decode_result;
@@ -53,8 +53,8 @@ int decode_cli(Cli* cli, uint8_t iei, uint8_t* buffer, uint32_t len) {
 }
 
 //------------------------------------------------------------------------------
-int encode_cli(Cli cli, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+int encode_cli(Cli cli, uint8_t iei, uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
   int encode_result;
 

@@ -13,12 +13,12 @@
 
 #pragma once
 
-#include <gtest/gtest.h>
+#include <condition_variable>
+#include <cstdint>
 #include <czmq.h>
+#include <gtest/gtest.h>
 #include <mutex>
 #include <thread>
-#include <cstdint>
-#include <condition_variable>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -28,8 +28,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/network/nas_message.hpp"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 extern bool mme_hss_associated;
 extern bool mme_sctp_bounded;
@@ -38,12 +38,12 @@ namespace lte {
 
 ACTION_P(ReturnFromAsyncTask, cv) { cv->notify_all(); }
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
+  default: {
+  } break;
   }
 
   itti_free_msg_content(received_message_p);
@@ -160,7 +160,7 @@ class MmeAppProcedureTest : public ::testing::Test {
     itti_free_desc_threads();
   }
 
- protected:
+protected:
   itti_s1ap_nas_dl_data_req_t msg_nas_dl_data = {0};
   bstring nas_msg = NULL;
   std::shared_ptr<MockS1apHandler> s1ap_handler;
@@ -247,15 +247,15 @@ class MmeAppProcedureTest : public ::testing::Test {
                  .mnc_digit1 = 0};
   guti_eps_mobile_identity_t guti = {0};
 
-  void attach_ue(std::condition_variable& cv,
-                 std::unique_lock<std::mutex>& lock,
-                 mme_app_desc_t* mme_state_p, guti_eps_mobile_identity_t* guti);
+  void attach_ue(std::condition_variable &cv,
+                 std::unique_lock<std::mutex> &lock,
+                 mme_app_desc_t *mme_state_p, guti_eps_mobile_identity_t *guti);
 
-  void detach_ue(std::condition_variable& cv,
-                 std::unique_lock<std::mutex>& lock,
-                 mme_app_desc_t* mme_state_p, guti_eps_mobile_identity_t guti,
+  void detach_ue(std::condition_variable &cv,
+                 std::unique_lock<std::mutex> &lock,
+                 mme_app_desc_t *mme_state_p, guti_eps_mobile_identity_t guti,
                  bool is_initial_ue);
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

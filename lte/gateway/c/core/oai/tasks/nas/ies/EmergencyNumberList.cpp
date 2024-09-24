@@ -17,21 +17,21 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EmergencyNumberList.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_emergency_number_list(EmergencyNumberList *emergencynumberlist,
+                                 uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -51,9 +51,9 @@ int decode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
   return decoded;
 }
 
-int encode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+int encode_emergency_number_list(EmergencyNumberList *emergencynumberlist,
+                                 uint8_t iei, uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*
@@ -78,7 +78,7 @@ int encode_emergency_number_list(EmergencyNumberList* emergencynumberlist,
   return encoded;
 }
 
-void dump_emergency_number_list_xml(EmergencyNumberList* emergencynumberlist,
+void dump_emergency_number_list_xml(EmergencyNumberList *emergencynumberlist,
                                     uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Emergency Number List>\n");
 

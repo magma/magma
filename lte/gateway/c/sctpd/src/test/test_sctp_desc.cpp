@@ -32,7 +32,7 @@ const int ASSOC_2_ASSOC_ID = 2;
 const int ASSOC_2_SD = 5;
 
 class SctpdDescTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     assoc_1.assoc_id = ASSOC_1_ASSOC_ID;
     assoc_1.sd = ASSOC_1_SD;
@@ -40,7 +40,7 @@ class SctpdDescTest : public ::testing::Test {
     assoc_2.sd = ASSOC_2_SD;
   }
 
-  void check_assoc(int assoc_id, int sd, const SctpAssoc& assoc) {
+  void check_assoc(int assoc_id, int sd, const SctpAssoc &assoc) {
     EXPECT_EQ(assoc_id, assoc.assoc_id);
     EXPECT_EQ(sd, assoc.sd);
   }
@@ -101,5 +101,5 @@ TEST_F(SctpdDescTest, test_sctpd_desc) {
   EXPECT_THROW(desc.getAssoc(ASSOC_2_ASSOC_ID), std::out_of_range);
 }
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

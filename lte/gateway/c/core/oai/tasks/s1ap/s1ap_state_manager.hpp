@@ -18,15 +18,15 @@
 
 #pragma once
 
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
-#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/state_utility.hpp"
 
 namespace {
 constexpr char S1AP_STATE_TABLE[] = "s1ap_state";
 constexpr char S1AP_TASK_NAME[] = "S1AP";
-}  // namespace
+} // namespace
 
 namespace magma {
 namespace lte {
@@ -35,24 +35,24 @@ namespace lte {
  * create_s1ap_state allocates a new S1apState struct and initializes
  * its properties.
  */
-oai::S1apState* create_s1ap_state(void);
+oai::S1apState *create_s1ap_state(void);
 /**
  * free_s1ap_state deallocates a S1apState struct and its properties.
  */
-void free_s1ap_state(oai::S1apState* state_cache_p);
+void free_s1ap_state(oai::S1apState *state_cache_p);
 
 /**
  * S1apStateManager is a thread safe singleton class that contains functions
  * to maintain S1AP task state, allocating and freeing related state structs.
  */
 class S1apStateManager : public StateUtility {
- public:
+public:
   /**
    * Returns an instance of S1apStateManager, guaranteed to be thread safe and
    * initialized only once.
    * @return S1apStateManager instance
    */
-  static S1apStateManager& getInstance();
+  static S1apStateManager &getInstance();
 
   /**
    * Function to initialize member variables
@@ -61,8 +61,8 @@ class S1apStateManager : public StateUtility {
   void init(bool persist_state);
 
   // Copy constructor and assignment operator are marked as deleted functions
-  S1apStateManager(S1apStateManager const&) = delete;
-  S1apStateManager& operator=(S1apStateManager const&) = delete;
+  S1apStateManager(S1apStateManager const &) = delete;
+  S1apStateManager &operator=(S1apStateManager const &) = delete;
 
   /**
    * Frees all memory allocated on s1ap_state cache struct
@@ -83,15 +83,15 @@ class S1apStateManager : public StateUtility {
   /**
    * Returns a pointer to s1ap_imsi_map
    */
-  oai::S1apImsiMap* get_s1ap_imsi_map();
-  map_uint64_ue_description_t* get_s1ap_ue_state();
-  oai::S1apState* get_state(bool read_from_db);
+  oai::S1apImsiMap *get_s1ap_imsi_map();
+  map_uint64_ue_description_t *get_s1ap_ue_state();
+  oai::S1apState *get_state(bool read_from_db);
   void write_s1ap_state_to_db();
-  void s1ap_write_ue_state_to_db(const oai::UeDescription* ue_context,
-                                 const std::string& imsi_str);
+  void s1ap_write_ue_state_to_db(const oai::UeDescription *ue_context,
+                                 const std::string &imsi_str);
   status_code_e read_state_from_db();
 
- private:
+private:
   S1apStateManager();
   ~S1apStateManager();
 
@@ -104,9 +104,9 @@ class S1apStateManager : public StateUtility {
   void clear_s1ap_imsi_map();
 
   std::size_t s1ap_imsi_map_hash_;
-  oai::S1apImsiMap* s1ap_imsi_map_;
+  oai::S1apImsiMap *s1ap_imsi_map_;
   map_uint64_ue_description_t state_ue_map;
-  oai::S1apState* state_cache_p;
+  oai::S1apState *state_cache_p;
   // State version counters for task and ue context
   uint64_t task_state_version;
   std::unordered_map<std::string, uint64_t> ue_state_version;
@@ -115,5 +115,5 @@ class S1apStateManager : public StateUtility {
   std::unordered_map<std::string, std::size_t> ue_state_hash;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

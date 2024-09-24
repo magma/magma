@@ -16,22 +16,22 @@
 #include <lte/protos/apn.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <stdint.h>
 #include <memory>
 #include <mutex>
+#include <stdint.h>
 
 #include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class SetSMSessionContextAccess;
 class SetSmNotificationContext;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::Status;
 
@@ -43,31 +43,31 @@ using namespace lte;
  * modification and release request message to AMF
  */
 class AmfServiceClient {
- public:
+public:
   virtual ~AmfServiceClient() {}
   virtual bool handle_response_to_access(
-      const magma::SetSMSessionContextAccess& response) = 0;
-  virtual bool handle_notification_to_access(
-      const magma::SetSmNotificationContext& req) = 0;
-};  // end of abstract class
+      const magma::SetSMSessionContextAccess &response) = 0;
+  virtual bool
+  handle_notification_to_access(const magma::SetSmNotificationContext &req) = 0;
+}; // end of abstract class
 
 class AsyncAmfServiceClient : public GRPCReceiver, public AmfServiceClient {
- public:
+public:
   AsyncAmfServiceClient();
   AsyncAmfServiceClient(std::shared_ptr<grpc::Channel> amf_srv_channel);
 
   /* This will send response back to AMF for all three request messages
    * i.e. establish, modification and release messages
    */
-  bool handle_response_to_access(
-      const magma::SetSMSessionContextAccess& response);
+  bool
+  handle_response_to_access(const magma::SetSMSessionContextAccess &response);
 
-  bool handle_notification_to_access(
-      const magma::SetSmNotificationContext& req);
+  bool
+  handle_notification_to_access(const magma::SetSmNotificationContext &req);
 
- private:
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+private:
+  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<SmfPduSessionSmContext::Stub> stub_;
 };
 
-}  // namespace magma
+} // namespace magma

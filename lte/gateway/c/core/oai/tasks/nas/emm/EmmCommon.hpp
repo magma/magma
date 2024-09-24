@@ -67,15 +67,15 @@ Description Defines callback functions executed within EMM common procedures
  * - The EMM common procedure failed or is rejected
  * - Lower layer failure occured before the EMM common procedure completion
  */
-typedef status_code_e (*emm_common_success_callback_t)(void*);
-typedef status_code_e (*emm_common_reject_callback_t)(void*);
-typedef status_code_e (*emm_common_failure_callback_t)(void*);
-typedef status_code_e (*emm_common_ll_failure_callback_t)(void*);
-typedef status_code_e (*emm_common_non_delivered_callback_t)(void*);
+typedef status_code_e (*emm_common_success_callback_t)(void *);
+typedef status_code_e (*emm_common_reject_callback_t)(void *);
+typedef status_code_e (*emm_common_failure_callback_t)(void *);
+typedef status_code_e (*emm_common_ll_failure_callback_t)(void *);
+typedef status_code_e (*emm_common_non_delivered_callback_t)(void *);
 /* EMM common procedure to be executed when the ongoing EMM procedure is
  * aborted.
  */
-typedef status_code_e (*emm_common_abort_callback_t)(void*);
+typedef status_code_e (*emm_common_abort_callback_t)(void *);
 
 /* Ongoing EMM procedure callback functions */
 typedef struct emm_common_data_s {
@@ -90,7 +90,7 @@ typedef struct emm_common_data_s {
   emm_common_non_delivered_callback_t non_delivered;
   emm_common_abort_callback_t abort;
 
-  void* args;
+  void *args;
   RB_ENTRY(emm_common_data_s) entries;
 } emm_common_data_t;
 
@@ -113,35 +113,37 @@ status_code_e emm_proc_common_initialize(
     emm_common_reject_callback_t reject, emm_common_failure_callback_t failure,
     emm_common_ll_failure_callback_t ll_failure,
     emm_common_non_delivered_callback_t non_delivered,
-    emm_common_abort_callback_t abort, void* args);
+    emm_common_abort_callback_t abort, void *args);
 
-status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx);
-status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx);
-status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx);
-status_code_e emm_proc_common_ll_failure(
-    emm_common_data_t* emm_common_data_ctx);
-status_code_e emm_proc_common_non_delivered(
-    emm_common_data_t* emm_common_data_ctx);
-status_code_e emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx);
+status_code_e emm_proc_common_success(emm_common_data_t *emm_common_data_ctx);
+status_code_e emm_proc_common_reject(emm_common_data_t *emm_common_data_ctx);
+status_code_e emm_proc_common_failure(emm_common_data_t *emm_common_data_ctx);
+status_code_e
+emm_proc_common_ll_failure(emm_common_data_t *emm_common_data_ctx);
+status_code_e
+emm_proc_common_non_delivered(emm_common_data_t *emm_common_data_ctx);
+status_code_e emm_proc_common_abort(emm_common_data_t *emm_common_data_ctx);
 
-void* emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id);
+void *emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id);
 // Free args and set it to NULL
 void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id);
-void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx);
+void emm_common_cleanup(emm_common_data_t *emm_common_data_ctx);
 void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id);
 
-struct emm_common_data_s* emm_common_data_context_get(
-    struct emm_common_data_head_s* root, mme_ue_s1ap_id_t _ueid);
+struct emm_common_data_s *
+emm_common_data_context_get(struct emm_common_data_head_s *root,
+                            mme_ue_s1ap_id_t _ueid);
 
-void create_new_attach_info(emm_context_t* emm_context_p,
+void create_new_attach_info(emm_context_t *emm_context_p,
                             mme_ue_s1ap_id_t mme_ue_s1ap_id,
-                            STOLEN_REF struct emm_attach_request_ies_s* ies,
+                            STOLEN_REF struct emm_attach_request_ies_s *ies,
                             bool is_mm_ctx_new);
 
 status_code_e verify_tau_tai(uint64_t imsi64, guti_t guti, tai_t tai,
-                             tai_list_t* emm_ctx_tai);
-partial_list_t* emm_verify_orig_tai(const tai_t orig_tai);
+                             tai_list_t *emm_ctx_tai);
+partial_list_t *emm_verify_orig_tai(const tai_t orig_tai);
 
-status_code_e update_tai_list_to_emm_context(
-    uint64_t imsi64, guti_t guti, const partial_list_t* const par_tai_list,
-    tai_list_t* tai_list);
+status_code_e
+update_tai_list_to_emm_context(uint64_t imsi64, guti_t guti,
+                               const partial_list_t *const par_tai_list,
+                               tai_list_t *tai_list);

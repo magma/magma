@@ -9,20 +9,20 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
-#include <cstdint>
-#include <cstring>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GServiceType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <sstream>
 
 namespace magma5g {
 ServiceTypeMsg::ServiceTypeMsg(){};
 ServiceTypeMsg::~ServiceTypeMsg(){};
 
 // Decode ServiceType IE
-int ServiceTypeMsg::DecodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
-                                         uint8_t* buffer, uint32_t len) {
+int ServiceTypeMsg::DecodeServiceTypeMsg(ServiceTypeMsg *svc_type, uint8_t iei,
+                                         uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   svc_type->service_type_value = ((*buffer & 0xf0) >> 4);
@@ -31,8 +31,8 @@ int ServiceTypeMsg::DecodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
 };
 
 // Encode ServiceType IE
-int ServiceTypeMsg::EncodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
-                                         uint8_t* buffer, uint32_t len) {
+int ServiceTypeMsg::EncodeServiceTypeMsg(ServiceTypeMsg *svc_type, uint8_t iei,
+                                         uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   *buffer = svc_type->service_type_value & 0x0f;
@@ -40,4 +40,4 @@ int ServiceTypeMsg::EncodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
 
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

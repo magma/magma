@@ -24,15 +24,15 @@
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace sctpd {
 class InitReq;
 class InitRes;
 class SendDlReq;
 class SendDlRes;
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma
 
 #define S1AP 18
 #define NGAP 60
@@ -45,33 +45,33 @@ using grpc::Status;
 
 // Implements the sctpd downlink server
 class SctpdDownlinkImpl final : public SctpdDownlink::Service {
- public:
+public:
   // Construct a new SctpdDownlinkImpl service
-  SctpdDownlinkImpl(SctpEventHandler& uplink_handler);
+  SctpdDownlinkImpl(SctpEventHandler &uplink_handler);
 
   // Implementation of SctpdDownlink.Init method (see sctpd.proto for more info)
-  Status Init(ServerContext* context, const InitReq* request,
-              InitRes* response) override;
+  Status Init(ServerContext *context, const InitReq *request,
+              InitRes *response) override;
 
   // Implementation of SctpdDownlink.SendDl method (see sctpd.proto for more
   // info)
-  Status SendDl(ServerContext* context, const SendDlReq* request,
-                SendDlRes* response) override;
+  Status SendDl(ServerContext *context, const SendDlReq *request,
+                SendDlRes *response) override;
 
   // Implementation of SctpdDownlink.create_sctp_connection method
   //(creates 4G/5G sctp connection)
-  Status create_sctp_connection(
-      std::unique_ptr<SctpConnection>& sctp_connection, const InitReq* request,
-      InitRes* response);
+  Status
+  create_sctp_connection(std::unique_ptr<SctpConnection> &sctp_connection,
+                         const InitReq *request, InitRes *response);
 
   // Close SCTP connection for this SctpdDownlink.
   void stop();
 
- private:
-  SctpEventHandler& _uplink_handler;
+private:
+  SctpEventHandler &_uplink_handler;
   std::unique_ptr<SctpConnection> _sctp_4G_connection;
   std::unique_ptr<SctpConnection> _sctp_5G_connection;
 };
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

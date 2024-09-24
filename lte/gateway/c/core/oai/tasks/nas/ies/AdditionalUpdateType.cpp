@@ -29,8 +29,8 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 int decode_additional_update_type(
-    additional_update_type_t* additionalupdatetype, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    additional_update_type_t *additionalupdatetype, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   *additionalupdatetype = (additional_update_type_t)(*buffer & 0x1);
@@ -40,8 +40,8 @@ int decode_additional_update_type(
 
 //------------------------------------------------------------------------------
 int encode_additional_update_type(
-    additional_update_type_t* additionalupdatetype, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    additional_update_type_t *additionalupdatetype, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   Fatal("TODO Implement encode_additional_update_type");
   return -1;
 }

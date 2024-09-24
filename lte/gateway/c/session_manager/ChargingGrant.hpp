@@ -12,10 +12,10 @@
  */
 #pragma once
 
+#include <ctime>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <stdint.h>
-#include <ctime>
 
 #include "lte/gateway/c/session_manager/DiameterCodes.hpp"
 #include "lte/gateway/c/session_manager/ServiceAction.hpp"
@@ -59,24 +59,21 @@ struct ChargingGrant {
 
   // Default states
   ChargingGrant()
-      : credit(),
-        is_final_grant(false),
-        service_state(SERVICE_ENABLED),
-        reauth_state(REAUTH_NOT_NEEDED),
-        suspended(false) {}
+      : credit(), is_final_grant(false), service_state(SERVICE_ENABLED),
+        reauth_state(REAUTH_NOT_NEEDED), suspended(false) {}
 
-  explicit ChargingGrant(const StoredChargingGrant& marshaled);
+  explicit ChargingGrant(const StoredChargingGrant &marshaled);
 
   // ChargingGrant -> StoredChargingGrant
   StoredChargingGrant marshal();
 
-  void receive_charging_grant(const CreditUpdateResponse& update,
-                              SessionCreditUpdateCriteria* credit_uc = NULL);
+  void receive_charging_grant(const CreditUpdateResponse &update,
+                              SessionCreditUpdateCriteria *credit_uc = NULL);
 
   // Returns true if the credit returned from the Policy component is valid and
   // good to be installed.
-  static CreditValidity get_credit_response_validity_type(
-      const CreditUpdateResponse& update);
+  static CreditValidity
+  get_credit_response_validity_type(const CreditUpdateResponse &update);
 
   // Returns a SessionCreditUpdateCriteria that reflects the current state
   SessionCreditUpdateCriteria get_update_criteria();
@@ -85,11 +82,11 @@ struct ChargingGrant {
   // Return true if an update is required, with the update_type set to indicate
   // the reason.
   // Return false otherwise. In this case, update_type is untouched.
-  bool get_update_type(CreditUsage::UpdateType* update_type) const;
+  bool get_update_type(CreditUsage::UpdateType *update_type) const;
 
   // get_action returns the action to take on the credit based on the last
   // update. If no action needs to take place, CONTINUE_SERVICE is returned.
-  ServiceActionType get_action(SessionCreditUpdateCriteria* update_criteria);
+  ServiceActionType get_action(SessionCreditUpdateCriteria *update_criteria);
 
   // Return if the service needs activation
   bool should_be_unsuspended() const;
@@ -102,7 +99,7 @@ struct ChargingGrant {
   // usage, otherwise we only include unreported usage up to the allocated
   // amount.
   CreditUsage get_credit_usage(CreditUsage::UpdateType update_type,
-                               SessionCreditUpdateCriteria* credit_uc,
+                               SessionCreditUpdateCriteria *credit_uc,
                                bool is_terminate);
 
   // Return true if the service needs to be deactivated.
@@ -115,33 +112,33 @@ struct ChargingGrant {
   bool should_deactivate_service() const;
 
   // Convert FinalAction enum to ServiceActionType
-  ServiceActionType final_action_to_action(
-      const ChargingCredit_FinalAction action) const;
+  ServiceActionType
+  final_action_to_action(const ChargingCredit_FinalAction action) const;
 
   ServiceActionType final_action_to_action_on_suspension(
       const ChargingCredit_FinalAction action) const;
 
-  void set_suspended(bool suspended, SessionCreditUpdateCriteria* credit_uc);
+  void set_suspended(bool suspended, SessionCreditUpdateCriteria *credit_uc);
 
   // Set the object and update criteria's reauth state to new_state.
   void set_reauth_state(const ReAuthState new_state,
-                        SessionCreditUpdateCriteria* credit_uc);
+                        SessionCreditUpdateCriteria *credit_uc);
 
   // Set the object and update criteria's service state to new_state.
   void set_service_state(const ServiceState new_service_state,
-                         SessionCreditUpdateCriteria* credit_uc);
+                         SessionCreditUpdateCriteria *credit_uc);
 
   // Set the flag reporting. Used to signal this credit is waiting to receive
   // a response from the core
   void set_reporting(bool reporting);
 
   // Rollback reporting changes for failed updates
-  void reset_reporting_grant(SessionCreditUpdateCriteria* credit_uc);
+  void reset_reporting_grant(SessionCreditUpdateCriteria *credit_uc);
 
   // Log information about the grant received
-  void log_received_grant(const CreditUpdateResponse& update);
+  void log_received_grant(const CreditUpdateResponse &update);
 
   PolicyRule make_redirect_rule();
 };
 
-}  // namespace magma
+} // namespace magma

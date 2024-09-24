@@ -11,12 +11,12 @@
  * limitations under the License.
  */
 #include <chrono>
-#include <gtest/gtest.h>
-#include <cstdint>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
+#include <cstdint>
+#include <gtest/gtest.h>
+#include <mutex>
 #include <stdio.h>
+#include <thread>
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
@@ -26,7 +26,7 @@ namespace magma {
 namespace lte {
 
 TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -36,7 +36,7 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   // and implicit detach timers are calculated from that
   mme_config.nas_config.t3412_min = 1;
   mme_config.nas_config.t3412_msec =
-      50 * MME_APP_TIMER_TO_MSEC;  // implicit detach after 2x of this value
+      50 * MME_APP_TIMER_TO_MSEC; // implicit detach after 2x of this value
 
   MME_APP_EXPECT_CALLS(3, 1, 2, 1, 1, 1, 1, 1, 1, 1, 3);
 
@@ -85,5 +85,5 @@ TEST_F(MmeAppProcedureTest, TestMobileReachabilityTimer) {
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

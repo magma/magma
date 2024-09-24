@@ -28,30 +28,31 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
+#include <execinfo.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
-#include <execinfo.h>
 
 #include "lte/gateway/c/core/common/backtrace.h"
 
 /* Obtain a backtrace and print it to stdout. */
 void display_backtrace(void) {
-  void* array[10];
+  void *array[10];
   size_t size;
-  char** strings;
+  char **strings;
   size_t i;
 
   size = backtrace(array, 10);
   strings = backtrace_symbols(array, size);
   printf("Obtained %zd stack frames.\n", size);
 
-  for (i = 0; i < size; i++) printf("%s\n", strings[i]);
+  for (i = 0; i < size; i++)
+    printf("%s\n", strings[i]);
 
   free(strings);
 }
 
-void backtrace_handle_signal(siginfo_t* info) {
+void backtrace_handle_signal(siginfo_t *info) {
   display_backtrace();
   // exit(EXIT_FAILURE);
 }

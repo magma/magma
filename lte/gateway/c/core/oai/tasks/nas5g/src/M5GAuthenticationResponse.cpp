@@ -27,7 +27,7 @@ AuthenticationResponseMsg::~AuthenticationResponseMsg(){};
 
 // Decode AuthenticationResponse Messsage
 int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(
-    AuthenticationResponseMsg* auth_response, uint8_t* buffer, uint32_t len) {
+    AuthenticationResponseMsg *auth_response, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -74,9 +74,9 @@ int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(
 
 // Encode AuthenticationResponse Messsage
 int AuthenticationResponseMsg::EncodeAuthenticationResponseMsg(
-    AuthenticationResponseMsg* auth_response, uint8_t* buffer, uint32_t len) {
+    AuthenticationResponseMsg *auth_response, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   // Not Implemented, Will be supported POST MVC
   return encoded;
 };
-}  // namespace magma5g
+} // namespace magma5g

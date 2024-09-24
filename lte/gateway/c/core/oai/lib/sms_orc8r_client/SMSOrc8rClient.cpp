@@ -16,24 +16,24 @@
  */
 
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
+#include <thread> // std::thread
 #include <utility>
 
 #include "lte/gateway/c/core/oai/lib/sms_orc8r_client/SMSOrc8rClient.hpp"
 #include "lte/gateway/c/core/oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.hpp"
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/protos/sms_orc8r.pb.h"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "orc8r/protos/common.pb.h"
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 
 using lte::SMOUplinkUnitdata;
 
-SMSOrc8rClient& SMSOrc8rClient::get_instance() {
+SMSOrc8rClient &SMSOrc8rClient::get_instance() {
   static SMSOrc8rClient client_instance;
   return client_instance;
 }
@@ -49,9 +49,9 @@ SMSOrc8rClient::SMSOrc8rClient() {
 }
 
 void SMSOrc8rClient::send_uplink_unitdata(
-    const itti_sgsap_uplink_unitdata_t* msg,
+    const itti_sgsap_uplink_unitdata_t *msg,
     std::function<void(grpc::Status, Void)> callback) {
-  SMSOrc8rClient& client = get_instance();
+  SMSOrc8rClient &client = get_instance();
   SMOUplinkUnitdata proto_msg =
       convert_itti_sgsap_uplink_unitdata_to_smo_proto_msg(msg);
   auto local_response =
@@ -61,4 +61,4 @@ void SMSOrc8rClient::send_uplink_unitdata(
   local_response->set_response_reader(std::move(response_reader));
 }
 
-}  // namespace magma
+} // namespace magma

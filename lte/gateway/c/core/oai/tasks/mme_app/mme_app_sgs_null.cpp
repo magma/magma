@@ -69,7 +69,7 @@ extern "C" {
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-status_code_e sgs_null_handler(const sgs_fsm_t* evt) {
+status_code_e sgs_null_handler(const sgs_fsm_t *evt) {
   status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -82,44 +82,44 @@ status_code_e sgs_null_handler(const sgs_fsm_t* evt) {
   }
 
   switch (evt->primitive) {
-    case _SGS_LOCATION_UPDATE_ACCEPT: {
-      rc = sgs_fsm_null_loc_updt_acc(evt);
-    } break;
+  case _SGS_LOCATION_UPDATE_ACCEPT: {
+    rc = sgs_fsm_null_loc_updt_acc(evt);
+  } break;
 
-    case _SGS_LOCATION_UPDATE_REJECT: {
-      rc = sgs_fsm_null_loc_updt_rej(evt);
-    } break;
+  case _SGS_LOCATION_UPDATE_REJECT: {
+    rc = sgs_fsm_null_loc_updt_rej(evt);
+  } break;
 
-    case _SGS_PAGING_REQUEST: {
-      rc = sgs_handle_null_paging_request(evt);
-    } break;
+  case _SGS_PAGING_REQUEST: {
+    rc = sgs_handle_null_paging_request(evt);
+  } break;
 
-    case _SGS_EPS_DETACH_IND: {
-      rc = RETURNok;
-      ;
-    } break;
+  case _SGS_EPS_DETACH_IND: {
+    rc = RETURNok;
+    ;
+  } break;
 
-    case _SGS_IMSI_DETACH_IND: {
-      rc = RETURNok;
-      ;
-    } break;
+  case _SGS_IMSI_DETACH_IND: {
+    rc = RETURNok;
+    ;
+  } break;
 
-    case _SGS_RESET_INDICATION: {
-      /* No handling required, if Reset indication received in NULL state */
-      OAILOG_DEBUG(
-          LOG_MME_APP,
-          " Received Reset Indication while SGS context is in SGS_NULL state "
-          "for "
-          "ue_id:%d \n",
-          evt->ue_id);
-      rc = RETURNok;
-      ;
-    } break;
+  case _SGS_RESET_INDICATION: {
+    /* No handling required, if Reset indication received in NULL state */
+    OAILOG_DEBUG(
+        LOG_MME_APP,
+        " Received Reset Indication while SGS context is in SGS_NULL state "
+        "for "
+        "ue_id:%d \n",
+        evt->ue_id);
+    rc = RETURNok;
+    ;
+  } break;
 
-    default: {
-      OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
-                   evt->primitive);
-    } break;
+  default: {
+    OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+                 evt->primitive);
+  } break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

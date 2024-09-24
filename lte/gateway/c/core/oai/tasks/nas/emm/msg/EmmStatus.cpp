@@ -22,13 +22,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_emm_status(emm_status_msg* emm_status, uint8_t* buffer,
+int decode_emm_status(emm_status_msg *emm_status, uint8_t *buffer,
                       uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -49,7 +49,7 @@ int decode_emm_status(emm_status_msg* emm_status, uint8_t* buffer,
   return decoded;
 }
 
-int encode_emm_status(emm_status_msg* emm_status, uint8_t* buffer,
+int encode_emm_status(emm_status_msg *emm_status, uint8_t *buffer,
                       uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -61,7 +61,7 @@ int encode_emm_status(emm_status_msg* emm_status, uint8_t* buffer,
 
   if ((encode_result = encode_emm_cause(&emm_status->emmcause, 0,
                                         buffer + encoded, len - encoded)) <
-      0)  // Return in case of error
+      0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

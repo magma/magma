@@ -26,7 +26,7 @@ namespace magma {
  * there is an update (quota exhausted, etc)
  */
 class SessionCredit {
- public:
+public:
   struct Summary {
     Usage usage;
     uint64_t time_of_first_usage;
@@ -39,7 +39,7 @@ class SessionCredit {
 
   SessionCredit(ServiceState start_state, CreditLimitType limit_type);
 
-  explicit SessionCredit(const StoredSessionCredit& marshaled);
+  explicit SessionCredit(const StoredSessionCredit &marshaled);
 
   StoredSessionCredit marshal() const;
 
@@ -54,32 +54,32 @@ class SessionCredit {
    * as being recently updated
    */
   void add_used_credit(uint64_t used_tx, uint64_t used_rx,
-                       SessionCreditUpdateCriteria* credit_uc);
+                       SessionCreditUpdateCriteria *credit_uc);
 
   /**
    * reset_reporting_credit resets the REPORTING_* to 0
    * Also marks the session as not in reporting.
    */
-  void reset_reporting_credit(SessionCreditUpdateCriteria* credit_uc);
+  void reset_reporting_credit(SessionCreditUpdateCriteria *credit_uc);
 
   /**
    * Credit update has failed to the OCS, so mark this credit as failed so it
    * can be cut off accordingly
    */
-  void mark_failure(uint32_t code, SessionCreditUpdateCriteria* credit_uc);
+  void mark_failure(uint32_t code, SessionCreditUpdateCriteria *credit_uc);
   /**
    * receive_credit increments ALLOWED* and moves the REPORTING_* credit to
    * the REPORTED_* credit
    */
-  void receive_credit(const GrantedUnits& gsu,
-                      SessionCreditUpdateCriteria* credit_uc);
+  void receive_credit(const GrantedUnits &gsu,
+                      SessionCreditUpdateCriteria *credit_uc);
 
   /**
    * get_update returns a filled-in CreditUsage if an update exists, and a blank
    * one if no update exists. Check has_update before calling.
    * This method also sets the REPORTING_* credit buckets
    */
-  Usage get_usage_for_reporting(SessionCreditUpdateCriteria* credit_uc);
+  Usage get_usage_for_reporting(SessionCreditUpdateCriteria *credit_uc);
 
   /**
    * returns the units to be requested to OCS for the first request. Its default
@@ -94,7 +94,7 @@ class SessionCredit {
   RequestedUnits get_requested_credits_units() const;
 
   Usage get_all_unreported_usage_for_reporting(
-      SessionCreditUpdateCriteria* credit_uc);
+      SessionCreditUpdateCriteria *credit_uc);
 
   /**
    * Returns the credit's cumulative rx/tx usage and first/last usage timestamps
@@ -112,7 +112,7 @@ class SessionCredit {
   uint64_t get_credit(Bucket bucket) const;
 
   void set_report_last_credit(bool report_last_credit,
-                              SessionCreditUpdateCriteria* credit_uc);
+                              SessionCreditUpdateCriteria *credit_uc);
 
   void set_reporting(bool reporting);
 
@@ -121,7 +121,7 @@ class SessionCredit {
   /**
    * Applies the given SessionCreditUpdateCriteria to credit
    */
-  void apply_update_criteria(const SessionCreditUpdateCriteria& credit_uc);
+  void apply_update_criteria(const SessionCreditUpdateCriteria &credit_uc);
 
   /**
    * is_quota_exhausted checks if any of the remaining quota (Allowed - Used)
@@ -167,7 +167,7 @@ class SessionCredit {
    */
   static uint64_t DEFAULT_REQUESTED_UNITS;
 
- private:
+private:
   uint64_t buckets_[BUCKET_ENUM_MAX_VALUE];
   bool reporting_;
   CreditLimitType credit_limit_type_;
@@ -182,20 +182,20 @@ class SessionCredit {
   // this service data container (TS 132 298 - V8.4.0 : 5.1.2.2.22A)
   uint64_t time_of_last_usage_;
 
- private:
+private:
   void log_quota_and_usage() const;
 
   std::string get_percentage_usage(uint64_t allowed, uint64_t floor,
                                    uint64_t used) const;
 
-  bool is_received_grented_unit_zero(const CreditUnit& cu) const;
+  bool is_received_grented_unit_zero(const CreditUnit &cu) const;
 
   Usage get_unreported_usage() const;
 
   void log_usage_report(Usage) const;
 
-  GrantTrackingType determine_grant_tracking_type(
-      const GrantedUnits& grant) const;
+  GrantTrackingType
+  determine_grant_tracking_type(const GrantedUnits &grant) const;
 
   uint64_t calculate_requested_unit(CreditUnit cu, Bucket allowed,
                                     Bucket allowed_floor, uint64_t used) const;
@@ -211,7 +211,7 @@ class SessionCredit {
   uint64_t calculate_delta_allowed(uint64_t gsu_volume, Bucket allowed,
                                    uint64_t volume_used) const;
 
-  void update_usage_timestamps(SessionCreditUpdateCriteria* credit_uc);
+  void update_usage_timestamps(SessionCreditUpdateCriteria *credit_uc);
 };
 
-}  // namespace magma
+} // namespace magma

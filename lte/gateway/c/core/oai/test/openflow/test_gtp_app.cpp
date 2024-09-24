@@ -14,26 +14,26 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <arpa/inet.h>               // for inet_addr, inet_pton
-#include <fluid/of13/openflow-13.h>  // for ofp_flow_mod_command
-#include <gtest/gtest.h>             // for TestInfo (ptr only), TEST_F
-#include <netinet/in.h>              // for in_addr, in6_addr
-#include <stdint.h>                  // for uint32_t
-#include <string.h>                  // for NULL, memcpy
-#include <sys/socket.h>              // for AF_INET6
-#include <fluid/of13/of13match.hh>   // for ARPTPA, EthType, IPProto
-#include <fluid/of13msg.hh>          // for FlowMod
-#include <fluid/util/ethaddr.hh>     // for fluid_msg
-#include <fluid/util/ipaddr.hh>      // for IPAddress
-#include <memory>                    // for shared_ptr, __shared_ptr
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp"  // for AddGTPTunnelEvent, Delet...
-#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"  // for GTPApplication
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"  // for OpenflowController
-#include "gmock/gmock-generated-matchers.h"  // for AllOf, AllOfResult5<>::type
-#include "gmock/gmock-matchers.h"            // for AnythingMatcher, _
-#include "gmock/gmock-spec-builders.h"       // for EXPECT_CALL, TypedExpect...
-#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp"  // for ip_flow_dl, ip_flow_dl::...
-#include "lte/gateway/c/core/oai/test/openflow/openflow_mocks.h"  // for MockMessenger
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp" // for AddGTPTunnelEvent, Delet...
+#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp" // for GTPApplication
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp" // for OpenflowController
+#include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u.hpp" // for ip_flow_dl, ip_flow_dl::...
+#include "lte/gateway/c/core/oai/test/openflow/openflow_mocks.h" // for MockMessenger
+#include "gmock/gmock-generated-matchers.h" // for AllOf, AllOfResult5<>::type
+#include "gmock/gmock-matchers.h"           // for AnythingMatcher, _
+#include "gmock/gmock-spec-builders.h"      // for EXPECT_CALL, TypedExpect...
+#include <arpa/inet.h>                      // for inet_addr, inet_pton
+#include <fluid/of13/of13match.hh>          // for ARPTPA, EthType, IPProto
+#include <fluid/of13/openflow-13.h>         // for ofp_flow_mod_command
+#include <fluid/of13msg.hh>                 // for FlowMod
+#include <fluid/util/ethaddr.hh>            // for fluid_msg
+#include <fluid/util/ipaddr.hh>             // for IPAddress
+#include <gtest/gtest.h>                    // for TestInfo (ptr only), TEST_F
+#include <memory>                           // for shared_ptr, __shared_ptr
+#include <netinet/in.h>                     // for in_addr, in6_addr
+#include <stdint.h>                         // for uint32_t
+#include <string.h>                         // for NULL, memcpy
+#include <sys/socket.h>                     // for AF_INET6
 
 using ::testing::_;
 using ::testing::AllOf;
@@ -47,15 +47,15 @@ namespace {
  * Test fixture that instantiates an openflow controller for testing.
  */
 class GTPApplicationTest : public ::testing::Test {
- protected:
-  static constexpr const char* TEST_GTP_MAC = "1.2.3.4.5.6";
+protected:
+  static constexpr const char *TEST_GTP_MAC = "1.2.3.4.5.6";
   static const uint32_t TEST_GTP_PORT = 123;
   static const uint32_t TEST_MTR_PORT = 1155;
   static const uint32_t TEST_INTERNAL_SAMPLING_POR = 1156;
   static const uint32_t TEST_INTERNAL_SAMPLING_FWD_TBL = 201;
   static const uint32_t TEST_UPLINK_PORT = of13::OFPP_LOCAL;
 
- protected:
+protected:
   virtual void SetUp() {
     gtp_app = new GTPApplication(
         TEST_GTP_MAC, TEST_GTP_PORT, TEST_MTR_PORT, TEST_INTERNAL_SAMPLING_POR,
@@ -77,98 +77,98 @@ class GTPApplicationTest : public ::testing::Test {
     delete gtp_app;
   }
 
- protected:
+protected:
   std::unique_ptr<OpenflowController> controller;
   std::shared_ptr<MockMessenger> messenger;
-  GTPApplication* gtp_app;
+  GTPApplication *gtp_app;
 };
 
 // Matchers for flow modifications
 
 MATCHER_P(CheckTableId, table_id, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
+  auto msg = static_cast<of13::FlowMod *>(&arg);
   return msg->table_id() == table_id;
 }
 
 MATCHER_P(CheckInPort, port_num, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
+  auto msg = static_cast<of13::FlowMod *>(&arg);
   auto in_port =
-      static_cast<of13::InPort*>(msg->get_oxm_field(of13::OFPXMT_OFB_IN_PORT));
+      static_cast<of13::InPort *>(msg->get_oxm_field(of13::OFPXMT_OFB_IN_PORT));
   return in_port->value() == port_num;
 }
 
 MATCHER_P(CheckTunnelId, tunnel_id, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
-  auto tun_field = static_cast<of13::TUNNELId*>(
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto tun_field = static_cast<of13::TUNNELId *>(
       msg->get_oxm_field(of13::OFPXMT_OFB_TUNNEL_ID));
   return tun_field->value() == tunnel_id;
 }
 
 MATCHER_P(CheckIPv4Dst, ip, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
-  auto ipv4_field = static_cast<of13::IPv4Dst*>(
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto ipv4_field = static_cast<of13::IPv4Dst *>(
       msg->get_oxm_field(of13::OFPXMT_OFB_IPV4_DST));
   return ipv4_field->value().getIPv4() == ip.s_addr;
 }
 
 MATCHER_P(CheckIPv6Dst, ipv6, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
-  auto ipv6_field = static_cast<of13::IPv6Dst*>(
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto ipv6_field = static_cast<of13::IPv6Dst *>(
       msg->get_oxm_field(of13::OFPXMT_OFB_IPV6_DST));
   return !!memcpy(ipv6_field->value().getIPv6(), &ipv6, sizeof(ipv6));
 }
 
 MATCHER_P(CheckArpTpa, ip, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
+  auto msg = static_cast<of13::FlowMod *>(&arg);
   auto ipv4_field =
-      static_cast<of13::ARPTPA*>(msg->get_oxm_field(of13::OFPXMT_OFB_ARP_TPA));
+      static_cast<of13::ARPTPA *>(msg->get_oxm_field(of13::OFPXMT_OFB_ARP_TPA));
   return ipv4_field->value().getIPv4() == ip.s_addr;
 }
 
 MATCHER_P(CheckEthType, eth_type, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
-  auto eth_type_field = static_cast<of13::EthType*>(
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto eth_type_field = static_cast<of13::EthType *>(
       msg->get_oxm_field(of13::OFPXMT_OFB_ETH_TYPE));
   return eth_type_field->value() == eth_type;
 }
 
 MATCHER_P(CheckCommandType, command_type, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
+  auto msg = static_cast<of13::FlowMod *>(&arg);
   return msg->command() == command_type;
 }
 
 MATCHER_P(CheckIPv4Src, ip, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
-  auto ipv4_field = static_cast<of13::IPv4Src*>(
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto ipv4_field = static_cast<of13::IPv4Src *>(
       msg->get_oxm_field(of13::OFPXMT_OFB_IPV4_SRC));
   return ipv4_field->value().getIPv4() == ip.s_addr;
 }
 
 MATCHER_P(CheckIPv6Src, ipv6, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
-  auto ipv6_field = static_cast<of13::IPv6Src*>(
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto ipv6_field = static_cast<of13::IPv6Src *>(
       msg->get_oxm_field(of13::OFPXMT_OFB_IPV6_SRC));
   return !!memcpy(ipv6_field->value().getIPv6(), &ipv6, sizeof(ipv6));
 }
 
 MATCHER_P(CheckIPv4Proto, ip_proto, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
-  auto ipv4_field = static_cast<of13::IPProto*>(
+  auto msg = static_cast<of13::FlowMod *>(&arg);
+  auto ipv4_field = static_cast<of13::IPProto *>(
       msg->get_oxm_field(of13::OFPXMT_OFB_IP_PROTO));
   return ipv4_field->value() == ip_proto;
 }
 
 MATCHER_P(CheckTcpDstPort, tcp_port, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
+  auto msg = static_cast<of13::FlowMod *>(&arg);
   auto tcp_port_field =
-      static_cast<of13::TCPDst*>(msg->get_oxm_field(of13::OFPXMT_OFB_TCP_DST));
+      static_cast<of13::TCPDst *>(msg->get_oxm_field(of13::OFPXMT_OFB_TCP_DST));
   return tcp_port_field->value() == tcp_port;
 }
 
 MATCHER_P(CheckTcpSrcPort, tcp_port, "") {
-  auto msg = static_cast<of13::FlowMod*>(&arg);
+  auto msg = static_cast<of13::FlowMod *>(&arg);
   auto tcp_port_field =
-      static_cast<of13::TCPSrc*>(msg->get_oxm_field(of13::OFPXMT_OFB_TCP_SRC));
+      static_cast<of13::TCPSrc *>(msg->get_oxm_field(of13::OFPXMT_OFB_TCP_SRC));
   return tcp_port_field->value() == tcp_port;
 }
 
@@ -291,7 +291,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow) {
   dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
   dl_flow.tcp_dst_port = 33;
   dl_flow.tcp_src_port = 44;
-  dl_flow.ip_proto = 6;  // TCP
+  dl_flow.ip_proto = 6; // TCP
   dl_flow.set_params =
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
@@ -307,25 +307,25 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow) {
   // downlink
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-                CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
-                CheckIPv4Src(dl_flow.src_ip), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_ADD)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
+                        CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
+                        CheckIPv4Src(dl_flow.src_ip),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_ADD)),
+                  _))
       .Times(1);
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
-                CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
-                CheckIPv4Src(dl_flow.src_ip), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_ADD)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+                        CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
+                        CheckIPv4Src(dl_flow.src_ip),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_ADD)),
+                  _))
       .Times(1);
 
   EXPECT_CALL(*messenger,
@@ -358,7 +358,7 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlow) {
   dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
   dl_flow.tcp_dst_port = 33;
   dl_flow.tcp_src_port = 44;
-  dl_flow.ip_proto = 6;  // TCP
+  dl_flow.ip_proto = 6; // TCP
   dl_flow.set_params =
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
@@ -373,25 +373,25 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlow) {
   // downlink
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-                CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
-                CheckIPv4Src(dl_flow.src_ip), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_DELETE)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
+                        CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
+                        CheckIPv4Src(dl_flow.src_ip),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_DELETE)),
+                  _))
       .Times(1);
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
-                CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
-                CheckIPv4Src(dl_flow.src_ip), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_DELETE)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+                        CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
+                        CheckIPv4Src(dl_flow.src_ip),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_DELETE)),
+                  _))
       .Times(1);
 
   EXPECT_CALL(*messenger,
@@ -427,7 +427,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowGtpPort) {
   dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
   dl_flow.tcp_dst_port = 33;
   dl_flow.tcp_src_port = 44;
-  dl_flow.ip_proto = 6;  // TCP
+  dl_flow.ip_proto = 6; // TCP
   dl_flow.set_params =
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
@@ -442,25 +442,25 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowGtpPort) {
   // downlink
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-                CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
-                CheckIPv4Src(dl_flow.src_ip), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_ADD)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
+                        CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
+                        CheckIPv4Src(dl_flow.src_ip),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_ADD)),
+                  _))
       .Times(1);
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
-                CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
-                CheckIPv4Src(dl_flow.src_ip), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_ADD)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+                        CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
+                        CheckIPv4Src(dl_flow.src_ip),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_ADD)),
+                  _))
       .Times(1);
 
   EXPECT_CALL(*messenger,
@@ -489,7 +489,7 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlowGtpPort) {
   dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
   dl_flow.tcp_dst_port = 33;
   dl_flow.tcp_src_port = 44;
-  dl_flow.ip_proto = 6;  // TCP
+  dl_flow.ip_proto = 6; // TCP
   dl_flow.set_params =
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
@@ -504,25 +504,25 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlowGtpPort) {
   // downlink
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-                CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
-                CheckIPv4Src(dl_flow.src_ip), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_DELETE)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
+                        CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
+                        CheckIPv4Src(dl_flow.src_ip),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_DELETE)),
+                  _))
       .Times(1);
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
-                CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
-                CheckIPv4Src(dl_flow.src_ip), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_DELETE)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+                        CheckEthType(0x0800), CheckIPv4Dst(dl_flow.dst_ip),
+                        CheckIPv4Src(dl_flow.src_ip),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_DELETE)),
+                  _))
       .Times(1);
 
   EXPECT_CALL(*messenger,
@@ -684,7 +684,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowIpv6) {
 
   dl_flow.tcp_dst_port = 33;
   dl_flow.tcp_src_port = 44;
-  dl_flow.ip_proto = 6;  // TCP
+  dl_flow.ip_proto = 6; // TCP
   dl_flow.set_params =
       SRC_IPV6 | DST_IPV6 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
@@ -700,25 +700,25 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowIpv6) {
   // downlink
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-                CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
-                CheckIPv6Src(dl_flow.src_ip6), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_ADD)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
+                        CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
+                        CheckIPv6Src(dl_flow.src_ip6),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_ADD)),
+                  _))
       .Times(1);
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
-                CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
-                CheckIPv6Src(dl_flow.src_ip6), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_ADD)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+                        CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
+                        CheckIPv6Src(dl_flow.src_ip6),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_ADD)),
+                  _))
       .Times(1);
 
   EXPECT_CALL(*messenger,
@@ -747,7 +747,7 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlowIpv6) {
   inet_pton(AF_INET6, "::79", &dl_flow.src_ip6);
   dl_flow.tcp_dst_port = 33;
   dl_flow.tcp_src_port = 44;
-  dl_flow.ip_proto = 6;  // TCP
+  dl_flow.ip_proto = 6; // TCP
   dl_flow.set_params =
       SRC_IPV6 | DST_IPV6 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
@@ -762,25 +762,25 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlowIpv6) {
   // downlink
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-                CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
-                CheckIPv6Src(dl_flow.src_ip6), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_DELETE)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
+                        CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
+                        CheckIPv6Src(dl_flow.src_ip6),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_DELETE)),
+                  _))
       .Times(1);
   EXPECT_CALL(
       *messenger,
-      send_of_msg(
-          AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
-                CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
-                CheckIPv6Src(dl_flow.src_ip6), CheckIPv4Proto(dl_flow.ip_proto),
-                CheckTcpDstPort(dl_flow.tcp_dst_port),
-                CheckTcpSrcPort(dl_flow.tcp_src_port),
-                CheckCommandType(of13::OFPFC_DELETE)),
-          _))
+      send_of_msg(AllOf(CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+                        CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
+                        CheckIPv6Src(dl_flow.src_ip6),
+                        CheckIPv4Proto(dl_flow.ip_proto),
+                        CheckTcpDstPort(dl_flow.tcp_dst_port),
+                        CheckTcpSrcPort(dl_flow.tcp_src_port),
+                        CheckCommandType(of13::OFPFC_DELETE)),
+                  _))
       .Times(1);
 
   EXPECT_CALL(*messenger,
@@ -1001,4 +1001,4 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelS8DlFlowGtpPort) {
 
   controller->dispatch_event(del_tunnel);
 }
-}  // namespace
+} // namespace

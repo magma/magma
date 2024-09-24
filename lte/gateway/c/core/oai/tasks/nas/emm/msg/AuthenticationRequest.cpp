@@ -17,20 +17,20 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AuthenticationRequest.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_authentication_request(
-    authentication_request_msg* authentication_request, uint8_t* buffer,
+    authentication_request_msg *authentication_request, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -68,7 +68,7 @@ int decode_authentication_request(
 }
 
 int encode_authentication_request(
-    authentication_request_msg* authentication_request, uint8_t* buffer,
+    authentication_request_msg *authentication_request, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -85,7 +85,7 @@ int encode_authentication_request(
   if ((encode_result = encode_authentication_parameter_rand_ie(
            authentication_request->authenticationparameterrand, 0,
            buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;
@@ -93,7 +93,7 @@ int encode_authentication_request(
   if ((encode_result = encode_authentication_parameter_autn_ie(
            authentication_request->authenticationparameterautn, 0,
            buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

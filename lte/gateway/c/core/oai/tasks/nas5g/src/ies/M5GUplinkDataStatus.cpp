@@ -9,19 +9,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include <cstdint>
 #include <cstring>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.hpp"
+#include <iostream>
+#include <sstream>
 
 namespace magma5g {
 M5GUplinkDataStatus::M5GUplinkDataStatus(){};
 M5GUplinkDataStatus::~M5GUplinkDataStatus(){};
 
 int M5GUplinkDataStatus::EncodeUplinkDataStatus(
-    M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei, uint8_t* buffer,
+    M5GUplinkDataStatus *uplinkDataStatus, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   if (uplinkDataStatus->iei) {
@@ -40,7 +40,7 @@ int M5GUplinkDataStatus::EncodeUplinkDataStatus(
 }
 
 int M5GUplinkDataStatus::DecodeUplinkDataStatus(
-    M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei, uint8_t* buffer,
+    M5GUplinkDataStatus *uplinkDataStatus, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int decoded = 0;
 
@@ -59,4 +59,4 @@ int M5GUplinkDataStatus::DecodeUplinkDataStatus(
 
   return decoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

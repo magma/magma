@@ -12,24 +12,24 @@
  */
 #pragma once
 
+#include <chrono>
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
 #include <stdint.h>
-#include <sys/types.h>
-#include <chrono>
 #include <string>
+#include <sys/types.h>
 
 namespace google {
 namespace protobuf {
 class Timestamp;
-}  // namespace protobuf
-}  // namespace google
+} // namespace protobuf
+} // namespace google
 
 namespace magma {
-std::string bytes_to_hex(const std::string& s);
+std::string bytes_to_hex(const std::string &s);
 uint64_t get_time_in_sec_since_epoch();
-std::chrono::milliseconds time_difference_from_now(
-    const google::protobuf::Timestamp& timestamp);
+std::chrono::milliseconds
+time_difference_from_now(const google::protobuf::Timestamp &timestamp);
 std::chrono::milliseconds time_difference_from_now(const std::time_t timestamp);
-std::string prepend_imsi_with_prefix(const std::string& imsi);
-}  // namespace magma
+std::string prepend_imsi_with_prefix(const std::string &imsi);
+} // namespace magma

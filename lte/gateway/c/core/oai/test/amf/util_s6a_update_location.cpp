@@ -13,14 +13,14 @@
 
 #include <iostream>
 
-#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
 #include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 
 namespace magma5g {
 // api to mock handling of s6a_update_location_ans
 
-s6a_update_location_ans_t util_amf_send_s6a_ula(const std::string& imsi) {
+s6a_update_location_ans_t util_amf_send_s6a_ula(const std::string &imsi) {
   s6a_update_location_ans_t itti_msg = {};
 
   // building s6a_update_location_ans_t
@@ -79,4 +79,4 @@ s6a_update_location_ans_t util_amf_send_s6a_ula(const std::string& imsi) {
   return itti_msg;
 }
 
-}  // namespace magma5g
+} // namespace magma5g

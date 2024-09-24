@@ -19,8 +19,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
@@ -29,8 +29,8 @@ PDUSessionModificationRequestMsg::~PDUSessionModificationRequestMsg(){};
 
 // Decode PDUSessionModificationRequest Message and its IEs
 int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
-    PDUSessionModificationRequestMsg* pdu_session_modif_request,
-    uint8_t* buffer, uint32_t len) {
+    PDUSessionModificationRequestMsg *pdu_session_modif_request,
+    uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -75,54 +75,54 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
     uint8_t ie_type = *(buffer + decoded);
 
     switch (ie_type) {
-      case M5GSM_CAUSE: {
-        if ((decoded_result =
-                 pdu_session_modif_request->cause.DecodeM5GSMCauseMsg(
-                     &pdu_session_modif_request->cause, M5GSM_CAUSE,
-                     buffer + decoded, len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-      } break;
-      case PDU_SESSION_QOS_RULES_IE_TYPE: {
-        QOSRulesMsg qosRules;
-        if ((decoded_result = qosRules.DecodeQOSRulesMsg(
-                 &qosRules, PDU_SESSION_QOS_RULES_IE_TYPE, buffer + decoded,
-                 len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          pdu_session_modif_request->authqosrules.push_back(qosRules);
-          decoded += decoded_result;
-        }
-      } break;
-      case PDU_SESSION_QOS_FLOW_DESC_IE_TYPE: {
-        // iei + length
-        decoded += 3;
-        M5GQosFlowDescription flowDes;
-        if ((decoded_result = flowDes.DecodeM5GQosFlowDescription(
-                 &flowDes, buffer + decoded, len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          pdu_session_modif_request->authqosflowdescriptors.push_back(flowDes);
-          decoded += decoded_result;
-        }
-      } break;
-      case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE: {
-        if ((decoded_result =
-                 pdu_session_modif_request->extprotocolconfigurationoptions
-                     .DecodeProtocolConfigurationOptions(
-                         &pdu_session_modif_request
-                              ->extprotocolconfigurationoptions,
-                         REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE,
-                         buffer + decoded, len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-      } break;
-      default: {
-      } break;
+    case M5GSM_CAUSE: {
+      if ((decoded_result =
+               pdu_session_modif_request->cause.DecodeM5GSMCauseMsg(
+                   &pdu_session_modif_request->cause, M5GSM_CAUSE,
+                   buffer + decoded, len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
+      }
+    } break;
+    case PDU_SESSION_QOS_RULES_IE_TYPE: {
+      QOSRulesMsg qosRules;
+      if ((decoded_result = qosRules.DecodeQOSRulesMsg(
+               &qosRules, PDU_SESSION_QOS_RULES_IE_TYPE, buffer + decoded,
+               len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        pdu_session_modif_request->authqosrules.push_back(qosRules);
+        decoded += decoded_result;
+      }
+    } break;
+    case PDU_SESSION_QOS_FLOW_DESC_IE_TYPE: {
+      // iei + length
+      decoded += 3;
+      M5GQosFlowDescription flowDes;
+      if ((decoded_result = flowDes.DecodeM5GQosFlowDescription(
+               &flowDes, buffer + decoded, len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        pdu_session_modif_request->authqosflowdescriptors.push_back(flowDes);
+        decoded += decoded_result;
+      }
+    } break;
+    case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE: {
+      if ((decoded_result =
+               pdu_session_modif_request->extprotocolconfigurationoptions
+                   .DecodeProtocolConfigurationOptions(
+                       &pdu_session_modif_request
+                            ->extprotocolconfigurationoptions,
+                       REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE,
+                       buffer + decoded, len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
+      }
+    } break;
+    default: {
+    } break;
     }
   }
   return decoded;
@@ -130,8 +130,8 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
 
 // Encode PDUSessionModificationRequest Message and its IEs
 int PDUSessionModificationRequestMsg::EncodePDUSessionModificationRequestMsg(
-    PDUSessionModificationRequestMsg* pdu_session_modif_request,
-    uint8_t* buffer, uint32_t len) {
+    PDUSessionModificationRequestMsg *pdu_session_modif_request,
+    uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
   uint16_t qos_flow_des_encoded = 0;
@@ -218,4 +218,4 @@ int PDUSessionModificationRequestMsg::EncodePDUSessionModificationRequestMsg(
   return encoded;
 }
 
-}  // namespace magma5g
+} // namespace magma5g

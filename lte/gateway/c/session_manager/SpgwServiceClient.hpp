@@ -12,12 +12,12 @@
  */
 #pragma once
 
+#include <functional>
 #include <lte/protos/apn.pb.h>
 #include <lte/protos/spgw_service.grpc.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include <stdint.h>
-#include <functional>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -36,22 +36,22 @@ namespace magma {
 namespace lte {
 class CreateBearerRequest;
 }
-}  // namespace magma
+} // namespace magma
 namespace magma {
 namespace lte {
 class CreateBearerResult;
 }
-}  // namespace magma
+} // namespace magma
 namespace magma {
 namespace lte {
 class DeleteBearerRequest;
 }
-}  // namespace magma
+} // namespace magma
 namespace magma {
 namespace lte {
 class DeleteBearerResult;
 }
-}  // namespace magma
+} // namespace magma
 
 using grpc::Status;
 
@@ -63,7 +63,7 @@ using namespace lte;
  * create/delete to PGW
  */
 class SpgwServiceClient {
- public:
+public:
   virtual ~SpgwServiceClient() = default;
 
   /**
@@ -73,8 +73,8 @@ class SpgwServiceClient {
    * @param linked_bearer_id - identifier for link bearer
    * @return true if the operation was successful
    */
-  virtual bool delete_default_bearer(const std::string& imsi,
-                                     const std::string& apn_ip_addr,
+  virtual bool delete_default_bearer(const std::string &imsi,
+                                     const std::string &apn_ip_addr,
                                      const uint32_t linked_bearer_id) = 0;
 
   /**
@@ -82,16 +82,16 @@ class SpgwServiceClient {
    * @param DeleteBearerRequest
    * @return always returns true
    */
-  virtual bool delete_dedicated_bearer(
-      const magma::DeleteBearerRequest& request) = 0;
+  virtual bool
+  delete_dedicated_bearer(const magma::DeleteBearerRequest &request) = 0;
 
   /**
    * Create a dedicated bearer
    * @param CreateBearerRequest
    * @return always returns true
    */
-  virtual bool create_dedicated_bearer(
-      const magma::CreateBearerRequest& request) = 0;
+  virtual bool
+  create_dedicated_bearer(const magma::CreateBearerRequest &request) = 0;
 };
 
 /**
@@ -99,7 +99,7 @@ class SpgwServiceClient {
  * asynchronously to PGW.
  */
 class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
- public:
+public:
   AsyncSpgwServiceClient();
 
   explicit AsyncSpgwServiceClient(std::shared_ptr<grpc::Channel> pgw_channel);
@@ -110,8 +110,8 @@ class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
    * @param linked_bearer_id - identifier for link bearer
    * @return true if the operation was successful
    */
-  bool delete_default_bearer(const std::string& imsi,
-                             const std::string& apn_ip_addr,
+  bool delete_default_bearer(const std::string &imsi,
+                             const std::string &apn_ip_addr,
                              const uint32_t linked_bearer_id);
 
   /**
@@ -119,31 +119,31 @@ class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
    * @param DeleteBearerRequest
    * @return always returns true
    */
-  bool delete_dedicated_bearer(const magma::DeleteBearerRequest& request);
+  bool delete_dedicated_bearer(const magma::DeleteBearerRequest &request);
 
   /**
    * Create a dedicated bearer
    * @param CreateBearerRequest
    * @return always returns true
    */
-  bool create_dedicated_bearer(const magma::CreateBearerRequest& request);
+  bool create_dedicated_bearer(const magma::CreateBearerRequest &request);
 
- private:
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+private:
+  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<SpgwService::Stub> stub_;
 
- private:
-  bool delete_bearer(const std::string& imsi, const std::string& apn_ip_addr,
+private:
+  bool delete_bearer(const std::string &imsi, const std::string &apn_ip_addr,
                      const uint32_t linked_bearer_id,
-                     const std::vector<uint32_t>& eps_bearer_ids);
+                     const std::vector<uint32_t> &eps_bearer_ids);
 
-  void delete_bearer_rpc(
-      const DeleteBearerRequest& request,
-      std::function<void(Status, DeleteBearerResult)> callback);
+  void
+  delete_bearer_rpc(const DeleteBearerRequest &request,
+                    std::function<void(Status, DeleteBearerResult)> callback);
 
   void create_dedicated_bearer_rpc(
-      const CreateBearerRequest& request,
+      const CreateBearerRequest &request,
       std::function<void(Status, CreateBearerResult)> callback);
 };
 
-}  // namespace magma
+} // namespace magma

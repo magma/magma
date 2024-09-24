@@ -25,8 +25,8 @@
 // warning coding flaws in ESM, do not use uint8_t yet.
 typedef int esm_cause_t;
 
-int encode_esm_cause(esm_cause_t* esmcause, uint8_t iei, uint8_t* buffer,
+int encode_esm_cause(esm_cause_t *esmcause, uint8_t iei, uint8_t *buffer,
                      uint32_t len);
 
-int decode_esm_cause(esm_cause_t* esmcause, uint8_t iei, uint8_t* buffer,
+int decode_esm_cause(esm_cause_t *esmcause, uint8_t iei, uint8_t *buffer,
                      uint32_t len);

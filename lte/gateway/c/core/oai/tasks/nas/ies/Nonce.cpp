@@ -21,14 +21,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
-int decode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_nonce(nonce_t *nonce, uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -41,7 +41,7 @@ int decode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len) {
 }
 
 //------------------------------------------------------------------------------
-int encode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_nonce(nonce_t *nonce, uint8_t iei, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*

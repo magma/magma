@@ -14,27 +14,27 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <grpc++/grpc++.h>
-#include <stdint.h>
 #include <functional>
+#include <grpc++/grpc++.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.hpp"
-#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 #include "lte/protos/pipelined.grpc.pb.h"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace orc8r {
 class Void;
-}  // namespace orc8r
-}  // namespace magma
+} // namespace orc8r
+} // namespace magma
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -48,121 +48,121 @@ using namespace orc8r;
  * gRPC client for PipelineService
  */
 class PipelinedServiceClient : public GRPCReceiver {
- public:
+public:
   IPFlowDL set_ue_ip_flow_dl(struct ip_flow_dl flow_dl);
 
   // APIs for adding tunnels
   static int UpdateUEIPv4SessionSet(
-      const struct in_addr& ue_ipv4_addr, int vlan,
-      struct in_addr& enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
-      const std::string& imsi, uint32_t flow_precedence, const std::string& apn,
+      const struct in_addr &ue_ipv4_addr, int vlan,
+      struct in_addr &enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
+      const std::string &imsi, uint32_t flow_precedence, const std::string &apn,
       uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4SessionSetWithFlowdl(
-      const struct in_addr& ue_ipv4_addr, int vlan,
-      struct in_addr& enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
-      const std::string& imsi, const struct ip_flow_dl& flow_dl,
-      uint32_t flow_precedence, const std::string& apn, uint32_t state,
+      const struct in_addr &ue_ipv4_addr, int vlan,
+      struct in_addr &enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
+      const std::string &imsi, const struct ip_flow_dl &flow_dl,
+      uint32_t flow_precedence, const std::string &apn, uint32_t state,
       std::function<void(Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4v6SessionSet(
-      const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-      int vlan, struct in_addr& enb_ipv4_addr, uint32_t in_teid,
-      uint32_t out_teid, const std::string& imsi, uint32_t flow_precedence,
-      const std::string& apn, uint32_t state,
+      const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+      int vlan, struct in_addr &enb_ipv4_addr, uint32_t in_teid,
+      uint32_t out_teid, const std::string &imsi, uint32_t flow_precedence,
+      const std::string &apn, uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4v6SessionSetWithFlowdl(
-      const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-      int vlan, struct in_addr& enb_ipv4_addr, uint32_t in_teid,
-      uint32_t out_teid, const std::string& imsi,
-      const struct ip_flow_dl& flow_dl, uint32_t flow_precedence,
-      const std::string& apn, uint32_t state,
+      const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+      int vlan, struct in_addr &enb_ipv4_addr, uint32_t in_teid,
+      uint32_t out_teid, const std::string &imsi,
+      const struct ip_flow_dl &flow_dl, uint32_t flow_precedence,
+      const std::string &apn, uint32_t state,
       std::function<void(Status, UESessionContextResponse)> callback);
 
   // APIs for deleting the tunnel
   static int UpdateUEIPv4SessionSet(
-      struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
+      struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
       uint32_t in_teid, uint32_t out_teid, uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4SessionSetWithFlowdl(
-      struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-      uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl& flow_dl,
+      struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+      uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl &flow_dl,
       uint32_t state,
       std::function<void(Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4v6SessionSet(
-      struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-      struct in6_addr& ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
+      struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+      struct in6_addr &ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
       uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4v6SessionSetWithFlowdl(
-      struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-      struct in6_addr& ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
-      const struct ip_flow_dl& flow_dl, uint32_t state,
+      struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+      struct in6_addr &ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
+      const struct ip_flow_dl &flow_dl, uint32_t state,
       std::function<void(Status, UESessionContextResponse)> callback);
 
   // APIs for discarding data on tunnels
   static int UpdateUEIPv4SessionSet(
-      const struct in_addr& ue_ipv4_addr, uint32_t in_teid, uint32_t state,
+      const struct in_addr &ue_ipv4_addr, uint32_t in_teid, uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4SessionSetWithFlowdl(
-      const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
-      const struct ip_flow_dl& flow_dl, uint32_t state,
+      const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
+      const struct ip_flow_dl &flow_dl, uint32_t state,
       std::function<void(Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4v6SessionSet(
-      const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
+      const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
       uint32_t in_teid, uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4v6SessionSetWithFlowdl(
-      const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-      uint32_t in_teid, const struct ip_flow_dl& flow_dl, uint32_t state,
+      const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+      uint32_t in_teid, const struct ip_flow_dl &flow_dl, uint32_t state,
       std::function<void(Status, UESessionContextResponse)> callback);
 
   // APIs for forwarding data on the tunnel
   static int UpdateUEIPv4SessionSet(
-      const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
+      const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
       uint32_t flow_precedence, uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4SessionSetWithFlowdl(
-      const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
-      const struct ip_flow_dl& flow_dl, uint32_t flow_precedence,
+      const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
+      const struct ip_flow_dl &flow_dl, uint32_t flow_precedence,
       uint32_t state,
       std::function<void(Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4v6SessionSet(
-      const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
+      const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
       uint32_t in_teid, uint32_t flow_precedence, uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
   static int UpdateUEIPv4v6SessionSetWithFlowdl(
-      const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-      uint32_t in_teid, const struct ip_flow_dl& flow_dl,
+      const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+      uint32_t in_teid, const struct ip_flow_dl &flow_dl,
       uint32_t flow_precedence, uint32_t state,
       std::function<void(Status, UESessionContextResponse)> callback);
 
   // APIs for paging IDLE -> PAGING, ACTIVATE -> Delete PAGING
   static int UpdateUEIPv4SessionSet(
-      const struct in_addr& ue_ipv4_addr, uint32_t state,
+      const struct in_addr &ue_ipv4_addr, uint32_t state,
       std::function<void(grpc::Status, UESessionContextResponse)> callback);
 
- public:
-  static PipelinedServiceClient& get_instance();
-  PipelinedServiceClient(PipelinedServiceClient const&) = delete;
-  void operator=(PipelinedServiceClient const&) = delete;
+public:
+  static PipelinedServiceClient &get_instance();
+  PipelinedServiceClient(PipelinedServiceClient const &) = delete;
+  void operator=(PipelinedServiceClient const &) = delete;
 
- private:
+private:
   PipelinedServiceClient();
   std::unique_ptr<Pipelined::Stub> stub_{};
-  static const uint32_t RESPONSE_TIMEOUT = 3;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 3; // seconds
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

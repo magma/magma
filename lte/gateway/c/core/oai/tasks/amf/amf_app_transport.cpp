@@ -35,11 +35,11 @@ status_code_e amf_app_handle_nas_dl_req(const amf_ue_ngap_id_t ue_id,
                                         bstring nas_msg,
                                         nas5g_error_code_t transaction_status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   status_code_e rc = RETURNok;
   gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
   message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_NAS_DL_DATA_REQ);
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
 
   if (!amf_app_desc_p) {
     OAILOG_ERROR(
@@ -47,7 +47,7 @@ status_code_e amf_app_handle_nas_dl_req(const amf_ue_ngap_id_t ue_id,
         "Downlink NAS transport: Failed to get global amf_app_desc context \n");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_m5gmm_context_s *ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context) {
     gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
   } else {
@@ -73,4 +73,4 @@ status_code_e amf_app_handle_nas_dl_req(const amf_ue_ngap_id_t ue_id,
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
-}  // namespace magma5g
+} // namespace magma5g

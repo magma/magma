@@ -24,8 +24,8 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_grpc_iface.hpp"
 
 //------------------------------------------------------------------------------
@@ -34,16 +34,16 @@ S6aGrpcIface::S6aGrpcIface(void) {
   OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface over gRPC: DONE\n");
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::update_location_req(s6a_update_location_req_t* ulr_p) {
+bool S6aGrpcIface::update_location_req(s6a_update_location_req_t *ulr_p) {
   return s6a_update_location_req(ulr_p);
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::authentication_info_req(s6a_auth_info_req_t* air_p) {
+bool S6aGrpcIface::authentication_info_req(s6a_auth_info_req_t *air_p) {
   return s6a_authentication_info_req(air_p);
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
+bool S6aGrpcIface::send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP) {
   return false;
 }
 //------------------------------------------------------------------------------
-bool S6aGrpcIface::purge_ue(const char* imsi) { return s6a_purge_ue(imsi); }
+bool S6aGrpcIface::purge_ue(const char *imsi) { return s6a_purge_ue(imsi); }

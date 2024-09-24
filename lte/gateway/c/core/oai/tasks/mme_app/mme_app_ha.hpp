@@ -19,4 +19,4 @@
 
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 
-void mme_app_handle_ue_offload(ue_mm_context_t* ue_context_p);
+void mme_app_handle_ue_offload(ue_mm_context_t *ue_context_p);

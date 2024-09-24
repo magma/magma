@@ -26,7 +26,7 @@ namespace magma {
 
 AuthenticationInformationRequest
 convert_itti_s6a_authentication_info_req_to_proto_msg(
-    const s6a_auth_info_req_t* const msg) {
+    const s6a_auth_info_req_t *const msg) {
   AuthenticationInformationRequest ret;
   ret.Clear();
 
@@ -73,7 +73,7 @@ convert_itti_s6a_authentication_info_req_to_proto_msg(
 }
 
 UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
-    const s6a_update_location_req_t* const msg) {
+    const s6a_update_location_req_t *const msg) {
   UpdateLocationRequest ret;
   ret.Clear();
 
@@ -123,4 +123,4 @@ UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
   }
   return ret;
 }
-}  // namespace magma
+} // namespace magma

@@ -9,12 +9,12 @@
   limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
-#include <cstdint>
-#include <cstring>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -29,8 +29,8 @@ PDUAddressMsg::PDUAddressMsg(){};
 PDUAddressMsg::~PDUAddressMsg(){};
 
 // Decode PDUAddress IE
-int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg *pdu_address, uint8_t iei,
+                                       uint8_t *buffer, uint32_t len) {
   uint8_t decoded = 0;
   // CHECKING IEI
   if (iei > 0) {
@@ -50,8 +50,8 @@ int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
 };
 
 // Encode PDUAddress IE
-int PDUAddressMsg::EncodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int PDUAddressMsg::EncodePDUAddressMsg(PDUAddressMsg *pdu_address, uint8_t iei,
+                                       uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
@@ -70,4 +70,4 @@ int PDUAddressMsg::EncodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
 
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

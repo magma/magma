@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeComplete.hpp"
 
 namespace magma5g {
 SecurityModeCompleteMsg::SecurityModeCompleteMsg(){};
@@ -26,7 +26,7 @@ SecurityModeCompleteMsg::~SecurityModeCompleteMsg(){};
 
 // Decode SecurityModeComplete Message and its IEs
 int SecurityModeCompleteMsg::DecodeSecurityModeCompleteMsg(
-    SecurityModeCompleteMsg* sec_mode_complete, uint8_t* buffer, uint32_t len) {
+    SecurityModeCompleteMsg *sec_mode_complete, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -66,7 +66,7 @@ int SecurityModeCompleteMsg::DecodeSecurityModeCompleteMsg(
 // Will be supported POST MVC
 // Encode Security Mode Complete Message and its IEs
 int SecurityModeCompleteMsg::EncodeSecurityModeCompleteMsg(
-    SecurityModeCompleteMsg* sec_mode_complete, uint8_t* buffer, uint32_t len) {
+    SecurityModeCompleteMsg *sec_mode_complete, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
 #ifdef HANDLE_POST_MVC
@@ -99,4 +99,4 @@ int SecurityModeCompleteMsg::EncodeSecurityModeCompleteMsg(
 #endif
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

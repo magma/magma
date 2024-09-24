@@ -22,28 +22,28 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/include/EpsQualityOfService.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/RadioPriority.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH (0)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define MODIFY_EPS_BEARER_CONTEXT_REQUEST_MAXIMUM_LENGTH                      \
-  (EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH +                                    \
-   TRAFFIC_FLOW_TEMPLATE_MAXIMUM_LENGTH + QUALITY_OF_SERVICE_MAXIMUM_LENGTH + \
-   LLC_SERVICE_ACCESS_POINT_IDENTIFIER_MAXIMUM_LENGTH +                       \
-   RADIO_PRIORITY_MAXIMUM_LENGTH + PACKET_FLOW_IDENTIFIER_MAXIMUM_LENGTH +    \
-   APN_AGGREGATE_MAXIMUM_BIT_RATE_IE_MAX_LENGTH +                             \
+#define MODIFY_EPS_BEARER_CONTEXT_REQUEST_MAXIMUM_LENGTH                       \
+  (EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH +                                     \
+   TRAFFIC_FLOW_TEMPLATE_MAXIMUM_LENGTH + QUALITY_OF_SERVICE_MAXIMUM_LENGTH +  \
+   LLC_SERVICE_ACCESS_POINT_IDENTIFIER_MAXIMUM_LENGTH +                        \
+   RADIO_PRIORITY_MAXIMUM_LENGTH + PACKET_FLOW_IDENTIFIER_MAXIMUM_LENGTH +     \
+   APN_AGGREGATE_MAXIMUM_BIT_RATE_IE_MAX_LENGTH +                              \
    PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -54,7 +54,7 @@ extern "C" {
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_NEW_QOS_PRESENT (1 << 2)
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_PRESENT (1 << 3)
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT (1 << 4)
-#define MODIFY_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_PRESENT \
+#define MODIFY_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_PRESENT       \
   (1 << 5)
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT (1 << 6)
 #define MODIFY_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT \
@@ -101,9 +101,9 @@ typedef struct modify_eps_bearer_context_request_msg_tag {
 } modify_eps_bearer_context_request_msg;
 
 int decode_modify_eps_bearer_context_request(
-    modify_eps_bearer_context_request_msg* modifyepsbearercontextrequest,
-    uint8_t* buffer, uint32_t len);
+    modify_eps_bearer_context_request_msg *modifyepsbearercontextrequest,
+    uint8_t *buffer, uint32_t len);
 
 int encode_modify_eps_bearer_context_request(
-    modify_eps_bearer_context_request_msg* modifyepsbearercontextrequest,
-    uint8_t* buffer, uint32_t len);
+    modify_eps_bearer_context_request_msg *modifyepsbearercontextrequest,
+    uint8_t *buffer, uint32_t len);

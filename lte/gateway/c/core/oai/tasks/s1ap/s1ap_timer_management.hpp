@@ -14,10 +14,10 @@ limitations under the License.
 #pragma once
 
 // C++ includes ------------------------------------------------------------
-#include <stddef.h>
-#include <stdint.h>
 #include <czmq.h>
 #include <map>
+#include <stddef.h>
+#include <stdint.h>
 #include <utility>
 
 // C includes --------------------------------------------------------------
@@ -32,18 +32,18 @@ namespace magma {
 namespace lte {
 
 class S1apUeContext {
- private:
+private:
   std::map<int, s1ap_timer_arg_t> s1ap_timers;
   S1apUeContext() : s1ap_timers() {}
 
- public:
-  static S1apUeContext& Instance() {
+public:
+  static S1apUeContext &Instance() {
     static S1apUeContext instance;
     return instance;
   }
 
-  S1apUeContext(S1apUeContext const&) = delete;
-  void operator=(S1apUeContext const&) = delete;
+  S1apUeContext(S1apUeContext const &) = delete;
+  void operator=(S1apUeContext const &) = delete;
 
   int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
                  const s1ap_timer_arg_t arg);
@@ -56,8 +56,8 @@ class S1apUeContext {
    * @param arg Timer arguments to be stored in this parameter
    * @return True if timer_id exists, False otherwise.
    */
-  bool PopTimerById(const int timer_id, s1ap_timer_arg_t* arg);
+  bool PopTimerById(const int timer_id, s1ap_timer_arg_t *arg);
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

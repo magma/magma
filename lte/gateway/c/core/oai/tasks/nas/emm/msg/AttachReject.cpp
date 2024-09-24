@@ -29,7 +29,7 @@ extern "C" {
 }
 #endif
 
-int decode_attach_reject(attach_reject_msg* attach_reject, uint8_t* buffer,
+int decode_attach_reject(attach_reject_msg *attach_reject, uint8_t *buffer,
                          uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -57,34 +57,35 @@ int decode_attach_reject(attach_reject_msg* attach_reject, uint8_t* buffer,
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case ATTACH_REJECT_ESM_MESSAGE_CONTAINER_IEI:
-        if ((decoded_result = decode_esm_message_container(
-                 &attach_reject->esmmessagecontainer,
-                 ATTACH_REJECT_ESM_MESSAGE_CONTAINER_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_REJECT_ESM_MESSAGE_CONTAINER_IEI:
+      if ((decoded_result = decode_esm_message_container(
+               &attach_reject->esmmessagecontainer,
+               ATTACH_REJECT_ESM_MESSAGE_CONTAINER_IEI, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_reject->presencemask |=
-            ATTACH_REJECT_ESM_MESSAGE_CONTAINER_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_reject->presencemask |=
+          ATTACH_REJECT_ESM_MESSAGE_CONTAINER_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
   return decoded;
 }
 
-int encode_attach_reject(attach_reject_msg* attach_reject, uint8_t* buffer,
+int encode_attach_reject(attach_reject_msg *attach_reject, uint8_t *buffer,
                          uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -97,7 +98,7 @@ int encode_attach_reject(attach_reject_msg* attach_reject, uint8_t* buffer,
 
   if ((encode_result = encode_emm_cause(&attach_reject->emmcause, 0,
                                         buffer + encoded, len - encoded)) <
-      0)  // Return in case of error
+      0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

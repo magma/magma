@@ -17,23 +17,23 @@ static std::shared_ptr<MockService303Handler> service303_handler_;
 
 void stop_mock_service303_task();
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TERMINATE_MESSAGE: {
-      service303_handler_.reset();
-      itti_free_msg_content(received_message_p);
-      free(received_message_p);
-      stop_mock_service303_task();
-    } break;
+  case TERMINATE_MESSAGE: {
+    service303_handler_.reset();
+    itti_free_msg_content(received_message_p);
+    free(received_message_p);
+    stop_mock_service303_task();
+  } break;
 
-    case APPLICATION_HEALTHY_MSG: {
-      service303_handler_->service303_set_application_health();
-    } break;
+  case APPLICATION_HEALTHY_MSG: {
+    service303_handler_->service303_set_application_health();
+  } break;
 
-    default: {
-    } break;
+  default: {
+  } break;
   }
   itti_free_msg_content(received_message_p);
   free(received_message_p);

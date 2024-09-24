@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.hpp"
 
 namespace magma5g {
 SecurityModeRejectMsg::SecurityModeRejectMsg(){};
@@ -26,7 +26,7 @@ SecurityModeRejectMsg::~SecurityModeRejectMsg(){};
 
 // Decoding Security Mode Reject Message and its IEs
 int SecurityModeRejectMsg::DecodeSecurityModeRejectMsg(
-    SecurityModeRejectMsg* sec_mode_reject, uint8_t* buffer, uint32_t len) {
+    SecurityModeRejectMsg *sec_mode_reject, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -72,7 +72,7 @@ int SecurityModeRejectMsg::DecodeSecurityModeRejectMsg(
 
 // Encoding Security Mode Reject Message and its IEs
 int SecurityModeRejectMsg::EncodeSecurityModeRejectMsg(
-    SecurityModeRejectMsg* sec_mode_reject, uint8_t* buffer, uint32_t len) {
+    SecurityModeRejectMsg *sec_mode_reject, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
@@ -114,4 +114,4 @@ int SecurityModeRejectMsg::EncodeSecurityModeRejectMsg(
     encoded += encoded_result;
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

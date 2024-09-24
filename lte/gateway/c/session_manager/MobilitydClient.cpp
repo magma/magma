@@ -23,12 +23,12 @@
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class IPAddress;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::Status;
 
@@ -43,11 +43,11 @@ AsyncMobilitydClient::AsyncMobilitydClient()
           "mobilityd", ServiceRegistrySingleton::LOCAL)) {}
 
 void AsyncMobilitydClient::get_subscriberid_from_ipv4(
-    const IPAddress& ue_ip_addr,
+    const IPAddress &ue_ip_addr,
     std::function<void(Status status, SubscriberID)> callback) {
   auto local_resp = new AsyncLocalResponse<SubscriberID>(std::move(callback),
                                                          RESPONSE_TIMEOUT);
   local_resp->set_response_reader(stub_->AsyncGetSubscriberIDFromIP(
       local_resp->get_context(), ue_ip_addr, &queue_));
 }
-}  // namespace magma
+} // namespace magma

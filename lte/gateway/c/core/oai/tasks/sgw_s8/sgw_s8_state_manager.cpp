@@ -28,12 +28,12 @@ SgwStateManager::SgwStateManager() : config_(nullptr) {}
 
 SgwStateManager::~SgwStateManager() { free_state(); }
 
-SgwStateManager& SgwStateManager::getInstance() {
+SgwStateManager &SgwStateManager::getInstance() {
   static SgwStateManager instance;
   return instance;
 }
 
-void SgwStateManager::init(bool persist_state, const sgw_config_t* config) {
+void SgwStateManager::init(bool persist_state, const sgw_config_t *config) {
   log_task = LOG_SGW_S8;
   task_name = SGW_TASK_NAME;
   table_key = SGW_STATE_TABLE_NAME;
@@ -59,9 +59,8 @@ void SgwStateManager::create_state() {
   // sgw_free_s11_bearer_context_information is called when destroy_map or
   // remove_map is invoked, so as to remove any contexts allocated within
   // sgw_bearer context
-  s8_state_teid_map.map =
-      new google::protobuf::Map<unsigned int,
-                                struct sgw_eps_bearer_context_information_s*>();
+  s8_state_teid_map.map = new google::protobuf::Map<
+      unsigned int, struct sgw_eps_bearer_context_information_s *>();
   s8_state_teid_map.set_name(S11_BEARER_CONTEXT_INFO_MAP_NAME);
   s8_state_teid_map.bind_callback(sgw_free_s11_bearer_context_information);
 
@@ -75,13 +74,13 @@ void SgwStateManager::create_state() {
   state_cache_p->sgw_ip_address_S5S8_up.s_addr = config_->ipv4.S5_S8_up.s_addr;
 
   state_cache_p->imsi_ue_context_map.map =
-      new google::protobuf::Map<uint64_t, struct spgw_ue_context_s*>();
+      new google::protobuf::Map<uint64_t, struct spgw_ue_context_s *>();
   state_cache_p->imsi_ue_context_map.set_name(SGW_S8_STATE_UE_MAP_NAME);
   state_cache_p->imsi_ue_context_map.bind_callback(sgw_free_ue_context);
 
   state_cache_p->temporary_create_session_procedure_id_map.map =
-      new google::protobuf::Map<uint32_t,
-                                struct sgw_eps_bearer_context_information_s*>();
+      new google::protobuf::Map<
+          uint32_t, struct sgw_eps_bearer_context_information_s *>();
   state_cache_p->temporary_create_session_procedure_id_map.set_name(
       SGW_S8_CSR_PROC_ID_MAP);
   state_cache_p->temporary_create_session_procedure_id_map.bind_callback(
@@ -102,29 +101,26 @@ void SgwStateManager::free_state() {
 
   if (s8_state_teid_map.map) {
     if (s8_state_teid_map.destroy_map() != PROTO_MAP_OK) {
-      OAILOG_ERROR(LOG_SGW_S8,
-                   "An error occurred while destroying "
-                   "temporary_create_session_procedure_id_map ");
+      OAILOG_ERROR(LOG_SGW_S8, "An error occurred while destroying "
+                               "temporary_create_session_procedure_id_map ");
     }
   }
 
   if (state_cache_p->imsi_ue_context_map.map) {
     if (state_cache_p->imsi_ue_context_map.destroy_map() != PROTO_MAP_OK) {
-      OAILOG_ERROR(LOG_SGW_S8,
-                   "An error occurred while destroying "
-                   "imsi_ue_context_map ");
+      OAILOG_ERROR(LOG_SGW_S8, "An error occurred while destroying "
+                               "imsi_ue_context_map ");
     }
   }
 
   if (state_cache_p->temporary_create_session_procedure_id_map.map) {
     if (state_cache_p->temporary_create_session_procedure_id_map
             .destroy_map() != PROTO_MAP_OK) {
-      OAILOG_ERROR(LOG_SGW_S8,
-                   "An error occurred while destroying "
-                   "temporary_create_session_procedure_id_map ");
+      OAILOG_ERROR(LOG_SGW_S8, "An error occurred while destroying "
+                               "temporary_create_session_procedure_id_map ");
     }
   }
-  free_cpp_wrapper(reinterpret_cast<void**>(&state_cache_p));
+  free_cpp_wrapper(reinterpret_cast<void **>(&state_cache_p));
 }
 
 status_code_e SgwStateManager::read_ue_state_from_db() {
@@ -132,11 +128,11 @@ status_code_e SgwStateManager::read_ue_state_from_db() {
   return RETURNok;
 }
 
-sgw_state_t* SgwStateManager::get_state(bool read_from_db) {
+sgw_state_t *SgwStateManager::get_state(bool read_from_db) {
   return state_cache_p;
 }
 
-map_uint32_sgw_eps_bearer_context_t* SgwStateManager::get_s8_state_teid_map() {
+map_uint32_sgw_eps_bearer_context_t *SgwStateManager::get_s8_state_teid_map() {
   AssertFatal(
       is_initialized,
       "StateManager init() function should be called to initialize state");
@@ -144,5 +140,5 @@ map_uint32_sgw_eps_bearer_context_t* SgwStateManager::get_s8_state_teid_map() {
   return &s8_state_teid_map;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

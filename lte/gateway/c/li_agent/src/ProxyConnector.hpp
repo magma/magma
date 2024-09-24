@@ -21,17 +21,17 @@ namespace magma {
 namespace lte {
 
 class ProxyConnector {
- public:
-  virtual int send_data(void* data, uint32_t size) = 0;
+public:
+  virtual int send_data(void *data, uint32_t size) = 0;
   virtual int setup_proxy_socket() = 0;
   virtual void cleanup() = 0;
   virtual ~ProxyConnector() = default;
 };
 
 class ProxyConnectorImpl : public ProxyConnector {
- public:
-  ProxyConnectorImpl(const std::string& proxy_addr, const int port,
-                     const std::string& cert_file, const std::string& key_file);
+public:
+  ProxyConnectorImpl(const std::string &proxy_addr, const int port,
+                     const std::string &cert_file, const std::string &key_file);
 
   /**
    * setup_proxy_socket instantiate ssl library and opens a tls connection
@@ -45,7 +45,7 @@ class ProxyConnectorImpl : public ProxyConnector {
    * @param size - x3 record length
    * @return return positif integer if sending data successeds.
    */
-  int send_data(void* data, uint32_t size) override;
+  int send_data(void *data, uint32_t size) override;
 
   /**
    * cleanup cleans up all allocated ressources in proxy connector
@@ -58,19 +58,19 @@ class ProxyConnectorImpl : public ProxyConnector {
    */
   ~ProxyConnectorImpl() override;
 
- private:
-  const std::string& proxy_addr_;
+private:
+  const std::string &proxy_addr_;
   const int proxy_port_;
-  const std::string& cert_file_;
-  const std::string& key_file_;
-  SSL* ssl_;
-  SSL_CTX* ctx_;
+  const std::string &cert_file_;
+  const std::string &key_file_;
+  SSL *ssl_;
+  SSL_CTX *ctx_;
   int proxy_;
 
   int open_connection();
-  int load_certificates(SSL_CTX* ctx);
-  SSL_CTX* init_ctx();
+  int load_certificates(SSL_CTX *ctx);
+  SSL_CTX *init_ctx();
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

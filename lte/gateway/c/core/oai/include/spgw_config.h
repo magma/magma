@@ -25,9 +25,9 @@
 #ifndef FILE_SPGW_CONFIG_SEEN
 #define FILE_SPGW_CONFIG_SEEN
 
-#include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define MAGMA_CONFIG_STRING "MAGMA"
@@ -48,10 +48,10 @@ extern spgw_config_t spgw_config;
 #ifdef __cplusplus
 extern "C" {
 #endif
-void spgw_config_init(spgw_config_t*);
-status_code_e spgw_config_parse_file(spgw_config_t*);
-void spgw_config_display(spgw_config_t*);
-void free_spgw_config(spgw_config_t* spgw_config_p);
+void spgw_config_init(spgw_config_t *);
+status_code_e spgw_config_parse_file(spgw_config_t *);
+void spgw_config_display(spgw_config_t *);
+void free_spgw_config(spgw_config_t *spgw_config_p);
 #ifdef __cplusplus
 }
 #endif

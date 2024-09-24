@@ -13,10 +13,10 @@
 #include "lte/gateway/c/sctpd/src/sctpd_uplink_client.hpp"
 
 #include <assert.h>
+#include <chrono>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
-#include <chrono>
 #include <ostream>
 
 #include "lte/gateway/c/sctpd/src/util.hpp"
@@ -24,7 +24,7 @@
 
 namespace grpc {
 class Channel;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace sctpd {
@@ -41,7 +41,7 @@ SctpdUplinkClient::SctpdUplinkClient(std::shared_ptr<Channel> channel) {
   _stub = SctpdUplink::NewStub(channel);
 }
 
-int SctpdUplinkClient::sendUl(const SendUlReq& req, SendUlRes* res) {
+int SctpdUplinkClient::sendUl(const SendUlReq &req, SendUlRes *res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -59,7 +59,7 @@ int SctpdUplinkClient::sendUl(const SendUlReq& req, SendUlRes* res) {
   return status.ok() ? 0 : -1;
 }
 
-int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
+int SctpdUplinkClient::newAssoc(const NewAssocReq &req, NewAssocRes *res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -77,8 +77,8 @@ int SctpdUplinkClient::newAssoc(const NewAssocReq& req, NewAssocRes* res) {
   return status.ok() ? 0 : -1;
 }
 
-int SctpdUplinkClient::closeAssoc(const CloseAssocReq& req,
-                                  CloseAssocRes* res) {
+int SctpdUplinkClient::closeAssoc(const CloseAssocReq &req,
+                                  CloseAssocRes *res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -93,5 +93,5 @@ int SctpdUplinkClient::closeAssoc(const CloseAssocReq& req,
   return status.ok() ? 0 : -1;
 }
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

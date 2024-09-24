@@ -23,9 +23,9 @@
    \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdio.h>
 #include <pthread.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,17 +36,17 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/include/s6a_messages_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 
-status_code_e mme_app_handle_s6a_reset_req(
-    const s6a_reset_req_t* const rsr_pP) {
+status_code_e
+mme_app_handle_s6a_reset_req(const s6a_reset_req_t *const rsr_pP) {
   status_code_e rc = RETURNok;
-  struct ue_mm_context_s* ue_context_p = nullptr;
+  struct ue_mm_context_s *ue_context_p = nullptr;
   unsigned int i = 0;
   unsigned int num_elements = 0;
 
@@ -60,7 +60,7 @@ status_code_e mme_app_handle_s6a_reset_req(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  proto_map_uint32_ue_context_t* mme_app_state_ue_map = get_mme_ue_state();
+  proto_map_uint32_ue_context_t *mme_app_state_ue_map = get_mme_ue_state();
   if (!mme_app_state_ue_map) {
     OAILOG_ERROR(LOG_MME_APP, "mme_app_state_ue_map doesn't exist");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);

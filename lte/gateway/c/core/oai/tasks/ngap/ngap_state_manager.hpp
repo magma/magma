@@ -42,19 +42,19 @@ using namespace magma::lte::oai;
 namespace magma5g {
 constexpr char NGAP_STATE_TABLE[] = "ngap_state";
 constexpr char NGAP_TASK_NAME[] = "NGAP";
-}  // namespace magma5g
+} // namespace magma5g
 
 namespace magma5g {
 /**
  * create_ngap_state allocates a new ngap_state_t struct and initializes
  * its properties.
  */
-ngap_state_t* create_ngap_state(uint32_t max_enbs, uint32_t max_ues);
+ngap_state_t *create_ngap_state(uint32_t max_enbs, uint32_t max_ues);
 
 /**
  * free_ngap_state deallocates a s1ap_state_t struct and its properties.
  */
-void free_ngap_state(ngap_state_t* state_cache_p);
+void free_ngap_state(ngap_state_t *state_cache_p);
 
 /**
  * NGapStateManager is a thread safe singleton class that contains functions
@@ -64,13 +64,13 @@ class NgapStateManager
     : public StateManager<ngap_state_t, m5g_ue_description_t, oai::NgapState,
                           magma::lte::oai::Ngap_UeDescription,
                           NgapStateConverter> {
- public:
+public:
   /**
    * Returns an instance of NGapStateManager, guaranteed to be thread safe and
    * initialized only once.
    * @return NGapStateManager instance
    */
-  static NgapStateManager& getInstance();
+  static NgapStateManager &getInstance();
 
   /**
    * Function to initialize member variables
@@ -79,8 +79,8 @@ class NgapStateManager
   void init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
 
   // Copy constructor and assignment operator are marked as deleted functions
-  NgapStateManager(NgapStateManager const&) = delete;
-  NgapStateManager& operator=(NgapStateManager const&) = delete;
+  NgapStateManager(NgapStateManager const &) = delete;
+  NgapStateManager &operator=(NgapStateManager const &) = delete;
 
   status_code_e read_state_from_db() override;
   void write_state_to_db() override;
@@ -94,8 +94,8 @@ class NgapStateManager
    * @return operation response code
    */
   status_code_e read_ue_state_from_db() override;
-  void write_ue_state_to_db(const m5g_ue_description_t* ue_context,
-                            const std::string& imsi_str) override;
+  void write_ue_state_to_db(const m5g_ue_description_t *ue_context,
+                            const std::string &imsi_str) override;
   /**
    * Serializes ngap_imsi_map to proto and saves it into data store
    */
@@ -104,9 +104,9 @@ class NgapStateManager
   /**
    * Returns a pointer to ngap_imsi_map
    */
-  ngap_imsi_map_t* get_ngap_imsi_map();
+  ngap_imsi_map_t *get_ngap_imsi_map();
 
- private:
+private:
   NgapStateManager();
   ~NgapStateManager();
 
@@ -118,14 +118,14 @@ class NgapStateManager
   void create_ngap_imsi_map();
   void clear_ngap_imsi_map();
 
- public:
+public:
   void put_ngap_imsi_map();
 
- private:
+private:
   uint32_t max_ues_;
   uint32_t max_gnbs_;
-  ngap_imsi_map_t* ngap_imsi_map_;
+  ngap_imsi_map_t *ngap_imsi_map_;
   std::size_t ngap_imsi_map_hash_;
 };
 
-}  // namespace magma5g
+} // namespace magma5g

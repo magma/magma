@@ -17,20 +17,20 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/IdentityRequest.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_identity_request(identity_request_msg* identity_request,
-                            uint8_t* buffer, uint32_t len) {
+int decode_identity_request(identity_request_msg *identity_request,
+                            uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -51,8 +51,8 @@ int decode_identity_request(identity_request_msg* identity_request,
   return decoded;
 }
 
-int encode_identity_request(identity_request_msg* identity_request,
-                            uint8_t* buffer, uint32_t len) {
+int encode_identity_request(identity_request_msg *identity_request,
+                            uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   /*

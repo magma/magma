@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,16 +18,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.hpp"
 
 namespace magma5g {
 SessionAMBRMsg::SessionAMBRMsg() {}
 SessionAMBRMsg::~SessionAMBRMsg() {}
 
 // Decode SessionAMBR IE
-int SessionAMBRMsg::DecodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
-                                         uint8_t iei, uint8_t* buffer,
+int SessionAMBRMsg::DecodeSessionAMBRMsg(SessionAMBRMsg *session_ambr,
+                                         uint8_t iei, uint8_t *buffer,
                                          uint32_t len) {
   int decoded = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, AMBR_MIN_LEN, len);
@@ -47,10 +47,10 @@ int SessionAMBRMsg::DecodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
 }
 
 // Encode SessionAMBR IE
-int SessionAMBRMsg::EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
-                                         uint8_t iei, uint8_t* buffer,
+int SessionAMBRMsg::EncodeSessionAMBRMsg(SessionAMBRMsg *session_ambr,
+                                         uint8_t iei, uint8_t *buffer,
                                          uint32_t len) {
-  uint8_t* lenPtr;
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -62,7 +62,7 @@ int SessionAMBRMsg::EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
     encoded++;
   }
 
-  lenPtr = reinterpret_cast<uint8_t*>(buffer + encoded);
+  lenPtr = reinterpret_cast<uint8_t *>(buffer + encoded);
   *(buffer + encoded) = session_ambr->length;
   encoded++;
 
@@ -79,4 +79,4 @@ int SessionAMBRMsg::EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr,
 
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

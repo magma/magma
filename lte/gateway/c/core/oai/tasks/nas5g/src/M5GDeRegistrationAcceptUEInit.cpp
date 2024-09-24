@@ -18,8 +18,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationAcceptUEInit.hpp"
 
 namespace magma5g {
 DeRegistrationAcceptUEInitMsg::DeRegistrationAcceptUEInitMsg(){};
@@ -27,7 +27,7 @@ DeRegistrationAcceptUEInitMsg::~DeRegistrationAcceptUEInitMsg(){};
 
 // Decoding De Registration Accept Message and its IEs
 int DeRegistrationAcceptUEInitMsg::DecodeDeRegistrationAcceptUEInitMsg(
-    DeRegistrationAcceptUEInitMsg* de_reg_accept, uint8_t* buffer,
+    DeRegistrationAcceptUEInitMsg *de_reg_accept, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -66,7 +66,7 @@ int DeRegistrationAcceptUEInitMsg::DecodeDeRegistrationAcceptUEInitMsg(
 
 // Encoding De Registration Accept Message and its IEs
 int DeRegistrationAcceptUEInitMsg::EncodeDeRegistrationAcceptUEInitMsg(
-    DeRegistrationAcceptUEInitMsg* de_reg_accept, uint8_t* buffer,
+    DeRegistrationAcceptUEInitMsg *de_reg_accept, uint8_t *buffer,
     uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
@@ -104,4 +104,4 @@ int DeRegistrationAcceptUEInitMsg::EncodeDeRegistrationAcceptUEInitMsg(
     encoded += encoded_result;
   return encoded;
 };
-}  // namespace magma5g
+} // namespace magma5g

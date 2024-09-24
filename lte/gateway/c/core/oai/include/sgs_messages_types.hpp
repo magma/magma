@@ -30,16 +30,16 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
-#define SGSAP_LOCATION_UPDATE_REQ(mSGpTR) \
+#define SGSAP_LOCATION_UPDATE_REQ(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.sgsap_location_update_req
-#define SGSAP_LOCATION_UPDATE_ACC(mSGpTR) \
+#define SGSAP_LOCATION_UPDATE_ACC(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.sgsap_location_update_acc
-#define SGSAP_LOCATION_UPDATE_REJ(mSGpTR) \
+#define SGSAP_LOCATION_UPDATE_REJ(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.sgsap_location_update_rej
 #define SGSAP_SERVICE_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.sgsap_service_request
 #define SGSAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.sgsap_paging_request
@@ -50,22 +50,22 @@
 #define SGSAP_IMSI_DETACH_IND(mSGpTR) (mSGpTR)->ittiMsg.sgsap_imsi_detach_ind
 #define SGSAP_IMSI_DETACH_ACK(mSGpTR) (mSGpTR)->ittiMsg.sgsap_imsi_detach_ack
 #define SGSAP_STATUS(mSGpTR) (mSGpTR)->ittiMsg.sgsap_status
-#define SGSAP_TMSI_REALLOC_COMP(mSGpTR) \
+#define SGSAP_TMSI_REALLOC_COMP(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.sgsap_tmsi_realloc_comp
-#define SGSAP_MM_INFORMATION_REQ(mSGpTR) \
+#define SGSAP_MM_INFORMATION_REQ(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.sgsap_mm_information_req
 #define SGSAP_ALERT_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.sgsap_alert_request
 #define SGSAP_ALERT_ACK(mSGpTR) (mSGpTR)->ittiMsg.sgsap_alert_ack
 #define SGSAP_ALERT_REJECT(mSGpTR) (mSGpTR)->ittiMsg.sgsap_alert_reject
 #define SGSAP_UPLINK_UNITDATA(mSGpTR) (mSGpTR)->ittiMsg.sgsap_uplink_unitdata
-#define SGSAP_DOWNLINK_UNITDATA(mSGpTR) \
+#define SGSAP_DOWNLINK_UNITDATA(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.sgsap_downlink_unitdata
 #define SGSAP_RELEASE_REQ(mSGpTR) (mSGpTR)->ittiMsg.sgsap_release_req
 #define SGSAP_UE_ACTIVITY_IND(mSGpTR) (mSGpTR)->ittiMsg.sgsap_ue_activity_ind
-#define SGSAP_VLR_RESET_INDICATION(mSGpTR) \
+#define SGSAP_VLR_RESET_INDICATION(mSGpTR)                                     \
   (mSGpTR)->ittiMsg.sgsap_vlr_reset_indication
 #define SGSAP_VLR_RESET_ACK(mSGpTR) (mSGpTR)->ittiMsg.sgsap_vlr_reset_ack
-#define SGSAP_SERVICE_ABORT_REQ(mSGpTR) \
+#define SGSAP_SERVICE_ABORT_REQ(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.sgsap_service_abort_req
 
 typedef enum SgsCause_e {
@@ -179,8 +179,8 @@ typedef struct itti_sgsap_location_update_req_s {
   uint8_t imsi_length;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   LocationUpdateType_t locationupdatetype;
-  lai_t newlaicsfb;  // New LAI
-  lai_t oldlaicsfb;  // Old LAI
+  lai_t newlaicsfb; // New LAI
+  lai_t oldlaicsfb; // Old LAI
   bool tmsistatus;
   char imeisv[MAX_IMEISV_SIZE + 1];
   uint8_t imsisv_length;

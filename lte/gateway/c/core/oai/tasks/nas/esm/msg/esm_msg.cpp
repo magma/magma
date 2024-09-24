@@ -76,8 +76,8 @@ extern "C" {
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
-static int esm_msg_encode_header(const esm_msg_header_t* header,
-                                 uint8_t* buffer, uint32_t len);
+static int esm_msg_encode_header(const esm_msg_header_t *header,
+                                 uint8_t *buffer, uint32_t len);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -101,7 +101,7 @@ static int esm_msg_encode_header(const esm_msg_header_t* header,
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
+int esm_msg_decode(ESM_msg *msg, uint8_t *buffer, uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int header_result = 0;
   int decode_result = 0;
@@ -122,120 +122,120 @@ int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
   len -= header_result;
 
   switch (msg->header.message_type) {
-    case PDN_DISCONNECT_REQUEST:
-      decode_result = decode_pdn_disconnect_request(
-          &msg->pdn_disconnect_request, buffer, len);
-      break;
+  case PDN_DISCONNECT_REQUEST:
+    decode_result = decode_pdn_disconnect_request(&msg->pdn_disconnect_request,
+                                                  buffer, len);
+    break;
 
-    case DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT:
-      decode_result = decode_deactivate_eps_bearer_context_accept(
-          &msg->deactivate_eps_bearer_context_accept, buffer, len);
-      break;
+  case DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT:
+    decode_result = decode_deactivate_eps_bearer_context_accept(
+        &msg->deactivate_eps_bearer_context_accept, buffer, len);
+    break;
 
-    case BEARER_RESOURCE_ALLOCATION_REQUEST:
-      decode_result = decode_bearer_resource_allocation_request(
-          &msg->bearer_resource_allocation_request, buffer, len);
-      break;
+  case BEARER_RESOURCE_ALLOCATION_REQUEST:
+    decode_result = decode_bearer_resource_allocation_request(
+        &msg->bearer_resource_allocation_request, buffer, len);
+    break;
 
-    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT:
-      decode_result = decode_activate_default_eps_bearer_context_accept(
-          &msg->activate_default_eps_bearer_context_accept, buffer, len);
-      break;
+  case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT:
+    decode_result = decode_activate_default_eps_bearer_context_accept(
+        &msg->activate_default_eps_bearer_context_accept, buffer, len);
+    break;
 
-    case PDN_CONNECTIVITY_REJECT:
-      decode_result = decode_pdn_connectivity_reject(
-          &msg->pdn_connectivity_reject, buffer, len);
-      break;
+  case PDN_CONNECTIVITY_REJECT:
+    decode_result = decode_pdn_connectivity_reject(
+        &msg->pdn_connectivity_reject, buffer, len);
+    break;
 
-    case MODIFY_EPS_BEARER_CONTEXT_REJECT:
-      decode_result = decode_modify_eps_bearer_context_reject(
-          &msg->modify_eps_bearer_context_reject, buffer, len);
-      break;
+  case MODIFY_EPS_BEARER_CONTEXT_REJECT:
+    decode_result = decode_modify_eps_bearer_context_reject(
+        &msg->modify_eps_bearer_context_reject, buffer, len);
+    break;
 
-    case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT:
-      decode_result = decode_activate_dedicated_eps_bearer_context_reject(
-          &msg->activate_dedicated_eps_bearer_context_reject, buffer, len);
-      break;
+  case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT:
+    decode_result = decode_activate_dedicated_eps_bearer_context_reject(
+        &msg->activate_dedicated_eps_bearer_context_reject, buffer, len);
+    break;
 
-    case MODIFY_EPS_BEARER_CONTEXT_ACCEPT:
-      decode_result = decode_modify_eps_bearer_context_accept(
-          &msg->modify_eps_bearer_context_accept, buffer, len);
-      break;
+  case MODIFY_EPS_BEARER_CONTEXT_ACCEPT:
+    decode_result = decode_modify_eps_bearer_context_accept(
+        &msg->modify_eps_bearer_context_accept, buffer, len);
+    break;
 
-    case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST:
-      decode_result = decode_deactivate_eps_bearer_context_request(
-          &msg->deactivate_eps_bearer_context_request, buffer, len);
-      break;
+  case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST:
+    decode_result = decode_deactivate_eps_bearer_context_request(
+        &msg->deactivate_eps_bearer_context_request, buffer, len);
+    break;
 
-    case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
-      decode_result = decode_activate_dedicated_eps_bearer_context_accept(
-          &msg->activate_dedicated_eps_bearer_context_accept, buffer, len);
-      break;
+  case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
+    decode_result = decode_activate_dedicated_eps_bearer_context_accept(
+        &msg->activate_dedicated_eps_bearer_context_accept, buffer, len);
+    break;
 
-    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT:
-      decode_result = decode_activate_default_eps_bearer_context_reject(
-          &msg->activate_default_eps_bearer_context_reject, buffer, len);
-      break;
+  case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT:
+    decode_result = decode_activate_default_eps_bearer_context_reject(
+        &msg->activate_default_eps_bearer_context_reject, buffer, len);
+    break;
 
-    case MODIFY_EPS_BEARER_CONTEXT_REQUEST:
-      decode_result = decode_modify_eps_bearer_context_request(
-          &msg->modify_eps_bearer_context_request, buffer, len);
-      break;
+  case MODIFY_EPS_BEARER_CONTEXT_REQUEST:
+    decode_result = decode_modify_eps_bearer_context_request(
+        &msg->modify_eps_bearer_context_request, buffer, len);
+    break;
 
-    case PDN_DISCONNECT_REJECT:
-      decode_result = decode_pdn_disconnect_reject(&msg->pdn_disconnect_reject,
-                                                   buffer, len);
-      break;
+  case PDN_DISCONNECT_REJECT:
+    decode_result =
+        decode_pdn_disconnect_reject(&msg->pdn_disconnect_reject, buffer, len);
+    break;
 
-    case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST:
-      decode_result = decode_activate_dedicated_eps_bearer_context_request(
-          &msg->activate_dedicated_eps_bearer_context_request, buffer, len);
-      break;
+  case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST:
+    decode_result = decode_activate_dedicated_eps_bearer_context_request(
+        &msg->activate_dedicated_eps_bearer_context_request, buffer, len);
+    break;
 
-    case BEARER_RESOURCE_MODIFICATION_REJECT:
-      decode_result = decode_bearer_resource_modification_reject(
-          &msg->bearer_resource_modification_reject, buffer, len);
-      break;
+  case BEARER_RESOURCE_MODIFICATION_REJECT:
+    decode_result = decode_bearer_resource_modification_reject(
+        &msg->bearer_resource_modification_reject, buffer, len);
+    break;
 
-    case BEARER_RESOURCE_ALLOCATION_REJECT:
-      decode_result = decode_bearer_resource_allocation_reject(
-          &msg->bearer_resource_allocation_reject, buffer, len);
-      break;
+  case BEARER_RESOURCE_ALLOCATION_REJECT:
+    decode_result = decode_bearer_resource_allocation_reject(
+        &msg->bearer_resource_allocation_reject, buffer, len);
+    break;
 
-    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST:
-      decode_result = decode_activate_default_eps_bearer_context_request(
-          &msg->activate_default_eps_bearer_context_request, buffer, len);
-      break;
+  case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST:
+    decode_result = decode_activate_default_eps_bearer_context_request(
+        &msg->activate_default_eps_bearer_context_request, buffer, len);
+    break;
 
-    case PDN_CONNECTIVITY_REQUEST:
-      decode_result = decode_pdn_connectivity_request(
-          &msg->pdn_connectivity_request, buffer, len);
-      break;
+  case PDN_CONNECTIVITY_REQUEST:
+    decode_result = decode_pdn_connectivity_request(
+        &msg->pdn_connectivity_request, buffer, len);
+    break;
 
-    case ESM_INFORMATION_RESPONSE:
-      decode_result = decode_esm_information_response(
-          &msg->esm_information_response, buffer, len);
-      break;
+  case ESM_INFORMATION_RESPONSE:
+    decode_result = decode_esm_information_response(
+        &msg->esm_information_response, buffer, len);
+    break;
 
-    case BEARER_RESOURCE_MODIFICATION_REQUEST:
-      decode_result = decode_bearer_resource_modification_request(
-          &msg->bearer_resource_modification_request, buffer, len);
-      break;
+  case BEARER_RESOURCE_MODIFICATION_REQUEST:
+    decode_result = decode_bearer_resource_modification_request(
+        &msg->bearer_resource_modification_request, buffer, len);
+    break;
 
-    case ESM_INFORMATION_REQUEST:
-      decode_result = decode_esm_information_request(
-          &msg->esm_information_request, buffer, len);
-      break;
+  case ESM_INFORMATION_REQUEST:
+    decode_result = decode_esm_information_request(
+        &msg->esm_information_request, buffer, len);
+    break;
 
-    case ESM_STATUS:
-      decode_result = decode_esm_status(&msg->esm_status, buffer, len);
-      break;
+  case ESM_STATUS:
+    decode_result = decode_esm_status(&msg->esm_status, buffer, len);
+    break;
 
-    default:
-      OAILOG_ERROR(LOG_NAS_ESM, "ESM-MSG   - Unexpected message type: 0x%x\n",
-                   msg->header.message_type);
-      decode_result = TLV_WRONG_MESSAGE_TYPE;
-      break;
+  default:
+    OAILOG_ERROR(LOG_NAS_ESM, "ESM-MSG   - Unexpected message type: 0x%x\n",
+                 msg->header.message_type);
+    decode_result = TLV_WRONG_MESSAGE_TYPE;
+    break;
   }
 
   if (decode_result < 0) {
@@ -266,7 +266,7 @@ int esm_msg_decode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
+int esm_msg_encode(ESM_msg *msg, uint8_t *buffer, uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int header_result = 0;
   int encode_result = 0;
@@ -291,120 +291,120 @@ int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
   len -= header_result;
 
   switch (msg->header.message_type) {
-    case PDN_DISCONNECT_REQUEST:
-      encode_result = encode_pdn_disconnect_request(
-          &msg->pdn_disconnect_request, buffer, len);
-      break;
+  case PDN_DISCONNECT_REQUEST:
+    encode_result = encode_pdn_disconnect_request(&msg->pdn_disconnect_request,
+                                                  buffer, len);
+    break;
 
-    case DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT:
-      encode_result = encode_deactivate_eps_bearer_context_accept(
-          &msg->deactivate_eps_bearer_context_accept, buffer, len);
-      break;
+  case DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT:
+    encode_result = encode_deactivate_eps_bearer_context_accept(
+        &msg->deactivate_eps_bearer_context_accept, buffer, len);
+    break;
 
-    case BEARER_RESOURCE_ALLOCATION_REQUEST:
-      encode_result = encode_bearer_resource_allocation_request(
-          &msg->bearer_resource_allocation_request, buffer, len);
-      break;
+  case BEARER_RESOURCE_ALLOCATION_REQUEST:
+    encode_result = encode_bearer_resource_allocation_request(
+        &msg->bearer_resource_allocation_request, buffer, len);
+    break;
 
-    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT:
-      encode_result = encode_activate_default_eps_bearer_context_accept(
-          &msg->activate_default_eps_bearer_context_accept, buffer, len);
-      break;
+  case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT:
+    encode_result = encode_activate_default_eps_bearer_context_accept(
+        &msg->activate_default_eps_bearer_context_accept, buffer, len);
+    break;
 
-    case PDN_CONNECTIVITY_REJECT:
-      encode_result = encode_pdn_connectivity_reject(
-          &msg->pdn_connectivity_reject, buffer, len);
-      break;
+  case PDN_CONNECTIVITY_REJECT:
+    encode_result = encode_pdn_connectivity_reject(
+        &msg->pdn_connectivity_reject, buffer, len);
+    break;
 
-    case MODIFY_EPS_BEARER_CONTEXT_REJECT:
-      encode_result = encode_modify_eps_bearer_context_reject(
-          &msg->modify_eps_bearer_context_reject, buffer, len);
-      break;
+  case MODIFY_EPS_BEARER_CONTEXT_REJECT:
+    encode_result = encode_modify_eps_bearer_context_reject(
+        &msg->modify_eps_bearer_context_reject, buffer, len);
+    break;
 
-    case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT:
-      encode_result = encode_activate_dedicated_eps_bearer_context_reject(
-          &msg->activate_dedicated_eps_bearer_context_reject, buffer, len);
-      break;
+  case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT:
+    encode_result = encode_activate_dedicated_eps_bearer_context_reject(
+        &msg->activate_dedicated_eps_bearer_context_reject, buffer, len);
+    break;
 
-    case MODIFY_EPS_BEARER_CONTEXT_ACCEPT:
-      encode_result = encode_modify_eps_bearer_context_accept(
-          &msg->modify_eps_bearer_context_accept, buffer, len);
-      break;
+  case MODIFY_EPS_BEARER_CONTEXT_ACCEPT:
+    encode_result = encode_modify_eps_bearer_context_accept(
+        &msg->modify_eps_bearer_context_accept, buffer, len);
+    break;
 
-    case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST:
-      encode_result = encode_deactivate_eps_bearer_context_request(
-          &msg->deactivate_eps_bearer_context_request, buffer, len);
-      break;
+  case DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST:
+    encode_result = encode_deactivate_eps_bearer_context_request(
+        &msg->deactivate_eps_bearer_context_request, buffer, len);
+    break;
 
-    case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
-      encode_result = encode_activate_dedicated_eps_bearer_context_accept(
-          &msg->activate_dedicated_eps_bearer_context_accept, buffer, len);
-      break;
+  case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT:
+    encode_result = encode_activate_dedicated_eps_bearer_context_accept(
+        &msg->activate_dedicated_eps_bearer_context_accept, buffer, len);
+    break;
 
-    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT:
-      encode_result = encode_activate_default_eps_bearer_context_reject(
-          &msg->activate_default_eps_bearer_context_reject, buffer, len);
-      break;
+  case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT:
+    encode_result = encode_activate_default_eps_bearer_context_reject(
+        &msg->activate_default_eps_bearer_context_reject, buffer, len);
+    break;
 
-    case MODIFY_EPS_BEARER_CONTEXT_REQUEST:
-      encode_result = encode_modify_eps_bearer_context_request(
-          &msg->modify_eps_bearer_context_request, buffer, len);
-      break;
+  case MODIFY_EPS_BEARER_CONTEXT_REQUEST:
+    encode_result = encode_modify_eps_bearer_context_request(
+        &msg->modify_eps_bearer_context_request, buffer, len);
+    break;
 
-    case PDN_DISCONNECT_REJECT:
-      encode_result = encode_pdn_disconnect_reject(&msg->pdn_disconnect_reject,
-                                                   buffer, len);
-      break;
+  case PDN_DISCONNECT_REJECT:
+    encode_result =
+        encode_pdn_disconnect_reject(&msg->pdn_disconnect_reject, buffer, len);
+    break;
 
-    case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST:
-      encode_result = encode_activate_dedicated_eps_bearer_context_request(
-          &msg->activate_dedicated_eps_bearer_context_request, buffer, len);
-      break;
+  case ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST:
+    encode_result = encode_activate_dedicated_eps_bearer_context_request(
+        &msg->activate_dedicated_eps_bearer_context_request, buffer, len);
+    break;
 
-    case BEARER_RESOURCE_MODIFICATION_REJECT:
-      encode_result = encode_bearer_resource_modification_reject(
-          &msg->bearer_resource_modification_reject, buffer, len);
-      break;
+  case BEARER_RESOURCE_MODIFICATION_REJECT:
+    encode_result = encode_bearer_resource_modification_reject(
+        &msg->bearer_resource_modification_reject, buffer, len);
+    break;
 
-    case BEARER_RESOURCE_ALLOCATION_REJECT:
-      encode_result = encode_bearer_resource_allocation_reject(
-          &msg->bearer_resource_allocation_reject, buffer, len);
-      break;
+  case BEARER_RESOURCE_ALLOCATION_REJECT:
+    encode_result = encode_bearer_resource_allocation_reject(
+        &msg->bearer_resource_allocation_reject, buffer, len);
+    break;
 
-    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST:
-      encode_result = encode_activate_default_eps_bearer_context_request(
-          &msg->activate_default_eps_bearer_context_request, buffer, len);
-      break;
+  case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST:
+    encode_result = encode_activate_default_eps_bearer_context_request(
+        &msg->activate_default_eps_bearer_context_request, buffer, len);
+    break;
 
-    case PDN_CONNECTIVITY_REQUEST:
-      encode_result = encode_pdn_connectivity_request(
-          &msg->pdn_connectivity_request, buffer, len);
-      break;
+  case PDN_CONNECTIVITY_REQUEST:
+    encode_result = encode_pdn_connectivity_request(
+        &msg->pdn_connectivity_request, buffer, len);
+    break;
 
-    case ESM_INFORMATION_RESPONSE:
-      encode_result = encode_esm_information_response(
-          &msg->esm_information_response, buffer, len);
-      break;
+  case ESM_INFORMATION_RESPONSE:
+    encode_result = encode_esm_information_response(
+        &msg->esm_information_response, buffer, len);
+    break;
 
-    case BEARER_RESOURCE_MODIFICATION_REQUEST:
-      encode_result = encode_bearer_resource_modification_request(
-          &msg->bearer_resource_modification_request, buffer, len);
-      break;
+  case BEARER_RESOURCE_MODIFICATION_REQUEST:
+    encode_result = encode_bearer_resource_modification_request(
+        &msg->bearer_resource_modification_request, buffer, len);
+    break;
 
-    case ESM_INFORMATION_REQUEST:
-      encode_result = encode_esm_information_request(
-          &msg->esm_information_request, buffer, len);
-      break;
+  case ESM_INFORMATION_REQUEST:
+    encode_result = encode_esm_information_request(
+        &msg->esm_information_request, buffer, len);
+    break;
 
-    case ESM_STATUS:
-      encode_result = encode_esm_status(&msg->esm_status, buffer, len);
-      break;
+  case ESM_STATUS:
+    encode_result = encode_esm_status(&msg->esm_status, buffer, len);
+    break;
 
-    default:
-      OAILOG_ERROR(LOG_NAS_ESM, "ESM-MSG   - Unexpected message type: 0x%x\n",
-                   msg->header.message_type);
-      encode_result = TLV_WRONG_MESSAGE_TYPE;
-      break;
+  default:
+    OAILOG_ERROR(LOG_NAS_ESM, "ESM-MSG   - Unexpected message type: 0x%x\n",
+                 msg->header.message_type);
+    encode_result = TLV_WRONG_MESSAGE_TYPE;
+    break;
   }
 
   if (encode_result < 0) {
@@ -441,7 +441,7 @@ int esm_msg_encode(ESM_msg* msg, uint8_t* buffer, uint32_t len) {
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_msg_decode_header(esm_msg_header_t* header, const uint8_t* buffer,
+int esm_msg_decode_header(esm_msg_header_t *header, const uint8_t *buffer,
                           uint32_t len) {
   int size = 0;
 
@@ -455,7 +455,7 @@ int esm_msg_decode_header(esm_msg_header_t* header, const uint8_t* buffer,
   /*
    * Decode the EPS bearer identity and the protocol discriminator
    */
-  DECODE_U8(buffer + size, *(uint8_t*)(header), size);
+  DECODE_U8(buffer + size, *(uint8_t *)(header), size);
   /*
    * Decode the procedure transaction identity
    */
@@ -496,8 +496,8 @@ int esm_msg_decode_header(esm_msg_header_t* header, const uint8_t* buffer,
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-static int esm_msg_encode_header(const esm_msg_header_t* header,
-                                 uint8_t* buffer, uint32_t len) {
+static int esm_msg_encode_header(const esm_msg_header_t *header,
+                                 uint8_t *buffer, uint32_t len) {
   int size = 0;
 
   /*
@@ -520,7 +520,7 @@ static int esm_msg_encode_header(const esm_msg_header_t* header,
   /*
    * Encode the EPS bearer identity and the protocol discriminator
    */
-  ENCODE_U8(buffer + size, *(uint8_t*)(header), size);
+  ENCODE_U8(buffer + size, *(uint8_t *)(header), size);
   /*
    * Encode the procedure transaction identity
    */

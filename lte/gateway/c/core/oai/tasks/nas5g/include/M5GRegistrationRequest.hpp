@@ -10,20 +10,20 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
+#include <sstream>
 
 namespace magma5g {
 // RegistrationRequest Message Class
 class RegistrationRequestMsg {
- public:
+public:
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SpareHalfOctetMsg spare_half_octet;
   SecurityHeaderTypeMsg sec_header_type;
@@ -60,12 +60,12 @@ class RegistrationRequestMsg {
 
   RegistrationRequestMsg();
   ~RegistrationRequestMsg();
-  int DecodeRegistrationRequestMsg(RegistrationRequestMsg* reg_request,
-                                   uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationRequestMsg(RegistrationRequestMsg* reg_request,
-                                   uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationRequestMsg(RegistrationRequestMsg *reg_request,
+                                   uint8_t *buffer, uint32_t len);
+  int EncodeRegistrationRequestMsg(RegistrationRequestMsg *reg_request,
+                                   uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    SPEC TS-24501  Table 8.2.6.1.1: REGISTRATION REQUEST message content

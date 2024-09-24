@@ -22,9 +22,9 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
 
 int encode_nr_ue_security_capability(
-    nr_ue_security_capability_t* nruesecuritycapability, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    nr_ue_security_capability_t *nruesecuritycapability, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 int decode_nr_ue_security_capability(
-    nr_ue_security_capability_t* nruesecuritycapability, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    nr_ue_security_capability_t *nruesecuritycapability, uint8_t iei,
+    uint8_t *buffer, uint32_t len);

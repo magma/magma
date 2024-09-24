@@ -15,24 +15,24 @@
  *      contact@openairinterface.org
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <nettle/nettle-meta.h>
 #include <nettle/ctr.h>
+#include <nettle/nettle-meta.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 
-int nas_stream_encrypt_eea2(nas_stream_cipher_t* const stream_cipher,
-                            uint8_t* const out) {
+int nas_stream_encrypt_eea2(nas_stream_cipher_t *const stream_cipher,
+                            uint8_t *const out) {
   uint8_t m[16];
   uint32_t local_count;
-  void* ctx;
-  uint8_t* data;
+  void *ctx;
+  uint8_t *data;
   uint32_t zero_bit = 0;
   uint32_t byte_length;
 
@@ -41,7 +41,8 @@ int nas_stream_encrypt_eea2(nas_stream_cipher_t* const stream_cipher,
   zero_bit = stream_cipher->blength & 0x7;
   byte_length = stream_cipher->blength >> 3;
 
-  if (zero_bit > 0) byte_length += 1;
+  if (zero_bit > 0)
+    byte_length += 1;
 
   ctx = malloc(nettle_aes128.context_size);
   data = calloc(1, byte_length);
@@ -64,7 +65,7 @@ int nas_stream_encrypt_eea2(nas_stream_cipher_t* const stream_cipher,
         data[byte_length - 1] & (uint8_t)(0xFF << (8 - zero_bit));
 
   memcpy(out, data, byte_length);
-  free_wrapper((void**)&data);
-  free_wrapper((void**)&ctx);
+  free_wrapper((void **)&data);
+  free_wrapper((void **)&ctx);
   return 0;
 }

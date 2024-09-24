@@ -18,18 +18,18 @@
 #include <assert.h>
 #include <bits/exception.h>
 #include <errno.h>
+#include <exception>
 #include <glog/logging.h>
 #include <lte/protos/sctpd.pb.h>
+#include <map>
 #include <netinet/in.h>
 #include <netinet/sctp.h>
+#include <ostream>
+#include <stdexcept>
 #include <stdlib.h>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <exception>
-#include <map>
-#include <ostream>
-#include <stdexcept>
 #include <utility>
 
 #include "lte/gateway/c/sctpd/src/sctp_assoc.hpp"
@@ -42,14 +42,12 @@ namespace sctpd {
 
 const int NUM_EPOLL_EVENTS = 10;
 
-SctpConnection::SctpConnection(const InitReq& req, SctpEventHandler& handler)
-    : _done(false),
-      _handler(handler),
-      _ppid(req.ppid()),
-      _sctp_desc(0),
+SctpConnection::SctpConnection(const InitReq &req, SctpEventHandler &handler)
+    : _done(false), _handler(handler), _ppid(req.ppid()), _sctp_desc(0),
       _thread(nullptr) {
   int sock = create_sctp_sock(req);
-  if (sock < 0) throw std::exception();
+  if (sock < 0)
+    throw std::exception();
 
   _sctp_desc = SctpDesc(sock);
 }
@@ -77,7 +75,7 @@ void SctpConnection::Close() {
 }
 
 void SctpConnection::Send(uint32_t assoc_id, uint32_t stream,
-                          const std::string& msg) {
+                          const std::string &msg) {
   assert(_thread != nullptr);
 
   auto assoc = _sctp_desc.getAssoc(assoc_id);
@@ -118,21 +116,22 @@ void SctpConnection::Listen() {
   struct epoll_event events[NUM_EPOLL_EVENTS];
 
   while (!_done) {
-    int timeout = 100;  // milliseconds = .1s
+    int timeout = 100; // milliseconds = .1s
     int num_events = epoll_wait(epoll_fd, events, NUM_EPOLL_EVENTS, timeout);
 
     switch (num_events) {
-      case -1: {  // errored
-        if (errno == EINTR) continue;
-        MLOG_perror("epoll_wait");
-        std::terminate();
-      }
-      case 0: {  // timed out
+    case -1: { // errored
+      if (errno == EINTR)
         continue;
-      }
-      default: {
-        break;
-      }
+      MLOG_perror("epoll_wait");
+      std::terminate();
+    }
+    case 0: { // timed out
+      continue;
+    }
+    default: {
+      break;
+    }
     }
 
     for (int i = 0; i < num_events; i++) {
@@ -140,7 +139,8 @@ void SctpConnection::Listen() {
         // new connection
         int client_sd = accept(server_fd, NULL, NULL);
         if (client_sd < 0) {
-          if (errno == ECONNABORTED || errno == EINTR) continue;
+          if (errno == ECONNABORTED || errno == EINTR)
+            continue;
           MLOG_perror("accept");
           std::terminate();
         }
@@ -176,8 +176,9 @@ void SctpConnection::Listen() {
   }
 }
 
-SctpStatus SctpConnection::HandleSendFailure(
-    int sd, struct sctp_send_failed* send_failed) {
+SctpStatus
+SctpConnection::HandleSendFailure(int sd,
+                                  struct sctp_send_failed *send_failed) {
   MLOG(MDEBUG) << "Received SCTP_SEND_FAILED for sd: " << sd
                << " assoc_id:" << send_failed->ssf_assoc_id
                << " with ssf_error: " << send_failed->ssf_error;
@@ -201,33 +202,33 @@ SctpStatus SctpConnection::HandleClientSock(int sd) {
   }
 
   if (flags & MSG_NOTIFICATION) {
-    auto notif = (union sctp_notification*)msg;
+    auto notif = (union sctp_notification *)msg;
 
     switch (notif->sn_header.sn_type) {
-      case SCTP_SHUTDOWN_EVENT: {
-        MLOG(MDEBUG) << "SCTP_SHUTDOWN_EVENT received";
-        return HandleComDown(notif->sn_shutdown_event.sse_assoc_id);
-      }
-      case SCTP_ASSOC_CHANGE: {
-        MLOG(MDEBUG) << "SCTP association change event received";
-        return HandleAssocChange(sd, &notif->sn_assoc_change);
-      }
-      case SCTP_SEND_FAILED: {
-        MLOG(MDEBUG) << "SCTP send failed event received";
-        return HandleSendFailure(sd, &notif->sn_send_failed);
-      }
-      default: {
-        MLOG(MWARNING) << "Unhandled notification type "
-                       << std::to_string(notif->sn_header.sn_type);
-        return SctpStatus::OK;
-      }
+    case SCTP_SHUTDOWN_EVENT: {
+      MLOG(MDEBUG) << "SCTP_SHUTDOWN_EVENT received";
+      return HandleComDown(notif->sn_shutdown_event.sse_assoc_id);
+    }
+    case SCTP_ASSOC_CHANGE: {
+      MLOG(MDEBUG) << "SCTP association change event received";
+      return HandleAssocChange(sd, &notif->sn_assoc_change);
+    }
+    case SCTP_SEND_FAILED: {
+      MLOG(MDEBUG) << "SCTP send failed event received";
+      return HandleSendFailure(sd, &notif->sn_send_failed);
+    }
+    default: {
+      MLOG(MWARNING) << "Unhandled notification type "
+                     << std::to_string(notif->sn_header.sn_type);
+      return SctpStatus::OK;
+    }
     }
   } else {
     // Data payload received
-    SctpAssoc&& assoc = SctpAssoc();
+    SctpAssoc &&assoc = SctpAssoc();
     try {
       assoc = _sctp_desc.getAssoc(sinfo.sinfo_assoc_id);
-    } catch (const std::out_of_range&) {
+    } catch (const std::out_of_range &) {
       MLOG(MERROR) << "Received sctp msg for untracked assoc: "
                    << std::to_string(sinfo.sinfo_assoc_id);
       // TODO: handle this case
@@ -257,28 +258,28 @@ SctpStatus SctpConnection::HandleClientSock(int sd) {
 }
 
 SctpStatus SctpConnection::HandleAssocChange(int sd,
-                                             struct sctp_assoc_change* change) {
+                                             struct sctp_assoc_change *change) {
   switch (change->sac_state) {
-    case SCTP_COMM_UP: {
-      return HandleComUp(sd, change);
-    }
-    case SCTP_RESTART: {
-      return HandleReset(change->sac_assoc_id);
-    }
-    case SCTP_COMM_LOST:
-    case SCTP_SHUTDOWN_COMP:
-    case SCTP_CANT_STR_ASSOC: {
-      return HandleComDown(change->sac_assoc_id);
-    }
-    default:
-      MLOG(MWARNING) << "Unhandled sctp message "
-                     << std::to_string(change->sac_state);
-      return SctpStatus::FAILURE;
+  case SCTP_COMM_UP: {
+    return HandleComUp(sd, change);
+  }
+  case SCTP_RESTART: {
+    return HandleReset(change->sac_assoc_id);
+  }
+  case SCTP_COMM_LOST:
+  case SCTP_SHUTDOWN_COMP:
+  case SCTP_CANT_STR_ASSOC: {
+    return HandleComDown(change->sac_assoc_id);
+  }
+  default:
+    MLOG(MWARNING) << "Unhandled sctp message "
+                   << std::to_string(change->sac_state);
+    return SctpStatus::FAILURE;
   }
 }
 
 SctpStatus SctpConnection::HandleComUp(int sd,
-                                       struct sctp_assoc_change* change) {
+                                       struct sctp_assoc_change *change) {
   SctpAssoc assoc;
 
   assoc.sd = sd;
@@ -321,5 +322,5 @@ SctpStatus SctpConnection::HandleReset(uint32_t assoc_id) {
   return SctpStatus::OK;
 }
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

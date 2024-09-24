@@ -39,33 +39,33 @@ namespace lte {
 
 #define BUFFER_LEN 200
 
-#define FILL_EMM_COMMON_MANDATORY_DEFAULTS(msg)                 \
-  do {                                                          \
-    msg.protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE; \
-    msg.securityheadertype = 0x0001;                            \
-    msg.messagetype = 33;                                       \
+#define FILL_EMM_COMMON_MANDATORY_DEFAULTS(msg)                                \
+  do {                                                                         \
+    msg.protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;                \
+    msg.securityheadertype = 0x0001;                                           \
+    msg.messagetype = 33;                                                      \
   } while (0)
 
-#define FILL_EMM_GUTI(msg_guti)                              \
-  do {                                                       \
-    msg_guti.guti.typeofidentity = EPS_MOBILE_IDENTITY_GUTI; \
-    msg_guti.guti.mcc_digit1 = 0;                            \
-    msg_guti.guti.mcc_digit2 = 0;                            \
-    msg_guti.guti.mcc_digit3 = 1;                            \
-    msg_guti.guti.mnc_digit1 = 0;                            \
-    msg_guti.guti.mnc_digit2 = 1;                            \
-    msg_guti.guti.mnc_digit3 = 0x0f;                         \
-    msg_guti.guti.mme_group_id = 1;                          \
-    msg_guti.guti.mme_code = 1;                              \
-    msg_guti.guti.m_tmsi = 0x2bfb815f;                       \
-    msg_guti.guti.spare = 0xf;                               \
+#define FILL_EMM_GUTI(msg_guti)                                                \
+  do {                                                                         \
+    msg_guti.guti.typeofidentity = EPS_MOBILE_IDENTITY_GUTI;                   \
+    msg_guti.guti.mcc_digit1 = 0;                                              \
+    msg_guti.guti.mcc_digit2 = 0;                                              \
+    msg_guti.guti.mcc_digit3 = 1;                                              \
+    msg_guti.guti.mnc_digit1 = 0;                                              \
+    msg_guti.guti.mnc_digit2 = 1;                                              \
+    msg_guti.guti.mnc_digit3 = 0x0f;                                           \
+    msg_guti.guti.mme_group_id = 1;                                            \
+    msg_guti.guti.mme_code = 1;                                                \
+    msg_guti.guti.m_tmsi = 0x2bfb815f;                                         \
+    msg_guti.guti.spare = 0xf;                                                 \
   } while (0)
 
 class EMMEncodeDecodeTest : public ::testing::Test {
   virtual void SetUp() {}
   virtual void TearDown() {}
 
- protected:
+protected:
   uint8_t temp_buffer[BUFFER_LEN];
 };
 
@@ -803,5 +803,5 @@ TEST_F(EMMEncodeDecodeTest, TestEncodeDecodeEmergencyNas) {
   ASSERT_EQ(decoded, TLV_OCTET_STRING_TOO_LONG_FOR_IEI);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

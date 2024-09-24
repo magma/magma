@@ -32,10 +32,10 @@ namespace lte {
  * Non-persistent StoreClient used as intermediate stage in development
  */
 class MemoryStoreClient final : public StoreClient {
- public:
+public:
   MemoryStoreClient(std::shared_ptr<StaticRuleStore> rule_store);
-  MemoryStoreClient(MemoryStoreClient const&) = delete;
-  MemoryStoreClient(MemoryStoreClient&&) = default;
+  MemoryStoreClient(MemoryStoreClient const &) = delete;
+  MemoryStoreClient(MemoryStoreClient &&) = default;
   ~MemoryStoreClient() = default;
 
   bool is_ready() { return true; }
@@ -46,10 +46,10 @@ class MemoryStoreClient final : public StoreClient {
 
   bool write_sessions(SessionMap session_map);
 
- private:
+private:
   std::unordered_map<std::string, std::vector<StoredSessionState>> session_map_;
   std::shared_ptr<StaticRuleStore> rule_store_;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

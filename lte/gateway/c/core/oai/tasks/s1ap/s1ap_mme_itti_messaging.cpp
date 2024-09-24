@@ -46,17 +46,16 @@ namespace magma {
 namespace lte {
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring* payload,
+status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring *payload,
                                               const sctp_assoc_id_t assoc_id,
                                               const sctp_stream_id_t stream,
                                               const mme_ue_s1ap_id_t ue_id) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S1AP, SCTP_DATA_REQ);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "itti_alloc_new_message Failed for"
-                 " SCTP_DATA_REQ \n");
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+                           " SCTP_DATA_REQ \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   SCTP_DATA_REQ(message_p).payload = *payload;
@@ -70,10 +69,10 @@ status_code_e s1ap_mme_itti_send_sctp_request(STOLEN_REF bstring* payload,
 
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
-                                           STOLEN_REF bstring* payload,
-                                           const tai_t* const tai,
-                                           const ecgi_t* const cgi) {
-  MessageDef* message_p = NULL;
+                                           STOLEN_REF bstring *payload,
+                                           const tai_t *const tai,
+                                           const ecgi_t *const cgi) {
+  MessageDef *message_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
@@ -105,7 +104,7 @@ status_code_e s1ap_mme_itti_nas_uplink_ind(const mme_ue_s1ap_id_t ue_id,
 //------------------------------------------------------------------------------
 status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
                                              const bool is_success) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   if (ue_id == INVALID_MME_UE_S1AP_ID) {
@@ -149,31 +148,29 @@ status_code_e s1ap_mme_itti_nas_downlink_cnf(const mme_ue_s1ap_id_t ue_id,
 
 status_code_e s1ap_mme_itti_s1ap_initial_ue_message(
     const sctp_assoc_id_t assoc_id, const uint32_t enb_id,
-    const enb_ue_s1ap_id_t enb_ue_s1ap_id, const uint8_t* const nas_msg,
-    const size_t nas_msg_length, const tai_t* const tai,
-    const ecgi_t* const ecgi, const long rrc_cause,
-    const s_tmsi_t* const opt_s_tmsi, const csg_id_t* const opt_csg_id,
-    const gummei_t* const opt_gummei,
-    const void* const opt_cell_access_mode,           // unused
-    const void* const opt_cell_gw_transport_address,  // unused
-    const void* const opt_relay_node_indicator)       // unused
+    const enb_ue_s1ap_id_t enb_ue_s1ap_id, const uint8_t *const nas_msg,
+    const size_t nas_msg_length, const tai_t *const tai,
+    const ecgi_t *const ecgi, const long rrc_cause,
+    const s_tmsi_t *const opt_s_tmsi, const csg_id_t *const opt_csg_id,
+    const gummei_t *const opt_gummei,
+    const void *const opt_cell_access_mode,          // unused
+    const void *const opt_cell_gw_transport_address, // unused
+    const void *const opt_relay_node_indicator)      // unused
 {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
   if (nas_msg_length >= 1000) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "Bad length for NAS message greater then 1000 "
-                 " S1AP_INITIAL_UE_MESSAGE \n");
+    OAILOG_ERROR(LOG_S1AP, "Bad length for NAS message greater then 1000 "
+                           " S1AP_INITIAL_UE_MESSAGE \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
   if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP,
-                 "itti_alloc_new_message Failed for"
-                 " S1AP_INITIAL_UE_MESSAGE \n");
+    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed for"
+                           " S1AP_INITIAL_UE_MESSAGE \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -224,41 +221,41 @@ status_code_e s1ap_mme_itti_s1ap_initial_ue_message(
 
 //------------------------------------------------------------------------------
 static int s1ap_mme_non_delivery_cause_2_nas_data_rej_cause(
-    const S1ap_Cause_t* const cause) {
+    const S1ap_Cause_t *const cause) {
   switch (cause->present) {
-    case S1ap_Cause_PR_radioNetwork:
-      switch (cause->choice.radioNetwork) {
-        case S1ap_CauseRadioNetwork_handover_cancelled:
-        case S1ap_CauseRadioNetwork_partial_handover:
-        case S1ap_CauseRadioNetwork_successful_handover:
-        case S1ap_CauseRadioNetwork_ho_failure_in_target_EPC_eNB_or_target_system:
-        case S1ap_CauseRadioNetwork_ho_target_not_allowed:
-        case S1ap_CauseRadioNetwork_handover_desirable_for_radio_reason:  /// ?
-        case S1ap_CauseRadioNetwork_time_critical_handover:
-        case S1ap_CauseRadioNetwork_resource_optimisation_handover:
-        case S1ap_CauseRadioNetwork_s1_intra_system_handover_triggered:
-        case S1ap_CauseRadioNetwork_s1_inter_system_handover_triggered:
-        case S1ap_CauseRadioNetwork_x2_handover_triggered:
-          return AS_NON_DELIVERED_DUE_HO;
-          break;
-
-        default:
-          return AS_FAILURE;
-      }
+  case S1ap_Cause_PR_radioNetwork:
+    switch (cause->choice.radioNetwork) {
+    case S1ap_CauseRadioNetwork_handover_cancelled:
+    case S1ap_CauseRadioNetwork_partial_handover:
+    case S1ap_CauseRadioNetwork_successful_handover:
+    case S1ap_CauseRadioNetwork_ho_failure_in_target_EPC_eNB_or_target_system:
+    case S1ap_CauseRadioNetwork_ho_target_not_allowed:
+    case S1ap_CauseRadioNetwork_handover_desirable_for_radio_reason: /// ?
+    case S1ap_CauseRadioNetwork_time_critical_handover:
+    case S1ap_CauseRadioNetwork_resource_optimisation_handover:
+    case S1ap_CauseRadioNetwork_s1_intra_system_handover_triggered:
+    case S1ap_CauseRadioNetwork_s1_inter_system_handover_triggered:
+    case S1ap_CauseRadioNetwork_x2_handover_triggered:
+      return AS_NON_DELIVERED_DUE_HO;
       break;
 
     default:
       return AS_FAILURE;
+    }
+    break;
+
+  default:
+    return AS_FAILURE;
   }
   return AS_FAILURE;
 }
 //------------------------------------------------------------------------------
 void s1ap_mme_itti_nas_non_delivery_ind(const mme_ue_s1ap_id_t ue_id,
-                                        uint8_t* const nas_msg,
+                                        uint8_t *const nas_msg,
                                         const size_t nas_msg_length,
-                                        const S1ap_Cause_t* const cause,
+                                        const S1ap_Cause_t *const cause,
                                         imsi64_t imsi64) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   // TODO translate, insert, cause in message
   OAILOG_FUNC_IN(LOG_S1AP);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_REJ);
@@ -284,12 +281,12 @@ void s1ap_mme_itti_nas_non_delivery_ind(const mme_ue_s1ap_id_t ue_id,
 status_code_e s1ap_mme_itti_s1ap_path_switch_request(
     const sctp_assoc_id_t assoc_id, uint32_t enb_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-    const e_rab_to_be_switched_in_downlink_list_t* const
-        e_rab_to_be_switched_dl_list,
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const ecgi_t* const ecgi,
-    const tai_t* const tai, uint16_t encryption_algorithm_capabilities,
+    const e_rab_to_be_switched_in_downlink_list_t
+        *const e_rab_to_be_switched_dl_list,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const ecgi_t *const ecgi,
+    const tai_t *const tai, uint16_t encryption_algorithm_capabilities,
     uint16_t integrity_algorithm_capabilities, imsi64_t imsi64) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
@@ -324,7 +321,7 @@ status_code_e s1ap_mme_itti_s1ap_handover_required(
     const S1ap_HandoverType_t handover_type,
     const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bstring src_tgt_container,
     imsi64_t imsi64) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUIRED);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
@@ -355,7 +352,7 @@ status_code_e s1ap_mme_itti_s1ap_handover_request_ack(
     const sctp_assoc_id_t source_assoc_id, const bstring tgt_src_container,
     const uint32_t source_enb_id, const uint32_t target_enb_id,
     imsi64_t imsi64) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUEST_ACK);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
@@ -380,13 +377,13 @@ status_code_e s1ap_mme_itti_s1ap_handover_request_ack(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-status_code_e s1ap_mme_itti_s1ap_handover_notify(
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    const oai::S1apHandoverState handover_state,
-    const enb_ue_s1ap_id_t target_enb_ue_s1ap_id,
-    const sctp_assoc_id_t target_sctp_assoc_id, const ecgi_t ecgi,
-    imsi64_t imsi64) {
-  MessageDef* message_p = NULL;
+status_code_e
+s1ap_mme_itti_s1ap_handover_notify(const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+                                   const oai::S1apHandoverState handover_state,
+                                   const enb_ue_s1ap_id_t target_enb_ue_s1ap_id,
+                                   const sctp_assoc_id_t target_sctp_assoc_id,
+                                   const ecgi_t ecgi, imsi64_t imsi64) {
+  MessageDef *message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_NOTIFY);
   if (message_p == NULL) {
     OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
@@ -399,12 +396,12 @@ status_code_e s1ap_mme_itti_s1ap_handover_notify(
   S1AP_HANDOVER_NOTIFY(message_p).target_sctp_assoc_id = target_sctp_assoc_id;
   S1AP_HANDOVER_NOTIFY(message_p).ecgi = ecgi;
   S1AP_HANDOVER_NOTIFY(message_p).target_enb_ue_s1ap_id = target_enb_ue_s1ap_id;
-  e_rab_admitted_list_t* e_rab_admitted_list =
+  e_rab_admitted_list_t *e_rab_admitted_list =
       &S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list;
   e_rab_admitted_list->no_of_items =
       handover_state.e_rab_admitted_list().no_of_items();
   for (uint8_t idx = 0; idx < e_rab_admitted_list->no_of_items; idx++) {
-    const oai::ERabAdmittedItem& proto_e_rab_item =
+    const oai::ERabAdmittedItem &proto_e_rab_item =
         handover_state.e_rab_admitted_list().item(idx);
     e_rab_admitted_list->item[idx].e_rab_id = proto_e_rab_item.e_rab_id();
     e_rab_admitted_list->item[idx].transport_layer_address =
@@ -418,5 +415,5 @@ status_code_e s1ap_mme_itti_s1ap_handover_notify(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

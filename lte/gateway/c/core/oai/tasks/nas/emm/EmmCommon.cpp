@@ -43,10 +43,10 @@
 *****************************************************************************/
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 #include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,8 +71,8 @@ extern "C" {
 emm_common_data_head_t emm_common_data_head = {PTHREAD_MUTEX_INITIALIZER,
                                                RB_INITIALIZER()};
 
-static inline int emm_common_data_compare_ueid(struct emm_common_data_s* p1,
-                                               struct emm_common_data_s* p2);
+static inline int emm_common_data_compare_ueid(struct emm_common_data_s *p1,
+                                               struct emm_common_data_s *p2);
 
 RB_HEAD(emm_common_data_map, emm_common_data_s) emm_common_data_root;
 
@@ -83,8 +83,8 @@ RB_PROTOTYPE(emm_common_data_map, emm_common_data_s, entries,
 RB_GENERATE(emm_common_data_map, emm_common_data_s, entries,
             emm_common_data_compare_ueid);
 
-static inline int emm_common_data_compare_ueid(struct emm_common_data_s* p1,
-                                               struct emm_common_data_s* p2) {
+static inline int emm_common_data_compare_ueid(struct emm_common_data_s *p1,
+                                               struct emm_common_data_s *p2) {
   if (p1->ue_id > p2->ue_id) {
     return 1;
   }
@@ -99,10 +99,11 @@ static inline int emm_common_data_compare_ueid(struct emm_common_data_s* p1,
   return 0;
 }
 
-struct emm_common_data_s* emm_common_data_context_get(
-    struct emm_common_data_head_s* root, mme_ue_s1ap_id_t _ueid) {
+struct emm_common_data_s *
+emm_common_data_context_get(struct emm_common_data_head_s *root,
+                            mme_ue_s1ap_id_t _ueid) {
   struct emm_common_data_s reference;
-  struct emm_common_data_s* reference_p = NULL;
+  struct emm_common_data_s *reference_p = NULL;
 
   DevAssert(root);
   DevCheck(_ueid > 0, _ueid, 0, 0);
@@ -111,7 +112,7 @@ struct emm_common_data_s* emm_common_data_context_get(
   pthread_mutex_lock(&root->mutex);
   reference_p =
       RB_FIND(emm_common_data_map,
-              (emm_common_data_map*)&root->emm_common_data_root, &reference);
+              (emm_common_data_map *)&root->emm_common_data_root, &reference);
   pthread_mutex_unlock(&root->mutex);
   return reference_p;
 }
@@ -144,14 +145,15 @@ struct emm_common_data_s* emm_common_data_context_get(
  **      Others:    _emm_common_data                           **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_common_initialize(
-    mme_ue_s1ap_id_t ue_id, emm_common_success_callback_t _success,
-    emm_common_reject_callback_t _reject,
-    emm_common_failure_callback_t _failure,
-    emm_common_ll_failure_callback_t _ll_failure,
-    emm_common_non_delivered_callback_t _non_delivered,
-    emm_common_abort_callback_t _abort, void* args) {
-  struct emm_common_data_s* emm_common_data_ctx = NULL;
+status_code_e
+emm_proc_common_initialize(mme_ue_s1ap_id_t ue_id,
+                           emm_common_success_callback_t _success,
+                           emm_common_reject_callback_t _reject,
+                           emm_common_failure_callback_t _failure,
+                           emm_common_ll_failure_callback_t _ll_failure,
+                           emm_common_non_delivered_callback_t _non_delivered,
+                           emm_common_abort_callback_t _abort, void *args) {
+  struct emm_common_data_s *emm_common_data_ctx = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   assert(ue_id > 0);
@@ -159,12 +161,12 @@ status_code_e emm_proc_common_initialize(
       emm_common_data_context_get(&emm_common_data_head, ue_id);
 
   if (emm_common_data_ctx == NULL) {
-    emm_common_data_ctx = reinterpret_cast<emm_common_data_t*>(
+    emm_common_data_ctx = reinterpret_cast<emm_common_data_t *>(
         calloc(1, sizeof(emm_common_data_t)));
     emm_common_data_ctx->ue_id = ue_id;
     pthread_mutex_lock(&emm_common_data_head.mutex);
     RB_INSERT(emm_common_data_map,
-              (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
+              (emm_common_data_map *)&emm_common_data_head.emm_common_data_root,
               emm_common_data_ctx);
     pthread_mutex_unlock(&emm_common_data_head.mutex);
 
@@ -205,7 +207,7 @@ status_code_e emm_proc_common_initialize(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_success(emm_common_data_t *emm_common_data_ctx) {
   emm_common_success_callback_t emm_callback = {0};
   status_code_e rc = RETURNerror;
 
@@ -214,7 +216,7 @@ status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
     emm_callback = emm_common_data_ctx->success;
 
     if (emm_callback) {
-      struct emm_context_s* ctx =
+      struct emm_context_s *ctx =
           emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
     }
@@ -241,7 +243,7 @@ status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_reject(emm_common_data_t *emm_common_data_ctx) {
   status_code_e rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
@@ -250,7 +252,7 @@ status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
     emm_callback = emm_common_data_ctx->reject;
 
     if (emm_callback) {
-      struct emm_context_s* ctx =
+      struct emm_context_s *ctx =
           emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
     }
@@ -260,7 +262,7 @@ status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_failure(emm_common_data_t *emm_common_data_ctx) {
   status_code_e rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
@@ -269,7 +271,7 @@ status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
     emm_callback = emm_common_data_ctx->failure;
 
     if (emm_callback) {
-      struct emm_context_s* ctx =
+      struct emm_context_s *ctx =
           emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
     }
@@ -297,8 +299,8 @@ status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_common_ll_failure(
-    emm_common_data_t* emm_common_data_ctx) {
+status_code_e
+emm_proc_common_ll_failure(emm_common_data_t *emm_common_data_ctx) {
   emm_common_ll_failure_callback_t emm_callback;
   status_code_e rc = RETURNerror;
 
@@ -308,7 +310,7 @@ status_code_e emm_proc_common_ll_failure(
     emm_callback = emm_common_data_ctx->ll_failure;
 
     if (emm_callback) {
-      struct emm_context_s* ctx = NULL;
+      struct emm_context_s *ctx = NULL;
 
       ctx = emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
@@ -337,8 +339,8 @@ status_code_e emm_proc_common_ll_failure(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_common_non_delivered(
-    emm_common_data_t* emm_common_data_ctx) {
+status_code_e
+emm_proc_common_non_delivered(emm_common_data_t *emm_common_data_ctx) {
   emm_common_non_delivered_callback_t emm_callback;
   status_code_e rc = RETURNerror;
 
@@ -348,7 +350,7 @@ status_code_e emm_proc_common_non_delivered(
     emm_callback = emm_common_data_ctx->non_delivered;
 
     if (emm_callback) {
-      struct emm_context_s* ctx = NULL;
+      struct emm_context_s *ctx = NULL;
 
       ctx = emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
@@ -376,7 +378,7 @@ status_code_e emm_proc_common_non_delivered(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_abort(emm_common_data_t *emm_common_data_ctx) {
   emm_common_abort_callback_t emm_callback;
   status_code_e rc = RETURNerror;
 
@@ -386,7 +388,7 @@ status_code_e emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
     emm_callback = emm_common_data_ctx->abort;
 
     if (emm_callback) {
-      struct emm_context_s* ctx = NULL;
+      struct emm_context_s *ctx = NULL;
 
       ctx = emm_context_get(&_emm_data, emm_common_data_ctx->ue_id);
       rc = (*emm_callback)(ctx);
@@ -413,8 +415,8 @@ status_code_e emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void* emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id) {
-  emm_common_data_t* emm_common_data_ctx = NULL;
+void *emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id) {
+  emm_common_data_t *emm_common_data_ctx = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_common_data_ctx =
@@ -447,7 +449,7 @@ void* emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id) {
  **      Others:    _emm_common_data                           **
  **                                                                        **
  ***************************************************************************/
-void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx) {
+void emm_common_cleanup(emm_common_data_t *emm_common_data_ctx) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (emm_common_data_ctx) {
     __sync_fetch_and_sub(&emm_common_data_ctx->ref_count, 1);
@@ -459,10 +461,10 @@ void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx) {
       pthread_mutex_lock(&emm_common_data_head.mutex);
       RB_REMOVE(
           emm_common_data_map,
-          (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
+          (emm_common_data_map *)&emm_common_data_head.emm_common_data_root,
           emm_common_data_ctx);
       free_wrapper(&emm_common_data_ctx->args);
-      free_wrapper((void**)&emm_common_data_ctx);
+      free_wrapper((void **)&emm_common_data_ctx);
       pthread_mutex_unlock(&emm_common_data_head.mutex);
     }
   }
@@ -470,7 +472,7 @@ void emm_common_cleanup(emm_common_data_t* emm_common_data_ctx) {
 }
 
 void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id) {
-  emm_common_data_t* emm_common_data_ctx = NULL;
+  emm_common_data_t *emm_common_data_ctx = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_common_data_ctx =
@@ -480,19 +482,19 @@ void emm_common_cleanup_by_ueid(mme_ue_s1ap_id_t ue_id) {
     __sync_fetch_and_sub(&emm_common_data_ctx->ref_count, 1);
     pthread_mutex_lock(&emm_common_data_head.mutex);
     RB_REMOVE(emm_common_data_map,
-              (emm_common_data_map*)&emm_common_data_head.emm_common_data_root,
+              (emm_common_data_map *)&emm_common_data_head.emm_common_data_root,
               emm_common_data_ctx);
     if (emm_common_data_ctx->args) {
       free_wrapper(&emm_common_data_ctx->args);
     }
-    free_wrapper((void**)&emm_common_data_ctx);
+    free_wrapper((void **)&emm_common_data_ctx);
     pthread_mutex_unlock(&emm_common_data_head.mutex);
   }
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 
 void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id) {
-  emm_common_data_t* emm_common_data_ctx = NULL;
+  emm_common_data_t *emm_common_data_ctx = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_common_data_ctx =
@@ -503,12 +505,12 @@ void emm_proc_common_clear_args(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 
-void create_new_attach_info(emm_context_t* emm_context_p,
+void create_new_attach_info(emm_context_t *emm_context_p,
                             mme_ue_s1ap_id_t mme_ue_s1ap_id,
-                            STOLEN_REF struct emm_attach_request_ies_s* ies,
+                            STOLEN_REF struct emm_attach_request_ies_s *ies,
                             bool is_mm_ctx_new) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  emm_context_p->new_attach_info = reinterpret_cast<new_attach_info_t*>(
+  emm_context_p->new_attach_info = reinterpret_cast<new_attach_info_t *>(
       calloc(1, sizeof(new_attach_info_t)));
   emm_context_p->new_attach_info->mme_ue_s1ap_id = mme_ue_s1ap_id;
   emm_context_p->new_attach_info->ies = ies;
@@ -530,8 +532,8 @@ void create_new_attach_info(emm_context_t* emm_context_p,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
-  partial_list_t* par_list = NULL;
+partial_list_t *emm_verify_orig_tai(const tai_t orig_tai) {
+  partial_list_t *par_list = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!mme_config.partial_list) {
@@ -571,9 +573,10 @@ partial_list_t* emm_verify_orig_tai(const tai_t orig_tai) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e update_tai_list_to_emm_context(
-    uint64_t imsi64, guti_t guti, const partial_list_t* const par_tai_list,
-    tai_list_t* tai_list) {
+status_code_e
+update_tai_list_to_emm_context(uint64_t imsi64, guti_t guti,
+                               const partial_list_t *const par_tai_list,
+                               tai_list_t *tai_list) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   if (!par_tai_list->plmn) {
     OAILOG_ERROR_UE(LOG_NAS, imsi64, "config PLMN is NULL\n");
@@ -594,72 +597,71 @@ status_code_e update_tai_list_to_emm_context(
    * values from mme configuration file
    */
   switch (par_tai_list->list_type) {
-    case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
-      if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti.gummei.plmn)) {
-        /* As per 3gpp spec 24.301 sec-9.9.3.33, numberofelements=0
-         * corresponds to 1 element,
-         * numberofelements=1 corresponds to 2 elements ...
-         * So set numberofelements = nb_elem - 1
-         */
-        tai_list->partial_tai_list[0].numberofelements =
-            par_tai_list->nb_elem - 1;
-        tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
-        COPY_PLMN(tai_list->partial_tai_list[0]
-                      .u.tai_one_plmn_non_consecutive_tacs.plmn,
-                  guti.gummei.plmn);
-
-        // par_tai_list is sorted
-        for (itr = 0; itr < (par_tai_list->nb_elem); itr++) {
-          tai_list->partial_tai_list[0]
-              .u.tai_one_plmn_non_consecutive_tacs.tac[itr] =
-              par_tai_list->tac[itr];
-        }
-      } else {
-        OAILOG_ERROR_UE(
-            LOG_NAS, imsi64,
-            "GUTI PLMN does not match with mme configuration tai list\n");
-      }
-      break;
-    case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
-      if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti.gummei.plmn)) {
-        tai_list->partial_tai_list[0].numberofelements =
-            par_tai_list->nb_elem - 1;
-        tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
-
-        COPY_PLMN(
-            tai_list->partial_tai_list[0].u.tai_one_plmn_consecutive_tacs.plmn,
-            guti.gummei.plmn);
-
-        tai_list->partial_tai_list[0].u.tai_one_plmn_consecutive_tacs.tac =
-            par_tai_list->tac[0];
-      } else {
-        OAILOG_ERROR_UE(
-            LOG_NAS, imsi64,
-            "GUTI PLMN does not match with mme configuration tai list\n");
-      }
-      break;
-    case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
-      /* Include all the TAIs as we do not support equivalent PLMN list.
-       * Once equivalent PLMN list is supported,check if the TAI PLMNs are
-       * present in equivalent PLMN list
+  case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
+    if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti.gummei.plmn)) {
+      /* As per 3gpp spec 24.301 sec-9.9.3.33, numberofelements=0
+       * corresponds to 1 element,
+       * numberofelements=1 corresponds to 2 elements ...
+       * So set numberofelements = nb_elem - 1
        */
       tai_list->partial_tai_list[0].numberofelements =
           par_tai_list->nb_elem - 1;
       tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
+      COPY_PLMN(tai_list->partial_tai_list[0]
+                    .u.tai_one_plmn_non_consecutive_tacs.plmn,
+                guti.gummei.plmn);
 
+      // par_tai_list is sorted
       for (itr = 0; itr < (par_tai_list->nb_elem); itr++) {
-        COPY_PLMN(tai_list->partial_tai_list[0].u.tai_many_plmn[itr].plmn,
-                  par_tai_list->plmn[itr]);
-
-        // partial tai_list is sorted
-        tai_list->partial_tai_list[0].u.tai_many_plmn[itr].tac =
+        tai_list->partial_tai_list[0]
+            .u.tai_one_plmn_non_consecutive_tacs.tac[itr] =
             par_tai_list->tac[itr];
       }
-      break;
-    default:
-      OAILOG_ERROR_UE(LOG_NAS, imsi64,
-                      "BAD TAI list configuration, unknown TAI list type %u",
-                      par_tai_list->list_type);
+    } else {
+      OAILOG_ERROR_UE(
+          LOG_NAS, imsi64,
+          "GUTI PLMN does not match with mme configuration tai list\n");
+    }
+    break;
+  case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
+    if (IS_PLMN_EQUAL(par_tai_list->plmn[0], guti.gummei.plmn)) {
+      tai_list->partial_tai_list[0].numberofelements =
+          par_tai_list->nb_elem - 1;
+      tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
+
+      COPY_PLMN(
+          tai_list->partial_tai_list[0].u.tai_one_plmn_consecutive_tacs.plmn,
+          guti.gummei.plmn);
+
+      tai_list->partial_tai_list[0].u.tai_one_plmn_consecutive_tacs.tac =
+          par_tai_list->tac[0];
+    } else {
+      OAILOG_ERROR_UE(
+          LOG_NAS, imsi64,
+          "GUTI PLMN does not match with mme configuration tai list\n");
+    }
+    break;
+  case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
+    /* Include all the TAIs as we do not support equivalent PLMN list.
+     * Once equivalent PLMN list is supported,check if the TAI PLMNs are
+     * present in equivalent PLMN list
+     */
+    tai_list->partial_tai_list[0].numberofelements = par_tai_list->nb_elem - 1;
+    tai_list->partial_tai_list[0].typeoflist = par_tai_list->list_type;
+
+    for (itr = 0; itr < (par_tai_list->nb_elem); itr++) {
+      COPY_PLMN(tai_list->partial_tai_list[0].u.tai_many_plmn[itr].plmn,
+                par_tai_list->plmn[itr]);
+
+      // partial tai_list is sorted
+      tai_list->partial_tai_list[0].u.tai_many_plmn[itr].tac =
+          par_tai_list->tac[itr];
+    }
+    break;
+  default:
+    OAILOG_ERROR_UE(LOG_NAS, imsi64,
+                    "BAD TAI list configuration, unknown TAI list type %u",
+                    par_tai_list->list_type);
   }
 
   /* TS 124.301 V15.4.0 Section 9.9.3.33:
@@ -693,7 +695,7 @@ status_code_e update_tai_list_to_emm_context(
  **                                                                        **
  ***************************************************************************/
 status_code_e verify_tau_tai(uint64_t imsi64, guti_t guti, tai_t tai,
-                             tai_list_t* emm_ctx_tai) {
+                             tai_list_t *emm_ctx_tai) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /* Check if the TAI matches with the TAI in emm context.
    * If it does not match, check if it matches with one of the partial
@@ -701,53 +703,52 @@ status_code_e verify_tau_tai(uint64_t imsi64, guti_t guti, tai_t tai,
    * Note that there is only one partial list stored in emm context.
    */
   switch (emm_ctx_tai->partial_tai_list[0].typeoflist) {
-    case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
-      if ((IS_PLMN_EQUAL(tai.plmn,
-                         emm_ctx_tai->partial_tai_list[0]
-                             .u.tai_one_plmn_consecutive_tacs.plmn)) &&
-          ((tai.tac >= emm_ctx_tai->partial_tai_list[0]
-                           .u.tai_one_plmn_consecutive_tacs.tac) &&
-           (tai.tac <= (emm_ctx_tai->partial_tai_list[0]
-                            .u.tai_one_plmn_consecutive_tacs.tac +
-                        emm_ctx_tai->partial_tai_list[0].numberofelements)))) {
-        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-      }
-      break;
-    case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
-      if (IS_PLMN_EQUAL(tai.plmn,
-                        emm_ctx_tai->partial_tai_list[0]
-                            .u.tai_one_plmn_non_consecutive_tacs.plmn)) {
-        for (uint8_t idx = 0;
-             idx < emm_ctx_tai->partial_tai_list[0].numberofelements; idx++) {
-          if (tai.tac == emm_ctx_tai->partial_tai_list[0]
-                             .u.tai_one_plmn_non_consecutive_tacs.tac[idx]) {
-            OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
-          }
-        }
-      }
-      break;
-    case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
+  case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
+    if ((IS_PLMN_EQUAL(tai.plmn, emm_ctx_tai->partial_tai_list[0]
+                                     .u.tai_one_plmn_consecutive_tacs.plmn)) &&
+        ((tai.tac >= emm_ctx_tai->partial_tai_list[0]
+                         .u.tai_one_plmn_consecutive_tacs.tac) &&
+         (tai.tac <= (emm_ctx_tai->partial_tai_list[0]
+                          .u.tai_one_plmn_consecutive_tacs.tac +
+                      emm_ctx_tai->partial_tai_list[0].numberofelements)))) {
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+    break;
+  case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
+    if (IS_PLMN_EQUAL(tai.plmn,
+                      emm_ctx_tai->partial_tai_list[0]
+                          .u.tai_one_plmn_non_consecutive_tacs.plmn)) {
       for (uint8_t idx = 0;
            idx < emm_ctx_tai->partial_tai_list[0].numberofelements; idx++) {
-        if ((IS_PLMN_EQUAL(
-                tai.plmn,
-                emm_ctx_tai->partial_tai_list[0].u.tai_many_plmn[idx].plmn)) &&
-            (tai.tac ==
-             emm_ctx_tai->partial_tai_list[0].u.tai_many_plmn[idx].tac)) {
+        if (tai.tac == emm_ctx_tai->partial_tai_list[0]
+                           .u.tai_one_plmn_non_consecutive_tacs.tac[idx]) {
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
       }
-      break;
-    default:
-      OAILOG_ERROR_UE(LOG_NAS_EMM, imsi64,
-                      "Unknown TAI list type in verify_tai"
-                      "%u\n",
-                      emm_ctx_tai->partial_tai_list[0].typeoflist);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+    }
+    break;
+  case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
+    for (uint8_t idx = 0;
+         idx < emm_ctx_tai->partial_tai_list[0].numberofelements; idx++) {
+      if ((IS_PLMN_EQUAL(
+              tai.plmn,
+              emm_ctx_tai->partial_tai_list[0].u.tai_many_plmn[idx].plmn)) &&
+          (tai.tac ==
+           emm_ctx_tai->partial_tai_list[0].u.tai_many_plmn[idx].tac)) {
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      }
+    }
+    break;
+  default:
+    OAILOG_ERROR_UE(LOG_NAS_EMM, imsi64,
+                    "Unknown TAI list type in verify_tai"
+                    "%u\n",
+                    emm_ctx_tai->partial_tai_list[0].typeoflist);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
   // Check if the TAI matches with the partial lists in mme_config
-  partial_list_t* par_list = emm_verify_orig_tai(tai);
+  partial_list_t *par_list = emm_verify_orig_tai(tai);
   if (par_list) {
     /* Update the new partial list to emm_context. For now, emm context
      * contains only one partial list

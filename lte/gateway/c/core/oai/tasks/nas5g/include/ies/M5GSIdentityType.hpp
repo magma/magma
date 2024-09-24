@@ -10,21 +10,21 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // M5GSIdentitytype IE Class
 class M5GSIdentityTypeMsg {
- public:
+public:
   uint8_t toi;
   uint8_t iei;
 
   M5GSIdentityTypeMsg();
   ~M5GSIdentityTypeMsg();
-  int EncodeM5GSIdentityTypeMsg(M5GSIdentityTypeMsg* m5gs_identity_type,
-                                uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeM5GSIdentityTypeMsg(M5GSIdentityTypeMsg* m5gs_identity_type,
-                                uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeM5GSIdentityTypeMsg(M5GSIdentityTypeMsg *m5gs_identity_type,
+                                uint8_t iei, uint8_t *buffer, uint32_t len);
+  int DecodeM5GSIdentityTypeMsg(M5GSIdentityTypeMsg *m5gs_identity_type,
+                                uint8_t iei, uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

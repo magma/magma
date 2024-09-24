@@ -31,11 +31,12 @@ HaServiceImpl::HaServiceImpl() {}
  * StartAgwOffload is called by North Bound to release UEs
  * based on eNB identification or UE identification.
  */
-grpc::Status HaServiceImpl::StartAgwOffload(
-    grpc::ServerContext* context, const StartAgwOffloadRequest* request,
-    StartAgwOffloadResponse* response) {
+grpc::Status
+HaServiceImpl::StartAgwOffload(grpc::ServerContext *context,
+                               const StartAgwOffloadRequest *request,
+                               StartAgwOffloadResponse *response) {
   OAILOG_INFO(LOG_UTIL, "Received StartAgwOffloadRequest GRPC request\n");
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AGW_OFFLOAD_REQ);
 
   std::string imsi = request->imsi();
@@ -54,5 +55,5 @@ grpc::Status HaServiceImpl::StartAgwOffload(
   return grpc::Status::OK;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

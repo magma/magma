@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
@@ -27,7 +27,7 @@ PDUSessionModificationRejectMsg::~PDUSessionModificationRejectMsg(){};
 
 // Decode PDUSessionModificationReject Message and its IEs
 int PDUSessionModificationRejectMsg::DecodePDUSessionModificationRejectMsg(
-    PDUSessionModificationRejectMsg* pdu_session_modif_reject, uint8_t* buffer,
+    PDUSessionModificationRejectMsg *pdu_session_modif_reject, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   uint32_t decoded_result = 0;
@@ -93,7 +93,7 @@ int PDUSessionModificationRejectMsg::DecodePDUSessionModificationRejectMsg(
 }
 // Encode PDUSessionModificationReject Message and its IEs
 int PDUSessionModificationRejectMsg::EncodePDUSessionModificationRejectMsg(
-    PDUSessionModificationRejectMsg* pdu_session_modif_reject, uint8_t* buffer,
+    PDUSessionModificationRejectMsg *pdu_session_modif_reject, uint8_t *buffer,
     uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
@@ -144,4 +144,4 @@ int PDUSessionModificationRejectMsg::EncodePDUSessionModificationRejectMsg(
   }
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

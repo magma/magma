@@ -10,29 +10,30 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // PDUSessionIdentity IE Class
 class PDUSessionIdentityMsg {
- public:
+public:
   uint8_t iei;
   uint8_t pdu_session_id;
 
   PDUSessionIdentityMsg();
   ~PDUSessionIdentityMsg();
-  int EncodePDUSessionIdentityMsg(PDUSessionIdentityMsg* pdu_session_id,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodePDUSessionIdentityMsg(PDUSessionIdentityMsg* pdu_session_id,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
-  void copy(const PDUSessionIdentityMsg& p) {
+  int EncodePDUSessionIdentityMsg(PDUSessionIdentityMsg *pdu_session_id,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len);
+  int DecodePDUSessionIdentityMsg(PDUSessionIdentityMsg *pdu_session_id,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len);
+  void copy(const PDUSessionIdentityMsg &p) {
     iei = p.iei;
     pdu_session_id = p.pdu_session_id;
   }
-  bool isEqual(const PDUSessionIdentityMsg& p) {
-    if ((iei == p.iei) && (pdu_session_id == p.pdu_session_id)) return true;
+  bool isEqual(const PDUSessionIdentityMsg &p) {
+    if ((iei == p.iei) && (pdu_session_id == p.pdu_session_id))
+      return true;
     return false;
   }
 };
-}  // namespace magma5g
+} // namespace magma5g

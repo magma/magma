@@ -71,7 +71,7 @@ extern "C" {
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-status_code_e sgs_associated_handler(const sgs_fsm_t* evt) {
+status_code_e sgs_associated_handler(const sgs_fsm_t *evt) {
   status_code_e rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -84,46 +84,46 @@ status_code_e sgs_associated_handler(const sgs_fsm_t* evt) {
   }
 
   switch (evt->primitive) {
-    case _SGS_LOCATION_UPDATE_ACCEPT: {
-      rc = sgs_fsm_associated_loc_updt_acc(evt);
-    } break;
+  case _SGS_LOCATION_UPDATE_ACCEPT: {
+    rc = sgs_fsm_associated_loc_updt_acc(evt);
+  } break;
 
-    case _SGS_LOCATION_UPDATE_REJECT: {
-      rc = sgs_fsm_associated_loc_updt_rej(evt);
-    } break;
+  case _SGS_LOCATION_UPDATE_REJECT: {
+    rc = sgs_fsm_associated_loc_updt_rej(evt);
+  } break;
 
-    case _SGS_PAGING_REQUEST: {
-      rc = sgs_handle_associated_paging_request(evt);
-    } break;
+  case _SGS_PAGING_REQUEST: {
+    rc = sgs_handle_associated_paging_request(evt);
+  } break;
 
-    case _SGS_EPS_DETACH_IND: {
-      /*
-       * SGS EPS Detach procedure successful
-       * enter state SGS-NULL.
-       */
-      rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
-    } break;
+  case _SGS_EPS_DETACH_IND: {
+    /*
+     * SGS EPS Detach procedure successful
+     * enter state SGS-NULL.
+     */
+    rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
+  } break;
 
-    case _SGS_SERVICE_ABORT_REQUEST: {
-      rc = sgs_fsm_associated_service_abort_request(evt);
-    } break;
+  case _SGS_SERVICE_ABORT_REQUEST: {
+    rc = sgs_fsm_associated_service_abort_request(evt);
+  } break;
 
-    case _SGS_IMSI_DETACH_IND: {
-      /*
-       * SGS IMSI Detach procedure successful
-       * enter state SGS-NULL.
-       */
-      rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
-    } break;
+  case _SGS_IMSI_DETACH_IND: {
+    /*
+     * SGS IMSI Detach procedure successful
+     * enter state SGS-NULL.
+     */
+    rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
+  } break;
 
-    case _SGS_RESET_INDICATION: {
-      rc = sgs_fsm_associated_reset_indication(evt);
-    } break;
+  case _SGS_RESET_INDICATION: {
+    rc = sgs_fsm_associated_reset_indication(evt);
+  } break;
 
-    default: {
-      OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
-                   evt->primitive);
-    } break;
+  default: {
+    OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+                 evt->primitive);
+  } break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

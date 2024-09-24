@@ -23,15 +23,16 @@ namespace magma5g {
 
 NGAPClientServicer::NGAPClientServicer() {}
 
-NGAPClientServicer& NGAPClientServicer::getInstance() {
+NGAPClientServicer &NGAPClientServicer::getInstance() {
   OAILOG_FUNC_IN(LOG_NGAP);
   static NGAPClientServicer instance;
   OAILOG_FUNC_RETURN(LOG_NGAP, instance);
 }
 
-status_code_e NGAPClientServicer::send_message_to_amf(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
-    MessageDef* message) {
+status_code_e
+NGAPClientServicer::send_message_to_amf(task_zmq_ctx_t *task_zmq_ctx_p,
+                                        task_id_t destination_task_id,
+                                        MessageDef *message) {
   status_code_e ret = RETURNok;
 
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -47,7 +48,7 @@ status_code_e NGAPClientServicer::send_message_to_amf(
   OAILOG_FUNC_RETURN(LOG_NGAP, ret);
 }
 
-}  // namespace magma5g
+} // namespace magma5g
 
 /****************************************************************************
  **                                                                        **
@@ -57,9 +58,9 @@ status_code_e NGAPClientServicer::send_message_to_amf(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-status_code_e ngap_send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
+status_code_e ngap_send_msg_to_task(task_zmq_ctx_t *task_zmq_ctx_p,
                                     task_id_t destination_task_id,
-                                    MessageDef* message) {
+                                    MessageDef *message) {
   OAILOG_INFO(LOG_NGAP, "Sending msg to :[%s] id: [%d]-[%s]\n",
               itti_get_task_name(destination_task_id), ITTI_MSG_ID(message),
               ITTI_MSG_NAME(message));

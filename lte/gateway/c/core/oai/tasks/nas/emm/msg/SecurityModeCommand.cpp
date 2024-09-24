@@ -37,7 +37,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.hpp"
 
 int decode_security_mode_command(
-    security_mode_command_msg* security_mode_command, uint8_t* buffer,
+    security_mode_command_msg *security_mode_command, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -84,74 +84,72 @@ int decode_security_mode_command(
       ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI:
-        if ((decoded_result = decode_imeisv_request_ie(
-                 &security_mode_command->imeisvrequest,
-                 SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI != 0,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI:
+      if ((decoded_result = decode_imeisv_request_ie(
+               &security_mode_command->imeisvrequest,
+               SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI != 0, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        security_mode_command->presencemask |=
-            SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      security_mode_command->presencemask |=
+          SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT;
+      break;
 
-      case SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI:
-        if ((decoded_result =
-                 decode_nonce(&security_mode_command->replayednonceue,
-                              SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI,
-                              buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI:
+      if ((decoded_result =
+               decode_nonce(&security_mode_command->replayednonceue,
+                            SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI,
+                            buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        security_mode_command->presencemask |=
-            SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      security_mode_command->presencemask |=
+          SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_PRESENT;
+      break;
 
-      case SECURITY_MODE_COMMAND_NONCEMME_IEI:
-        if ((decoded_result = decode_nonce(&security_mode_command->noncemme,
-                                           SECURITY_MODE_COMMAND_NONCEMME_IEI,
-                                           buffer + decoded, len - decoded)) <=
-            0)
-          return decoded_result;
+    case SECURITY_MODE_COMMAND_NONCEMME_IEI:
+      if ((decoded_result = decode_nonce(&security_mode_command->noncemme,
+                                         SECURITY_MODE_COMMAND_NONCEMME_IEI,
+                                         buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        security_mode_command->presencemask |=
-            SECURITY_MODE_COMMAND_NONCEMME_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      security_mode_command->presencemask |=
+          SECURITY_MODE_COMMAND_NONCEMME_PRESENT;
+      break;
 
-      case SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI:
-        if ((decoded_result = decode_ue_additional_security_capability(
-                 &security_mode_command
-                      ->replayedueadditionalsecuritycapabilities,
-                 SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
-                 buffer + decoded, len - decoded)) <= 0) {
-          return decoded_result;
-        }
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        security_mode_command->presencemask |=
-            SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT;
-        break;
+    case SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI:
+      if ((decoded_result = decode_ue_additional_security_capability(
+               &security_mode_command->replayedueadditionalsecuritycapabilities,
+               SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
+               buffer + decoded, len - decoded)) <= 0) {
+        return decoded_result;
+      }
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      security_mode_command->presencemask |=
+          SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        OAILOG_ERROR(
-            LOG_NAS_EMM,
-            "Failed to decode SECURITY_MODE_COMMAND unexpected IEI 0x%02x\n",
-            ieiDecoded);
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      OAILOG_ERROR(
+          LOG_NAS_EMM,
+          "Failed to decode SECURITY_MODE_COMMAND unexpected IEI 0x%02x\n",
+          ieiDecoded);
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -159,7 +157,7 @@ int decode_security_mode_command(
 }
 
 int encode_security_mode_command(
-    security_mode_command_msg* security_mode_command, uint8_t* buffer,
+    security_mode_command_msg *security_mode_command, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -173,7 +171,7 @@ int encode_security_mode_command(
   if ((encode_result = encode_nas_security_algorithms(
            &security_mode_command->selectednassecurityalgorithms, 0,
            buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;
@@ -186,7 +184,7 @@ int encode_security_mode_command(
   if ((encode_result = encode_ue_security_capability(
            &security_mode_command->replayeduesecuritycapabilities, 0,
            buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

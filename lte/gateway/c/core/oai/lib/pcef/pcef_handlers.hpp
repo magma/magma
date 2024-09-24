@@ -24,9 +24,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
@@ -60,8 +60,8 @@ struct pcef_create_session_data {
  * the PCEF and sends an S5 ITTI message to SGW when done.
  * This is a long process, so it needs to by asynchronous
  */
-void pcef_create_session(std::string imsi, const char* ip4, const char* ip6,
-                         const struct pcef_create_session_data* session_data,
+void pcef_create_session(std::string imsi, const char *ip4, const char *ip6,
+                         const struct pcef_create_session_data *session_data,
                          s5_create_session_request_t bearer_request);
 
 /**
@@ -76,9 +76,9 @@ bool pcef_end_session(const std::string imsi, const std::string apn);
  * rule id to the newly created bearer id for a particular session that is
  * uniquely identified by imsi and default bearer id.
  */
-void pcef_send_policy2bearer_binding(const char* imsi,
+void pcef_send_policy2bearer_binding(const char *imsi,
                                      const uint8_t default_bearer_id,
-                                     const char* policy_rule_name,
+                                     const char *policy_rule_name,
                                      const uint8_t eps_bearer_id,
                                      const uint32_t eps_bearer_agw_teid,
                                      const uint32_t eps_bearer_enb_teid);
@@ -89,26 +89,26 @@ void pcef_send_policy2bearer_binding(const char* imsi,
  * uniquely identified by imsi and default bearer id.
  */
 
-void pcef_update_teids(const char* imsi, uint8_t default_bearer_id,
+void pcef_update_teids(const char *imsi, uint8_t default_bearer_id,
                        uint32_t enb_teid, uint32_t agw_teid);
 
 int get_msisdn_from_session_req(
-    const itti_s11_create_session_request_t* saved_req, char* msisdn);
+    const itti_s11_create_session_request_t *saved_req, char *msisdn);
 
 char convert_digit_to_char(char digit);
 
 int get_imeisv_from_session_req(
-    const itti_s11_create_session_request_t* saved_req, char* imeisv);
+    const itti_s11_create_session_request_t *saved_req, char *imeisv);
 
-void convert_imeisv_to_string(char* imeisv);
+void convert_imeisv_to_string(char *imeisv);
 
-bool pcef_delete_dedicated_bearer(const char* imsi, const ebi_list_t ebi_list);
+bool pcef_delete_dedicated_bearer(const char *imsi, const ebi_list_t ebi_list);
 
 bool get_uli_from_session_req(
-    const itti_s11_create_session_request_t* saved_req, char* uli);
+    const itti_s11_create_session_request_t *saved_req, char *uli);
 
 void get_plmn_from_session_req(
-    const itti_s11_create_session_request_t* saved_req, char* mcc_mnc);
+    const itti_s11_create_session_request_t *saved_req, char *mcc_mnc);
 
 void get_imsi_plmn_from_session_req(const std::string imsi,
-                                    struct pcef_create_session_data* data);
+                                    struct pcef_create_session_data *data);

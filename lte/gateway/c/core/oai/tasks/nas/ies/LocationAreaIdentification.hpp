@@ -33,12 +33,12 @@ typedef struct LocationAreaIdentification_tag {
 } LocationAreaIdentification;
 
 int encode_location_area_identification(
-    LocationAreaIdentification* locationareaidentification, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    LocationAreaIdentification *locationareaidentification, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 void dump_location_area_identification_xml(
-    LocationAreaIdentification* locationareaidentification, uint8_t iei);
+    LocationAreaIdentification *locationareaidentification, uint8_t iei);
 
 int decode_location_area_identification(
-    LocationAreaIdentification* locationareaidentification, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    LocationAreaIdentification *locationareaidentification, uint8_t iei,
+    uint8_t *buffer, uint32_t len);

@@ -62,7 +62,7 @@ typedef struct snow_3g_context_s {
  * Output: All the LFSRs and FSM are initialized for key generation.
  */
 void snow3g_initialize(uint32_t k[4], uint32_t IV[4],
-                       snow_3g_context_t* snow_3g_context_pP);
+                       snow_3g_context_t *snow_3g_context_pP);
 
 /* Generation of Keystream.
  * input n: number of 32-bit words of keystream.
@@ -71,7 +71,7 @@ void snow3g_initialize(uint32_t k[4], uint32_t IV[4],
  * output: generated keystream which is filled in z
  */
 
-void snow3g_generate_key_stream(uint32_t n, uint32_t* z,
-                                snow_3g_context_t* snow_3g_context_pP);
+void snow3g_generate_key_stream(uint32_t n, uint32_t *z,
+                                snow_3g_context_t *snow_3g_context_pP);
 
 #endif

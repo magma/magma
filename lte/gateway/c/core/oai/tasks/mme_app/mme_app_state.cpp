@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 
 using magma::lte::MmeNasStateManager;
 
@@ -27,7 +27,7 @@ using magma::lte::MmeNasStateManager;
  * persist state flag is set, load it from the data store.
  * This is only done by the mme_app task.
  */
-int mme_nas_state_init(const mme_config_t* mme_config_p) {
+int mme_nas_state_init(const mme_config_t *mme_config_p) {
   return MmeNasStateManager::getInstance().initialize_state(mme_config_p);
 }
 
@@ -37,7 +37,7 @@ int mme_nas_state_init(const mme_config_t* mme_config_p) {
  * If the read_from_db flag is set to true, the state is loaded from data store
  * before returning the pointer.
  */
-mme_app_desc_t* get_mme_nas_state(bool read_from_db) {
+mme_app_desc_t *get_mme_nas_state(bool read_from_db) {
   return MmeNasStateManager::getInstance().get_state(read_from_db);
 }
 
@@ -55,15 +55,15 @@ void put_mme_nas_state() {
  */
 void clear_mme_nas_state() { MmeNasStateManager::getInstance().free_state(); }
 
-proto_map_uint32_ue_context_t* get_mme_ue_state() {
+proto_map_uint32_ue_context_t *get_mme_ue_state() {
   return MmeNasStateManager::getInstance().get_ue_state_map();
 }
 
-void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64,
+void put_mme_ue_state(mme_app_desc_t *mme_app_desc_p, imsi64_t imsi64,
                       bool force_ue_write) {
   if (MmeNasStateManager::getInstance().is_persist_state_enabled()) {
     if (imsi64 != INVALID_IMSI64) {
-      ue_mm_context_t* ue_context = nullptr;
+      ue_mm_context_t *ue_context = nullptr;
       ue_context =
           mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
       // Only write MME UE state to redis if force flag is set or UE is in EMM

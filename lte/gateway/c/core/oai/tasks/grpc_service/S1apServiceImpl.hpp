@@ -31,7 +31,7 @@ namespace magma {
 using namespace lte;
 
 class S1apServiceImpl final : public magma::S1apService::Service {
- public:
+public:
   S1apServiceImpl();
 
   /**
@@ -42,9 +42,9 @@ class S1apServiceImpl final : public magma::S1apService::Service {
    * @param response proto response EnbStateResult
    * @return status response cod
    */
-  grpc::Status GetENBState(grpc::ServerContext* context,
-                           const magma::orc8r::Void* request,
-                           magma::lte::EnbStateResult* response) override;
+  grpc::Status GetENBState(grpc::ServerContext *context,
+                           const magma::orc8r::Void *request,
+                           magma::lte::EnbStateResult *response) override;
 };
 
-}  // namespace magma
+} // namespace magma

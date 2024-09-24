@@ -37,15 +37,15 @@ Description Defines the messages supported by the Access Stratum sublayer
 #ifndef FILE_AS_MESSAGE_H_SEEN
 #define FILE_AS_MESSAGE_H_SEEN
 
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.331.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -110,7 +110,7 @@ Description Defines the messages supported by the Access Stratum sublayer
 
 /* Deactivate Bearer */
 #define AS_DEACTIVATE_BEARER_CONTEXT 0xa
-#define AS_DEACTIVATE_BEARER_CONTEXT_REQ \
+#define AS_DEACTIVATE_BEARER_CONTEXT_REQ                                       \
   (AS_DEACTIVATE_BEARER_CONTEXT | AS_REQUEST)
 
 /* NAS Cause */

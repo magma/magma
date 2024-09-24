@@ -17,15 +17,15 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_desc.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 /**
  * When the process starts, initialize the in-memory MME+NAS state and, if
  * persist state flag is set, load it from the data store.
  * This is only done by the mme_app task.
  */
-int mme_nas_state_init(const mme_config_t* mme_config_p);
+int mme_nas_state_init(const mme_config_t *mme_config_p);
 
 /**
  * Return pointer to the in-memory MME/NAS state from state manager before
@@ -33,7 +33,7 @@ int mme_nas_state_init(const mme_config_t* mme_config_p);
  * If the read_from_db flag is set to true, the state is loaded from data store
  * before returning the pointer.
  */
-mme_app_desc_t* get_mme_nas_state(bool read_from_db);
+mme_app_desc_t *get_mme_nas_state(bool read_from_db);
 
 /**
  * Write the MME/NAS state to data store after processing any message. This is a
@@ -48,10 +48,10 @@ void put_mme_nas_state(void);
 void clear_mme_nas_state(void);
 
 // Returns UE MME state map
-proto_map_uint32_ue_context_t* get_mme_ue_state(void);
+proto_map_uint32_ue_context_t *get_mme_ue_state(void);
 
 // Persists UE MME state for subscriber into db
-void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64,
+void put_mme_ue_state(mme_app_desc_t *mme_app_desc_p, imsi64_t imsi64,
                       bool force_ue_write);
 // Deletes entry for UE MME state on db
 void delete_mme_ue_state(imsi64_t imsi64);

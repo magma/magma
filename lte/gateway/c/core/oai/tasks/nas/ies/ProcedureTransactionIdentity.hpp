@@ -27,12 +27,12 @@
 typedef pti_t ProcedureTransactionIdentity;
 
 int encode_procedure_transaction_identity(
-    ProcedureTransactionIdentity* proceduretransactionidentity, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    ProcedureTransactionIdentity *proceduretransactionidentity, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 void dump_procedure_transaction_identity_xml(
-    ProcedureTransactionIdentity* proceduretransactionidentity, uint8_t iei);
+    ProcedureTransactionIdentity *proceduretransactionidentity, uint8_t iei);
 
 int decode_procedure_transaction_identity(
-    ProcedureTransactionIdentity* proceduretransactionidentity, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    ProcedureTransactionIdentity *proceduretransactionidentity, uint8_t iei,
+    uint8_t *buffer, uint32_t len);

@@ -12,9 +12,9 @@
  */
 
 #pragma once
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include <sstream>
 #include <thread>
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 using namespace std;
 namespace magma5g {
@@ -33,8 +33,8 @@ namespace magma5g {
 #define AUTH_AK_SIZE 6  /* Anonymity key:            48 bits  */
 #define AUTH_AMF_SIZE 2 /* Authentication Management Field:  16 bits  */
 #define AUTH_MAC_SIZE 8 /* Message Authentication Code:  64 bits  */
-#define AUTH_AUTN_SIZE                                               \
-  16                           /* Authentication token:     128 bits \
+#define AUTH_AUTN_SIZE                                                         \
+  16                           /* Authentication token:     128 bits           \
                  AUTN = (SQN ⊕ AK) || AMF || MAC        */
 #define AUTH_MACS_SIZE 8       /* Re-synchronization MAC:       64 bits  */
 #define AUTH_AUTS_SIZE 16      /* Re-synchronization AUT:       128 bits */
@@ -65,7 +65,7 @@ typedef enum amf_sc_type_s {
   SECURITY_CTX_TYPE_NOT_AVAILABLE = 0,
   SECURITY_CTX_TYPE_PARTIAL_NATIVE,
   SECURITY_CTX_TYPE_FULL_NATIVE,
-  SECURITY_CTX_TYPE_MAPPED  // UNUSED
+  SECURITY_CTX_TYPE_MAPPED // UNUSED
 } amf_sc_type_t;
 
 /****************************************************************************/
@@ -76,7 +76,7 @@ typedef enum amf_sc_type_s {
  * 5G CN authentication vector
  */
 class m5g_auth_vector_t {
- public:
+public:
   /* ASME security key                */
   uint8_t kseaf[M5G_AUTH_KSEAF_SIZE];
   /* Random challenge parameter           */
@@ -97,4 +97,4 @@ class m5g_auth_vector_t {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-}  // namespace magma5g
+} // namespace magma5g

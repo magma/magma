@@ -12,11 +12,11 @@
  */
 #pragma once
 
-#include <lte/protos/session_manager.grpc.pb.h>
-#include <stdint.h>
 #include <experimental/optional>
+#include <lte/protos/session_manager.grpc.pb.h>
 #include <memory>
 #include <set>
+#include <stdint.h>
 #include <string>
 #include <unordered_map>
 
@@ -71,8 +71,7 @@ struct SessionSearchCriteria {
   SessionSearchCriteria(const std::string p_imsi,
                         SessionSearchCriteriaType p_type,
                         const uint32_t p_secondary_key_unit32)
-      : imsi(p_imsi),
-        search_type(p_type),
+      : imsi(p_imsi), search_type(p_type),
         secondary_key_unit32(p_secondary_key_unit32) {}
 
   SessionSearchCriteria(const std::string p_imsi,
@@ -80,9 +79,7 @@ struct SessionSearchCriteria {
                         const std::string p_secondary_key,
                         const std::string p_tertiary_key,
                         const uint32_t p_quaternary_key_unit32)
-      : imsi(p_imsi),
-        search_type(p_type),
-        secondary_key(p_secondary_key),
+      : imsi(p_imsi), search_type(p_type), secondary_key(p_secondary_key),
         tertiary_key(p_tertiary_key),
         quaternary_key_unit32(p_quaternary_key_unit32) {}
 };
@@ -101,8 +98,8 @@ struct SessionSearchCriteria {
  * handled is intended to keep sessiond restartable in case of crashes.
  */
 class SessionStore {
- public:
-  static SessionUpdate get_default_session_update(SessionMap& session_map);
+public:
+  static SessionUpdate get_default_session_update(SessionMap &session_map);
 
   SessionStore(std::shared_ptr<StaticRuleStore> rule_store,
                std::shared_ptr<magma::MeteringReporter> metering_reporter);
@@ -132,7 +129,7 @@ class SessionStore {
    * @return Last written values for requested sessions. Returns an empty vector
    * for subscribers that do not have active sessions.
    */
-  SessionMap read_sessions(const SessionRead& req);
+  SessionMap read_sessions(const SessionRead &req);
 
   /**
    * Read the last written values for all existing sessions through the
@@ -151,7 +148,7 @@ class SessionStore {
    *       event loop.
    * @param update_criteria
    */
-  void sync_request_numbers(const SessionUpdate& update_criteria);
+  void sync_request_numbers(const SessionUpdate &update_criteria);
 
   /**
    * Goes over all the RG keys and monitoring keys on the UpdateSessionRequest
@@ -163,8 +160,8 @@ class SessionStore {
    * @param session_uc
    */
   void set_and_save_reporting_flag(
-      bool value, const UpdateSessionRequest& update_session_request,
-      SessionUpdate& session_uc);
+      bool value, const UpdateSessionRequest &update_session_request,
+      SessionUpdate &session_uc);
 
   /**
    * Read the last written values for the requested sessions through the
@@ -180,7 +177,7 @@ class SessionStore {
    * @return Last written values for requested sessions. Returns an empty
    * vector for subscribers that do not have active sessions.
    */
-  SessionMap read_sessions_for_deletion(const SessionRead& req);
+  SessionMap read_sessions_for_deletion(const SessionRead &req);
 
   /**
    * Create sessions for a subscriber. Redundant creations will fail.
@@ -188,7 +185,7 @@ class SessionStore {
    * @param sessions
    * @return true if successful, otherwise the update to storage is discarded.
    */
-  bool create_sessions(const std::string& subscriber_id,
+  bool create_sessions(const std::string &subscriber_id,
                        SessionVector sessions);
 
   /**
@@ -199,7 +196,7 @@ class SessionStore {
    * @param update_criteria
    * @return true if successful, otherwise the update to storage is discarded.
    */
-  bool update_sessions(const SessionUpdate& update_criteria);
+  bool update_sessions(const SessionUpdate &update_criteria);
 
   /**
    * @param session_map
@@ -215,8 +212,8 @@ class SessionStore {
    * if (!session_it) { // Log session not found };
    * auto& session = **session_it; // First deference optional, then iterator
    */
-  optional<SessionVector::iterator> find_session(
-      SessionMap& session_map, SessionSearchCriteria criteria);
+  optional<SessionVector::iterator>
+  find_session(SessionMap &session_map, SessionSearchCriteria criteria);
 
   // TODO move this logic outside of this class into MeteringReporter
   /**
@@ -225,11 +222,11 @@ class SessionStore {
    */
   void initialize_metering_counter();
 
- private:
+private:
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<StoreClient> store_client_;
   std::shared_ptr<MeteringReporter> metering_reporter_;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

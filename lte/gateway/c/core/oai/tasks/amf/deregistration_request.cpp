@@ -24,7 +24,6 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
-#include <unordered_map>
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.hpp"
@@ -35,10 +34,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
+#include <unordered_map>
 
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
@@ -52,7 +52,7 @@ amf_as_data_t amf_data_de_reg_sec;
  *        re-registration required is out of mvc scope now.
  */
 status_code_e amf_handle_deregistration_ue_origin_req(
-    amf_ue_ngap_id_t ue_id, DeRegistrationRequestUEInitMsg* msg, int amf_cause,
+    amf_ue_ngap_id_t ue_id, DeRegistrationRequestUEInitMsg *msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(LOG_NAS_AMF,
@@ -66,32 +66,32 @@ status_code_e amf_handle_deregistration_ue_origin_req(
   }
   /*value of access_type would be 1 or 2 or 3, 24-501 - 9.11.3.20 */
   switch (msg->m5gs_de_reg_type.access_type) {
-    case AMF_3GPP_ACCESS:
-      params.de_reg_access_type = AMF_3GPP_ACCESS;
-      OAILOG_DEBUG(
-          LOG_NAS_AMF,
-          "Access type is AMF_3GPP_ACCESS for deregistration request from "
-          "UE\n");
-      break;
-    case NON_AMF_3GPP_ACCESS:
-      params.de_reg_access_type = AMF_NONE_3GPP_ACCESS;
-      OAILOG_DEBUG(
-          LOG_NAS_AMF,
-          "Access type AMF_NONE_3GPP_ACCESS for deregistration request from "
-          "UE\n");
-      break;
-    case AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS:
-      params.de_reg_access_type = AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS;
-      OAILOG_DEBUG(
-          LOG_NAS_AMF,
-          "Access type AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS for deregistration "
-          "request from UE\n");
-      break;
-    default:
-      OAILOG_WARNING(LOG_NAS_AMF,
-                     "Wrong access type received for deregistration\n");
-      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-      break;
+  case AMF_3GPP_ACCESS:
+    params.de_reg_access_type = AMF_3GPP_ACCESS;
+    OAILOG_DEBUG(
+        LOG_NAS_AMF,
+        "Access type is AMF_3GPP_ACCESS for deregistration request from "
+        "UE\n");
+    break;
+  case NON_AMF_3GPP_ACCESS:
+    params.de_reg_access_type = AMF_NONE_3GPP_ACCESS;
+    OAILOG_DEBUG(
+        LOG_NAS_AMF,
+        "Access type AMF_NONE_3GPP_ACCESS for deregistration request from "
+        "UE\n");
+    break;
+  case AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS:
+    params.de_reg_access_type = AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS;
+    OAILOG_DEBUG(
+        LOG_NAS_AMF,
+        "Access type AMF_3GPP_ACCESS_AND_NONE_3GPP_ACCESS for deregistration "
+        "request from UE\n");
+    break;
+  default:
+    OAILOG_WARNING(LOG_NAS_AMF,
+                   "Wrong access type received for deregistration\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    break;
   }
   /*setting key set identifier as received from UE*/
   params.ksi = msg->nas_key_set_identifier.nas_key_set_identifier;
@@ -105,8 +105,9 @@ status_code_e amf_handle_deregistration_ue_origin_req(
  *
  * Description : Process the UE originated De-Registration request
  */
-status_code_e amf_proc_deregistration_request(
-    amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params) {
+status_code_e
+amf_proc_deregistration_request(amf_ue_ngap_id_t ue_id,
+                                amf_deregistration_request_ies_t *params) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   OAILOG_DEBUG(LOG_NAS_AMF,
                "Processing deregistration UE-id = " AMF_UE_NGAP_ID_FMT
@@ -114,13 +115,13 @@ status_code_e amf_proc_deregistration_request(
                ue_id, params->de_reg_type);
   status_code_e rc = RETURNerror;
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  ue_m5gmm_context_s *ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context == NULL) {
     return RETURNerror;
   }
 
-  amf_context_t* amf_ctx = amf_context_get(ue_id);
+  amf_context_t *amf_ctx = amf_context_get(ue_id);
   if (!amf_ctx) {
     OAILOG_DEBUG(LOG_NAS_AMF,
                  "AMF icontext not present for UE-id = " AMF_UE_NGAP_ID_FMT
@@ -129,7 +130,7 @@ status_code_e amf_proc_deregistration_request(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
   amf_sap_t amf_sap = {};
-  amf_as_data_t* amf_as = &amf_sap.u.amf_as.u.data;
+  amf_as_data_t *amf_as = &amf_sap.u.amf_as.u.data;
 
   /* if switched off, directly release all resources and
    * dont send accept to UE
@@ -190,8 +191,8 @@ status_code_e amf_proc_deregistration_request(
 status_code_e amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   status_code_e rc = RETURNerror;
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  ue_m5gmm_context_s* ue_context_p =
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
+  ue_m5gmm_context_s *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (!ue_context_p) {
     OAILOG_ERROR(LOG_AMF_APP,
@@ -247,13 +248,13 @@ status_code_e amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
+void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s *ue_context) {
   amf_smf_release_t smf_message;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   OAILOG_FUNC_IN(LOG_AMF_APP);
   memset(&smf_message, 0, sizeof(amf_smf_release_t));
 
-  for (auto& it : ue_context->amf_context.smf_ctxt_map) {
+  for (auto &it : ue_context->amf_context.smf_ctxt_map) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
 
     std::shared_ptr<smf_context_t> i = it.second;
@@ -287,7 +288,7 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
 }
 
 //------------------------------------------------------------------------------
-void amf_app_ue_context_free_content(ue_m5gmm_context_s* const ue_context_p) {
+void amf_app_ue_context_free_content(ue_m5gmm_context_s *const ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   // Stop Mobile reachability timer,if running
 
@@ -301,7 +302,7 @@ void amf_app_ue_context_free_content(ue_m5gmm_context_s* const ue_context_p) {
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-void clear_amf_ctxt(amf_context_t* amf_context) {
+void clear_amf_ctxt(amf_context_t *amf_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   if (!amf_context) {
     return;
@@ -309,7 +310,7 @@ void clear_amf_ctxt(amf_context_t* amf_context) {
 
   nas_delete_all_amf_procedures(amf_context);
 
-  ue_m5gmm_context_s* ue_context_p =
+  ue_m5gmm_context_s *ue_context_p =
       PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context);
 
   ue_context_p->mm_state = DEREGISTERED;
@@ -325,12 +326,12 @@ void clear_amf_ctxt(amf_context_t* amf_context) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_remove_ue_context(amf_ue_context_t* const amf_ue_context_p,
-                           ue_m5gmm_context_s* ue_context_p) {
+void amf_remove_ue_context(amf_ue_context_t *const amf_ue_context_p,
+                           ue_m5gmm_context_s *ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   magma::map_rc_t m_rc = magma::MAP_OK;
-  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
+  map_uint64_ue_context_t *amf_state_ue_id_ht = get_amf_ue_state();
 
   if (!amf_ue_context_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Invalid AMF UE context received\n");
@@ -406,5 +407,5 @@ void amf_remove_ue_context(amf_ue_context_t* const amf_ue_context_p,
   ue_context_p = NULL;
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
-}  // end  namespace magma5g
+} // end  namespace magma5g
 #endif

@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentReject.hpp"
 
 namespace magma5g {
 PDUSessionEstablishmentRejectMsg::PDUSessionEstablishmentRejectMsg(){};
@@ -26,7 +26,7 @@ PDUSessionEstablishmentRejectMsg::~PDUSessionEstablishmentRejectMsg(){};
 
 // Decode PDUSessionEstablishmentReject Message and its IEs
 int PDUSessionEstablishmentRejectMsg::DecodePDUSessionEstablishmentRejectMsg(
-    PDUSessionEstablishmentRejectMsg* pdu_session_estab_reject, uint8_t* buffer,
+    PDUSessionEstablishmentRejectMsg *pdu_session_estab_reject, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -75,7 +75,7 @@ int PDUSessionEstablishmentRejectMsg::DecodePDUSessionEstablishmentRejectMsg(
 
 // Encode PDUSessionEstablishmentReject Message and its IEs
 int PDUSessionEstablishmentRejectMsg::EncodePDUSessionEstablishmentRejectMsg(
-    PDUSessionEstablishmentRejectMsg* pdu_session_estab_reject, uint8_t* buffer,
+    PDUSessionEstablishmentRejectMsg *pdu_session_estab_reject, uint8_t *buffer,
     uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
@@ -119,4 +119,4 @@ int PDUSessionEstablishmentRejectMsg::EncodePDUSessionEstablishmentRejectMsg(
     encoded += encoded_result;
   return encoded;
 }
-}  // Namespace magma5g
+} // Namespace magma5g

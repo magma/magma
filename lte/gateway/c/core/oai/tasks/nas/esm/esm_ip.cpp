@@ -26,7 +26,7 @@ extern "C" {
 
 char ip_addr_str[100];
 
-char* esm_data_get_ipv4_addr(const_bstring ip_addr) {
+char *esm_data_get_ipv4_addr(const_bstring ip_addr) {
   if ((ip_addr) && (ip_addr->slen == 4)) {
     snprintf(ip_addr_str, sizeof(ip_addr_str), "%u.%u.%u.%u", ip_addr->data[0],
              ip_addr->data[1], ip_addr->data[2], ip_addr->data[3]);
@@ -36,7 +36,7 @@ char* esm_data_get_ipv4_addr(const_bstring ip_addr) {
   return (NULL);
 }
 
-char* esm_data_get_ipv6_addr(const_bstring ip_addr) {
+char *esm_data_get_ipv6_addr(const_bstring ip_addr) {
   if ((ip_addr) && (ip_addr->slen == 8)) {
     snprintf(ip_addr_str, sizeof(ip_addr_str), "%x%.2x:%x%.2x:%x%.2x:%x%.2x",
              ip_addr->data[0], ip_addr->data[1], ip_addr->data[2],
@@ -48,7 +48,7 @@ char* esm_data_get_ipv6_addr(const_bstring ip_addr) {
   return (NULL);
 }
 
-char* esm_data_get_ipv4v6_addr(const_bstring ip_addr) {
+char *esm_data_get_ipv4v6_addr(const_bstring ip_addr) {
   if ((ip_addr) && (ip_addr->slen == 12)) {
     snprintf(ip_addr_str, sizeof(ip_addr_str),
              "%u.%u.%u.%u / %x%.2x:%x%.2x:%x%.2x:%x%.2x", ip_addr->data[0],

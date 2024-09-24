@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/PdnDisconnectRequest.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -33,7 +33,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.hpp"
 
 int decode_pdn_disconnect_request(
-    pdn_disconnect_request_msg* pdn_disconnect_request, uint8_t* buffer,
+    pdn_disconnect_request_msg *pdn_disconnect_request, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -62,26 +62,27 @@ int decode_pdn_disconnect_request(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case PDN_DISCONNECT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
-        if ((decoded_result = decode_protocol_configuration_options_ie(
-                 &pdn_disconnect_request->protocolconfigurationoptions, true,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case PDN_DISCONNECT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
+      if ((decoded_result = decode_protocol_configuration_options_ie(
+               &pdn_disconnect_request->protocolconfigurationoptions, true,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        pdn_disconnect_request->presencemask |=
-            PDN_DISCONNECT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      pdn_disconnect_request->presencemask |=
+          PDN_DISCONNECT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -89,7 +90,7 @@ int decode_pdn_disconnect_request(
 }
 
 int encode_pdn_disconnect_request(
-    pdn_disconnect_request_msg* pdn_disconnect_request, uint8_t* buffer,
+    pdn_disconnect_request_msg *pdn_disconnect_request, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   int encode_result = 0;

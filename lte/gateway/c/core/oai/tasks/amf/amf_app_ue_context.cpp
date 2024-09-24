@@ -16,32 +16,31 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
-#include "lte/gateway/c/core/oai/include/map.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
-std::shared_ptr<smf_context_t> amf_insert_smf_context(ue_m5gmm_context_s*,
+std::shared_ptr<smf_context_t> amf_insert_smf_context(ue_m5gmm_context_s *,
                                                       uint8_t);
 
-amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
-    amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p) {
+amf_ue_ngap_id_t
+amf_app_ctx_get_new_ue_id(amf_ue_ngap_id_t *amf_app_ue_ngap_id_generator_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_ue_ngap_id_t tmp = 0;
   tmp = __sync_fetch_and_add(amf_app_ue_ngap_id_generator_p, 1);
@@ -57,9 +56,9 @@ amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
  **                                                                        **
  ***************************************************************************/
 void notify_ngap_new_ue_amf_ngap_id_association(
-    const ue_m5gmm_context_s* ue_context_p) {
-  MessageDef* message_p = NULL;
-  itti_amf_app_ngap_amf_ue_id_notification_t* notification_p = NULL;
+    const ue_m5gmm_context_s *ue_context_p) {
+  MessageDef *message_p = NULL;
+  itti_amf_app_ngap_amf_ue_id_notification_t *notification_p = NULL;
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (ue_context_p == NULL) {
@@ -86,12 +85,12 @@ void notify_ngap_new_ue_amf_ngap_id_association(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-status_code_e amf_insert_ue_context(
-    amf_ue_context_t* const amf_ue_context_p,
-    struct ue_m5gmm_context_s* const ue_context_p) {
+status_code_e
+amf_insert_ue_context(amf_ue_context_t *const amf_ue_context_p,
+                      struct ue_m5gmm_context_s *const ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   magma::map_rc_t m_rc = magma::MAP_OK;
-  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
+  map_uint64_ue_context_t *amf_state_ue_id_ht = get_amf_ue_state();
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ue_context_p == NULL) {
@@ -127,7 +126,7 @@ status_code_e amf_insert_ue_context(
   }
 
   if (INVALID_AMF_UE_NGAP_ID != ue_context_p->amf_ue_ngap_id) {
-    ue_m5gmm_context_s* tmp_ue_context_p = NULL;
+    ue_m5gmm_context_s *tmp_ue_context_p = NULL;
     if (amf_state_ue_id_ht->get(ue_context_p->amf_ue_ngap_id,
                                 &tmp_ue_context_p) == magma::MAP_OK) {
       OAILOG_WARNING(
@@ -169,7 +168,7 @@ status_code_e amf_insert_ue_context(
         (0 != ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
         (INVALID_TMSI != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn
-                  .mcc_digit1) ||  // MCC 000 does not exist in ITU table
+                  .mcc_digit1) || // MCC 000 does not exist in ITU table
         (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
         (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) {
       m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(
@@ -196,7 +195,7 @@ status_code_e amf_insert_ue_context(
  ** Description: Init amf context                                          **
  **                                                                        **
  ***************************************************************************/
-void amf_init_amf_context(amf_context_t* amf_ctx) {
+void amf_init_amf_context(amf_context_t *amf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_ctx->_security.eksi = KSI_NO_KEY_AVAILABLE;
   amf_ctx->m5_guti.m_tmsi = INVALID_TMSI;
@@ -212,10 +211,10 @@ void amf_init_amf_context(amf_context_t* amf_ctx) {
  **                                                                        **
  ***************************************************************************/
 // warning: lock the UE context
-ue_m5gmm_context_s* amf_create_new_ue_context(void) {
+ue_m5gmm_context_s *amf_create_new_ue_context(void) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   // Make ue_context zero initialize
-  ue_m5gmm_context_s* new_p = new ue_m5gmm_context_s();
+  ue_m5gmm_context_s *new_p = new ue_m5gmm_context_s();
 
   if (!new_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
@@ -257,12 +256,12 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
  ** Return: amf_context structure,Success case                             **
  **         NULL ,Failure case                                             **
  ***************************************************************************/
-amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id) {
+amf_context_t *amf_context_get(const amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_context_t* amf_context_p = nullptr;
+  amf_context_t *amf_context_p = nullptr;
 
   if (INVALID_AMF_UE_NGAP_ID != ue_id) {
-    ue_m5gmm_context_s* ue_mm_context =
+    ue_m5gmm_context_s *ue_mm_context =
         amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
     if (ue_mm_context) {
@@ -281,8 +280,9 @@ amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-struct ue_m5gmm_context_s* amf_ue_context_exists_imsi(
-    amf_ue_context_t* const amf_ue_context_p, imsi64_t imsi64) {
+struct ue_m5gmm_context_s *
+amf_ue_context_exists_imsi(amf_ue_context_t *const amf_ue_context_p,
+                           imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   magma::map_rc_t m_rc = magma::MAP_OK;
   uint64_t amf_ue_ngap_id64 = 0;
@@ -306,13 +306,13 @@ struct ue_m5gmm_context_s* amf_ue_context_exists_imsi(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* amf_get_ue_context_from_imsi(char* imsi) {
+ue_m5gmm_context_s *amf_get_ue_context_from_imsi(char *imsi) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   imsi64_t imsi64 = INVALID_IMSI64;
 
-  IMSI_STRING_TO_IMSI64((char*)imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char *)imsi, &imsi64);
 
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
 
   OAILOG_FUNC_RETURN(
       LOG_AMF_APP,
@@ -327,11 +327,12 @@ ue_m5gmm_context_s* amf_get_ue_context_from_imsi(char* imsi) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* amf_ue_context_exists_guti(
-    amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p) {
+ue_m5gmm_context_s *
+amf_ue_context_exists_guti(amf_ue_context_t *const amf_ue_context_p,
+                           const guti_m5_t *const guti_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   uint64_t amf_ue_ngap_id64 = 0;
-  ue_m5gmm_context_t* ue_context_p = NULL;
+  ue_m5gmm_context_t *ue_context_p = NULL;
 
   if (amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64) ==
       magma::MAP_OK) {
@@ -356,11 +357,11 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
-    const amf_ue_ngap_id_t amf_ue_ngap_id) {
+ue_m5gmm_context_s *
+amf_ue_context_exists_amf_ue_ngap_id(const amf_ue_ngap_id_t amf_ue_ngap_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  struct ue_m5gmm_context_s* ue_context_p = NULL;
-  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
+  struct ue_m5gmm_context_s *ue_context_p = NULL;
+  map_uint64_ue_context_t *amf_state_ue_id_ht = get_amf_ue_state();
 
   if (amf_state_ue_id_ht->get(amf_ue_ngap_id, &ue_context_p) != magma::MAP_OK) {
     OAILOG_WARNING(LOG_AMF_APP,
@@ -381,8 +382,9 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* amf_ue_context_exists_gnb_ue_ngap_id(
-    amf_ue_context_t* const amf_ue_context_p, const gnb_ngap_id_key_t gnb_key) {
+ue_m5gmm_context_s *
+amf_ue_context_exists_gnb_ue_ngap_id(amf_ue_context_t *const amf_ue_context_p,
+                                     const gnb_ngap_id_key_t gnb_key) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   magma::map_rc_t m_rc = magma::MAP_OK;
   uint64_t amf_ue_ngap_id64 = 0;
@@ -405,8 +407,8 @@ ue_m5gmm_context_s* amf_ue_context_exists_gnb_ue_ngap_id(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-std::shared_ptr<smf_context_t> amf_insert_smf_context(
-    ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id) {
+std::shared_ptr<smf_context_t>
+amf_insert_smf_context(ue_m5gmm_context_s *ue_context, uint8_t pdu_session_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   std::shared_ptr<smf_context_t> smf_context;
   smf_context =
@@ -428,11 +430,12 @@ std::shared_ptr<smf_context_t> amf_insert_smf_context(
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
-    ue_m5gmm_context_s* ue_context, uint8_t id) {
+std::shared_ptr<smf_context_t>
+amf_get_smf_context_by_pdu_session_id(ue_m5gmm_context_s *ue_context,
+                                      uint8_t id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   std::shared_ptr<smf_context_t> smf_context;
-  for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+  for (const auto &it : ue_context->amf_context.smf_ctxt_map) {
     if (it.first == id) {
       smf_context = it.second;
       break;
@@ -450,12 +453,12 @@ std::shared_ptr<smf_context_t> amf_get_smf_context_by_pdu_session_id(
  **                                                                        **
  ***************************************************************************/
 // in upcoming PR with MAP implementation, this routine will be depricated
-int amf_context_upsert_imsi(amf_context_t* elm) {
+int amf_context_upsert_imsi(amf_context_t *elm) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   magma::map_rc_t m_rc = magma::MAP_OK;
   amf_ue_ngap_id_t ue_id =
       (PARENT_STRUCT(elm, ue_m5gmm_context_s, amf_context))->amf_ue_ngap_id;
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
 
   m_rc =
       amf_app_desc_p->amf_ue_contexts.imsi_amf_ue_id_htbl.remove(elm->imsi64);
@@ -485,8 +488,8 @@ int amf_context_upsert_imsi(amf_context_t* elm) {
  ** Outputs: ue_m5gmm_context_s: pointer to ue context                     **
  **                                                                        **
  ***************************************************************************/
-ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+ue_m5gmm_context_s *lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
 
   return (amf_ue_context_exists_imsi(&amf_app_desc_p->amf_ue_contexts, imsi64));
 }
@@ -500,7 +503,7 @@ ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
  **                                                                        **
  ***************************************************************************/
 tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id) {
-  amf_context_t* amf_ctxt = amf_context_get(ue_id);
+  amf_context_t *amf_ctxt = amf_context_get(ue_id);
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ctxt == NULL) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
@@ -517,14 +520,14 @@ tmsi_t amf_lookup_guti_by_ueid(amf_ue_ngap_id_t ue_id) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-status_code_e amf_idle_mode_procedure(amf_context_t* amf_ctx) {
+status_code_e amf_idle_mode_procedure(amf_context_t *amf_ctx) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p =
+  ue_m5gmm_context_s *ue_context_p =
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context);
   amf_ue_ngap_id_t ue_id = ue_context_p->amf_ue_ngap_id;
 
   std::shared_ptr<smf_context_t> smf_ctx;
-  for (auto& it : ue_context_p->amf_context.smf_ctxt_map) {
+  for (auto &it : ue_context_p->amf_context.smf_ctxt_map) {
     smf_ctx = it.second;
     smf_ctx->pdu_session_state = INACTIVE;
     amf_smf_notification_send(ue_id, ue_context_p, UE_IDLE_MODE_NOTIFY,
@@ -543,10 +546,10 @@ status_code_e amf_idle_mode_procedure(amf_context_t* amf_ctx) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
+void amf_free_ue_context(ue_m5gmm_context_s *ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
-  amf_ue_context_t* amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
+  amf_ue_context_t *amf_ue_context_p = &amf_app_desc_p->amf_ue_contexts;
   OAILOG_DEBUG(LOG_AMF_APP, "amf_free_ue_context \n");
   if (!ue_context_p || !amf_ue_context_p) {
     return;
@@ -565,8 +568,8 @@ void amf_free_ue_context(ue_m5gmm_context_s* ue_context_p) {
  **                                                                        **
  **                                                                        **
  ***************************************************************************/
-void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
-                               struct ue_m5gmm_context_s* ue_context_p) {
+void proc_new_registration_req(amf_ue_context_t *const amf_ue_context_p,
+                               struct ue_m5gmm_context_s *ue_context_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   OAILOG_INFO(LOG_AMF_APP,
@@ -611,7 +614,7 @@ void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
   amf_remove_ue_context(amf_ue_context_p, ue_context_p);
 
   // Proceed with new attach request
-  ue_m5gmm_context_t* ue_m5gmm_context =
+  ue_m5gmm_context_t *ue_m5gmm_context =
       amf_ue_context_exists_amf_ue_ngap_id(registration_info.amf_ue_ngap_id);
 
   if (ue_m5gmm_context == NULL) {
@@ -621,7 +624,7 @@ void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
-  amf_context_t* new_amf_ctx = &ue_m5gmm_context->amf_context;
+  amf_context_t *new_amf_ctx = &ue_m5gmm_context->amf_context;
 
   new_amf_ctx->is_dynamic = true;
 
@@ -636,12 +639,12 @@ void proc_new_registration_req(amf_ue_context_t* const amf_ue_context_p,
 }
 
 //------------------------------------------------------------------------------
-int amf_app_handle_implicit_deregistration_timer_expiry(zloop_t* loop,
+int amf_app_handle_implicit_deregistration_timer_expiry(zloop_t *loop,
                                                         int timer_id,
-                                                        void* args) {
+                                                        void *args) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t *amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
 
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
@@ -652,7 +655,7 @@ int amf_app_handle_implicit_deregistration_timer_expiry(zloop_t* loop,
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
-  ue_m5gmm_context_s* ue_context_p =
+  ue_m5gmm_context_s *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
@@ -681,12 +684,12 @@ int amf_app_handle_implicit_deregistration_timer_expiry(zloop_t* loop,
 }
 
 //------------------------------------------------------------------------------
-static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
+static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t *loop,
                                                            int timer_id,
-                                                           void* args) {
+                                                           void *args) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t *amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
 
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
@@ -697,7 +700,7 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
-  ue_m5gmm_context_s* ue_context_p =
+  ue_m5gmm_context_s *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
@@ -747,8 +750,8 @@ static int amf_app_handle_mobile_reachability_timer_expiry(zloop_t* loop,
 }
 
 void amf_ue_context_update_ue_sig_connection_state(
-    amf_ue_context_t* const amf_ue_context_p,
-    struct ue_m5gmm_context_s* ue_context_p, m5gcm_state_t new_cm_state) {
+    amf_ue_context_t *const amf_ue_context_p,
+    struct ue_m5gmm_context_s *ue_context_p, m5gcm_state_t new_cm_state) {
   // Function is used to update UE's Signaling Connection State
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
@@ -866,9 +869,9 @@ void amf_ue_context_update_ue_sig_connection_state(
 }
 
 // Context release timer expiry
-static int amf_ue_context_release_complete_timer_handler(zloop_t* loop,
+static int amf_ue_context_release_complete_timer_handler(zloop_t *loop,
                                                          int timer_id,
-                                                         void* output) {
+                                                         void *output) {
   amf_ue_ngap_id_t ue_id = 0;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
@@ -880,7 +883,7 @@ static int amf_ue_context_release_complete_timer_handler(zloop_t* loop,
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
 
-  ue_m5gmm_context_s* ue_amf_context =
+  ue_m5gmm_context_s *ue_amf_context =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context == NULL) {
@@ -896,7 +899,7 @@ static int amf_ue_context_release_complete_timer_handler(zloop_t* loop,
 }
 
 // Api for release UE context
-void amf_ctx_release_ue_context(ue_m5gmm_context_s* ue_context_p,
+void amf_ctx_release_ue_context(ue_m5gmm_context_s *ue_context_p,
                                 n2cause_e n2_cause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!ue_context_p) {
@@ -920,9 +923,9 @@ void amf_ctx_release_ue_context(ue_m5gmm_context_s* ue_context_p,
 
 // Get the ue_context release cause
 status_code_e amf_get_ue_context_rel_cause(amf_ue_ngap_id_t ue_id,
-                                           n2cause_e* ue_context_rel_cause) {
+                                           n2cause_e *ue_context_rel_cause) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p =
+  ue_m5gmm_context_s *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
@@ -935,9 +938,9 @@ status_code_e amf_get_ue_context_rel_cause(amf_ue_ngap_id_t ue_id,
 
 // Get the ue_context mm state
 status_code_e amf_get_ue_context_mm_state(amf_ue_ngap_id_t ue_id,
-                                          m5gmm_state_t* mm_state) {
+                                          m5gmm_state_t *mm_state) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p =
+  ue_m5gmm_context_s *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
@@ -950,9 +953,9 @@ status_code_e amf_get_ue_context_mm_state(amf_ue_ngap_id_t ue_id,
 
 // Get the ue_context cm state
 status_code_e amf_get_ue_context_cm_state(amf_ue_ngap_id_t ue_id,
-                                          m5gcm_state_t* cm_state) {
+                                          m5gcm_state_t *cm_state) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p =
+  ue_m5gmm_context_s *ue_context_p =
       amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context_p == NULL) {
@@ -964,8 +967,8 @@ status_code_e amf_get_ue_context_cm_state(amf_ue_ngap_id_t ue_id,
 }
 
 /* Get the ue id from IMSI */
-bool get_amf_ue_id_from_imsi(amf_ue_context_t* amf_ue_context_p,
-                             imsi64_t imsi64, amf_ue_ngap_id_t* ue_id) {
+bool get_amf_ue_id_from_imsi(amf_ue_context_t *amf_ue_context_p,
+                             imsi64_t imsi64, amf_ue_ngap_id_t *ue_id) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   magma::map_rc_t rc_map = magma::MAP_OK;
   rc_map = amf_ue_context_p->imsi_amf_ue_id_htbl.get(imsi64, ue_id);
@@ -975,4 +978,4 @@ bool get_amf_ue_id_from_imsi(amf_ue_context_t* amf_ue_context_p,
   OAILOG_FUNC_RETURN(LOG_AMF_APP, true);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

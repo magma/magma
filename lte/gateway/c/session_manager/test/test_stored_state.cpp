@@ -11,12 +11,12 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <cstdint>
 #include <google/protobuf/timestamp.pb.h>
 #include <gtest/gtest.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <algorithm>
-#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -31,7 +31,7 @@ using ::testing::Test;
 namespace magma {
 
 class StoredStateTest : public ::testing::Test {
- protected:
+protected:
   SessionConfig get_stored_session_config() {
     SessionConfig stored;
     Teids teids;
@@ -39,7 +39,7 @@ class StoredStateTest : public ::testing::Test {
     teids.set_enb_teid(2);
     stored.common_context = build_common_context(
         "IMSI1", "ue_ipv4", "ue_ipv6", teids, "apn", "msisdn", TGPP_WLAN);
-    const auto& lte_context =
+    const auto &lte_context =
         build_lte_context("192.168.0.2", "imei", "plmn_id", "imsi_plmn_id",
                           "user_location", 321, nullptr);
     stored.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
@@ -405,4 +405,4 @@ TEST_F(StoredStateTest, test_policy_stats_map) {
   // Check that the value is empty by default
   EXPECT_FALSE(get_default_update_criteria().policy_version_and_stats);
 }
-}  // namespace magma
+} // namespace magma

@@ -16,8 +16,8 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
-#include <string>
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
+#include <string>
 
 extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
@@ -36,14 +36,14 @@ using namespace orc8r;
 
 S1apServiceImpl::S1apServiceImpl() {}
 
-Status S1apServiceImpl::GetENBState(ServerContext* context, const Void* request,
-                                    EnbStateResult* response) {
+Status S1apServiceImpl::GetENBState(ServerContext *context, const Void *request,
+                                    EnbStateResult *response) {
   OAILOG_DEBUG(LOG_UTIL, "Received GetENBState GRPC request\n");
 
   // Get state from S1APStateManager
   // TODO: Get state through ITTI message from S1AP task, as it's read only
   // it will not affect ownership
-  oai::S1apState* s1ap_state = get_s1ap_state(false);
+  oai::S1apState *s1ap_state = get_s1ap_state(false);
   if (s1ap_state != nullptr) {
     if (!(s1ap_state->enbs_size())) {
       return Status::OK;
@@ -61,4 +61,4 @@ Status S1apServiceImpl::GetENBState(ServerContext* context, const Void* request,
   return Status::OK;
 }
 
-}  // namespace magma
+} // namespace magma

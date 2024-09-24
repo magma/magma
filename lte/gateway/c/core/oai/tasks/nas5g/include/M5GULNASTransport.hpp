@@ -10,21 +10,21 @@
 */
 
 #pragma once
-#include <sstream>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GRequestType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GDNN.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNSSAI.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GRequestType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 // ULNASTransport Message Class
 class ULNASTransportMsg {
- public:
+public:
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SpareHalfOctetMsg spare_half_octet;
   SecurityHeaderTypeMsg sec_header_type;
@@ -39,12 +39,12 @@ class ULNASTransportMsg {
 
   ULNASTransportMsg();
   ~ULNASTransportMsg();
-  int DecodeULNASTransportMsg(ULNASTransportMsg* ul_nas_transport,
-                              uint8_t* buffer, uint32_t len);
-  int EncodeULNASTransportMsg(ULNASTransportMsg* ul_nas_transport,
-                              uint8_t* buffer, uint32_t len);
+  int DecodeULNASTransportMsg(ULNASTransportMsg *ul_nas_transport,
+                              uint8_t *buffer, uint32_t len);
+  int EncodeULNASTransportMsg(ULNASTransportMsg *ul_nas_transport,
+                              uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    SPEC TS-24501  Table 8.2.10.1.1: UL NAS TRANSPORT message content

@@ -13,13 +13,13 @@
 
 #pragma once
 
-#include <gtest/gtest.h>
-#include <stdlib.h>
-#include <string.h>
 #include <chrono>
 #include <cstdint>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <memory>
+#include <stdlib.h>
+#include <string.h>
 #include <string>
 #include <thread>
 
@@ -27,13 +27,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
 }
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 extern bool hss_associated;
 
@@ -45,7 +45,7 @@ class SPGWAppProcedureTest : public ::testing::Test {
 
   virtual void TearDown();
 
- protected:
+protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::string test_imsi_str = "001010000000001";
   std::string invalid_imsi_str = "001010000000002";
@@ -74,12 +74,12 @@ class SPGWAppProcedureTest : public ::testing::Test {
       .gbr = {.br_ul = 200000000, .br_dl = 100000000},
       .mbr = {.br_ul = 200000000, .br_dl = 100000000}};
 
-  teid_t create_default_session(spgw_state_t* spgw_state);
+  teid_t create_default_session(spgw_state_t *spgw_state);
   ebi_t activate_dedicated_bearer(
-      spgw_state_t* spgw_state,
-      magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p,
+      spgw_state_t *spgw_state,
+      magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p,
       teid_t ue_sgw_teid);
-  void deactivate_dedicated_bearer(spgw_state_t* spgw_state, teid_t ue_sgw_teid,
+  void deactivate_dedicated_bearer(spgw_state_t *spgw_state, teid_t ue_sgw_teid,
                                    ebi_t ded_eps_bearer_id);
 };
 
@@ -134,5 +134,5 @@ MATCHER_P2(check_params_in_suspend_ack, return_val, teid, "") {
   }
   return false;
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

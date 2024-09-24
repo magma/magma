@@ -10,11 +10,11 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 namespace magma5g {
 class M5GPDUSessionReActivationResult {
- public:
+public:
   uint8_t iei;
   uint8_t len;
   uint16_t pduSessionReActivationResult;
@@ -22,10 +22,10 @@ class M5GPDUSessionReActivationResult {
   M5GPDUSessionReActivationResult();
   ~M5GPDUSessionReActivationResult();
   int EncodePDUSessionReActivationResult(
-      M5GPDUSessionReActivationResult* pduSessionReActivationStatus,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
+      M5GPDUSessionReActivationResult *pduSessionReActivationStatus,
+      uint8_t iei, uint8_t *buffer, uint32_t len);
   int DecodePDUSessionReActivationResult(
-      M5GPDUSessionReActivationResult* pduSessionReActivationStatus,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
+      M5GPDUSessionReActivationResult *pduSessionReActivationStatus,
+      uint8_t iei, uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

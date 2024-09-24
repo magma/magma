@@ -38,7 +38,7 @@ void s1ap_stop_timer(int timer_id);
 
 // The *_pop_timer_* functions also removes the timer_id from the map.
 // These functions are supposed to be used only by expired timers.
-bool s1ap_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t* ue_id);
+bool s1ap_pop_timer_arg_ue_id(int timer_id, mme_ue_s1ap_id_t *ue_id);
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

@@ -12,9 +12,9 @@
  */
 #include "lte/gateway/c/session_manager/StatsPoller.hpp"
 
-#include <stdint.h>
 #include <chrono>
 #include <memory>
+#include <stdint.h>
 #include <thread>
 
 #include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
@@ -33,4 +33,4 @@ void StatsPoller::start_loop(
   }
 }
 
-}  // namespace magma
+} // namespace magma

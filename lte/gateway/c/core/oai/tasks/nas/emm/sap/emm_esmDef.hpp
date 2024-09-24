@@ -115,7 +115,7 @@ struct emm_context_s;
 typedef struct {
   emm_esm_primitive_t primitive;
   mme_ue_s1ap_id_t ue_id;
-  struct emm_context_s* ctx;
+  struct emm_context_s *ctx;
   union {
     emm_esm_establish_t establish;
     emm_esm_data_t data;

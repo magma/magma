@@ -10,12 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <future>
 #include <glog/logging.h>
 #include <google/protobuf/util/message_differencer.h>
 #include <gtest/gtest.h>
-#include <stdio.h>
-#include <future>
 #include <memory>
+#include <stdio.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -91,8 +91,8 @@ MATCHER_P(CheckTeidVector, expected, "") {
     return false;
   }
   for (uint32_t i = 0; i < req_teids.size(); i++) {
-    const Teids& expected_teids = expected[i];
-    const Teids& actual_teids = req_teids[i];
+    const Teids &expected_teids = expected[i];
+    const Teids &actual_teids = req_teids[i];
     if ((expected_teids.agw_teid() != actual_teids.agw_teid()) ||
         (expected_teids.enb_teid() != actual_teids.enb_teid())) {
       return false;
@@ -109,8 +109,8 @@ MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
 }
 
 MATCHER_P(CheckUpdateRequestNumber, request_number, "") {
-  auto request = static_cast<const UpdateSessionRequest&>(arg);
-  for (const auto& credit_usage_update : request.updates()) {
+  auto request = static_cast<const UpdateSessionRequest &>(arg);
+  for (const auto &credit_usage_update : request.updates()) {
     int req_number = credit_usage_update.request_number();
     return req_number == request_number;
   }
@@ -118,8 +118,8 @@ MATCHER_P(CheckUpdateRequestNumber, request_number, "") {
 }
 
 MATCHER_P(CheckCoreRequest, expected_request, "") {
-  auto req = static_cast<const CreateSessionRequest&>(arg);
-  auto ex_req = static_cast<const CreateSessionRequest&>(expected_request);
+  auto req = static_cast<const CreateSessionRequest &>(arg);
+  auto ex_req = static_cast<const CreateSessionRequest &>(expected_request);
   if (!google::protobuf::util::MessageDifferencer::Equals(
           ex_req.requested_units(), req.requested_units())) {
     return false;
@@ -174,7 +174,7 @@ MATCHER_P6(CheckSessionInfos, imsi_list, ip_address_list, ipv6_address_list,
     // check ambr field if config has qos_info
     if (cfg.rat_specific_context.has_lte_context() &&
         cfg.rat_specific_context.lte_context().has_qos_info()) {
-      const auto& qos_info = cfg.rat_specific_context.lte_context().qos_info();
+      const auto &qos_info = cfg.rat_specific_context.lte_context().qos_info();
       if (!info.ambr) {
         return false;
       } else if (info.ambr->max_bandwidth_ul() != qos_info.apn_ambr_ul()) {
@@ -252,19 +252,19 @@ MATCHER_P(CheckSubscriberQuotaUpdate, quota, "") {
 }
 
 MATCHER_P2(CheckCreateSession, imsi, promise_p, "") {
-  auto req = static_cast<const CreateSessionRequest*>(arg);
+  auto req = static_cast<const CreateSessionRequest *>(arg);
   promise_p->set_value(req->session_id());
   auto res = req->common_context().sid().id() == imsi;
   return res;
 }
 
 MATCHER_P(CheckSingleUpdate, expected_update, "") {
-  auto request = static_cast<const UpdateSessionRequest*>(arg);
+  auto request = static_cast<const UpdateSessionRequest *>(arg);
   if (request->updates_size() != 1) {
     return false;
   }
 
-  auto& update = request->updates(0);
+  auto &update = request->updates(0);
   bool val =
       update.usage().type() == expected_update.usage().type() &&
       update.usage().bytes_tx() == expected_update.usage().bytes_tx() &&
@@ -276,13 +276,13 @@ MATCHER_P(CheckSingleUpdate, expected_update, "") {
 }
 
 MATCHER_P(CheckTerminate, imsi, "") {
-  auto request = static_cast<const SessionTerminateRequest*>(arg);
+  auto request = static_cast<const SessionTerminateRequest *>(arg);
   return request->common_context().sid().id() == imsi;
 }
 
 MATCHER_P6(CheckActivateFlowsForTunnIds, imsi, ipv4, ipv6, enb_teid, agw_teid,
            rule_count, "") {
-  auto request = static_cast<const ActivateFlowsRequest*>(arg);
+  auto request = static_cast<const ActivateFlowsRequest *>(arg);
   std::cerr << "Got " << request->policies_size() << " rules" << std::endl;
   auto res = request->sid().id() == imsi && request->ip_addr() == ipv4 &&
              request->ipv6_addr() == ipv6 &&
@@ -293,7 +293,7 @@ MATCHER_P6(CheckActivateFlowsForTunnIds, imsi, ipv4, ipv6, enb_teid, agw_teid,
 }
 
 MATCHER_P(CheckDeactivateFlows, imsi, "") {
-  auto request = static_cast<const DeactivateFlowsRequest*>(arg);
+  auto request = static_cast<const DeactivateFlowsRequest *>(arg);
   return request->sid().id() == imsi;
 }
 
@@ -359,4 +359,4 @@ MATCHER_P(SessionCheck, request, "") {
   return res;
 }
 
-};  // namespace magma
+}; // namespace magma

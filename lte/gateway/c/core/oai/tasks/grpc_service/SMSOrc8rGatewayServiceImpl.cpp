@@ -30,15 +30,15 @@ extern "C" {
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class SMODownlinkUnitdata;
-}  // namespace lte
+} // namespace lte
 namespace orc8r {
 class Void;
-}  // namespace orc8r
-}  // namespace magma
+} // namespace orc8r
+} // namespace magma
 
 using grpc::ServerContext;
 
@@ -46,9 +46,10 @@ namespace magma {
 
 SMSOrc8rGatewayServiceImpl::SMSOrc8rGatewayServiceImpl() {}
 
-grpc::Status SMSOrc8rGatewayServiceImpl::SMODownlink(
-    ServerContext* context, const SMODownlinkUnitdata* request,
-    Void* response) {
+grpc::Status
+SMSOrc8rGatewayServiceImpl::SMODownlink(ServerContext *context,
+                                        const SMODownlinkUnitdata *request,
+                                        Void *response) {
   itti_sgsap_downlink_unitdata_t itti_msg;
   convert_proto_msg_to_itti_sgsap_downlink_unitdata(request, &itti_msg);
   OAILOG_DEBUG(
@@ -59,4 +60,4 @@ grpc::Status SMSOrc8rGatewayServiceImpl::SMODownlink(
   return grpc::Status::OK;
 }
 
-}  // namespace magma
+} // namespace magma

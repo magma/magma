@@ -34,8 +34,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
-#include <string.h>  // memset
-#include <stdlib.h>  // malloc, free
+#include <stdlib.h> // malloc, free
+#include <string.h> // memset
 
 #ifdef __cplusplus
 extern "C" {
@@ -58,8 +58,8 @@ status_code_e nas_timer_init(void) { return (RETURNok); }
 void nas_timer_cleanup(void) {}
 
 //------------------------------------------------------------------------------
-void nas_timer_start(struct nas_timer_s* const timer, time_out_t time_out_cb,
-                     timer_arg_t* time_out_cb_args) {
+void nas_timer_start(struct nas_timer_s *const timer, time_out_t time_out_cb,
+                     timer_arg_t *time_out_cb_args) {
   if ((timer) && (timer->id == NAS_TIMER_INACTIVE_ID)) {
     timer->id = mme_app_start_timer_arg(timer->msec, TIMER_REPEAT_ONCE,
                                         time_out_cb, time_out_cb_args);
@@ -77,7 +77,7 @@ void nas_timer_start(struct nas_timer_s* const timer, time_out_t time_out_cb,
 }
 
 //------------------------------------------------------------------------------
-void nas_timer_stop(struct nas_timer_s* const timer) {
+void nas_timer_stop(struct nas_timer_s *const timer) {
   if ((timer) && (timer->id != NAS_TIMER_INACTIVE_ID)) {
     mme_app_stop_timer(timer->id);
     timer->id = NAS_TIMER_INACTIVE_ID;

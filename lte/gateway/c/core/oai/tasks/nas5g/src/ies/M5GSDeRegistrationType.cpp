@@ -9,18 +9,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSDeRegistrationType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <iostream>
+#include <sstream>
 
 namespace magma5g {
 M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg(){};
 M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg(){};
 
 int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
-    M5GSDeRegistrationTypeMsg* de_reg_type, uint8_t iei, uint8_t* buffer,
+    M5GSDeRegistrationTypeMsg *de_reg_type, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   uint8_t decoded = 0;
 
@@ -31,7 +31,7 @@ int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
 };
 
 int M5GSDeRegistrationTypeMsg::EncodeM5GSDeRegistrationTypeMsg(
-    M5GSDeRegistrationTypeMsg* de_reg_type, uint8_t iei, uint8_t* buffer,
+    M5GSDeRegistrationTypeMsg *de_reg_type, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   uint8_t encoded = 0;
 
@@ -41,4 +41,4 @@ int M5GSDeRegistrationTypeMsg::EncodeM5GSDeRegistrationTypeMsg(
   encoded++;
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

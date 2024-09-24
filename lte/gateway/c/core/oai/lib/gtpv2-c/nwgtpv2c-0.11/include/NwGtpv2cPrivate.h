@@ -40,13 +40,13 @@
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/tree.h"
 
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwError.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cMsgIeParseInfo.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2cTunnel.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwError.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cIe.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwGtpv2cMsg.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
 
 /**
  * @file NwGtpv2cPrivate.h
@@ -58,31 +58,31 @@
 extern "C" {
 #endif
 
-#define NW_GTPV2C_MALLOC(_stack, _size, _mem, _type)                        \
-  do {                                                                      \
-    if (((nw_gtpv2c_stack_t*)(_stack))->memMgr.memAlloc &&                  \
-        ((nw_gtpv2c_stack_t*)(_stack))->memMgr.memFree) {                   \
-      _mem = (_type)((nw_gtpv2c_stack_t*)(_stack))                          \
-                 ->memMgr.memAlloc(                                         \
-                     ((nw_gtpv2c_stack_t*)(_stack))->memMgr.hMemMgr, _size, \
-                     __FILE__, __LINE__);                                   \
-      Fatal("Do not use this Mem manager");                                 \
-    } else {                                                                \
-      _mem = (_type)calloc(1, _size);                                       \
-    }                                                                       \
+#define NW_GTPV2C_MALLOC(_stack, _size, _mem, _type)                           \
+  do {                                                                         \
+    if (((nw_gtpv2c_stack_t *)(_stack))->memMgr.memAlloc &&                    \
+        ((nw_gtpv2c_stack_t *)(_stack))->memMgr.memFree) {                     \
+      _mem = (_type)((nw_gtpv2c_stack_t *)(_stack))                            \
+                 ->memMgr.memAlloc(                                            \
+                     ((nw_gtpv2c_stack_t *)(_stack))->memMgr.hMemMgr, _size,   \
+                     __FILE__, __LINE__);                                      \
+      Fatal("Do not use this Mem manager");                                    \
+    } else {                                                                   \
+      _mem = (_type)calloc(1, _size);                                          \
+    }                                                                          \
   } while (0)
 
-#define NW_GTPV2C_FREE(_stack, _mem)                                       \
-  do {                                                                     \
-    if (((nw_gtpv2c_stack_t*)(_stack))->memMgr.memAlloc &&                 \
-        ((nw_gtpv2c_stack_t*)(_stack))->memMgr.memFree) {                  \
-      ((nw_gtpv2c_stack_t*)(_stack))                                       \
-          ->memMgr.memFree(((nw_gtpv2c_stack_t*)(_stack))->memMgr.hMemMgr, \
-                           _mem, __FILE__, __LINE__);                      \
-      Fatal("Do not use this Mem manager");                                \
-    } else {                                                               \
-      free((void*)_mem);                                                   \
-    }                                                                      \
+#define NW_GTPV2C_FREE(_stack, _mem)                                           \
+  do {                                                                         \
+    if (((nw_gtpv2c_stack_t *)(_stack))->memMgr.memAlloc &&                    \
+        ((nw_gtpv2c_stack_t *)(_stack))->memMgr.memFree) {                     \
+      ((nw_gtpv2c_stack_t *)(_stack))                                          \
+          ->memMgr.memFree(((nw_gtpv2c_stack_t *)(_stack))->memMgr.hMemMgr,    \
+                           _mem, __FILE__, __LINE__);                          \
+      Fatal("Do not use this Mem manager");                                    \
+    } else {                                                                   \
+      free((void *)_mem);                                                      \
+    }                                                                          \
   } while (0)
 
 /*--------------------------------------------------------------------------*
@@ -105,8 +105,8 @@ typedef struct nw_gtpv2c_stack_s {
   uint32_t logLevel;
   uint32_t restartCounter;
 
-  nw_gtpv2c_msg_ie_parse_info_t* pGtpv2cMsgIeParseInfo[NW_GTP_MSG_END];
-  struct nw_gtpv2c_timeout_info_s* activeTimerInfo;
+  nw_gtpv2c_msg_ie_parse_info_t *pGtpv2cMsgIeParseInfo[NW_GTP_MSG_END];
+  struct nw_gtpv2c_timeout_info_s *activeTimerInfo;
 
   RB_HEAD(NwGtpv2cTunnelMap, nw_gtpv2c_tunnel_s) tunnelMap;
   RB_HEAD(NwGtpv2cOutstandingTxSeqNumTrxnMap, nw_gtpv2c_trxn_s)
@@ -129,20 +129,20 @@ typedef struct nw_gtpv2c_timeout_info_s {
   nw_gtpv2c_stack_handle_t hStack;
   struct timeval tvTimeout;
   uint32_t tmrType;
-  void* timeoutArg;
-  nw_rc_t (*timeoutCallbackFunc)(void*);
+  void *timeoutArg;
+  nw_rc_t (*timeoutCallbackFunc)(void *);
   nw_gtpv2c_timer_handle_t hTimer;
   RB_ENTRY(nw_gtpv2c_timeout_info_s)
   activeTimerListRbtNode; /**< RB Tree Data Structure Node        */
   uint32_t timerMinHeapIndex;
-  struct nw_gtpv2c_timeout_info_s* next;
+  struct nw_gtpv2c_timeout_info_s *next;
 } nw_gtpv2c_timeout_info_t;
 
 /*---------------------------------------------------------------------------
  * GTPv2c Message Container Definition
  *--------------------------------------------------------------------------*/
 
-#define NW_GTPV2C_MAX_MSG_LEN \
+#define NW_GTPV2C_MAX_MSG_LEN                                                  \
   (4096) /**< Maximum supported gtpv2c packet length including header */
 
 /**
@@ -155,19 +155,19 @@ typedef struct nw_gtpv2c_msg_s {
   uint16_t msgLen;
   uint32_t teid;
   uint32_t seqNum;
-  uint8_t* pMsgStart;
+  uint8_t *pMsgStart;
 
 #define NW_GTPV2C_MAX_GROUPED_IE_DEPTH (2)
   struct {
-    nw_gtpv2c_ie_tlv_t* pIe[NW_GTPV2C_MAX_GROUPED_IE_DEPTH];
+    nw_gtpv2c_ie_tlv_t *pIe[NW_GTPV2C_MAX_GROUPED_IE_DEPTH];
     uint8_t top;
   } groupedIeEncodeStack;
 
   bool isIeValid[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM];
-  uint8_t* pIe[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM];
+  uint8_t *pIe[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM];
   uint8_t msgBuf[NW_GTPV2C_MAX_MSG_LEN];
   nw_gtpv2c_stack_handle_t hStack;
-  struct nw_gtpv2c_msg_s* next;
+  struct nw_gtpv2c_msg_s *next;
 } nw_gtpv2c_msg_t;
 
 /**
@@ -186,12 +186,12 @@ typedef struct nw_gtpv2c_trxn_s {
   uint32_t noDelete;
   uint8_t t3Timer;
   uint8_t maxRetries;
-  nw_gtpv2c_msg_t* pMsg;
+  nw_gtpv2c_msg_t *pMsg;
   bool pt_trx; /**< Make the transaction passthrough, such that the message is
                   forwarded, if no msg is appended to the trx. */
   proc_context_t proc_context;
 
-  nw_gtpv2c_stack_t* pStack;
+  nw_gtpv2c_stack_t *pStack;
   nw_gtpv2c_timer_handle_t hRspTmr;  /**< Handle to reponse timer            */
   nw_gtpv2c_tunnel_handle_t hTunnel; /**< Handle to local tunnel context     */
   nw_gtpv2c_ulp_trxn_handle_t hUlpTrxn; /**< Handle to ULP tunnel context */
@@ -200,7 +200,7 @@ typedef struct nw_gtpv2c_trxn_s {
   outstandingTxSeqNumMapRbtNode; /**< RB Tree Data Structure Node        */
   RB_ENTRY(nw_gtpv2c_trxn_s)
   outstandingRxSeqNumMapRbtNode; /**< RB Tree Data Structure Node        */
-  struct nw_gtpv2c_trxn_s* next;
+  struct nw_gtpv2c_trxn_s *next;
 } nw_gtpv2c_trxn_t;
 
 /**
@@ -231,17 +231,17 @@ RB_PROTOTYPE(NwGtpv2cActiveTimerList, nw_gtpv2c_timeout_info_s,
  * Start Timer with ULP Timer Manager
  */
 
-nw_rc_t nwGtpv2cStartTimer(nw_gtpv2c_stack_t* thiz, uint32_t timeoutSec,
+nw_rc_t nwGtpv2cStartTimer(nw_gtpv2c_stack_t *thiz, uint32_t timeoutSec,
                            uint32_t timeoutUsec, uint32_t tmrType,
-                           nw_rc_t (*timeoutCallbackFunc)(void*),
-                           void* timeoutCallbackArg,
-                           nw_gtpv2c_timer_handle_t* phTimer);
+                           nw_rc_t (*timeoutCallbackFunc)(void *),
+                           void *timeoutCallbackArg,
+                           nw_gtpv2c_timer_handle_t *phTimer);
 
 /**
  * Stop Timer with ULP Timer Manager
  */
 
-nw_rc_t nwGtpv2cStopTimer(nw_gtpv2c_stack_t* thiz,
+nw_rc_t nwGtpv2cStopTimer(nw_gtpv2c_stack_t *thiz,
                           nw_gtpv2c_timer_handle_t hTimer);
 
 #ifdef __cplusplus

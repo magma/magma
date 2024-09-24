@@ -17,25 +17,25 @@
 
 #pragma once
 
-#include <grpc++/grpc++.h>
-#include <stdint.h>
 #include <functional>
+#include <grpc++/grpc++.h>
 #include <memory>
+#include <stdint.h>
 
 #include "lte/protos/session_manager.grpc.pb.h"
 #include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class LocalCreateSessionRequest;
 class LocalCreateSessionResponse;
 class LocalEndSessionResponse;
 class SubscriberID;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::Status;
 
@@ -49,44 +49,44 @@ using namespace lte;
  * rpc_response_loop method defined in the GRPCReceiver base class
  */
 class PCEFClient : public GRPCReceiver {
- public:
+public:
   /**
    * Proxy a CreateSession gRPC call to sessiond
    */
   static void create_session(
-      const LocalCreateSessionRequest& request,
+      const LocalCreateSessionRequest &request,
       std::function<void(Status, LocalCreateSessionResponse)> callback);
 
   /**
    * Proxy an EndSession gRPC call to sessiond
    */
-  static void end_session(
-      const LocalEndSessionRequest& request,
-      std::function<void(Status, LocalEndSessionResponse)> callback);
+  static void
+  end_session(const LocalEndSessionRequest &request,
+              std::function<void(Status, LocalEndSessionResponse)> callback);
 
   /**
    * Proxy a BindPolicy2Bearer gRPC call to sessiond
    */
   static void bind_policy2bearer(
-      const PolicyBearerBindingRequest& request,
+      const PolicyBearerBindingRequest &request,
       std::function<void(Status, PolicyBearerBindingResponse)> callback);
 
   /**
    * Proxy a UpdateTunnelIdsRequest gRPC call to sessiond
    */
-  static void update_teids(
-      const UpdateTunnelIdsRequest& request,
-      std::function<void(Status, UpdateTunnelIdsResponse)> callback);
+  static void
+  update_teids(const UpdateTunnelIdsRequest &request,
+               std::function<void(Status, UpdateTunnelIdsResponse)> callback);
 
- public:
-  PCEFClient(PCEFClient const&) = delete;
-  void operator=(PCEFClient const&) = delete;
+public:
+  PCEFClient(PCEFClient const &) = delete;
+  void operator=(PCEFClient const &) = delete;
 
- private:
+private:
   PCEFClient();
-  static PCEFClient& get_instance();
+  static PCEFClient &get_instance();
   std::unique_ptr<LocalSessionManager::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 10; // seconds
 };
 
-}  // namespace magma
+} // namespace magma

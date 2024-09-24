@@ -10,12 +10,12 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 class ImeisvRequestMsg {
- public:
+public:
 #define IMEISV_REQUEST_MINIMUM_LENGTH 1
   uint8_t iei : 4;
   uint8_t spare : 1;
@@ -23,9 +23,9 @@ class ImeisvRequestMsg {
 
   ImeisvRequestMsg();
   ~ImeisvRequestMsg();
-  int EncodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request, uint8_t iei,
-                             uint8_t* buffer, uint32_t len);
-  int DecodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request, uint8_t iei,
-                             uint8_t* buffer, uint32_t len);
+  int EncodeImeisvRequestMsg(ImeisvRequestMsg *imeisv_request, uint8_t iei,
+                             uint8_t *buffer, uint32_t len);
+  int DecodeImeisvRequestMsg(ImeisvRequestMsg *imeisv_request, uint8_t iei,
+                             uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

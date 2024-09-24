@@ -24,10 +24,10 @@
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_bearer_context.hpp"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,11 +45,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 
-static void mme_app_bearer_context_init(bearer_context_t* const bearer_context);
+static void mme_app_bearer_context_init(bearer_context_t *const bearer_context);
 
 //------------------------------------------------------------------------------
-static void mme_app_bearer_context_init(
-    bearer_context_t* const bearer_context) {
+static void
+mme_app_bearer_context_init(bearer_context_t *const bearer_context) {
   if (bearer_context) {
     memset(bearer_context, 0, sizeof(*bearer_context));
 
@@ -57,9 +57,10 @@ static void mme_app_bearer_context_init(
   }
 }
 //------------------------------------------------------------------------------
-bearer_context_t* mme_app_create_bearer_context(
-    ue_mm_context_t* const ue_mm_context, const pdn_cid_t pdn_cid,
-    const ebi_t ebi, const bool is_default) {
+bearer_context_t *
+mme_app_create_bearer_context(ue_mm_context_t *const ue_mm_context,
+                              const pdn_cid_t pdn_cid, const ebi_t ebi,
+                              const bool is_default) {
   ebi_t lebi = ebi;
   if ((EPS_BEARER_IDENTITY_FIRST > ebi) || (EPS_BEARER_IDENTITY_LAST < ebi)) {
     OAILOG_ERROR(LOG_NAS_ESM, "Received invalid ebi :%u \n", ebi);
@@ -70,8 +71,8 @@ bearer_context_t* mme_app_create_bearer_context(
     return NULL;
   }
 
-  bearer_context_t* bearer_context =
-      reinterpret_cast<bearer_context_t*>(malloc(sizeof(*bearer_context)));
+  bearer_context_t *bearer_context =
+      reinterpret_cast<bearer_context_t *>(malloc(sizeof(*bearer_context)));
 
   if (bearer_context) {
     mme_app_bearer_context_init(bearer_context);
@@ -83,13 +84,13 @@ bearer_context_t* mme_app_create_bearer_context(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_free_bearer_context(bearer_context_t** const bearer_context) {
+void mme_app_free_bearer_context(bearer_context_t **const bearer_context) {
   free_esm_bearer_context(&(*bearer_context)->esm_ebr_context);
-  free_wrapper((void**)bearer_context);
+  free_wrapper((void **)bearer_context);
 }
 
 //------------------------------------------------------------------------------
-bearer_context_t* mme_app_get_bearer_context(ue_mm_context_t* const ue_context,
+bearer_context_t *mme_app_get_bearer_context(ue_mm_context_t *const ue_context,
                                              const ebi_t ebi) {
   if ((ue_context) && (EPS_BEARER_IDENTITY_LAST >= ebi) &&
       (EPS_BEARER_IDENTITY_FIRST <= ebi)) {
@@ -99,8 +100,8 @@ bearer_context_t* mme_app_get_bearer_context(ue_mm_context_t* const ue_context,
 }
 
 //------------------------------------------------------------------------------
-void mme_app_add_bearer_context(ue_mm_context_t* const ue_context,
-                                bearer_context_t* const bc,
+void mme_app_add_bearer_context(ue_mm_context_t *const ue_context,
+                                bearer_context_t *const bc,
                                 const pdn_cid_t pdn_cid,
                                 const bool is_default) {
   if (bc->ebi > EPS_BEARER_IDENTITY_LAST ||
@@ -143,7 +144,7 @@ void mme_app_add_bearer_context(ue_mm_context_t* const ue_context,
 }
 
 //------------------------------------------------------------------------------
-ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context) {
+ebi_t mme_app_get_free_bearer_id(ue_mm_context_t *const ue_context) {
   for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (!ue_context->bearer_contexts[i]) {
       return INDEX_TO_EBI(i);
@@ -154,7 +155,7 @@ ebi_t mme_app_get_free_bearer_id(ue_mm_context_t* const ue_context) {
 
 //------------------------------------------------------------------------------
 void mme_app_bearer_context_s1_release_enb_informations(
-    bearer_context_t* const bc) {
+    bearer_context_t *const bc) {
   if (bc) {
     memset(&bc->enb_fteid_s1u, 0, sizeof(bc->enb_fteid_s1u));
     bc->enb_fteid_s1u.teid = INVALID_TEID;

@@ -53,8 +53,8 @@
 //------------------------------------------------------------------------------
 // 10.5.6.1 Access Point Name
 //------------------------------------------------------------------------------
-int decode_access_point_name_ie(access_point_name_t* access_point_name,
-                                bool is_ie_present, uint8_t* buffer,
+int decode_access_point_name_ie(access_point_name_t *access_point_name,
+                                bool is_ie_present, uint8_t *buffer,
                                 const uint32_t len) {
   int signed_len = len;
   int decoded = 0;
@@ -81,7 +81,7 @@ int decode_access_point_name_ie(access_point_name_t* access_point_name,
     decoded++;
     CHECK_LENGTH_DECODER(ielen, length_apn + 1);
     // ^ ielen <= (signed_len - decoded), so that is implicitly checked here too
-    *access_point_name = blk2bstr((void*)(buffer + decoded), length_apn);
+    *access_point_name = blk2bstr((void *)(buffer + decoded), length_apn);
     decoded += length_apn;
 
     ielen = ielen - 1 - length_apn;
@@ -97,7 +97,7 @@ int decode_access_point_name_ie(access_point_name_t* access_point_name,
           // Mismatch in lengths remaining between IE length and APN length
           return TLV_OCTET_STRING_TOO_LONG_FOR_IEI;
         }
-        bcatblk(*access_point_name, (void*)(buffer + decoded), length_apn);
+        bcatblk(*access_point_name, (void *)(buffer + decoded), length_apn);
         decoded += length_apn;
         ielen = ielen - length_apn;
       }
@@ -108,9 +108,9 @@ int decode_access_point_name_ie(access_point_name_t* access_point_name,
 
 //------------------------------------------------------------------------------
 int encode_access_point_name_ie(access_point_name_t access_point_name,
-                                bool is_ie_present, uint8_t* buffer,
+                                bool is_ie_present, uint8_t *buffer,
                                 const uint32_t len) {
-  uint8_t* lenPtr = NULL;
+  uint8_t *lenPtr = NULL;
   uint32_t encoded = 0;
   int encode_result = 0;
   uint32_t length_index = 0;
@@ -130,8 +130,8 @@ int encode_access_point_name_ie(access_point_name_t access_point_name,
 
   lenPtr = (buffer + encoded);
   encoded++;
-  index = 0;         // index on original APN string
-  length_index = 0;  // marker where to write partial length
+  index = 0;        // index on original APN string
+  length_index = 0; // marker where to write partial length
   index_copy = 1;
 
   while ((access_point_name->data[index] != 0) &&
@@ -167,8 +167,8 @@ int encode_access_point_name_ie(access_point_name_t access_point_name,
 // 10.5.6.3 Protocol configuration options
 //------------------------------------------------------------------------------
 void copy_protocol_configuration_options(
-    protocol_configuration_options_t* const pco_dst,
-    const protocol_configuration_options_t* const pco_src) {
+    protocol_configuration_options_t *const pco_dst,
+    const protocol_configuration_options_t *const pco_src) {
   if ((pco_dst) && (pco_src)) {
     pco_dst->ext = pco_src->ext;
     pco_dst->spare = pco_src->spare;
@@ -192,7 +192,7 @@ void copy_protocol_configuration_options(
 
 //------------------------------------------------------------------------------
 void clear_protocol_configuration_options(
-    protocol_configuration_options_t* const pco) {
+    protocol_configuration_options_t *const pco) {
   if (pco) {
     for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
       if (pco->protocol_or_container_ids[i].contents) {
@@ -205,22 +205,22 @@ void clear_protocol_configuration_options(
 
 //------------------------------------------------------------------------------
 void free_protocol_configuration_options(
-    protocol_configuration_options_t** const protocol_configuration_options) {
-  protocol_configuration_options_t* pco = *protocol_configuration_options;
+    protocol_configuration_options_t **const protocol_configuration_options) {
+  protocol_configuration_options_t *pco = *protocol_configuration_options;
   if (pco) {
     for (int i = 0; i < PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID; i++) {
       if (pco->protocol_or_container_ids[i].contents) {
         bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
       }
     }
-    free_wrapper((void**)protocol_configuration_options);
+    free_wrapper((void **)protocol_configuration_options);
   }
 }
 
 //------------------------------------------------------------------------------
 int decode_protocol_configuration_options(
-    protocol_configuration_options_t* protocolconfigurationoptions,
-    const uint8_t* const buffer, const uint32_t len) {
+    protocol_configuration_options_t *protocolconfigurationoptions,
+    const uint8_t *const buffer, const uint32_t len) {
   int decoded = 0;
   int decode_result = 0;
 
@@ -243,7 +243,7 @@ int decode_protocol_configuration_options(
   while (3 <= ((int32_t)len - (int32_t)decoded)) {
     if (protocolconfigurationoptions->num_protocol_or_container_id >=
         PCO_UNSPEC_MAXIMUM_PROTOCOL_ID_OR_CONTAINER_ID) {
-      return TLV_UNEXPECTED_IEI;  // Maximum 30 options
+      return TLV_UNEXPECTED_IEI; // Maximum 30 options
     }
     DECODE_U16(
         buffer + decoded,
@@ -293,8 +293,8 @@ int decode_protocol_configuration_options(
 }
 //------------------------------------------------------------------------------
 int decode_protocol_configuration_options_ie(
-    protocol_configuration_options_t* protocolconfigurationoptions,
-    const bool iei_present, const uint8_t* const buffer, const uint32_t len) {
+    protocol_configuration_options_t *protocolconfigurationoptions,
+    const bool iei_present, const uint8_t *const buffer, const uint32_t len) {
   int decoded = 0;
   int decoded2 = 0;
   uint8_t ielen = 0;
@@ -315,13 +315,14 @@ int decode_protocol_configuration_options_ie(
 
   decoded2 = decode_protocol_configuration_options(
       protocolconfigurationoptions, buffer + decoded, len - decoded);
-  if (decoded2 < 0) return decoded2;
+  if (decoded2 < 0)
+    return decoded2;
   return decoded + decoded2;
 }
 //------------------------------------------------------------------------------
 int encode_protocol_configuration_options(
-    const protocol_configuration_options_t* const protocolconfigurationoptions,
-    uint8_t* buffer, const uint32_t len) {
+    const protocol_configuration_options_t *const protocolconfigurationoptions,
+    uint8_t *buffer, const uint32_t len) {
   uint8_t num_protocol_or_container_id = 0;
   uint32_t encoded = 0;
   int encode_result = 0;
@@ -360,9 +361,9 @@ int encode_protocol_configuration_options(
 
 //------------------------------------------------------------------------------
 int encode_protocol_configuration_options_ie(
-    const protocol_configuration_options_t* const protocolconfigurationoptions,
-    const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  uint8_t* lenPtr = NULL;
+    const protocol_configuration_options_t *const protocolconfigurationoptions,
+    const bool iei_present, uint8_t *buffer, const uint32_t len) {
+  uint8_t *lenPtr = NULL;
   uint32_t encoded = 0;
 
   if (iei_present) {
@@ -388,8 +389,8 @@ int encode_protocol_configuration_options_ie(
 //------------------------------------------------------------------------------
 // 10.5.6.5 Quality of service
 //------------------------------------------------------------------------------
-int decode_quality_of_service_ie(quality_of_service_t* qualityofservice,
-                                 const bool iei_present, uint8_t* buffer,
+int decode_quality_of_service_ie(quality_of_service_t *qualityofservice,
+                                 const bool iei_present, uint8_t *buffer,
                                  const uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
@@ -442,10 +443,10 @@ int decode_quality_of_service_ie(quality_of_service_t* qualityofservice,
 }
 
 //------------------------------------------------------------------------------
-int encode_quality_of_service_ie(quality_of_service_t* qualityofservice,
-                                 const bool iei_present, uint8_t* buffer,
+int encode_quality_of_service_ie(quality_of_service_t *qualityofservice,
+                                 const bool iei_present, uint8_t *buffer,
                                  const uint32_t len) {
-  uint8_t* lenPtr;
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   if (iei_present) {
@@ -499,14 +500,14 @@ int encode_quality_of_service_ie(quality_of_service_t* qualityofservice,
 //------------------------------------------------------------------------------
 // 10.5.6.7 Linked TI
 //------------------------------------------------------------------------------
-int encode_linked_ti_ie(linked_ti_t* linkedti, const bool iei_present,
-                        uint8_t* buffer, const uint32_t len) {
+int encode_linked_ti_ie(linked_ti_t *linkedti, const bool iei_present,
+                        uint8_t *buffer, const uint32_t len) {
   // Implement encode_linked_ti_ie
   return TLV_PROTOCOL_NOT_SUPPORTED;
 }
 
-int decode_linked_ti_ie(linked_ti_t* linkedti, const bool iei_present,
-                        uint8_t* buffer, const uint32_t len) {
+int decode_linked_ti_ie(linked_ti_t *linkedti, const bool iei_present,
+                        uint8_t *buffer, const uint32_t len) {
   // Implement decode_linked_ti_ie
   return TLV_PROTOCOL_NOT_SUPPORTED;
 }
@@ -515,8 +516,8 @@ int decode_linked_ti_ie(linked_ti_t* linkedti, const bool iei_present,
 // 10.5.6.9 LLC service access point identifier
 //------------------------------------------------------------------------------
 int decode_llc_service_access_point_identifier_ie(
-    llc_service_access_point_identifier_t* llc_sap_id, bool is_ie_present,
-    uint8_t* buffer, const uint32_t len) {
+    llc_service_access_point_identifier_t *llc_sap_id, bool is_ie_present,
+    uint8_t *buffer, const uint32_t len) {
   int decoded = 0;
 
   if (is_ie_present) {
@@ -536,8 +537,8 @@ int decode_llc_service_access_point_identifier_ie(
 
 //------------------------------------------------------------------------------
 int encode_llc_service_access_point_identifier_ie(
-    llc_service_access_point_identifier_t* llc_sap_id, bool is_ie_present,
-    uint8_t* buffer, const uint32_t len) {
+    llc_service_access_point_identifier_t *llc_sap_id, bool is_ie_present,
+    uint8_t *buffer, const uint32_t len) {
   uint32_t encoded = 0;
 
   if (is_ie_present) {
@@ -559,8 +560,8 @@ int encode_llc_service_access_point_identifier_ie(
 // 10.5.6.11 Packet Flow Identifier
 //------------------------------------------------------------------------------
 int decode_packet_flow_identifier_ie(
-    packet_flow_identifier_t* packetflowidentifier, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
+    packet_flow_identifier_t *packetflowidentifier, const bool iei_present,
+    uint8_t *buffer, const uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -584,9 +585,9 @@ int decode_packet_flow_identifier_ie(
 
 //------------------------------------------------------------------------------
 int encode_packet_flow_identifier_ie(
-    packet_flow_identifier_t* packetflowidentifier, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) {
-  uint8_t* lenPtr;
+    packet_flow_identifier_t *packetflowidentifier, const bool iei_present,
+    uint8_t *buffer, const uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   if (iei_present) {
@@ -612,8 +613,8 @@ int encode_packet_flow_identifier_ie(
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
 static int decode_traffic_flow_template_packet_filter_identifier(
-    packet_filter_identifier_t* packetfilteridentifier,
-    const uint8_t* const buffer, const uint32_t len) {
+    packet_filter_identifier_t *packetfilteridentifier,
+    const uint8_t *const buffer, const uint32_t len) {
   int decoded = 0;
   /*
    * Packet filter identifier
@@ -623,9 +624,10 @@ static int decode_traffic_flow_template_packet_filter_identifier(
 }
 
 //------------------------------------------------------------------------------
-static int decode_traffic_flow_template_packet_filter(
-    packet_filter_t* packetfilter, const uint8_t* const buffer,
-    const uint32_t len) {
+static int
+decode_traffic_flow_template_packet_filter(packet_filter_t *packetfilter,
+                                           const uint8_t *const buffer,
+                                           const uint32_t len) {
   int decoded = 0, j;
   int signed_len = len;
 
@@ -682,142 +684,141 @@ static int decode_traffic_flow_template_packet_filter(
     IES_DECODE_U8(buffer, decoded, component_type);
 
     switch (component_type) {
-      case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR:
-        /*
-         * IPv4 remote address type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+    case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR:
+      /*
+       * IPv4 remote address type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
 
-        for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
-          packetfilter->packetfiltercontents.ipv4remoteaddr[j].addr =
-              *(buffer + decoded);
-          packetfilter->packetfiltercontents.ipv4remoteaddr[j].mask =
-              *(buffer + decoded + TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE);
-          decoded++;
-        }
+      for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
+        packetfilter->packetfiltercontents.ipv4remoteaddr[j].addr =
+            *(buffer + decoded);
+        packetfilter->packetfiltercontents.ipv4remoteaddr[j].mask =
+            *(buffer + decoded + TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE);
+        decoded++;
+      }
 
-        decoded += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
-        break;
+      decoded += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR:
-        /*
-         * IPv6 remote address type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
+    case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR:
+      /*
+       * IPv6 remote address type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
 
-        for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; j++) {
-          packetfilter->packetfiltercontents.ipv6remoteaddr[j].addr =
-              *(buffer + decoded);
-          packetfilter->packetfiltercontents.ipv6remoteaddr[j].mask =
-              *(buffer + decoded + TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE);
-          decoded++;
-        }
+      for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; j++) {
+        packetfilter->packetfiltercontents.ipv6remoteaddr[j].addr =
+            *(buffer + decoded);
+        packetfilter->packetfiltercontents.ipv6remoteaddr[j].mask =
+            *(buffer + decoded + TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE);
+        decoded++;
+      }
 
-        decoded += TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE;
-        break;
+      decoded += TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE;
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER:
-        /*
-         * Protocol identifier/Next header type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
-        IES_DECODE_U8(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.protocolidentifier_nextheader);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER:
+      /*
+       * Protocol identifier/Next header type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG;
+      IES_DECODE_U8(
+          buffer, decoded,
+          packetfilter->packetfiltercontents.protocolidentifier_nextheader);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT:
-        /*
-         * Single local port type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
-        IES_DECODE_U16(buffer, decoded,
-                       packetfilter->packetfiltercontents.singlelocalport);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT:
+      /*
+       * Single local port type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
+      IES_DECODE_U16(buffer, decoded,
+                     packetfilter->packetfiltercontents.singlelocalport);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE:
-        /*
-         * Local port range type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
-        IES_DECODE_U16(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.localportrange.lowlimit);
-        IES_DECODE_U16(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.localportrange.highlimit);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE:
+      /*
+       * Local port range type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG;
+      IES_DECODE_U16(
+          buffer, decoded,
+          packetfilter->packetfiltercontents.localportrange.lowlimit);
+      IES_DECODE_U16(
+          buffer, decoded,
+          packetfilter->packetfiltercontents.localportrange.highlimit);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT:
-        /*
-         * Single remote port type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
-        IES_DECODE_U16(buffer, decoded,
-                       packetfilter->packetfiltercontents.singleremoteport);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT:
+      /*
+       * Single remote port type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG;
+      IES_DECODE_U16(buffer, decoded,
+                     packetfilter->packetfiltercontents.singleremoteport);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE:
-        /*
-         * Remote port range type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
-        IES_DECODE_U16(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.remoteportrange.lowlimit);
-        IES_DECODE_U16(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.remoteportrange.highlimit);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE:
+      /*
+       * Remote port range type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG;
+      IES_DECODE_U16(
+          buffer, decoded,
+          packetfilter->packetfiltercontents.remoteportrange.lowlimit);
+      IES_DECODE_U16(
+          buffer, decoded,
+          packetfilter->packetfiltercontents.remoteportrange.highlimit);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX:
-        /*
-         * Security parameter index type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
-        IES_DECODE_U32(
-            buffer, decoded,
-            packetfilter->packetfiltercontents.securityparameterindex);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX:
+      /*
+       * Security parameter index type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG;
+      IES_DECODE_U32(buffer, decoded,
+                     packetfilter->packetfiltercontents.securityparameterindex);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS:
-        /*
-         * Type of service/Traffic class type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
-        IES_DECODE_U8(buffer, decoded,
-                      packetfilter->packetfiltercontents
-                          .typdeofservice_trafficclass.value);
-        IES_DECODE_U8(buffer, decoded,
-                      packetfilter->packetfiltercontents
-                          .typdeofservice_trafficclass.mask);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS:
+      /*
+       * Type of service/Traffic class type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG;
+      IES_DECODE_U8(
+          buffer, decoded,
+          packetfilter->packetfiltercontents.typdeofservice_trafficclass.value);
+      IES_DECODE_U8(
+          buffer, decoded,
+          packetfilter->packetfiltercontents.typdeofservice_trafficclass.mask);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL:
-        /*
-         * Flow label type
-         */
-        packetfilter->packetfiltercontents.flags |=
-            TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
-        IES_DECODE_U24(buffer, decoded,
-                       packetfilter->packetfiltercontents.flowlabel);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL:
+      /*
+       * Flow label type
+       */
+      packetfilter->packetfiltercontents.flags |=
+          TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG;
+      IES_DECODE_U24(buffer, decoded,
+                     packetfilter->packetfiltercontents.flowlabel);
+      break;
 
-      default:
-        /*
-         * Packet filter component type identifier is not valid
-         */
-        return (TLV_UNEXPECTED_IEI);
-        break;
+    default:
+      /*
+       * Packet filter component type identifier is not valid
+       */
+      return (TLV_UNEXPECTED_IEI);
+      break;
     }
   }
 
@@ -831,40 +832,43 @@ static int decode_traffic_flow_template_packet_filter(
   return decoded;
 }
 //------------------------------------------------------------------------------
-static int decode_traffic_flow_template_delete_packet(
-    delete_packet_filter_t* packetfilter, const uint8_t* const buffer,
-    const uint32_t len) {
+static int
+decode_traffic_flow_template_delete_packet(delete_packet_filter_t *packetfilter,
+                                           const uint8_t *const buffer,
+                                           const uint32_t len) {
   return decode_traffic_flow_template_packet_filter_identifier(
-      (packet_filter_identifier_t*)packetfilter, buffer, len);
+      (packet_filter_identifier_t *)packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
-static int decode_traffic_flow_template_create_tft(
-    create_new_tft_t* packetfilter, const uint8_t* const buffer,
-    const uint32_t len) {
+static int
+decode_traffic_flow_template_create_tft(create_new_tft_t *packetfilter,
+                                        const uint8_t *const buffer,
+                                        const uint32_t len) {
   return decode_traffic_flow_template_packet_filter(
-      (packet_filter_t*)packetfilter, buffer, len);
+      (packet_filter_t *)packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
-static int decode_traffic_flow_template_add_packet(
-    add_packet_filter_t* packetfilter, const uint8_t* const buffer,
-    const uint32_t len) {
+static int
+decode_traffic_flow_template_add_packet(add_packet_filter_t *packetfilter,
+                                        const uint8_t *const buffer,
+                                        const uint32_t len) {
   return decode_traffic_flow_template_packet_filter(
-      (packet_filter_t*)packetfilter, buffer, len);
+      (packet_filter_t *)packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
 static int decode_traffic_flow_template_replace_packet(
-    replace_packet_filter_t* packetfilter, const uint8_t* const buffer,
+    replace_packet_filter_t *packetfilter, const uint8_t *const buffer,
     const uint32_t len) {
   return decode_traffic_flow_template_packet_filter(
-      (packet_filter_t*)packetfilter, buffer, len);
+      (packet_filter_t *)packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
-int decode_traffic_flow_template(traffic_flow_template_t* trafficflowtemplate,
-                                 const uint8_t* const buffer,
+int decode_traffic_flow_template(traffic_flow_template_t *trafficflowtemplate,
+                                 const uint8_t *const buffer,
                                  const uint32_t len) {
   int decoded = 0;
   int decoded_result = 0;
@@ -928,8 +932,8 @@ int decode_traffic_flow_template(traffic_flow_template_t* trafficflowtemplate,
 }
 //------------------------------------------------------------------------------
 int decode_traffic_flow_template_ie(
-    traffic_flow_template_t* trafficflowtemplate, const bool iei_present,
-    const uint8_t* const buffer, const uint32_t len) {
+    traffic_flow_template_t *trafficflowtemplate, const bool iei_present,
+    const uint8_t *const buffer, const uint32_t len) {
   int decoded = 0;
   int decoded2 = 0;
   uint8_t ielen = 0;
@@ -950,13 +954,14 @@ int decode_traffic_flow_template_ie(
 
   decoded2 = decode_traffic_flow_template(trafficflowtemplate, buffer + decoded,
                                           len - decoded);
-  if (decoded2 < 0) return decoded2;
+  if (decoded2 < 0)
+    return decoded2;
   return decoded + decoded2;
 }
 
 //------------------------------------------------------------------------------
 static int encode_traffic_flow_template_packet_filter_identifier(
-    const packet_filter_identifier_t* packetfilteridentifier, uint8_t* buffer,
+    const packet_filter_identifier_t *packetfilteridentifier, uint8_t *buffer,
     const uint32_t len) {
   int encoded = 0;
 
@@ -970,7 +975,7 @@ static int encode_traffic_flow_template_packet_filter_identifier(
 
 //------------------------------------------------------------------------------
 static int encode_traffic_flow_template_packet_filter(
-    const packet_filter_t* packetfilter, uint8_t* buffer, const uint32_t len) {
+    const packet_filter_t *packetfilter, uint8_t *buffer, const uint32_t len) {
   int encoded = 0, j;
 
   if (len - encoded <= 0) {
@@ -993,7 +998,7 @@ static int encode_traffic_flow_template_packet_filter(
   /*
    * Save address of the Packet filter contents field length
    */
-  uint8_t* pkflenPtr = buffer + encoded;
+  uint8_t *pkflenPtr = buffer + encoded;
 
   encoded++;
   /*
@@ -1004,133 +1009,130 @@ static int encode_traffic_flow_template_packet_filter(
 
   while (flag <= TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG) {
     switch (packetfilter->packetfiltercontents.flags & flag) {
-      case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG:
-        /*
-         * IPv4 remote address type
-         */
-        IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR);
+    case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG:
+      /*
+       * IPv4 remote address type
+       */
+      IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR);
 
-        for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
-          *(buffer + encoded) =
-              packetfilter->packetfiltercontents.ipv4remoteaddr[j].addr;
-          *(buffer + encoded + TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE) =
-              packetfilter->packetfiltercontents.ipv4remoteaddr[j].mask;
-          encoded++;
-        }
+      for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
+        *(buffer + encoded) =
+            packetfilter->packetfiltercontents.ipv4remoteaddr[j].addr;
+        *(buffer + encoded + TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE) =
+            packetfilter->packetfiltercontents.ipv4remoteaddr[j].mask;
+        encoded++;
+      }
 
-        encoded += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
-        break;
+      encoded += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG:
-        /*
-         * IPv6 remote address type
-         */
-        IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR);
+    case TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG:
+      /*
+       * IPv6 remote address type
+       */
+      IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR);
 
-        for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; j++) {
-          *(buffer + encoded) =
-              packetfilter->packetfiltercontents.ipv6remoteaddr[j].addr;
-          *(buffer + encoded + TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE) =
-              packetfilter->packetfiltercontents.ipv6remoteaddr[j].mask;
-          encoded++;
-        }
+      for (j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; j++) {
+        *(buffer + encoded) =
+            packetfilter->packetfiltercontents.ipv6remoteaddr[j].addr;
+        *(buffer + encoded + TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE) =
+            packetfilter->packetfiltercontents.ipv6remoteaddr[j].mask;
+        encoded++;
+      }
 
-        encoded += TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE;
-        break;
+      encoded += TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE;
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG:
-        /*
-         * Protocol identifier/Next header type
-         */
-        IES_ENCODE_U8(buffer, encoded,
-                      TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER);
-        IES_ENCODE_U8(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.protocolidentifier_nextheader);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG:
+      /*
+       * Protocol identifier/Next header type
+       */
+      IES_ENCODE_U8(buffer, encoded,
+                    TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER);
+      IES_ENCODE_U8(
+          buffer, encoded,
+          packetfilter->packetfiltercontents.protocolidentifier_nextheader);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG:
-        /*
-         * Single local port type
-         */
-        IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT);
-        IES_ENCODE_U16(buffer, encoded,
-                       packetfilter->packetfiltercontents.singlelocalport);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG:
+      /*
+       * Single local port type
+       */
+      IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT);
+      IES_ENCODE_U16(buffer, encoded,
+                     packetfilter->packetfiltercontents.singlelocalport);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG:
-        /*
-         * Local port range type
-         */
-        IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE);
-        IES_ENCODE_U16(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.localportrange.lowlimit);
-        IES_ENCODE_U16(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.localportrange.highlimit);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG:
+      /*
+       * Local port range type
+       */
+      IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE);
+      IES_ENCODE_U16(
+          buffer, encoded,
+          packetfilter->packetfiltercontents.localportrange.lowlimit);
+      IES_ENCODE_U16(
+          buffer, encoded,
+          packetfilter->packetfiltercontents.localportrange.highlimit);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG:
-        /*
-         * Single remote port type
-         */
-        IES_ENCODE_U8(buffer, encoded,
-                      TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT);
-        IES_ENCODE_U16(buffer, encoded,
-                       packetfilter->packetfiltercontents.singleremoteport);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG:
+      /*
+       * Single remote port type
+       */
+      IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT);
+      IES_ENCODE_U16(buffer, encoded,
+                     packetfilter->packetfiltercontents.singleremoteport);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG:
-        /*
-         * Remote port range type
-         */
-        IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE);
-        IES_ENCODE_U16(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.remoteportrange.lowlimit);
-        IES_ENCODE_U16(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.remoteportrange.highlimit);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG:
+      /*
+       * Remote port range type
+       */
+      IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE);
+      IES_ENCODE_U16(
+          buffer, encoded,
+          packetfilter->packetfiltercontents.remoteportrange.lowlimit);
+      IES_ENCODE_U16(
+          buffer, encoded,
+          packetfilter->packetfiltercontents.remoteportrange.highlimit);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG:
-        /*
-         * Security parameter index type
-         */
-        IES_ENCODE_U8(buffer, encoded,
-                      TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX);
-        IES_ENCODE_U32(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.securityparameterindex);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG:
+      /*
+       * Security parameter index type
+       */
+      IES_ENCODE_U8(buffer, encoded,
+                    TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX);
+      IES_ENCODE_U32(buffer, encoded,
+                     packetfilter->packetfiltercontents.securityparameterindex);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG:
-        /*
-         * Type of service/Traffic class type
-         */
-        IES_ENCODE_U8(buffer, encoded,
-                      TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS);
-        IES_ENCODE_U8(buffer, encoded,
-                      packetfilter->packetfiltercontents
-                          .typdeofservice_trafficclass.value);
-        IES_ENCODE_U8(buffer, encoded,
-                      packetfilter->packetfiltercontents
-                          .typdeofservice_trafficclass.mask);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS_FLAG:
+      /*
+       * Type of service/Traffic class type
+       */
+      IES_ENCODE_U8(buffer, encoded,
+                    TRAFFIC_FLOW_TEMPLATE_TYPE_OF_SERVICE_TRAFFIC_CLASS);
+      IES_ENCODE_U8(
+          buffer, encoded,
+          packetfilter->packetfiltercontents.typdeofservice_trafficclass.value);
+      IES_ENCODE_U8(
+          buffer, encoded,
+          packetfilter->packetfiltercontents.typdeofservice_trafficclass.mask);
+      break;
 
-      case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG:
-        /*
-         * Flow label type
-         */
-        IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL);
-        IES_ENCODE_U24(
-            buffer, encoded,
-            packetfilter->packetfiltercontents.flowlabel & 0x000fffff);
-        break;
+    case TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG:
+      /*
+       * Flow label type
+       */
+      IES_ENCODE_U8(buffer, encoded, TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL);
+      IES_ENCODE_U24(buffer, encoded,
+                     packetfilter->packetfiltercontents.flowlabel & 0x000fffff);
+      break;
 
-      default:
-        break;
+    default:
+      break;
     }
 
     flag = flag << 1;
@@ -1146,35 +1148,36 @@ static int encode_traffic_flow_template_packet_filter(
 
 //------------------------------------------------------------------------------
 static int encode_traffic_flow_template_delete_packet(
-    const delete_packet_filter_t* packetfilter, uint8_t* buffer,
+    const delete_packet_filter_t *packetfilter, uint8_t *buffer,
     const uint32_t len) {
   return encode_traffic_flow_template_packet_filter_identifier(packetfilter,
                                                                buffer, len);
 }
 
 //------------------------------------------------------------------------------
-static int encode_traffic_flow_template_create_tft(
-    const create_new_tft_t* packetfilter, uint8_t* buffer, const uint32_t len) {
+static int
+encode_traffic_flow_template_create_tft(const create_new_tft_t *packetfilter,
+                                        uint8_t *buffer, const uint32_t len) {
   return encode_traffic_flow_template_packet_filter(packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
-static int encode_traffic_flow_template_add_packet(
-    const add_packet_filter_t* packetfilter, uint8_t* buffer,
-    const uint32_t len) {
+static int
+encode_traffic_flow_template_add_packet(const add_packet_filter_t *packetfilter,
+                                        uint8_t *buffer, const uint32_t len) {
   return encode_traffic_flow_template_packet_filter(packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
 static int encode_traffic_flow_template_replace_packet(
-    const replace_packet_filter_t* packetfilter, uint8_t* buffer,
+    const replace_packet_filter_t *packetfilter, uint8_t *buffer,
     const uint32_t len) {
   return encode_traffic_flow_template_packet_filter(packetfilter, buffer, len);
 }
 
 //------------------------------------------------------------------------------
 int encode_traffic_flow_template(
-    const traffic_flow_template_t* trafficflowtemplate, uint8_t* buffer,
+    const traffic_flow_template_t *trafficflowtemplate, uint8_t *buffer,
     const uint32_t len) {
   uint32_t encoded = 0;
 
@@ -1222,9 +1225,9 @@ int encode_traffic_flow_template(
 
 //------------------------------------------------------------------------------
 int encode_traffic_flow_template_ie(
-    const traffic_flow_template_t* const trafficflowtemplate,
-    const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  uint8_t* lenPtr = NULL;
+    const traffic_flow_template_t *const trafficflowtemplate,
+    const bool iei_present, uint8_t *buffer, const uint32_t len) {
+  uint8_t *lenPtr = NULL;
   uint32_t encoded = 0;
 
   if (iei_present) {
@@ -1248,8 +1251,8 @@ int encode_traffic_flow_template_ie(
 }
 
 //------------------------------------------------------------------------------
-void copy_traffic_flow_template(traffic_flow_template_t* const tft_dst,
-                                const traffic_flow_template_t* const tft_src) {
+void copy_traffic_flow_template(traffic_flow_template_t *const tft_dst,
+                                const traffic_flow_template_t *const tft_src) {
   if ((tft_dst) && (tft_src)) {
     tft_dst->tftoperationcode = tft_src->tftoperationcode;
     tft_dst->ebit = tft_src->ebit;
@@ -1270,17 +1273,17 @@ void copy_traffic_flow_template(traffic_flow_template_t* const tft_dst,
   }
 }
 //------------------------------------------------------------------------------
-static void free_traffic_flow_template_parameter(parameter_t* param) {
+static void free_traffic_flow_template_parameter(parameter_t *param) {
   bdestroy_wrapper(&param->contents);
 }
 
 //------------------------------------------------------------------------------
-void free_traffic_flow_template(traffic_flow_template_t** tft) {
-  traffic_flow_template_t* trafficflowtemplate = *tft;
+void free_traffic_flow_template(traffic_flow_template_t **tft) {
+  traffic_flow_template_t *trafficflowtemplate = *tft;
   // nothing to do for packet filters
   for (int i = 0; i < trafficflowtemplate->parameterslist.num_parameters; i++) {
     free_traffic_flow_template_parameter(
         &trafficflowtemplate->parameterslist.parameter[i]);
   }
-  free_wrapper((void**)tft);
+  free_wrapper((void **)tft);
 }

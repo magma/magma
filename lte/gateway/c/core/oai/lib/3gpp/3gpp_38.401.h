@@ -37,5 +37,5 @@ typedef uint64_t
                        AMF UE NGAP ID shall be unique within the AMF logical
                        node.*/
 typedef uint32_t
-    ran_ue_ngap_id_t;  // This IE uniquely identifies the UE association over
-                       // the NG interface within the NG-RAN node
+    ran_ue_ngap_id_t; // This IE uniquely identifies the UE association over
+                      // the NG interface within the NG-RAN node

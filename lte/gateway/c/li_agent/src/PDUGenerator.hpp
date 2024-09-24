@@ -13,14 +13,14 @@
 #pragma once
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
+#include <memory>
 #include <stdint.h>
+#include <string>
 #include <sys/types.h>
 #include <tins/network_interface.h>
 #include <tins/tins.h>
-#include <uuid/uuid.h>
-#include <memory>
-#include <string>
 #include <unordered_map>
+#include <uuid/uuid.h>
 
 #include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
 #include "lte/gateway/c/li_agent/src/ProxyConnector.hpp"
@@ -33,8 +33,8 @@ namespace lte {
 #define XID_LENGTH 16
 
 typedef struct {
-  uint16_t type;  // type
-  uint16_t size;  // size of data
+  uint16_t type; // type
+  uint16_t size; // size of data
   uint64_t data;
 } __attribute__((__packed__)) TLV;
 
@@ -73,8 +73,8 @@ typedef struct {
 typedef std::unordered_map<std::string, InterceptState> InterceptStateMap;
 
 class PDUGenerator {
- public:
-  PDUGenerator(const std::string& pkt_dst_mac, const std::string& pkt_src_mac,
+public:
+  PDUGenerator(const std::string &pkt_dst_mac, const std::string &pkt_src_mac,
                int sync_interval, int inactivity_time,
                std::unique_ptr<ProxyConnector> proxy_connector,
                std::unique_ptr<MobilitydClient> mobilityd_client,
@@ -89,7 +89,7 @@ class PDUGenerator {
    * @param pdata - packet data
    * @return true if the operation was successful
    */
-  bool process_packet(const struct pcap_pkthdr* phdr, const u_char* pdata);
+  bool process_packet(const struct pcap_pkthdr *phdr, const u_char *pdata);
 
   /**
    * delete_inactive_tasks loops over all tasks and deletes all inactive states
@@ -98,7 +98,7 @@ class PDUGenerator {
    */
   void delete_inactive_tasks();
 
- private:
+private:
   std::string iface_name_;
   std::string pkt_dst_mac_;
   std::string pkt_src_mac_;
@@ -121,9 +121,9 @@ class PDUGenerator {
    * @param record_len - output record length
    * @return true if the operation was successful
    */
-  void* generate_record(const struct pcap_pkthdr* phdr, const u_char* pdata,
+  void *generate_record(const struct pcap_pkthdr *phdr, const u_char *pdata,
                         std::string idx, uint16_t direction,
-                        uint32_t* record_len);
+                        uint32_t *record_len);
 
   /**
    * export_record exports the x3 record over tls to a remote server.
@@ -132,7 +132,7 @@ class PDUGenerator {
    * @param retries - number of retries
    * @return true if the operation was successful
    */
-  bool export_record(void* record, uint32_t size, int retries);
+  bool export_record(void *record, uint32_t size, int retries);
 
   /**
    * get_subscriber_id_from_ip retrieves a subscriber id from the ip address
@@ -141,7 +141,7 @@ class PDUGenerator {
    * @param subid - subscriber id
    * @return true if subscriber is found, false otherwise
    */
-  bool get_subscriber_id_from_ip(const char* ip_addr, std::string* subid);
+  bool get_subscriber_id_from_ip(const char *ip_addr, std::string *subid);
 
   /**
    * get_intercept_state_idx retrieves a state for the current flow from
@@ -151,7 +151,7 @@ class PDUGenerator {
    * @param idx - the intercept state index
    * @return true if a new state is found, false otherwise
    */
-  bool get_intercept_state_idx(const FlowInformation& flow, std::string* idx);
+  bool get_intercept_state_idx(const FlowInformation &flow, std::string *idx);
 
   /**
    * create_new_intercept_state creates a new state for the current flow from
@@ -160,8 +160,8 @@ class PDUGenerator {
    * @param idx - the newly created state index
    * @return true if a new state is created, false otherwise
    */
-  bool create_new_intercept_state(const FlowInformation& flow,
-                                  std::string* idx);
+  bool create_new_intercept_state(const FlowInformation &flow,
+                                  std::string *idx);
 
   /**
    * is_still_valid_state validates that the current state belongs to non
@@ -169,8 +169,8 @@ class PDUGenerator {
    * @param idx - index of the current state
    * @return true if state if valid, false otherwise
    */
-  bool is_still_valid_state(const std::string& idx);
+  bool is_still_valid_state(const std::string &idx);
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

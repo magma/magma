@@ -15,12 +15,12 @@
 
 #include <grpcpp/grpcpp.h>
 #include <lte/protos/sctpd.grpc.pb.h>
-#include <stdint.h>
 #include <memory>
+#include <stdint.h>
 
 namespace grpc {
 class Channel;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace sctpd {
@@ -35,23 +35,23 @@ using grpc::Channel;
 
 // Grpc uplink client to allow sctpd to signal MME
 class SctpdUplinkClient {
- public:
+public:
   // Construct SctpdUplinkClient with the specified channel
   explicit SctpdUplinkClient(std::shared_ptr<Channel> channel);
 
   // Send an uplink packet to MME (see sctpd.proto for more info)
-  virtual int sendUl(const SendUlReq& req, SendUlRes* res);
+  virtual int sendUl(const SendUlReq &req, SendUlRes *res);
   // Notify MME of new association (see sctpd.proto for more info)
-  virtual int newAssoc(const NewAssocReq& req, NewAssocRes* res);
+  virtual int newAssoc(const NewAssocReq &req, NewAssocRes *res);
   // Notify MME of closing/reseting association (see sctpd.proto for more info)
-  virtual int closeAssoc(const CloseAssocReq& req, CloseAssocRes* res);
+  virtual int closeAssoc(const CloseAssocReq &req, CloseAssocRes *res);
 
- private:
+private:
   // Stub used for client to communicate with server
   std::unique_ptr<SctpdUplink::Stub> _stub;
   // GRPC call timeout
-  static const uint32_t RESPONSE_TIMEOUT = 2;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 2; // seconds
 };
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

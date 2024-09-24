@@ -20,17 +20,17 @@
 #include <thread>
 #include <utility>
 
-#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <google/protobuf/map.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
 
-#include "orc8r/protos/common.pb.h"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
+#include "orc8r/protos/common.pb.h"
 
 namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 using google::protobuf::Map;
 using grpc::Channel;
@@ -41,7 +41,7 @@ using magma::GatewayDirectoryServiceClient;
 using magma::UpdateRecordRequest;
 using magma::orc8r::Void;
 
-GatewayDirectoryServiceClient& GatewayDirectoryServiceClient::get_instance() {
+GatewayDirectoryServiceClient &GatewayDirectoryServiceClient::get_instance() {
   static GatewayDirectoryServiceClient client_instance;
   return client_instance;
 }
@@ -55,7 +55,7 @@ GatewayDirectoryServiceClient::GatewayDirectoryServiceClient() {
 }
 
 bool GatewayDirectoryServiceClient::UpdateRecord(
-    const std::string& id, const std::string& location,
+    const std::string &id, const std::string &location,
     std::function<void(Status, Void)> callback) {
   UpdateRecordRequest request;
   request.set_id(id);
@@ -64,8 +64,8 @@ bool GatewayDirectoryServiceClient::UpdateRecord(
 }
 
 bool GatewayDirectoryServiceClient::UpdateRecordField(
-    const std::string& id, const std::string& field_key,
-    const std::string& field_value,
+    const std::string &id, const std::string &field_key,
+    const std::string &field_value,
     std::function<void(Status, Void)> callback) {
   UpdateRecordRequest request;
   request.set_id(id);
@@ -75,8 +75,8 @@ bool GatewayDirectoryServiceClient::UpdateRecordField(
 }
 
 bool GatewayDirectoryServiceClient::updateRecordImpl(
-    UpdateRecordRequest& request, std::function<void(Status, Void)> callback) {
-  GatewayDirectoryServiceClient& client = get_instance();
+    UpdateRecordRequest &request, std::function<void(Status, Void)> callback) {
+  GatewayDirectoryServiceClient &client = get_instance();
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto local_response =
@@ -94,7 +94,7 @@ bool GatewayDirectoryServiceClient::updateRecordImpl(
 }
 
 bool GatewayDirectoryServiceClient::DeleteRecord(
-    const std::string& id, std::function<void(Status, Void)> callback) {
+    const std::string &id, std::function<void(Status, Void)> callback) {
   DeleteRecordRequest request;
   Void response;
 
@@ -102,7 +102,7 @@ bool GatewayDirectoryServiceClient::DeleteRecord(
 
   auto local_response =
       new AsyncLocalResponse<Void>(std::move(callback), RESPONSE_TIMEOUT);
-  GatewayDirectoryServiceClient& client = get_instance();
+  GatewayDirectoryServiceClient &client = get_instance();
   auto response_reader = client.stub_->AsyncDeleteRecord(
       local_response->get_context(), request, &client.queue_);
   local_response->set_response_reader(std::move(response_reader));

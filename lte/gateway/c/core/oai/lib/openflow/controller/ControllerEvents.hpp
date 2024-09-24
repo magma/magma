@@ -49,39 +49,39 @@ enum ControllerEventType {
  * application
  */
 class ControllerEvent {
- public:
-  ControllerEvent(fluid_base::OFConnection* ofconn,
+public:
+  ControllerEvent(fluid_base::OFConnection *ofconn,
                   const ControllerEventType type);
 
   virtual ~ControllerEvent() {}
 
-  fluid_base::OFConnection* get_connection() const;
+  fluid_base::OFConnection *get_connection() const;
 
   const ControllerEventType get_type() const;
 
- private:
+private:
   const ControllerEventType type_;
 
- protected:
-  fluid_base::OFConnection* ofconn_;
+protected:
+  fluid_base::OFConnection *ofconn_;
 };
 
 /**
  * Superclass for any event that gets data passed in through the event
  */
 class DataEvent : public ControllerEvent {
- public:
-  DataEvent(fluid_base::OFConnection* ofconn, fluid_base::OFHandler& ofhandler,
-            const void* data, const size_t len, const ControllerEventType type);
+public:
+  DataEvent(fluid_base::OFConnection *ofconn, fluid_base::OFHandler &ofhandler,
+            const void *data, const size_t len, const ControllerEventType type);
 
   ~DataEvent();
 
-  const uint8_t* get_data() const;
+  const uint8_t *get_data() const;
   const size_t get_length() const;
 
- private:
-  fluid_base::OFHandler& ofhandler_;
-  const uint8_t* data_;
+private:
+  fluid_base::OFHandler &ofhandler_;
+  const uint8_t *data_;
   const size_t len_;
 };
 
@@ -89,9 +89,9 @@ class DataEvent : public ControllerEvent {
  * Event triggered when a packet gets pushed to user space
  */
 class PacketInEvent : public DataEvent {
- public:
-  PacketInEvent(fluid_base::OFConnection* ofconn,
-                fluid_base::OFHandler& ofhandler, const void* data,
+public:
+  PacketInEvent(fluid_base::OFConnection *ofconn,
+                fluid_base::OFHandler &ofhandler, const void *data,
                 const size_t len);
 };
 
@@ -99,9 +99,9 @@ class PacketInEvent : public DataEvent {
  * Event triggered when the controller connects with the switch
  */
 class SwitchUpEvent : public DataEvent {
- public:
-  SwitchUpEvent(fluid_base::OFConnection* ofconn,
-                fluid_base::OFHandler& ofhandler, const void* data,
+public:
+  SwitchUpEvent(fluid_base::OFConnection *ofconn,
+                fluid_base::OFHandler &ofhandler, const void *data,
                 const size_t len);
 };
 
@@ -109,22 +109,22 @@ class SwitchUpEvent : public DataEvent {
  * Event triggered when the controller loses connection with the switch
  */
 class SwitchDownEvent : public ControllerEvent {
- public:
-  SwitchDownEvent(fluid_base::OFConnection* ofconn);
+public:
+  SwitchDownEvent(fluid_base::OFConnection *ofconn);
 };
 
 /**
  * Event triggered when there is an openflow error reported from the switch
  */
 class ErrorEvent : public ControllerEvent {
- public:
-  ErrorEvent(fluid_base::OFConnection* ofconn,
-             const struct ofp_error_msg* error_msg);
+public:
+  ErrorEvent(fluid_base::OFConnection *ofconn,
+             const struct ofp_error_msg *error_msg);
 
   const uint16_t get_error_type() const;
   const uint16_t get_error_code() const;
 
- private:
+private:
   const uint16_t error_type_;
   const uint16_t error_code_;
 };
@@ -135,10 +135,10 @@ class ErrorEvent : public ControllerEvent {
  * connection, instead of an external file
  */
 class ExternalEvent : public ControllerEvent {
- public:
+public:
   ExternalEvent(const ControllerEventType type);
 
-  void set_of_connection(fluid_base::OFConnection* ofconn);
+  void set_of_connection(fluid_base::OFConnection *ofconn);
 };
 
 /*
@@ -147,20 +147,20 @@ class ExternalEvent : public ControllerEvent {
  */
 
 class UeNetworkInfo {
- public:
+public:
   UeNetworkInfo(const struct in_addr ue_ip);
-  UeNetworkInfo(const struct in_addr ue_ip, struct in6_addr* ue_ipv6);
+  UeNetworkInfo(const struct in_addr ue_ip, struct in6_addr *ue_ipv6);
 
   UeNetworkInfo(const struct in_addr ue_ip, int vlan);
-  UeNetworkInfo(const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan);
+  UeNetworkInfo(const struct in_addr ue_ip, struct in6_addr *ue_ipv6, int vlan);
 
-  const struct in_addr& get_ip() const;
-  const struct in6_addr& get_ipv6() const;
+  const struct in_addr &get_ip() const;
+  const struct in6_addr &get_ipv6() const;
   const int get_vlan() const;
   const bool is_ue_ipv6_addr_valid() const;
   const bool is_ue_ipv4_addr_valid() const;
 
- private:
+private:
   const struct in_addr ue_ip_;
   struct in6_addr ue_ipv6_;
   const int vlan_;
@@ -170,50 +170,50 @@ class UeNetworkInfo {
  * Event triggered by SPGW to add a GTP tunnel for a UE
  */
 class AddGTPTunnelEvent : public ExternalEvent {
- public:
-  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+public:
+  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr *ue_ipv6,
                     int vlan, const struct in_addr enb_ip,
-                    struct in6_addr* enb_ipv6, const uint32_t in_tei,
-                    const uint32_t out_tei, const char* imsi,
-                    const struct ip_flow_dl* dl_flow,
+                    struct in6_addr *enb_ipv6, const uint32_t in_tei,
+                    const uint32_t out_tei, const char *imsi,
+                    const struct ip_flow_dl *dl_flow,
                     const uint32_t dl_flow_precedence, uint32_t enb_gtp_port);
 
-  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr *ue_ipv6,
                     int vlan, const struct in_addr enb_ip,
-                    struct in6_addr* enb_ipv6, const uint32_t in_tei,
-                    const uint32_t out_tei, const char* imsi,
+                    struct in6_addr *enb_ipv6, const uint32_t in_tei,
+                    const uint32_t out_tei, const char *imsi,
                     uint32_t enb_gtp_port);
 
-  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+  AddGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr *ue_ipv6,
                     int vlan, const struct in_addr enb_ip,
-                    struct in6_addr* enb_ipv6, const struct in_addr pgw_ip,
-                    struct in6_addr* pgw_ipv6, const uint32_t in_tei,
+                    struct in6_addr *enb_ipv6, const struct in_addr pgw_ip,
+                    struct in6_addr *pgw_ipv6, const uint32_t in_tei,
                     const uint32_t out_tei, const uint32_t pgw_in_tei,
-                    const uint32_t pgw_out_tei, const char* imsi,
+                    const uint32_t pgw_out_tei, const char *imsi,
                     uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
 
-  const struct UeNetworkInfo& get_ue_info() const;
-  const struct in_addr& get_ue_ip() const;
-  const struct in6_addr* get_ue_ipv6() const;
+  const struct UeNetworkInfo &get_ue_info() const;
+  const struct in_addr &get_ue_ip() const;
+  const struct in6_addr *get_ue_ipv6() const;
 
-  const struct in_addr& get_enb_ip() const;
-  const struct in6_addr& get_enb_ipv6() const;
-  const struct in_addr& get_pgw_ip() const;
-  const struct in6_addr& get_pgw_ipv6() const;
+  const struct in_addr &get_enb_ip() const;
+  const struct in6_addr &get_enb_ipv6() const;
+  const struct in_addr &get_pgw_ip() const;
+  const struct in6_addr &get_pgw_ipv6() const;
 
   const uint32_t get_in_tei() const;
   const uint32_t get_out_tei() const;
   const uint32_t get_pgw_in_tei() const;
   const uint32_t get_pgw_out_tei() const;
 
-  const std::string& get_imsi() const;
+  const std::string &get_imsi() const;
   const bool is_dl_flow_valid() const;
-  const struct ip_flow_dl& get_dl_flow() const;
+  const struct ip_flow_dl &get_dl_flow() const;
   const uint32_t get_dl_flow_precedence() const;
   const uint32_t get_enb_gtp_portno() const;
   const uint32_t get_pgw_gtp_portno() const;
 
- private:
+private:
   const UeNetworkInfo ue_info_;
   const struct in_addr enb_ip_;
   struct in6_addr enb_ipv6_;
@@ -235,27 +235,27 @@ class AddGTPTunnelEvent : public ExternalEvent {
  * Event triggered by SPGW to remove a GTP tunnel for a UE on detach
  */
 class DeleteGTPTunnelEvent : public ExternalEvent {
- public:
-  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
-                       const uint32_t in_tei, const struct ip_flow_dl* dl_flow,
+public:
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr *ue_ipv6,
+                       const uint32_t in_tei, const struct ip_flow_dl *dl_flow,
                        uint32_t enb_gtp_port);
-  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr *ue_ipv6,
                        const uint32_t in_tei, uint32_t enb_gtp_port);
 
-  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6,
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, struct in6_addr *ue_ipv6,
                        const uint32_t in_tei, const uint32_t pgw_in_tei,
                        uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
 
-  const struct UeNetworkInfo& get_ue_info() const;
-  const struct in_addr& get_ue_ip() const;
+  const struct UeNetworkInfo &get_ue_info() const;
+  const struct in_addr &get_ue_ip() const;
   const uint32_t get_in_tei() const;
   const uint32_t get_pgw_in_tei() const;
   const bool is_dl_flow_valid() const;
-  const struct ip_flow_dl& get_dl_flow() const;
+  const struct ip_flow_dl &get_dl_flow() const;
   const uint32_t get_enb_gtp_portno() const;
   const uint32_t get_pgw_gtp_portno() const;
 
- private:
+private:
   const UeNetworkInfo ue_info_;
   const uint32_t in_tei_;
   const uint32_t pgw_in_tei_;
@@ -273,24 +273,24 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
  * previous rule
  */
 class HandleDataOnGTPTunnelEvent : public ExternalEvent {
- public:
+public:
   HandleDataOnGTPTunnelEvent(const struct in_addr ue_ip,
-                             struct in6_addr* ue_ipv6, const uint32_t in_tei,
+                             struct in6_addr *ue_ipv6, const uint32_t in_tei,
                              const ControllerEventType event_type,
-                             const struct ip_flow_dl* dl_flow,
+                             const struct ip_flow_dl *dl_flow,
                              const uint32_t dl_flow_precedence);
   HandleDataOnGTPTunnelEvent(const struct in_addr ue_ip,
-                             struct in6_addr* ue_ipv6, const uint32_t in_tei,
+                             struct in6_addr *ue_ipv6, const uint32_t in_tei,
                              const ControllerEventType event_type);
 
-  const struct UeNetworkInfo& get_ue_info() const;
-  const struct in_addr& get_ue_ip() const;
+  const struct UeNetworkInfo &get_ue_info() const;
+  const struct in_addr &get_ue_ip() const;
   const uint32_t get_in_tei() const;
   const bool is_dl_flow_valid() const;
-  const struct ip_flow_dl& get_dl_flow() const;
+  const struct ip_flow_dl &get_dl_flow() const;
   const uint32_t get_dl_flow_precedence() const;
 
- private:
+private:
   const UeNetworkInfo ue_info_;
   const uint32_t in_tei_;
   const struct ip_flow_dl dl_flow_;
@@ -305,14 +305,14 @@ class HandleDataOnGTPTunnelEvent : public ExternalEvent {
  * TODO: Ipv6 support.
  */
 class AddPagingRuleEvent : public ExternalEvent {
- public:
-  AddPagingRuleEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6);
+public:
+  AddPagingRuleEvent(const struct in_addr ue_ip, struct in6_addr *ue_ipv6);
 
-  const struct UeNetworkInfo& get_ue_info() const;
-  const struct in_addr& get_ue_ip() const;
-  const struct in6_addr& get_ue_ipv6() const;
+  const struct UeNetworkInfo &get_ue_info() const;
+  const struct in_addr &get_ue_ip() const;
+  const struct in6_addr &get_ue_ipv6() const;
 
- private:
+private:
   const UeNetworkInfo ue_info_;
 };
 
@@ -321,14 +321,14 @@ class AddPagingRuleEvent : public ExternalEvent {
  * UE is detached
  */
 class DeletePagingRuleEvent : public ExternalEvent {
- public:
-  DeletePagingRuleEvent(const struct in_addr ue_ip, struct in6_addr* ue_ipv6);
+public:
+  DeletePagingRuleEvent(const struct in_addr ue_ip, struct in6_addr *ue_ipv6);
 
-  const struct UeNetworkInfo& get_ue_info() const;
-  const struct in_addr& get_ue_ip() const;
-  const struct in6_addr& get_ue_ipv6() const;
+  const struct UeNetworkInfo &get_ue_info() const;
+  const struct in_addr &get_ue_ip() const;
+  const struct in6_addr &get_ue_ipv6() const;
 
- private:
+private:
   const UeNetworkInfo ue_info_;
 };
 
@@ -337,17 +337,17 @@ class DeletePagingRuleEvent : public ExternalEvent {
  * handling flow
  */
 class AddArpFlowEvent : public ExternalEvent {
- public:
-  AddArpFlowEvent(const char* imsi, const struct in_addr ue_ip);
+public:
+  AddArpFlowEvent(const char *imsi, const struct in_addr ue_ip);
 
-  const struct in_addr& get_ue_ip() const;
+  const struct in_addr &get_ue_ip() const;
   int get_flow_precedence() const;
-  const std::string& get_imsi() const;
+  const std::string &get_imsi() const;
 
- private:
+private:
   const struct in_addr ue_ipv4;
   int flow_precedence_;
   const std::string imsi_;
 };
 
-}  // namespace openflow
+} // namespace openflow

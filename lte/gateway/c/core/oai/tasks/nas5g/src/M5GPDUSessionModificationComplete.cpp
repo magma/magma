@@ -18,8 +18,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
@@ -27,7 +27,7 @@ PDUSessionModificationComplete::PDUSessionModificationComplete() {}
 PDUSessionModificationComplete::~PDUSessionModificationComplete() {}
 
 int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
-    PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
+    PDUSessionModificationComplete *pdu_sess_mod_com, uint8_t *buffer,
     uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
@@ -71,7 +71,7 @@ int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
 }
 
 int PDUSessionModificationComplete::DecodePDUSessionModificationComplete(
-    PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
+    PDUSessionModificationComplete *pdu_sess_mod_com, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   uint32_t decoded_result = 0;
@@ -112,4 +112,4 @@ int PDUSessionModificationComplete::DecodePDUSessionModificationComplete(
   }
   return decoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

@@ -12,20 +12,20 @@
  */
 #pragma once
 
+#include <functional>
 #include <grpc++/grpc++.h>
 #include <lte/protos/abort_session.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <functional>
 #include <memory>
 
 #include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
-#include "lte/gateway/c/session_manager/SessionStore.hpp"
 #include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
+#include "lte/gateway/c/session_manager/SessionStore.hpp"
 
 namespace grpc {
 class ServerContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 class LocalEnforcer;
 
@@ -37,8 +37,8 @@ class ChargingReAuthRequest;
 class PolicyReAuthAnswer;
 class PolicyReAuthRequest;
 class SessionStore;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -46,7 +46,7 @@ using grpc::Status;
 namespace magma {
 
 class SessionProxyResponderHandler {
- public:
+public:
   virtual ~SessionProxyResponderHandler() {}
 
   /**
@@ -54,18 +54,18 @@ class SessionProxyResponderHandler {
    * account
    */
   virtual void ChargingReAuth(
-      ServerContext* context, const ChargingReAuthRequest* request,
+      ServerContext *context, const ChargingReAuthRequest *request,
       std::function<void(Status, ChargingReAuthAnswer)> response_callback) = 0;
 
   virtual void PolicyReAuth(
-      ServerContext* context, const PolicyReAuthRequest* request,
+      ServerContext *context, const PolicyReAuthRequest *request,
       std::function<void(Status, PolicyReAuthAnswer)> response_callback) = 0;
 
   /**
    * Support for network initiated ungraceful termination
    */
   virtual void AbortSession(
-      ServerContext* context, const AbortSessionRequest* request,
+      ServerContext *context, const AbortSessionRequest *request,
       std::function<void(Status, AbortSessionResult)> response_callback) = 0;
 };
 
@@ -74,14 +74,14 @@ class SessionProxyResponderHandler {
  * federated gateway, such as Re-Auth
  */
 class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
- public:
+public:
   SessionProxyResponderHandlerImpl(std::shared_ptr<LocalEnforcer> monitor,
-                                   SessionStore& session_store);
+                                   SessionStore &session_store);
 
   SessionProxyResponderHandlerImpl(
       std::shared_ptr<LocalEnforcer> monitor,
       std::shared_ptr<SessionStateEnforcer> m5genforcer,
-      SessionStore& session_store);
+      SessionStore &session_store);
 
   ~SessionProxyResponderHandlerImpl() {}
 
@@ -90,27 +90,27 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
    * account
    */
   void ChargingReAuth(
-      ServerContext* context, const ChargingReAuthRequest* request,
+      ServerContext *context, const ChargingReAuthRequest *request,
       std::function<void(Status, ChargingReAuthAnswer)> response_callback);
 
   /**
    * Install/uninstall rules for an existing session
    */
   void PolicyReAuth(
-      ServerContext* context, const PolicyReAuthRequest* request,
+      ServerContext *context, const PolicyReAuthRequest *request,
       std::function<void(Status, PolicyReAuthAnswer)> response_callback);
 
   /**
    * Support for network initiated ungraceful termination
    */
   void AbortSession(
-      ServerContext* context, const AbortSessionRequest* request,
+      ServerContext *context, const AbortSessionRequest *request,
       std::function<void(Status, AbortSessionResult)> response_callback);
 
- private:
+private:
   std::shared_ptr<LocalEnforcer> enforcer_;
   std::shared_ptr<SessionStateEnforcer> m5genforcer_;
-  SessionStore& session_store_;
+  SessionStore &session_store_;
 };
 
-}  // namespace magma
+} // namespace magma

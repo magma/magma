@@ -17,14 +17,14 @@ extern "C" {
 #define CHECK_PROTOTYPE_ONLY
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 }
 
 const task_info_t tasks_info[] = {
     {THREAD_NULL, "TASK_UNKNOWN", "ipc://IPC_TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD) \
+#define TASK_DEF(tHREADiD)                                                     \
   {THREAD_##tHREADiD, #tHREADiD, "ipc://IPC_" #tHREADiD},
 #include "lte/gateway/c/core/oai/include/tasks_def.h"
 #undef TASK_DEF

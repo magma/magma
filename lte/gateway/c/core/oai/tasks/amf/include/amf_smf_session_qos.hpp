@@ -18,25 +18,25 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
 
 namespace magma5g {
 
 // Fill the qos rule for the filter to be deleted
 void amf_smf_session_api_fill_delete_packet_filter(
-    delete_packet_filter_t* delete_pkt_filter, QOSRule* qos_rule);
+    delete_packet_filter_t *delete_pkt_filter, QOSRule *qos_rule);
 
 // Fill the complete ie buffer
 int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
-                                         bstring* authorized_qosrules,
-                                         bstring* qos_flow_descriptors);
+                                         bstring *authorized_qosrules,
+                                         bstring *qos_flow_descriptors);
 
 // Default qos to be filled in PDU session creation
 void amf_smf_session_set_default_qos_info(
@@ -55,4 +55,4 @@ amf_smf_get_qos_flow_map_entry_insert(
 // Remove the flow map entry
 void amf_smf_qos_flow_map_entry_remove(
     std::shared_ptr<smf_context_t> smf_context, uint32_t qos_flow_identifier);
-}  // namespace magma5g
+} // namespace magma5g

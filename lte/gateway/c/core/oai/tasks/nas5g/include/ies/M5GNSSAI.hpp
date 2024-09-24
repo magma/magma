@@ -9,14 +9,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 #define SST_LENGTH 1
 #define SD_LENGTH 3
 #define NSSAI_MSG_IE_MIN_LEN 2
 namespace magma5g {
 class NSSAIMsg {
- public:
+public:
   const int NSSAI_VAL_MAX = 74;
   const int NSSAI_MIN_LENGTH = 4;
   uint8_t iei;
@@ -28,21 +28,21 @@ class NSSAIMsg {
 
   NSSAIMsg();
   ~NSSAIMsg();
-  int EncodeNSSAIMsg(NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer,
+  int EncodeNSSAIMsg(NSSAIMsg *nssai, uint8_t iei, uint8_t *buffer,
                      uint32_t len);
-  int DecodeNSSAIMsg(NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer,
+  int DecodeNSSAIMsg(NSSAIMsg *nssai, uint8_t iei, uint8_t *buffer,
                      uint32_t len);
 };
 
 class NSSAIMsgList {
- public:
+public:
   uint8_t iei;
   uint8_t len;
   NSSAIMsg nssai;
 
   NSSAIMsgList();
   ~NSSAIMsgList();
-  int EncodeNSSAIMsgList(NSSAIMsgList* allowed_nssai, uint8_t iei,
-                         uint8_t* buffer, uint32_t len);
+  int EncodeNSSAIMsgList(NSSAIMsgList *allowed_nssai, uint8_t iei,
+                         uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

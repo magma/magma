@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -43,7 +43,7 @@ extern "C" {
 
 // free allocated structs
 //------------------------------------------------------------------------------
-void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context) {
+void free_esm_bearer_context(esm_ebr_context_t *esm_ebr_context) {
   if (esm_ebr_context) {
     if (esm_ebr_context->pco) {
       free_protocol_configuration_options(&esm_ebr_context->pco);
@@ -52,7 +52,7 @@ void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context) {
       free_traffic_flow_template(&esm_ebr_context->tft);
     }
     if (NAS_TIMER_INACTIVE_ID != esm_ebr_context->timer.id) {
-      esm_ebr_timer_data_t* esm_ebr_timer_data = esm_ebr_context->args;
+      esm_ebr_timer_data_t *esm_ebr_timer_data = esm_ebr_context->args;
       nas_timer_stop(&(esm_ebr_context->timer));
       /*
        * Release the retransmisison timer parameters
@@ -61,14 +61,14 @@ void free_esm_bearer_context(esm_ebr_context_t* esm_ebr_context) {
         if (esm_ebr_timer_data->msg) {
           bdestroy_wrapper(&esm_ebr_timer_data->msg);
         }
-        free_wrapper((void**)&esm_ebr_timer_data);
+        free_wrapper((void **)&esm_ebr_timer_data);
       }
     }
   }
 }
 
 //------------------------------------------------------------------------------
-void esm_bearer_context_init(esm_ebr_context_t* esm_ebr_context) {
+void esm_bearer_context_init(esm_ebr_context_t *esm_ebr_context) {
   if (esm_ebr_context) {
     memset(esm_ebr_context, 0, sizeof(*esm_ebr_context));
     esm_ebr_context->status = ESM_EBR_INACTIVE;
@@ -78,7 +78,7 @@ void esm_bearer_context_init(esm_ebr_context_t* esm_ebr_context) {
 
 //------------------------------------------------------------------------------
 void nas_start_T3489(const mme_ue_s1ap_id_t ue_id,
-                     struct nas_timer_s* const T3489, time_out_t time_out_cb) {
+                     struct nas_timer_s *const T3489, time_out_t time_out_cb) {
   if ((T3489) && (T3489->id == NAS_TIMER_INACTIVE_ID)) {
     T3489->id =
         mme_app_start_timer(T3489->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
@@ -93,11 +93,11 @@ void nas_start_T3489(const mme_ue_s1ap_id_t ue_id,
 }
 
 //------------------------------------------------------------------------------
-void nas_stop_T3489(esm_context_t* const esm_ctx) {
+void nas_stop_T3489(esm_context_t *const esm_ctx) {
   if ((esm_ctx) && (esm_ctx->T3489.id != NAS_TIMER_INACTIVE_ID)) {
-    emm_context_t* emm_context =
+    emm_context_t *emm_context =
         PARENT_STRUCT(esm_ctx, struct emm_context_s, esm_ctx);
-    ue_mm_context_t* ue_mm_context =
+    ue_mm_context_t *ue_mm_context =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     mme_ue_s1ap_id_t ue_id = ue_mm_context->mme_ue_s1ap_id;
     mme_app_stop_timer(esm_ctx->T3489.id);
@@ -106,17 +106,17 @@ void nas_stop_T3489(esm_context_t* const esm_ctx) {
     OAILOG_DEBUG(LOG_NAS_EMM, "T3489 stopped UE " MME_UE_S1AP_ID_FMT "\n",
                  ue_id);
     if (esm_ctx->t3489_arg) {
-      esm_ebr_timer_data_t* data = (esm_ebr_timer_data_t*)esm_ctx->t3489_arg;
+      esm_ebr_timer_data_t *data = (esm_ebr_timer_data_t *)esm_ctx->t3489_arg;
       data->ctx = NULL;
       bdestroy_wrapper(&data->msg);
-      free_wrapper((void**)&data);
+      free_wrapper((void **)&data);
     }
   }
 }
 
 // free allocated structs
 //------------------------------------------------------------------------------
-void free_esm_context_content(esm_context_t* esm_ctx) {
+void free_esm_context_content(esm_context_t *esm_ctx) {
   if (!esm_ctx) {
     return;
   }
@@ -127,15 +127,15 @@ void free_esm_context_content(esm_context_t* esm_ctx) {
     if (esm_ctx->esm_proc_data->pco.num_protocol_or_container_id) {
       clear_protocol_configuration_options(&esm_ctx->esm_proc_data->pco);
     }
-    free_wrapper((void**)&esm_ctx->esm_proc_data);
+    free_wrapper((void **)&esm_ctx->esm_proc_data);
   }
 }
 
 //------------------------------------------------------------------------------
-void esm_init_context(struct esm_context_s* esm_context) {
-  emm_context_t* emm_context =
+void esm_init_context(struct esm_context_s *esm_context) {
+  emm_context_t *emm_context =
       PARENT_STRUCT(esm_context, struct emm_context_s, esm_ctx);
-  ue_mm_context_t* ue_mm_context =
+  ue_mm_context_t *ue_mm_context =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   OAILOG_DEBUG(LOG_NAS_ESM, "ESM-CTX - Init UE id " MME_UE_S1AP_ID_FMT "\n",
                ue_mm_context->mme_ue_s1ap_id);

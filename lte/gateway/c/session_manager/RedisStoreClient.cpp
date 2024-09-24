@@ -19,15 +19,15 @@
 #include <folly/Range.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
+#include <future>
 #include <glog/logging.h>
+#include <ostream>
 #include <stddef.h>
 #include <stdint.h>
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
-#include <future>
-#include <ostream>
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <yaml-cpp/yaml.h> // IWYU pragma: keep
 
 #include "lte/gateway/c/session_manager/SessionState.hpp"
 #include "lte/gateway/c/session_manager/StoredState.hpp"
@@ -42,7 +42,7 @@ namespace magma {
 namespace lte {
 
 RedisStoreClient::RedisStoreClient(std::shared_ptr<cpp_redis::client> client,
-                                   const std::string& redis_table,
+                                   const std::string &redis_table,
                                    std::shared_ptr<StaticRuleStore> rule_store)
     : client_(client), redis_table_(redis_table), rule_store_(rule_store) {}
 
@@ -54,21 +54,21 @@ bool RedisStoreClient::try_redis_connect() {
   try {
     client_->connect(
         addr, port,
-        [](const std::string& host, std::size_t port,
+        [](const std::string &host, std::size_t port,
            cpp_redis::client::connect_state status) {
           if (status == cpp_redis::client::connect_state::dropped) {
             MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
           }
         });
     return client_->is_connected();
-  } catch (const cpp_redis::redis_error& e) {
+  } catch (const cpp_redis::redis_error &e) {
     MLOG(MERROR) << "Could not connect to redis: " << e.what();
     return false;
   }
 }
 
-SessionMap RedisStoreClient::read_sessions(
-    std::set<std::string> subscriber_ids) {
+SessionMap
+RedisStoreClient::read_sessions(std::set<std::string> subscriber_ids) {
   // The approach here is made assuming that the SessionStore only has one
   // call being processed at a time, and that the writes it makes are done
   // atomically. Based on that, reads can be done without using Redis
@@ -81,14 +81,14 @@ SessionMap RedisStoreClient::read_sessions(
   }
 
   std::unordered_map<std::string, std::future<cpp_redis::reply>> futures;
-  for (const std::string& key : subscriber_ids) {
+  for (const std::string &key : subscriber_ids) {
     futures[key] = client_->hget(redis_table_, key);
   }
 
   client_->sync_commit();
 
   SessionMap session_map;
-  for (const std::string& key : subscriber_ids) {
+  for (const std::string &key : subscriber_ids) {
     auto reply = futures[key].get();
     if (reply.is_error()) {
       MLOG(MERROR) << "RedisStoreClient: Unable to get value for key " << key;
@@ -153,7 +153,7 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
     }
   }
   std::vector<std::string> keys;
-  for (auto& it : session_map) {
+  for (auto &it : session_map) {
     keys.push_back(it.first);
   }
   client_->watch(keys);
@@ -167,7 +167,7 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
   // Queue up HSET commands after we've set up some sort of safety
   // guarantees.
   std::vector<std::string> keys_to_delete;
-  for (auto& it : session_map) {
+  for (auto &it : session_map) {
     if (it.second.empty()) {
       // if session is empty we shouldn't write back this subs anymore
       keys_to_delete.push_back(it.first);
@@ -189,10 +189,10 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
   return true;
 }
 
-std::string RedisStoreClient::serialize_session_vec(
-    SessionVector& session_vec) {
+std::string
+RedisStoreClient::serialize_session_vec(SessionVector &session_vec) {
   folly::dynamic marshaled = folly::dynamic::array;
-  for (auto& session_ptr : session_vec) {
+  for (auto &session_ptr : session_vec) {
     auto stored_session = session_ptr->marshal();
     marshaled.push_back(serialize_stored_session(stored_session));
   }
@@ -200,18 +200,18 @@ std::string RedisStoreClient::serialize_session_vec(
   return serialized;
 }
 
-SessionVector RedisStoreClient::deserialize_session_vec(
-    std::string serialized) {
+SessionVector
+RedisStoreClient::deserialize_session_vec(std::string serialized) {
   SessionVector session_vec;
   auto folly_serialized = folly::StringPiece(serialized);
   try {
     folly::dynamic marshaled = folly::parseJson(folly_serialized);
-    for (auto& it : marshaled) {
+    for (auto &it : marshaled) {
       auto stored_session = deserialize_stored_session(it.getString());
       session_vec.push_back(
           SessionState::unmarshal(stored_session, *rule_store_));
     }
-  } catch (std::exception const& e) {
+  } catch (std::exception const &e) {
     // Very rare but we've seen a crash here
     MLOG(MERROR) << "Exception " << e.what()
                  << " parsing serialized states as JSON " << folly_serialized;
@@ -219,5 +219,5 @@ SessionVector RedisStoreClient::deserialize_session_vec(
   return session_vec;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

@@ -15,11 +15,11 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
+#include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/proto_map.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
 
 namespace {
@@ -28,7 +28,7 @@ constexpr char S1AP_MME_ID2ASSOC_ID_COLL[] = "s1ap_mme_id2assoc_id_coll";
 constexpr char S1AP_MME_UEID2IMSI_MAP[] = "s1ap_mme_ueid2imsi_map";
 constexpr char S1AP_IMSI_MAP_TABLE_NAME[] = "s1ap_imsi_map";
 constexpr char S1AP_STATE_UE_MAP[] = "s1ap_state_ue_map";
-}  // namespace
+} // namespace
 
 namespace magma {
 namespace lte {
@@ -38,7 +38,7 @@ S1apStateManager::S1apStateManager()
 
 S1apStateManager::~S1apStateManager() { free_state(); }
 
-S1apStateManager& S1apStateManager::getInstance() {
+S1apStateManager &S1apStateManager::getInstance() {
   static S1apStateManager instance;
   return instance;
 }
@@ -57,10 +57,10 @@ void S1apStateManager::init(bool persist_state) {
   is_initialized = true;
 }
 
-oai::S1apState* create_s1ap_state(void) {
+oai::S1apState *create_s1ap_state(void) {
   proto_map_uint32_enb_description_t enb_map;
 
-  oai::S1apState* state_cache_p = new oai::S1apState();
+  oai::S1apState *state_cache_p = new oai::S1apState();
   enb_map.map = state_cache_p->mutable_enbs();
   enb_map.set_name(S1AP_ENB_COLL);
   enb_map.bind_callback(free_enb_description);
@@ -79,7 +79,8 @@ void S1apStateManager::create_state() {
     return;
   }
 
-  state_ue_map.map = new google::protobuf::Map<uint64_t, oai::UeDescription*>();
+  state_ue_map.map =
+      new google::protobuf::Map<uint64_t, oai::UeDescription *>();
   if (!(state_ue_map.map)) {
     OAILOG_ERROR(LOG_S1AP, "Failed to allocate memory for state_ue_map ");
     return;
@@ -90,7 +91,7 @@ void S1apStateManager::create_state() {
   create_s1ap_imsi_map();
 }
 
-void free_s1ap_state(oai::S1apState* state_cache_p) {
+void free_s1ap_state(oai::S1apState *state_cache_p) {
   AssertFatal(state_cache_p,
               "S1apState passed to free_s1ap_state must not be null");
 
@@ -133,10 +134,10 @@ status_code_e S1apStateManager::read_ue_state_from_db() {
   }
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
 
-  for (const auto& key : keys) {
+  for (const auto &key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     oai::UeDescription ue_proto = oai::UeDescription();
-    auto* ue_context = new oai::UeDescription();
+    auto *ue_context = new oai::UeDescription();
     if (!ue_context) {
       OAILOG_ERROR(log_task, "Failed to allocate memory for ue context");
       return RETURNerror;
@@ -193,7 +194,7 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   delete s1ap_imsi_map_;
 }
 
-oai::S1apImsiMap* S1apStateManager::get_s1ap_imsi_map() {
+oai::S1apImsiMap *S1apStateManager::get_s1ap_imsi_map() {
   return s1ap_imsi_map_;
 }
 
@@ -212,11 +213,11 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
   }
 }
 
-map_uint64_ue_description_t* S1apStateManager::get_s1ap_ue_state() {
+map_uint64_ue_description_t *S1apStateManager::get_s1ap_ue_state() {
   return &state_ue_map;
 }
 
-oai::S1apState* S1apStateManager::get_state(bool read_from_db) {
+oai::S1apState *S1apStateManager::get_state(bool read_from_db) {
   OAILOG_FUNC_IN(LOG_S1AP);
   AssertFatal(
       is_initialized,
@@ -260,7 +261,7 @@ void S1apStateManager::write_s1ap_state_to_db() {
 }
 
 void S1apStateManager::s1ap_write_ue_state_to_db(
-    const oai::UeDescription* ue_context, const std::string& imsi_str) {
+    const oai::UeDescription *ue_context, const std::string &imsi_str) {
   AssertFatal(
       is_initialized,
       "StateManager init() function should be called to initialize state");
@@ -302,5 +303,5 @@ status_code_e S1apStateManager::read_state_from_db() {
   return RETURNok;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

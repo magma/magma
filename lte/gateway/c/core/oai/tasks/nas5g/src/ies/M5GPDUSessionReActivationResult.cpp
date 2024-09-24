@@ -9,20 +9,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionReActivationResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include <cstdint>
 #include <cstring>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionReActivationResult.hpp"
+#include <iostream>
+#include <sstream>
 
 namespace magma5g {
 M5GPDUSessionReActivationResult::M5GPDUSessionReActivationResult(){};
 M5GPDUSessionReActivationResult::~M5GPDUSessionReActivationResult(){};
 
 int M5GPDUSessionReActivationResult::EncodePDUSessionReActivationResult(
-    M5GPDUSessionReActivationResult* pduSessionReActivationStatus, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    M5GPDUSessionReActivationResult *pduSessionReActivationStatus, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
   if (pduSessionReActivationStatus->iei) {
     *(buffer + encoded) = pduSessionReActivationStatus->iei;
@@ -42,8 +42,8 @@ int M5GPDUSessionReActivationResult::EncodePDUSessionReActivationResult(
 }
 
 int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
-    M5GPDUSessionReActivationResult* pduSessionReActivationStatus, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    M5GPDUSessionReActivationResult *pduSessionReActivationStatus, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -63,4 +63,4 @@ int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
 
   return decoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

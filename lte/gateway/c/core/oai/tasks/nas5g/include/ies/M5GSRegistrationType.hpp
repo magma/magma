@@ -10,13 +10,13 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // M5GSRegistrationType IE Class
 class M5GSRegistrationTypeMsg {
- public:
+public:
   uint8_t iei;
   const int REGISTRATION_TYPE_MIN_LENGTH = 1;
   uint8_t FOR : 1;
@@ -24,9 +24,9 @@ class M5GSRegistrationTypeMsg {
 
   M5GSRegistrationTypeMsg();
   ~M5GSRegistrationTypeMsg();
-  int EncodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg* m5gs_reg_type,
-                                    uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg* m5gs_reg_type,
-                                    uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gs_reg_type,
+                                    uint8_t iei, uint8_t *buffer, uint32_t len);
+  int DecodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gs_reg_type,
+                                    uint8_t iei, uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

@@ -19,8 +19,8 @@
 #include <iostream>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/sms_orc8r_client_api.hpp"
 #include "lte/gateway/c/core/oai/lib/sms_orc8r_client/SMSOrc8rClient.hpp"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/sms_orc8r_client_api.hpp"
 #include "orc8r/protos/common.pb.h"
 
 extern "C" {
@@ -31,7 +31,7 @@ void void_callback(grpc::Status status, magma::orc8r::Void void_response) {
   return;
 }
 
-void send_smo_uplink_unitdata(const itti_sgsap_uplink_unitdata_t* msg) {
+void send_smo_uplink_unitdata(const itti_sgsap_uplink_unitdata_t *msg) {
   OAILOG_DEBUG(LOG_SMS_ORC8R, "Sending UPLINK_UNITDATA\n");
   magma::SMSOrc8rClient::send_uplink_unitdata(msg, void_callback);
   return;

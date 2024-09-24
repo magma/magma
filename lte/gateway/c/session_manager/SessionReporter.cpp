@@ -15,9 +15,9 @@
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <iostream>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <iostream>
 #include <string>
 #include <utility>
 
@@ -26,18 +26,18 @@
 
 namespace folly {
 class EventBase;
-}  // namespace folly
+} // namespace folly
 namespace google {
 namespace protobuf {
 class Message;
-}  // namespace protobuf
-}  // namespace google
+} // namespace protobuf
+} // namespace google
 
 namespace magma {
 
 template <class ResponseType>
 AsyncEvbResponse<ResponseType>::AsyncEvbResponse(
-    folly::EventBase* base,
+    folly::EventBase *base,
     std::function<void(grpc::Status, ResponseType)> callback,
     uint32_t timeout_sec)
     : AsyncGRPCResponse<ResponseType>(callback, timeout_sec), base_(base) {}
@@ -52,7 +52,7 @@ void AsyncEvbResponse<ResponseType>::handle_response() {
 
 ReporterCallbackFn<SessionTerminateResponse>
 SessionReporter::get_terminate_logging_cb(
-    const SessionTerminateRequest& request) {
+    const SessionTerminateRequest &request) {
   return [request](grpc::Status status, SessionTerminateResponse response) {
     if (!status.ok()) {
       MLOG(MERROR) << "Failed to terminate session in controller for "
@@ -64,14 +64,14 @@ SessionReporter::get_terminate_logging_cb(
   };
 }
 
-SessionReporterImpl::SessionReporterImpl(folly::EventBase* base,
+SessionReporterImpl::SessionReporterImpl(folly::EventBase *base,
                                          std::shared_ptr<grpc::Channel> channel)
     : base_(base), stub_(CentralSessionController::NewStub(channel)) {}
 
 void SessionReporterImpl::report_updates(
-    const UpdateSessionRequest& request,
+    const UpdateSessionRequest &request,
     ReporterCallbackFn<UpdateSessionResponse> callback) {
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
 
   auto controller_response = new AsyncEvbResponse<UpdateSessionResponse>(
       base_, callback, RESPONSE_TIMEOUT);
@@ -80,9 +80,9 @@ void SessionReporterImpl::report_updates(
 }
 
 void SessionReporterImpl::report_create_session(
-    const CreateSessionRequest& request,
+    const CreateSessionRequest &request,
     ReporterCallbackFn<CreateSessionResponse> callback) {
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   auto controller_response = new AsyncEvbResponse<CreateSessionResponse>(
       base_, callback, RESPONSE_TIMEOUT);
   controller_response->set_response_reader(stub_->AsyncCreateSession(
@@ -90,9 +90,9 @@ void SessionReporterImpl::report_create_session(
 }
 
 void SessionReporterImpl::report_terminate_session(
-    const SessionTerminateRequest& request,
+    const SessionTerminateRequest &request,
     ReporterCallbackFn<SessionTerminateResponse> callback) {
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   auto controller_response = new AsyncEvbResponse<SessionTerminateResponse>(
       base_, callback, RESPONSE_TIMEOUT);
   controller_response->set_response_reader(
@@ -100,4 +100,4 @@ void SessionReporterImpl::report_terminate_session(
                                              request, &queue_)));
 }
 
-}  // namespace magma
+} // namespace magma

@@ -10,13 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
-#include <lte/protos/session_manager.pb.h>
-#include <time.h>
 #include <algorithm>
 #include <cstdint>
+#include <gtest/gtest.h>
 #include <limits>
+#include <lte/protos/session_manager.pb.h>
 #include <string>
+#include <time.h>
 #include <unordered_map>
 #include <vector>
 
@@ -32,7 +32,7 @@ using ::testing::Test;
 namespace magma {
 
 class ChargingGrantTest : public ::testing::Test {
- protected:
+protected:
   ChargingGrant get_default_grant() {
     ChargingGrant grant;
     grant.is_final_grant = false;
@@ -136,7 +136,7 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   // Set final_grant && validity timer
   grant.is_final_grant = true;
   grant.reauth_state = REAUTH_NOT_NEEDED;
-  grant.expiry_time = time(nullptr) - 50;  // 50 seconds ago
+  grant.expiry_time = time(nullptr) - 50; // 50 seconds ago
   EXPECT_TRUE(grant.get_update_type(&update_type));
   EXPECT_EQ(update_type, CreditUsage::VALIDITY_TIMER_EXPIRED);
 }
@@ -281,7 +281,7 @@ TEST_F(ChargingGrantTest, test_get_action_restrict) {
 // both the threshold (0.8) and the maximum allowed quota
 TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   auto grant = get_default_grant();
-  auto& credit = grant.credit;
+  auto &credit = grant.credit;
   auto uc = grant.get_update_criteria();
   GrantedUnits gsu;
   uint64_t total_grant = 1000;
@@ -309,7 +309,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_EQ(credit.get_credit(REPORTING_TX), 2000);
 
   // Now receive new quota (not final unit)
-  uc = grant.get_update_criteria();  // reset UC
+  uc = grant.get_update_criteria(); // reset UC
   grant.credit.receive_credit(gsu, &uc);
   // we overused, so we take into consideration the 2000 we used plus granted
   // 1000
@@ -320,14 +320,14 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 2000);
 
   // No update should be triggered as everything is reported
-  uc = grant.get_update_criteria();  // reset UC
+  uc = grant.get_update_criteria(); // reset UC
   EXPECT_FALSE(grant.get_update_type(&update_type));
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
   EXPECT_EQ(credit.get_credit(REPORTING_TX), 0);
 
   // receive some more FINAL grant that will go over part of the used and not
   // reported credit
-  uc = grant.get_update_criteria();  // reset UC
+  uc = grant.get_update_criteria(); // reset UC
   grant.is_final_grant = true;
   grant.final_action_info =
       get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
@@ -338,17 +338,17 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 1000);
 
   // Use enough credit to exceed the given quota
-  uc = grant.get_update_criteria();  // reset UC
+  uc = grant.get_update_criteria(); // reset UC
   credit.add_used_credit(2000, 0, &uc);
   EXPECT_EQ(uc.bucket_deltas[USED_TX], 2000);
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 4000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 4000);
-  EXPECT_TRUE(credit.is_quota_exhausted(1));  // 100% exceeded
+  EXPECT_TRUE(credit.is_quota_exhausted(1)); // 100% exceeded
   EXPECT_TRUE(grant.should_deactivate_service());
   grant.set_service_state(SERVICE_NEEDS_DEACTIVATION, &uc);
 
   // Since this is the final grant, we should not report anything
   EXPECT_FALSE(grant.get_update_type(&update_type));
 }
-}  // namespace magma
+} // namespace magma

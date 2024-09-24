@@ -17,22 +17,22 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/CipheringKeySequenceNumber.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_ciphering_key_sequence_number(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    CipheringKeySequenceNumber *cipheringkeysequencenumber, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -48,10 +48,10 @@ int decode_ciphering_key_sequence_number(
 }
 
 int decode_u8_ciphering_key_sequence_number(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
+    CipheringKeySequenceNumber *cipheringkeysequencenumber, uint8_t iei,
     uint8_t value, uint32_t len) {
   int decoded = 0;
-  uint8_t* buffer = &value;
+  uint8_t *buffer = &value;
 
   *cipheringkeysequencenumber = *buffer & 0x7;
   decoded++;
@@ -59,8 +59,8 @@ int decode_u8_ciphering_key_sequence_number(
 }
 
 int encode_ciphering_key_sequence_number(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    CipheringKeySequenceNumber *cipheringkeysequencenumber, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -75,9 +75,9 @@ int encode_ciphering_key_sequence_number(
 }
 
 uint8_t encode_u8_ciphering_key_sequence_number(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber) {
+    CipheringKeySequenceNumber *cipheringkeysequencenumber) {
   uint8_t bufferReturn;
-  uint8_t* buffer = &bufferReturn;
+  uint8_t *buffer = &bufferReturn;
   uint8_t encoded = 0;
   uint8_t iei = 0;
 
@@ -89,7 +89,7 @@ uint8_t encode_u8_ciphering_key_sequence_number(
 }
 
 void dump_ciphering_key_sequence_number_xml(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei) {
+    CipheringKeySequenceNumber *cipheringkeysequencenumber, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Ciphering Key Sequence Number>\n");
 
   if (iei > 0)

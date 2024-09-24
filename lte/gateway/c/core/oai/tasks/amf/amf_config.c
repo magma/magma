@@ -13,18 +13,18 @@
 
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 
-#include <libconfig.h>
-#include "lte/gateway/c/core/oai/common/log.h"
-#include <errno.h>
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+#include <errno.h>
+#include <libconfig.h>
 
-void served_tai_config_init(served_tai_t* served_tai);
-void clear_served_tai_config(served_tai_t* served_tai);
+void served_tai_config_init(served_tai_t *served_tai);
+void clear_served_tai_config(served_tai_t *served_tai);
 
 struct amf_config_s amf_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 
@@ -36,7 +36,7 @@ struct amf_config_s amf_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void log_amf_config_init(log_config_t* log_conf) {
+void log_amf_config_init(log_config_t *log_conf) {
   log_conf->ngap_log_level = MAX_LOG_LEVEL;
   log_conf->nas_amf_log_level = MAX_LOG_LEVEL;
   log_conf->amf_app_log_level = MAX_LOG_LEVEL;
@@ -50,7 +50,7 @@ void log_amf_config_init(log_config_t* log_conf) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void nas5g_config_init(nas5g_config_t* nas_conf) {
+void nas5g_config_init(nas5g_config_t *nas_conf) {
   nas_conf->t3502_min = T3502_DEFAULT_VALUE;
   nas_conf->t3512_min = T3512_DEFAULT_VALUE;
   nas_conf->t3522_sec = T3522_DEFAULT_VALUE;
@@ -76,7 +76,7 @@ void nas5g_config_init(nas5g_config_t* nas_conf) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void guamfi_config_init(guamfi_config_t* guamfi_conf) {
+void guamfi_config_init(guamfi_config_t *guamfi_conf) {
   guamfi_conf->nb = 1;
   guamfi_conf->guamfi[0].amf_set_id = AMFC;
   guamfi_conf->guamfi[0].amf_regionid = AMFGID;
@@ -97,7 +97,7 @@ void guamfi_config_init(guamfi_config_t* guamfi_conf) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void plmn_support_list_config_init(plmn_support_list_t* plmn_support_list) {
+void plmn_support_list_config_init(plmn_support_list_t *plmn_support_list) {
   plmn_support_list->plmn_support_count = MIN_PLMN_SUPPORT;
   plmn_support_list->plmn_support[0].plmn.mcc_digit1 = 0;
   plmn_support_list->plmn_support[0].plmn.mcc_digit2 = 0;
@@ -118,7 +118,7 @@ void plmn_support_list_config_init(plmn_support_list_t* plmn_support_list) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void ngap_config_init(ngap_config_t* ngap_conf) {
+void ngap_config_init(ngap_config_t *ngap_conf) {
   ngap_conf->port_number = NGAP_PORT_NUMBER;
   ngap_conf->outcome_drop_timer_sec = NGAP_OUTCOME_TIMER_DEFAULT;
 }
@@ -134,7 +134,7 @@ void ngap_config_init(ngap_config_t* ngap_conf) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-void amf_config_init(amf_config_t* config) {
+void amf_config_init(amf_config_t *config) {
   memset(config, 0, sizeof(*config));
 
   pthread_rwlock_init(&config->rw_lock, NULL);
@@ -163,17 +163,22 @@ void amf_config_init(amf_config_t* config) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
+int amf_config_parse_opt_line(int argc, char *argv[], amf_config_t *config_pP) {
   amf_config_init(config_pP);
   return 0;
 }
 
-static bool parse_bool(const char* str) {
-  if (strcasecmp(str, "yes") == 0) return true;
-  if (strcasecmp(str, "true") == 0) return true;
-  if (strcasecmp(str, "no") == 0) return false;
-  if (strcasecmp(str, "false") == 0) return false;
-  if (strcasecmp(str, "") == 0) return false;
+static bool parse_bool(const char *str) {
+  if (strcasecmp(str, "yes") == 0)
+    return true;
+  if (strcasecmp(str, "true") == 0)
+    return true;
+  if (strcasecmp(str, "no") == 0)
+    return false;
+  if (strcasecmp(str, "false") == 0)
+    return false;
+  if (strcasecmp(str, "") == 0)
+    return false;
 
   Fatal("Error in config file: got \"%s\" but expected bool\n", str);
 }
@@ -190,24 +195,24 @@ static bool parse_bool(const char* str) {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int amf_config_parse_file(amf_config_t* config_pP,
-                          const mme_config_t* mme_config_p) {
+int amf_config_parse_file(amf_config_t *config_pP,
+                          const mme_config_t *mme_config_p) {
   config_t cfg = {0};
-  config_setting_t* setting = NULL;
-  config_setting_t* sub2setting = NULL;
-  config_setting_t* setting_amf = NULL;
+  config_setting_t *setting = NULL;
+  config_setting_t *sub2setting = NULL;
+  config_setting_t *setting_amf = NULL;
   int i = 0, num = 0;
-  const char* astring = NULL;
-  const char* mcc = NULL;
-  const char* mnc = NULL;
-  const char* region_id = NULL;
-  const char* set_id = NULL;
-  const char* pointer = NULL;
-  const char* default_dns = NULL;
-  const char* default_pcscf = NULL;
-  const char* default_dns_sec = NULL;
-  const char* set_sst = NULL;
-  const char* set_sd = NULL;
+  const char *astring = NULL;
+  const char *mcc = NULL;
+  const char *mnc = NULL;
+  const char *region_id = NULL;
+  const char *set_id = NULL;
+  const char *pointer = NULL;
+  const char *default_dns = NULL;
+  const char *default_pcscf = NULL;
+  const char *default_dns_sec = NULL;
+  const char *set_sst = NULL;
+  const char *set_sd = NULL;
   int aint = 0;
   config_init(&cfg);
 
@@ -235,10 +240,10 @@ int amf_config_parse_file(amf_config_t* config_pP,
   if (setting_amf != NULL) {
     if (config_setting_lookup_string(setting_amf,
                                      AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS,
-                                     (const char**)&default_dns) &&
+                                     (const char **)&default_dns) &&
         config_setting_lookup_string(
             setting_amf, AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS,
-            (const char**)&default_dns_sec)) {
+            (const char **)&default_dns_sec)) {
       IPV4_STR_ADDR_TO_INADDR(default_dns, config_pP->ipv4.default_dns,
                               "BAD IPv4 ADDRESS FORMAT FOR DEFAULT DNS !\n");
       IPV4_STR_ADDR_TO_INADDR(default_dns_sec, config_pP->ipv4.default_dns_sec,
@@ -247,20 +252,20 @@ int amf_config_parse_file(amf_config_t* config_pP,
 
     if (config_setting_lookup_string(
             setting_amf, AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV4_ADDRESS,
-            (const char**)&default_pcscf)) {
+            (const char **)&default_pcscf)) {
       IPV4_STR_ADDR_TO_INADDR(default_pcscf, config_pP->pcscf_addr.ipv4,
                               "BAD IPv4 ADDRESS FORMAT FOR DEFAULT PCSCF !\n");
     }
 
     // AMF NAME
     if ((config_setting_lookup_string(setting_amf, AMF_CONFIG_AMF_NAME,
-                                      (const char**)&astring))) {
+                                      (const char **)&astring))) {
       config_pP->amf_name = bfromcstr(astring);
     }
 
     // DEFAULT_DNN
     if (config_setting_lookup_string(setting_amf, CONFIG_DEFAULT_DNN,
-                                     (const char**)&astring)) {
+                                     (const char **)&astring)) {
       config_pP->default_dnn = bfromcstr(astring);
     }
     // DEFAULT AUTH MAX RETRY COUNT
@@ -354,9 +359,9 @@ int amf_config_parse_file(amf_config_t* config_pP,
                 default_sd_val;
           }
           config_pP->plmn_support_list.plmn_support_count += 1;
-        }  // If MCC/MNC/Slice Information is found
-      }    // For the number of entries in the list for PLMN SUPPORT
-    }      // PLMN_SUPPORT LIST is present
+        } // If MCC/MNC/Slice Information is found
+      }   // For the number of entries in the list for PLMN SUPPORT
+    }     // PLMN_SUPPORT LIST is present
 
     // enable VoNR support
     if ((config_setting_lookup_string(
@@ -439,7 +444,7 @@ int amf_config_parse_file(amf_config_t* config_pP,
         }
       }
     }
-  }  // NGP Setting is not NULL
+  } // NGP Setting is not NULL
   config_destroy(&cfg);
   return 0;
 }
@@ -455,11 +460,11 @@ int amf_config_parse_file(amf_config_t* config_pP,
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_config_free(amf_config_t* amf_config) {
-  free_wrapper((void**)&amf_config->served_tai.plmn_mcc);
-  free_wrapper((void**)&amf_config->served_tai.plmn_mnc);
-  free_wrapper((void**)&amf_config->served_tai.plmn_mnc_len);
-  free_wrapper((void**)&amf_config->served_tai.tac);
+void amf_config_free(amf_config_t *amf_config) {
+  free_wrapper((void **)&amf_config->served_tai.plmn_mcc);
+  free_wrapper((void **)&amf_config->served_tai.plmn_mnc);
+  free_wrapper((void **)&amf_config->served_tai.plmn_mnc_len);
+  free_wrapper((void **)&amf_config->served_tai.tac);
 }
 
 /****************************************************************************
@@ -476,8 +481,9 @@ void amf_config_exit(void) {
   amf_config_free(&amf_config);
 }
 
-void clear_amf_config(amf_config_t* amf_config) {
-  if (!amf_config) return;
+void clear_amf_config(amf_config_t *amf_config) {
+  if (!amf_config)
+    return;
 
   bdestroy_wrapper(&amf_config->log_config.output);
   bdestroy_wrapper(&amf_config->config_file);
@@ -501,22 +507,23 @@ void clear_amf_config(amf_config_t* amf_config) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src) {
-  if (!dest || !src) return;
+void copy_served_tai_config_list(amf_config_t *dest, const mme_config_t *src) {
+  if (!dest || !src)
+    return;
 
   // served_tai
   if (dest->served_tai.nb_tai != src->served_tai.nb_tai) {
     if (NULL != dest->served_tai.plmn_mcc)
-      free_wrapper((void**)&dest->served_tai.plmn_mcc);
+      free_wrapper((void **)&dest->served_tai.plmn_mcc);
 
     if (NULL != dest->served_tai.plmn_mnc)
-      free_wrapper((void**)&dest->served_tai.plmn_mnc);
+      free_wrapper((void **)&dest->served_tai.plmn_mnc);
 
     if (NULL != dest->served_tai.plmn_mnc_len)
-      free_wrapper((void**)&dest->served_tai.plmn_mnc_len);
+      free_wrapper((void **)&dest->served_tai.plmn_mnc_len);
 
     if (NULL != dest->served_tai.tac)
-      free_wrapper((void**)&dest->served_tai.tac);
+      free_wrapper((void **)&dest->served_tai.tac);
 
     dest->served_tai.nb_tai = src->served_tai.nb_tai;
     dest->served_tai.plmn_mcc =
@@ -558,8 +565,8 @@ void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src) {
   }
 }
 
-void copy_amf_config_from_mme_config(amf_config_t* dest,
-                                     const mme_config_t* src) {
+void copy_amf_config_from_mme_config(amf_config_t *dest,
+                                     const mme_config_t *src) {
   OAILOG_DEBUG(LOG_AMF_APP, "copy_amf_config_from_mme_config");
   // LOGGING setting
   dest->log_config = src->log_config;
@@ -574,7 +581,8 @@ void copy_amf_config_from_mme_config(amf_config_t* dest,
   if (src->short_network_name)
     dest->short_network_name = bstrcpy(src->short_network_name);
   dest->daylight_saving_time = src->daylight_saving_time;
-  if (src->pid_dir) dest->pid_dir = bstrcpy(src->pid_dir);
+  if (src->pid_dir)
+    dest->pid_dir = bstrcpy(src->pid_dir);
   dest->max_gnbs = src->max_enbs;
   dest->max_ues = src->max_ues;
   dest->relative_capacity = src->relative_capacity;
@@ -593,8 +601,9 @@ void copy_amf_config_from_mme_config(amf_config_t* dest,
   copy_served_tai_config_list(dest, src);
 }
 
-void amf_config_display(amf_config_t* config_pP) {
-  if (!config_pP) return;
+void amf_config_display(amf_config_t *config_pP) {
+  if (!config_pP)
+    return;
 
   OAILOG_INFO(LOG_CONFIG, "==========AMF Configuration Start==========\n");
 
@@ -621,26 +630,25 @@ void amf_config_display(amf_config_t* config_pP) {
   for (uint8_t itr = 0; itr < config_pP->num_par_lists; itr++) {
     if (config_pP->partial_list) {
       switch (config_pP->partial_list[itr].list_type) {
-        case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
-          OAILOG_DEBUG(
-              LOG_CONFIG,
-              "- List [%d] - TAI list type one PLMN consecutive TACs\n", itr);
-          break;
-        case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
-          OAILOG_DEBUG(
-              LOG_CONFIG,
-              "- List [%d] - TAI list type one PLMN non consecutive TACs\n",
-              itr);
-          break;
-        case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
-          OAILOG_DEBUG(LOG_CONFIG,
-                       "- List [%d] - TAI list type multiple PLMNs\n", itr);
-          break;
-        default:
-          OAILOG_ERROR(LOG_CONFIG,
-                       "Invalid served TAI list type (%u) configured\n",
-                       config_pP->partial_list[itr].list_type);
-          break;
+      case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS:
+        OAILOG_DEBUG(LOG_CONFIG,
+                     "- List [%d] - TAI list type one PLMN consecutive TACs\n",
+                     itr);
+        break;
+      case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS:
+        OAILOG_DEBUG(
+            LOG_CONFIG,
+            "- List [%d] - TAI list type one PLMN non consecutive TACs\n", itr);
+        break;
+      case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS:
+        OAILOG_DEBUG(LOG_CONFIG, "- List [%d] - TAI list type multiple PLMNs\n",
+                     itr);
+        break;
+      default:
+        OAILOG_ERROR(LOG_CONFIG,
+                     "Invalid served TAI list type (%u) configured\n",
+                     config_pP->partial_list[itr].list_type);
+        break;
       }
     }
   }

@@ -24,13 +24,13 @@
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace lte {
 
-static magma::lte::IPAddress create_get_subscriber_id_from_ip_req(
-    const struct in_addr& addr) {
+static magma::lte::IPAddress
+create_get_subscriber_id_from_ip_req(const struct in_addr &addr) {
   IPAddress req = IPAddress();
   req.set_version(IPAddress::IPV4);
   req.set_address(&addr, sizeof(struct in_addr));
@@ -46,14 +46,14 @@ AsyncMobilitydClient::AsyncMobilitydClient()
           "mobilityd", ServiceRegistrySingleton::LOCAL)) {}
 
 void AsyncMobilitydClient::get_subscriber_id_from_ip(
-    const struct in_addr& ip,
+    const struct in_addr &ip,
     std::function<void(grpc::Status, SubscriberID)> callback) {
   IPAddress req = create_get_subscriber_id_from_ip_req(ip);
   get_subscriber_id_from_ip_rpc(req, callback);
 }
 
 void AsyncMobilitydClient::get_subscriber_id_from_ip_rpc(
-    const IPAddress& request,
+    const IPAddress &request,
     std::function<void(grpc::Status, SubscriberID)> callback) {
   auto local_resp = new AsyncLocalResponse<SubscriberID>(
       std::move(callback), RESPONSE_TIMEOUT_SECONDS);
@@ -61,5 +61,5 @@ void AsyncMobilitydClient::get_subscriber_id_from_ip_rpc(
       local_resp->get_context(), request, &queue_));
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

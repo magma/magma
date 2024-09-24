@@ -10,15 +10,15 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 namespace magma5g {
 // New QOSRule Class
 class NewQOSRulePktFilter {
- public:
+public:
   uint8_t spare : 2;
   uint8_t pkt_filter_dir : 2;
   uint8_t pkt_filter_id : 4;
@@ -33,7 +33,7 @@ class NewQOSRulePktFilter {
 
 // QOSRule Class
 class QOSRule {
- public:
+public:
 #define QOS_ADD_RULE_MIN_LEN 3
 #define QOS_DEL_RULE_MIN_LEN 1
 #define QOS_RULE_DQR_BIT_SET 0x1
@@ -56,7 +56,7 @@ class QOSRule {
 
 // QOSRules IE Class
 class QOSRulesMsg {
- public:
+public:
 #define QOS_RULES_MSG_MIN_LEN 3
 #define QOS_RULE_ENTRY_MAX 4
 #define QOS_RULES_MSG_BUF_LEN_MAX 4096
@@ -66,13 +66,13 @@ class QOSRulesMsg {
   QOSRulesMsg();
   ~QOSRulesMsg();
 
-  uint16_t EncodeQOSRulesMsgData(QOSRulesMsg* qos_rules, uint8_t* buffer,
+  uint16_t EncodeQOSRulesMsgData(QOSRulesMsg *qos_rules, uint8_t *buffer,
                                  uint32_t len);
-  int EncodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
+  int EncodeQOSRulesMsg(QOSRulesMsg *qos_rules, uint8_t iei, uint8_t *buffer,
                         uint32_t len);
-  uint8_t DecodeQOSRulesMsgData(QOSRulesMsg* qos_rules, uint8_t* buffer,
+  uint8_t DecodeQOSRulesMsgData(QOSRulesMsg *qos_rules, uint8_t *buffer,
                                 uint32_t len);
-  int DecodeQOSRulesMsg(QOSRulesMsg* qos_rules, uint8_t iei, uint8_t* buffer,
+  int DecodeQOSRulesMsg(QOSRulesMsg *qos_rules, uint8_t iei, uint8_t *buffer,
                         uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

@@ -17,21 +17,21 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/IdentityType2.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
-                           uint8_t* buffer, uint32_t len) {
+int decode_identity_type_2(IdentityType2 *identitytype2, uint8_t iei,
+                           uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IDENTITY_TYPE_2_MINIMUM_LENGTH,
@@ -49,10 +49,10 @@ int decode_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
   return decoded;
 }
 
-int decode_u8_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
+int decode_u8_identity_type_2(IdentityType2 *identitytype2, uint8_t iei,
                               uint8_t value, uint32_t len) {
   int decoded = 0;
-  uint8_t* buffer = &value;
+  uint8_t *buffer = &value;
 
   *identitytype2 = *buffer & 0x7;
   decoded++;
@@ -62,8 +62,8 @@ int decode_u8_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
   return decoded;
 }
 
-int encode_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
-                           uint8_t* buffer, uint32_t len) {
+int encode_identity_type_2(IdentityType2 *identitytype2, uint8_t iei,
+                           uint8_t *buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -79,9 +79,9 @@ int encode_identity_type_2(IdentityType2* identitytype2, uint8_t iei,
   return encoded;
 }
 
-uint8_t encode_u8_identity_type_2(IdentityType2* identitytype2) {
+uint8_t encode_u8_identity_type_2(IdentityType2 *identitytype2) {
   uint8_t bufferReturn;
-  uint8_t* buffer = &bufferReturn;
+  uint8_t *buffer = &bufferReturn;
   uint8_t encoded = 0;
   uint8_t iei = 0;
 
@@ -93,7 +93,7 @@ uint8_t encode_u8_identity_type_2(IdentityType2* identitytype2) {
   return bufferReturn;
 }
 
-void dump_identity_type_2_xml(IdentityType2* identitytype2, uint8_t iei) {
+void dump_identity_type_2_xml(IdentityType2 *identitytype2, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Identity Type 2>\n");
 
   if (iei > 0)

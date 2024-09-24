@@ -24,9 +24,9 @@
 #include <memory.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
@@ -42,7 +42,7 @@ int s1ap_state_init(bool use_stateless) {
   return RETURNok;
 }
 
-oai::S1apState* get_s1ap_state(bool read_from_db) {
+oai::S1apState *get_s1ap_state(bool read_from_db) {
   return S1apStateManager::getInstance().get_state(read_from_db);
 }
 
@@ -52,27 +52,27 @@ void put_s1ap_state() {
   S1apStateManager::getInstance().write_s1ap_state_to_db();
 }
 
-proto_map_rc_t s1ap_state_get_enb(oai::S1apState* state,
+proto_map_rc_t s1ap_state_get_enb(oai::S1apState *state,
                                   sctp_assoc_id_t assoc_id,
-                                  oai::EnbDescription* enb) {
+                                  oai::EnbDescription *enb) {
   proto_map_uint32_enb_description_t enb_map;
   enb_map.map = state->mutable_enbs();
   return enb_map.get(assoc_id, enb);
 }
 
-proto_map_rc_t s1ap_state_update_enb_map(oai::S1apState* state,
+proto_map_rc_t s1ap_state_update_enb_map(oai::S1apState *state,
                                          sctp_assoc_id_t assoc_id,
-                                         oai::EnbDescription* enb) {
+                                         oai::EnbDescription *enb) {
   proto_map_uint32_enb_description_t enb_map;
   enb_map.map = state->mutable_enbs();
   return enb_map.update_val(assoc_id, enb);
 }
 
-oai::UeDescription* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
+oai::UeDescription *s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
                                             enb_ue_s1ap_id_t enb_ue_s1ap_id) {
-  oai::UeDescription* ue = nullptr;
+  oai::UeDescription *ue = nullptr;
 
-  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  map_uint64_ue_description_t *state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
     return ue;
@@ -84,32 +84,33 @@ oai::UeDescription* s1ap_state_get_ue_enbid(sctp_assoc_id_t sctp_assoc_id,
   return ue;
 }
 
-oai::UeDescription* s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
-  oai::UeDescription* ue = nullptr;
+oai::UeDescription *s1ap_state_get_ue_mmeid(mme_ue_s1ap_id_t mme_ue_s1ap_id) {
+  oai::UeDescription *ue = nullptr;
 
-  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  map_uint64_ue_description_t *state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
     return ue;
   }
   state_ue_map->map_apply_callback_on_all_elements(
-      s1ap_ue_compare_by_mme_ue_id_cb, reinterpret_cast<void*>(&mme_ue_s1ap_id),
-      reinterpret_cast<void**>(&ue));
+      s1ap_ue_compare_by_mme_ue_id_cb,
+      reinterpret_cast<void *>(&mme_ue_s1ap_id),
+      reinterpret_cast<void **>(&ue));
 
   return ue;
 }
 
-oai::UeDescription* s1ap_state_get_ue_imsi(imsi64_t imsi64) {
-  oai::UeDescription* ue = nullptr;
+oai::UeDescription *s1ap_state_get_ue_imsi(imsi64_t imsi64) {
+  oai::UeDescription *ue = nullptr;
 
-  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  map_uint64_ue_description_t *state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
     return ue;
   }
   state_ue_map->map_apply_callback_on_all_elements(
-      s1ap_ue_compare_by_imsi, reinterpret_cast<void*>(&imsi64),
-      reinterpret_cast<void**>(&ue));
+      s1ap_ue_compare_by_imsi, reinterpret_cast<void *>(&imsi64),
+      reinterpret_cast<void **>(&ue));
 
   return ue;
 }
@@ -118,15 +119,15 @@ void put_s1ap_imsi_map() {
   S1apStateManager::getInstance().write_s1ap_imsi_map_to_db();
 }
 
-oai::S1apImsiMap* get_s1ap_imsi_map() {
+oai::S1apImsiMap *get_s1ap_imsi_map() {
   return S1apStateManager::getInstance().get_s1ap_imsi_map();
 }
 
 bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
-                                     oai::UeDescription* elementP,
-                                     void* parameterP, void** resultP) {
-  mme_ue_s1ap_id_t* mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t*)parameterP;
-  oai::UeDescription* ue_ref = reinterpret_cast<oai::UeDescription*>(elementP);
+                                     oai::UeDescription *elementP,
+                                     void *parameterP, void **resultP) {
+  mme_ue_s1ap_id_t *mme_ue_s1ap_id_p = (mme_ue_s1ap_id_t *)parameterP;
+  oai::UeDescription *ue_ref = reinterpret_cast<oai::UeDescription *>(elementP);
   if (*mme_ue_s1ap_id_p == ue_ref->mme_ue_s1ap_id()) {
     *resultP = elementP;
     OAILOG_TRACE(LOG_S1AP,
@@ -138,11 +139,11 @@ bool s1ap_ue_compare_by_mme_ue_id_cb(__attribute__((unused)) uint64_t keyP,
 }
 
 bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
-                             oai::UeDescription* elementP, void* parameterP,
-                             void** resultP) {
+                             oai::UeDescription *elementP, void *parameterP,
+                             void **resultP) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  imsi64_t* target_imsi64 = (imsi64_t*)parameterP;
-  oai::UeDescription* ue_ref = reinterpret_cast<oai::UeDescription*>(elementP);
+  imsi64_t *target_imsi64 = (imsi64_t *)parameterP;
+  oai::UeDescription *ue_ref = reinterpret_cast<oai::UeDescription *>(elementP);
 
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
   get_s1ap_ueid_imsi_map(&ueid_imsi_map);
@@ -156,13 +157,13 @@ bool s1ap_ue_compare_by_imsi(__attribute__((unused)) uint64_t keyP,
   return false;
 }
 
-map_uint64_ue_description_t* get_s1ap_ue_state(void) {
+map_uint64_ue_description_t *get_s1ap_ue_state(void) {
   return S1apStateManager::getInstance().get_s1ap_ue_state();
 }
 
 void put_s1ap_ue_state(imsi64_t imsi64) {
   if (S1apStateManager::getInstance().is_persist_state_enabled()) {
-    oai::UeDescription* ue_ctxt = s1ap_state_get_ue_imsi(imsi64);
+    oai::UeDescription *ue_ctxt = s1ap_state_get_ue_imsi(imsi64);
     if (ue_ctxt) {
       auto imsi_str = S1apStateManager::getInstance().get_imsi_str(imsi64);
       S1apStateManager::getInstance().s1ap_write_ue_state_to_db(ue_ctxt,
@@ -177,13 +178,13 @@ void delete_s1ap_ue_state(imsi64_t imsi64) {
 }
 
 void remove_ues_without_imsi_from_ue_id_coll() {
-  oai::S1apState* s1ap_state_p = get_s1ap_state(false);
+  oai::S1apState *s1ap_state_p = get_s1ap_state(false);
   if (!s1ap_state_p) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_state");
     return;
   }
 
-  map_uint64_ue_description_t* s1ap_ue_state = get_s1ap_ue_state();
+  map_uint64_ue_description_t *s1ap_ue_state = get_s1ap_ue_state();
   if (!(s1ap_ue_state)) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_ue_state");
     return;
@@ -196,12 +197,12 @@ void remove_ues_without_imsi_from_ue_id_coll() {
 
   std::vector<uint32_t> mme_ue_id_no_imsi_list = {};
   magma::proto_map_uint32_uint64_t ueid_imsi_map;
-  oai::S1apImsiMap* s1ap_imsi_map = get_s1ap_imsi_map();
+  oai::S1apImsiMap *s1ap_imsi_map = get_s1ap_imsi_map();
   if (!s1ap_imsi_map) {
     OAILOG_ERROR(LOG_S1AP, "Failed to get s1ap_imsi_map");
     return;
   }
-  oai::UeDescription* ue_ref_p = nullptr;
+  oai::UeDescription *ue_ref_p = nullptr;
 
   // get each eNB in s1ap_state
   for (auto itr = enb_map.map->begin(); itr != enb_map.map->end(); itr++) {
@@ -251,5 +252,5 @@ void remove_ues_without_imsi_from_ue_id_coll() {
   }
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

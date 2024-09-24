@@ -50,12 +50,12 @@ Description Usefull command line parser
  *  name, the usage message and a value
  */
 typedef struct {
-  const char* name;     /* Option name         */
-  const char* argument; /* Argument following the option   */
-  const char* usage;    /* Option and Argument usage     */
+  const char *name;     /* Option name         */
+  const char *argument; /* Argument following the option   */
+  const char *usage;    /* Option and Argument usage     */
 #define PARSER_OPTION_VALUE_SIZE 32
   char value[PARSER_OPTION_VALUE_SIZE]; /* Option value      */
-  char* pvalue;
+  char *pvalue;
 } parser_option_t;
 
 /* -----------------
@@ -79,6 +79,6 @@ typedef struct {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-void parser_print_usage(const parser_command_line_t* commamd_line);
-status_code_e parser_get_options(int argc, const char** argv,
-                                 parser_command_line_t* commamd_line);
+void parser_print_usage(const parser_command_line_t *commamd_line);
+status_code_e parser_get_options(int argc, const char **argv,
+                                 parser_command_line_t *commamd_line);

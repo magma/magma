@@ -74,8 +74,8 @@ extern "C" {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_status_ind(emm_context_t* emm_context, proc_tid_t pti,
-                                  ebi_t ebi, esm_cause_t* esm_cause) {
+status_code_e esm_proc_status_ind(emm_context_t *emm_context, proc_tid_t pti,
+                                  ebi_t ebi, esm_cause_t *esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc = RETURNerror;
 
@@ -86,50 +86,50 @@ status_code_e esm_proc_status_ind(emm_context_t* emm_context, proc_tid_t pti,
                   "ESM-PROC  - To be implemented\n");
 
   switch (*esm_cause) {
-    case ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY:
-      /*
-       * Abort any ongoing ESM procedure related to the received EPS
-       * bearer identity, stop any related timer, and deactivate the
-       * corresponding EPS bearer context locally
-       */
-      /*
-       * TODO
-       */
-      rc = RETURNok;
-      break;
+  case ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY:
+    /*
+     * Abort any ongoing ESM procedure related to the received EPS
+     * bearer identity, stop any related timer, and deactivate the
+     * corresponding EPS bearer context locally
+     */
+    /*
+     * TODO
+     */
+    rc = RETURNok;
+    break;
 
-    case ESM_CAUSE_INVALID_PTI_VALUE:
-      /*
-       * Abort any ongoing ESM procedure related to the received PTI
-       * value and stop any related timer
-       */
-      /*
-       * TODO
-       */
-      rc = RETURNok;
-      break;
+  case ESM_CAUSE_INVALID_PTI_VALUE:
+    /*
+     * Abort any ongoing ESM procedure related to the received PTI
+     * value and stop any related timer
+     */
+    /*
+     * TODO
+     */
+    rc = RETURNok;
+    break;
 
-    case ESM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED:
-      /*
-       * Abort any ongoing ESM procedure related to the PTI or
-       * EPS bearer identity and stop any related timer
-       */
-      /*
-       * TODO
-       */
-      rc = RETURNok;
-      break;
+  case ESM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED:
+    /*
+     * Abort any ongoing ESM procedure related to the PTI or
+     * EPS bearer identity and stop any related timer
+     */
+    /*
+     * TODO
+     */
+    rc = RETURNok;
+    break;
 
-    default:
-      /*
-       * No state transition and no specific action shall be taken;
-       * local actions are possible
-       */
-      /*
-       * TODO
-       */
-      rc = RETURNok;
-      break;
+  default:
+    /*
+     * No state transition and no specific action shall be taken;
+     * local actions are possible
+     */
+    /*
+     * TODO
+     */
+    rc = RETURNok;
+    break;
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -154,8 +154,8 @@ status_code_e esm_proc_status_ind(emm_context_t* emm_context, proc_tid_t pti,
  **                                                                        **
  ***************************************************************************/
 status_code_e esm_proc_status(const bool is_standalone,
-                              emm_context_t* const emm_context, const ebi_t ebi,
-                              STOLEN_REF bstring* msg,
+                              emm_context_t *const emm_context, const ebi_t ebi,
+                              STOLEN_REF bstring *msg,
                               const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc = RETURNerror;

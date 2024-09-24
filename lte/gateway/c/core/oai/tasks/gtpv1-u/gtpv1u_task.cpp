@@ -22,10 +22,10 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdio.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -46,7 +46,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/gtpv1-u/gtpv1u_sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 
-const struct gtp_tunnel_ops* gtp_tunnel_ops;
+const struct gtp_tunnel_ops *gtp_tunnel_ops;
 static struct in_addr current_ue_net;
 static uint32_t current_ue_net_mask;
 
@@ -59,7 +59,7 @@ void add_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
   bstring system_cmd =
       bformat("ip route replace %s/%u dev %s", inet_ntoa(ue_net), mask,
               gtp_tunnel_ops->get_dev_name());
-  int ret = system((const char*)system_cmd->data);
+  int ret = system((const char *)system_cmd->data);
   if (ret) {
     OAILOG_ERROR(LOG_GTPV1U, "ERROR in system command %s: %d at %s:%u\n",
                  bdata(system_cmd), ret, __FILE__, __LINE__);
@@ -79,7 +79,7 @@ static void del_route_for_ue_block(struct in_addr ue_net, uint32_t mask) {
     return;
   }
   bstring system_cmd = bformat("ip route del %s/%u", inet_ntoa(ue_net), mask);
-  int ret = system((const char*)system_cmd->data);
+  int ret = system((const char *)system_cmd->data);
   if (ret) {
     OAILOG_ERROR(LOG_GTPV1U, "ERROR in system command %s: %d at %s:%u\n",
                  bdata(system_cmd), ret, __FILE__, __LINE__);
@@ -115,7 +115,7 @@ static bool ue_ip_is_in_subnet(struct in_addr _net, int mask,
 }
 
 //------------------------------------------------------------------------------
-int gtpv1u_init(gtpv1u_data_t* gtpv1u_data, spgw_config_t* spgw_config,
+int gtpv1u_init(gtpv1u_data_t *gtpv1u_data, spgw_config_t *spgw_config,
                 bool persist_state) {
   int rv = 0;
   struct in_addr netaddr;
@@ -171,11 +171,11 @@ int gtpv1u_init(gtpv1u_data_t* gtpv1u_data, spgw_config_t* spgw_config,
   return 0;
 }
 
-int gtpv1u_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
-                      struct in_addr enb, struct in6_addr* enb_ipv6,
+int gtpv1u_add_tunnel(struct in_addr ue, struct in6_addr *ue_ipv6, int vlan,
+                      struct in_addr enb, struct in6_addr *enb_ipv6,
                       uint32_t i_tei, uint32_t o_tei, Imsi_t imsi,
-                      struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
-                      const char* apn) {
+                      struct ip_flow_dl *flow_dl, uint32_t flow_precedence_dl,
+                      const char *apn) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add tunnel ue %s", inet_ntoa(ue));
 
   if (spgw_config.pgw_config.enable_nat) {
@@ -207,9 +207,9 @@ int gtpv1u_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
                                     apn);
 }
 
-int gtpv1u_add_s8_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
-                         struct in_addr enb, struct in6_addr* enb_ipv6,
-                         struct in_addr pgw, struct in6_addr* pgw_ipv6,
+int gtpv1u_add_s8_tunnel(struct in_addr ue, struct in6_addr *ue_ipv6, int vlan,
+                         struct in_addr enb, struct in6_addr *enb_ipv6,
+                         struct in_addr pgw, struct in6_addr *pgw_ipv6,
                          uint32_t i_tei, uint32_t o_tei, uint32_t pgw_in_tei,
                          uint32_t pgw_o_tei, Imsi_t imsi) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add S8 tunnel ue %s", inet_ntoa(ue));
@@ -222,9 +222,9 @@ int gtpv1u_add_s8_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
   }
 }
 
-int gtpv1u_del_s8_tunnel(struct in_addr enb, struct in6_addr* enb_ipv6,
-                         struct in_addr pgw, struct in6_addr* pgw_ipv6,
-                         struct in_addr ue, struct in6_addr* ue_ipv6,
+int gtpv1u_del_s8_tunnel(struct in_addr enb, struct in6_addr *enb_ipv6,
+                         struct in_addr pgw, struct in6_addr *pgw_ipv6,
+                         struct in_addr ue, struct in6_addr *ue_ipv6,
                          uint32_t i_tei, uint32_t pgw_in_tei) {
   OAILOG_DEBUG(LOG_GTPV1U, "Del S8 tunnel ue %s", inet_ntoa(ue));
   if (gtp_tunnel_ops->del_s8_tunnel) {

@@ -10,19 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include <glog/logging.h>
+#include <gtest/gtest.h>
 
-#include <grpcpp/impl/codegen/status.h>
-#include "lte/protos/subscriberauth.pb.h"
 #include "lte/protos/subscriberauth.grpc.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
+#include "lte/protos/subscriberauth.pb.h"
 #include "lte/protos/subscriberdb.grpc.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+#include <grpcpp/impl/codegen/status.h>
 
-#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.hpp"
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
 
 using ::testing::Test;
 
@@ -41,7 +41,7 @@ TEST(test_convert_proto_msg_to_itti_m5g_auth_info_ans,
   std::string autn("authenticationtn");
   std::string kseaf("SecurityAnchorFunctionAMFKeyOf22");
 
-  auto* authVector1 = response.add_m5gauth_vectors();
+  auto *authVector1 = response.add_m5gauth_vectors();
   authVector1->set_rand(rand);
   authVector1->set_xres_star(xres_star);
   authVector1->set_autn(autn);
@@ -53,7 +53,7 @@ TEST(test_convert_proto_msg_to_itti_m5g_auth_info_ans,
   // build expected itti_amf_subs_auth_info_ans_t
   itti_amf_subs_auth_info_ans_t expect_auth_info;
   expect_auth_info.auth_info.nb_of_vectors = 1;
-  m5gauth_vector_t& expected_m5gauth_vector =
+  m5gauth_vector_t &expected_m5gauth_vector =
       expect_auth_info.auth_info.m5gauth_vector[0];
   memcpy(expected_m5gauth_vector.rand, rand.c_str(), rand.length());
   expected_m5gauth_vector.xres_star.size = xres_star.length();
@@ -63,7 +63,7 @@ TEST(test_convert_proto_msg_to_itti_m5g_auth_info_ans,
   memcpy(expected_m5gauth_vector.kseaf, kseaf.c_str(), kseaf.length());
 
   // check generated & expected
-  m5gauth_vector_t& generated_m5gauth_vector =
+  m5gauth_vector_t &generated_m5gauth_vector =
       amf_app_subs_auth_info_resp_p.auth_info.m5gauth_vector[0];
 
   EXPECT_TRUE(expect_auth_info.auth_info.nb_of_vectors ==
@@ -124,5 +124,5 @@ TEST(test_get_decrypt_msin_info, get_decrypt_msin_info) {
   EXPECT_TRUE(ciphertext == req.ue_ciphertext());
   EXPECT_TRUE(mac_tag == req.ue_encrypted_mac());
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

@@ -9,11 +9,11 @@
  * limitations under the License.
  * */
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 namespace magma5g {
 class NetworkFeatureSupportMsg {
- public:
+public:
 #define NETWORK_FEATURE_MINIMUM_LENGTH 3
 #define NETWORK_FEATURE_MAXIMUM_LENGTH 5
 
@@ -30,12 +30,12 @@ class NetworkFeatureSupportMsg {
   NetworkFeatureSupportMsg();
   ~NetworkFeatureSupportMsg();
 
-  int EncodeNetworkFeatureSupportMsg(NetworkFeatureSupportMsg* networkfeature,
-                                     uint8_t iei, uint8_t* buffer,
+  int EncodeNetworkFeatureSupportMsg(NetworkFeatureSupportMsg *networkfeature,
+                                     uint8_t iei, uint8_t *buffer,
                                      uint32_t len);
 
-  int DecodeNetworkFeatureSupportMsg(NetworkFeatureSupportMsg* networkfeature,
-                                     uint8_t iei, uint8_t* buffer,
+  int DecodeNetworkFeatureSupportMsg(NetworkFeatureSupportMsg *networkfeature,
+                                     uint8_t iei, uint8_t *buffer,
                                      uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

@@ -16,7 +16,7 @@
 #include <bits/exception.h>
 #include <cpp_redis/core/client.hpp>
 #include <cpp_redis/cpp_redis>
-#include <exception>  // IWYU pragma: keep
+#include <exception> // IWYU pragma: keep
 #include <memory>
 #include <set>
 #include <string>
@@ -31,12 +31,12 @@ namespace magma {
 namespace lte {
 
 class RedisReadFailed : public std::exception {
- public:
+public:
   RedisReadFailed() = default;
 };
 
 class RedisWriteFailed : public std::exception {
- public:
+public:
   RedisWriteFailed() = default;
 };
 
@@ -44,13 +44,13 @@ class RedisWriteFailed : public std::exception {
  * Persistent StoreClient used to allow stateless session_manager to function
  */
 class RedisStoreClient final : public StoreClient {
- public:
+public:
   RedisStoreClient(std::shared_ptr<cpp_redis::client> client,
-                   const std::string& redis_table,
+                   const std::string &redis_table,
                    std::shared_ptr<StaticRuleStore> rule_store);
 
-  RedisStoreClient(RedisStoreClient const&) = delete;
-  RedisStoreClient(RedisStoreClient&&) = default;
+  RedisStoreClient(RedisStoreClient const &) = delete;
+  RedisStoreClient(RedisStoreClient &&) = default;
   ~RedisStoreClient() = default;
 
   bool try_redis_connect();
@@ -63,16 +63,16 @@ class RedisStoreClient final : public StoreClient {
 
   bool write_sessions(SessionMap session_map);
 
- private:
+private:
   std::shared_ptr<cpp_redis::client> client_;
   std::string redis_table_;
   std::shared_ptr<StaticRuleStore> rule_store_;
 
- private:
-  std::string serialize_session_vec(SessionVector& session_vec);
+private:
+  std::string serialize_session_vec(SessionVector &session_vec);
 
   SessionVector deserialize_session_vec(std::string serialized);
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

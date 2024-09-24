@@ -12,9 +12,9 @@
  */
 #pragma once
 
-#include <nlohmann/json.hpp>
 #include <list>
 #include <map>
+#include <nlohmann/json.hpp>
 #include <string>
 
 namespace magma {
@@ -22,7 +22,7 @@ class SessionState;
 
 namespace lte {
 class SessionStore;
-}  // namespace lte
+} // namespace lte
 
 const std::string TYPE = "type";
 const std::string SUBSCRIBER_STATE_TYPE = "subscriber_state";
@@ -43,14 +43,14 @@ const std::string SNOWFLAKE_PATH = "/etc/snowflake";
 
 using OpState = std::list<std::map<std::string, std::string>>;
 
-OpState get_operational_states(magma::lte::SessionStore* session_store);
+OpState get_operational_states(magma::lte::SessionStore *session_store);
 
-nlohmann::json get_dynamic_session_state(
-    const std::unique_ptr<SessionState>& session);
+nlohmann::json
+get_dynamic_session_state(const std::unique_ptr<SessionState> &session);
 
-nlohmann::json get_dynamic_active_policies(
-    const std::unique_ptr<SessionState>& session);
+nlohmann::json
+get_dynamic_active_policies(const std::unique_ptr<SessionState> &session);
 
 std::string get_gateway_hw_id();
 
-}  // namespace magma
+} // namespace magma

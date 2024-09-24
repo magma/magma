@@ -32,13 +32,13 @@
 // defined in common_types.h
 // typedef uint8_t pdn_type_t;
 
-int encode_pdn_type(pdn_type_t* pdntype, uint8_t iei, uint8_t* buffer,
+int encode_pdn_type(pdn_type_t *pdntype, uint8_t iei, uint8_t *buffer,
                     uint32_t len);
 
-uint8_t encode_u8_pdn_type(pdn_type_t* pdntype);
+uint8_t encode_u8_pdn_type(pdn_type_t *pdntype);
 
-int decode_pdn_type(pdn_type_t* pdntype, uint8_t iei, uint8_t* buffer,
+int decode_pdn_type(pdn_type_t *pdntype, uint8_t iei, uint8_t *buffer,
                     uint32_t len);
 
-int decode_u8_pdn_type(pdn_type_t* pdntype, uint8_t iei, uint8_t value,
+int decode_u8_pdn_type(pdn_type_t *pdntype, uint8_t iei, uint8_t value,
                        uint32_t len);

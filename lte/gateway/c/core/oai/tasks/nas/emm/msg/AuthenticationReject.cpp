@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_authentication_reject(
-    authentication_reject_msg* authentication_reject, uint8_t* buffer,
+    authentication_reject_msg *authentication_reject, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
 
@@ -44,7 +44,7 @@ int decode_authentication_reject(
 }
 
 int encode_authentication_reject(
-    authentication_reject_msg* authentication_reject, uint8_t* buffer,
+    authentication_reject_msg *authentication_reject, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
 

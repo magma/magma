@@ -10,14 +10,14 @@
  */
 
 #pragma once
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // AuthenticationResponseParameter IE Class
 class AuthenticationResponseParameterMsg {
- public:
+public:
 #define AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN 18
   uint8_t iei;
   uint8_t length;
@@ -27,10 +27,10 @@ class AuthenticationResponseParameterMsg {
   AuthenticationResponseParameterMsg();
   ~AuthenticationResponseParameterMsg();
   int EncodeAuthenticationResponseParameterMsg(
-      AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      AuthenticationResponseParameterMsg *response_parameter, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
   int DecodeAuthenticationResponseParameterMsg(
-      AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      AuthenticationResponseParameterMsg *response_parameter, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

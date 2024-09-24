@@ -29,7 +29,7 @@ MATCHER_P2(check_cause_in_ds_rsp, cause, teid, "") {
 
 // TC validates successful handling of create session request
 TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req_success) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
   itti_s11_create_session_request_t session_req = {0};
   fill_itti_csreq(&session_req, default_eps_bearer_id);
   memcpy(session_req.apn, "internet", sizeof("internet"));
@@ -42,12 +42,12 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req_success) {
  * on reception of Create Session Req
  */
 TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
   uint32_t temporary_create_session_procedure_id = 0;
 
   // validates creation of pdn session on reception of Create Session Req with
   // key as temporary session id
-  sgw_eps_bearer_context_information_t* sgw_pdn_session =
+  sgw_eps_bearer_context_information_t *sgw_pdn_session =
       sgw_create_bearer_context_information_in_collection(
           sgw_state, &temporary_create_session_procedure_id);
   EXPECT_TRUE(sgw_pdn_session != nullptr);
@@ -73,7 +73,7 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
 
   // Validates whether bearer is created within pdn session
   bool bearer_id_inserted = false;
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = nullptr;
+  sgw_eps_bearer_ctxt_t *eps_bearer_ctxt_p = nullptr;
   for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
     eps_bearer_ctxt_p =
         sgw_pdn_session->pdn_connection.sgw_eps_bearers_array[idx];
@@ -92,12 +92,12 @@ TEST_F(SgwS8ConfigAndCreateMock, create_context_on_cs_req) {
 
 // TC validates updation of bearer context on reception of Create Session Rsp
 TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_eps_bearer_context_information_t *sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_state, &temporary_create_session_procedure_id);
@@ -121,7 +121,7 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
             RETURNok);
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t *bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -141,9 +141,9 @@ TEST_F(SgwS8ConfigAndCreateMock, update_pdn_session_on_cs_rsp) {
 // Create Session Rsp
 TEST_F(SgwS8ConfigAndCreateMock,
        recv_different_temporary_create_session_procedure_id_on_cs_rsp) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
 
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_eps_bearer_context_information_t *sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_state, &temporary_create_session_procedure_id);
@@ -164,9 +164,9 @@ TEST_F(SgwS8ConfigAndCreateMock,
 // TC indicates that SGW_S8 has received incorrect sgw_s8_teid in Create Session
 // Rsp
 TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
 
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_eps_bearer_context_information_t *sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_state, &temporary_create_session_procedure_id);
@@ -191,8 +191,8 @@ TEST_F(SgwS8ConfigAndCreateMock, recv_different_sgw_s8_teid) {
 TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
   uint32_t temporary_create_session_procedure_id = 0;
 
-  sgw_state_t* sgw_state = get_sgw_state(false);
-  sgw_eps_bearer_context_information_t* sgw_pdn_session =
+  sgw_state_t *sgw_state = get_sgw_state(false);
+  sgw_eps_bearer_context_information_t *sgw_pdn_session =
       sgw_create_bearer_context_information_in_collection(
           sgw_state, &temporary_create_session_procedure_id);
 
@@ -205,7 +205,7 @@ TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
   s8_create_session_response_t csresp = {0};
   fill_itti_csrsp(&csresp, temporary_create_session_procedure_id,
                   sgw_s8_up_teid++);
-  csresp.eps_bearer_id = 7;  // Send wrong eps_bearer_id
+  csresp.eps_bearer_id = 7; // Send wrong eps_bearer_id
   // fails to update bearer context
   EXPECT_EQ(sgw_update_bearer_context_information_on_csrsp(sgw_pdn_session,
                                                            &csresp, sgw_state),
@@ -214,12 +214,12 @@ TEST_F(SgwS8ConfigAndCreateMock, failed_to_get_bearer_context_on_cs_rsp) {
 
 // TC validates deletion of pdn session
 TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_eps_bearer_context_information_t *sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_state, &temporary_create_session_procedure_id);
@@ -248,7 +248,7 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t *bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -286,12 +286,12 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling) {
 // TC validates that sgw_s8 module fails to find the pdn context based on
 // invalid teid
 TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_eps_bearer_context_information_t *sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_state, &temporary_create_session_procedure_id);
@@ -328,12 +328,12 @@ TEST_F(SgwS8ConfigAndCreateMock, delete_session_req_handling_invalid_teid) {
 
 // TC validates the handling of modify bearer req
 TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_eps_bearer_context_information_t *sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_state, &temporary_create_session_procedure_id);
@@ -358,7 +358,7 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
   cv.wait_for(lock, std::chrono::milliseconds(END_OF_TESTCASE_SLEEP_MS));
 
   EXPECT_TRUE((sgw_get_sgw_eps_bearer_context(csresp.context_teid)) != nullptr);
-  sgw_eps_bearer_ctxt_t* bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
+  sgw_eps_bearer_ctxt_t *bearer_ctx_p = sgw_s8_cm_get_eps_bearer_entry(
       &sgw_pdn_session->pdn_connection, csresp.eps_bearer_id);
   EXPECT_TRUE(bearer_ctx_p != nullptr);
 
@@ -387,12 +387,12 @@ TEST_F(SgwS8ConfigAndCreateMock, update_s1u_bearer_info_on_mbr) {
 
 // TC validates the handling of release access bearer req
 TEST_F(SgwS8ConfigAndCreateMock, validate_release_access_bearer_proc) {
-  sgw_state_t* sgw_state = get_sgw_state(false);
+  sgw_state_t *sgw_state = get_sgw_state(false);
   std::condition_variable cv;
   std::mutex mx;
   std::unique_lock<std::mutex> lock(mx);
 
-  sgw_eps_bearer_context_information_t* sgw_pdn_session = NULL;
+  sgw_eps_bearer_context_information_t *sgw_pdn_session = NULL;
   uint32_t temporary_create_session_procedure_id = 0;
   sgw_pdn_session = sgw_create_bearer_context_information_in_collection(
       sgw_state, &temporary_create_session_procedure_id);

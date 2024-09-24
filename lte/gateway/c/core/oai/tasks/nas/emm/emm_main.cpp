@@ -64,16 +64,15 @@ emm_data_t _emm_data;
  **      Others:    _emm_data                                  **
  **                                                                        **
  ***************************************************************************/
-void emm_main_initialize(const mme_config_t* mme_config_p) {
+void emm_main_initialize(const mme_config_t *mme_config_p) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
    * Retreive MME supported configuration data
    */
   memset(&_emm_data.conf, 0, sizeof(_emm_data.conf));
   if (mme_api_get_emm_config(&_emm_data.conf, mme_config_p) != RETURNok) {
-    Fatal(
-        "EMM-MAIN  - Failed to get all required MME config data, "
-        "check the error logs for missing configs");
+    Fatal("EMM-MAIN  - Failed to get all required MME config data, "
+          "check the error logs for missing configs");
   }
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }

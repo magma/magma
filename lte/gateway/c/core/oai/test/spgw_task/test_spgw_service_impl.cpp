@@ -17,13 +17,13 @@
 
 namespace magma {
 namespace lte {
-void CheckFillIpv4(packet_filter_contents_t* pf_content, int exp_addr[],
+void CheckFillIpv4(packet_filter_contents_t *pf_content, int exp_addr[],
                    int exp_mask[]) {
   for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
     EXPECT_EQ(pf_content->ipv4remoteaddr[i].mask, exp_mask[i]);
     EXPECT_EQ(pf_content->ipv4remoteaddr[i].addr, exp_addr[i]);
-    pf_content->ipv4remoteaddr[i].mask = (uint8_t)256;  // reset mask
-    pf_content->ipv4remoteaddr[i].addr = (uint8_t)256;  // reset addr
+    pf_content->ipv4remoteaddr[i].mask = (uint8_t)256; // reset mask
+    pf_content->ipv4remoteaddr[i].addr = (uint8_t)256; // reset addr
   }
 }
 
@@ -120,5 +120,5 @@ TEST(SPGWServiceImplTest, TestFillIpv4) {
                 std::array<int, 4>{255, 255, 255, 255}.data());
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

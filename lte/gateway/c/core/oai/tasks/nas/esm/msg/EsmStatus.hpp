@@ -54,6 +54,6 @@ typedef struct esm_status_msg_tag {
   esm_cause_t esmcause;
 } esm_status_msg;
 
-int decode_esm_status(esm_status_msg* esmstatus, uint8_t* buffer, uint32_t len);
+int decode_esm_status(esm_status_msg *esmstatus, uint8_t *buffer, uint32_t len);
 
-int encode_esm_status(esm_status_msg* esmstatus, uint8_t* buffer, uint32_t len);
+int encode_esm_status(esm_status_msg *esmstatus, uint8_t *buffer, uint32_t len);

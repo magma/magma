@@ -24,9 +24,9 @@
 typedef traffic_flow_template_t traffic_flow_aggregate_description_t;
 
 int encode_traffic_flow_aggregate_description(
-    traffic_flow_aggregate_description_t* trafficflowaggregatedescription,
-    uint8_t iei, uint8_t* buffer, uint32_t len);
+    traffic_flow_aggregate_description_t *trafficflowaggregatedescription,
+    uint8_t iei, uint8_t *buffer, uint32_t len);
 
 int decode_traffic_flow_aggregate_description(
-    traffic_flow_aggregate_description_t* trafficflowaggregatedescription,
-    uint8_t iei, uint8_t* buffer, uint32_t len);
+    traffic_flow_aggregate_description_t *trafficflowaggregatedescription,
+    uint8_t iei, uint8_t *buffer, uint32_t len);

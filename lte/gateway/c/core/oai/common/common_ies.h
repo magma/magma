@@ -49,8 +49,8 @@ typedef uint8_t UeEmmMode;
 typedef struct MobileIdentity_s {
 #define MOBILE_IDENTITY_IMSI 0b001
 #define MOBILE_IDENTITY_TMSI 0b100
-  uint8_t length;          // Length of IMSI or TMSI
-  uint8_t typeofidentity;  // IMSI or TMSI
+  uint8_t length;         // Length of IMSI or TMSI
+  uint8_t typeofidentity; // IMSI or TMSI
   union {
     char imsi[IMSI_BCD_DIGITS_MAX + 1];
     char tmsi[TMSI_SIZE + 1];

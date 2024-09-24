@@ -11,17 +11,17 @@
  * limitations under the License.
  */
 #pragma once
+#include <atomic>
+#include <functional>
 #include <grpc++/grpc++.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/completion_queue.h>
 #include <grpcpp/impl/codegen/server_context.h>
+#include <iosfwd>
 #include <lte/protos/abort_session.grpc.pb.h>
 #include <lte/protos/abort_session.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <atomic>
-#include <functional>
-#include <iosfwd>
 #include <memory>
 #include <utility>
 
@@ -32,12 +32,12 @@
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace orc8r {
 class Void;
-}  // namespace orc8r
-}  // namespace magma
+} // namespace orc8r
+} // namespace magma
 
 using grpc::ServerCompletionQueue;
 using grpc::ServerContext;
@@ -63,7 +63,7 @@ namespace magma {
  * CallData for that RPC is created and the next request will have that tag.
  */
 class AsyncService {
- public:
+public:
   AsyncService(std::unique_ptr<ServerCompletionQueue> cq);
   virtual ~AsyncService() = default;
 
@@ -77,13 +77,13 @@ class AsyncService {
    */
   void stop();
 
- protected:
+protected:
   /**
    * Initialize request handlers for report rule stats, end/create session
    */
   virtual void init_call_data() = 0;
 
- protected:
+protected:
   std::unique_ptr<ServerCompletionQueue> cq_;
   std::atomic<bool> running_;
 };
@@ -95,15 +95,15 @@ class AsyncService {
 class LocalSessionManagerAsyncService final
     : public AsyncService,
       public LocalSessionManager::AsyncService {
- public:
+public:
   LocalSessionManagerAsyncService(
       std::unique_ptr<ServerCompletionQueue> cq,
       std::unique_ptr<LocalSessionManagerHandler> handler);
 
- protected:
+protected:
   void init_call_data();
 
- private:
+private:
   std::unique_ptr<LocalSessionManagerHandler> handler_;
 };
 
@@ -111,15 +111,15 @@ class LocalSessionManagerAsyncService final
 class AmfPduSessionSmContextAsyncService final
     : public AsyncService,
       public AmfPduSessionSmContext::AsyncService {
- public:
+public:
   AmfPduSessionSmContextAsyncService(
       std::unique_ptr<ServerCompletionQueue> cq,
       std::unique_ptr<SetMessageManager> handler);
 
- protected:
+protected:
   void init_call_data();
 
- private:
+private:
   std::unique_ptr<SetMessageManager> handler_;
 };
 
@@ -127,15 +127,15 @@ class AmfPduSessionSmContextAsyncService final
 class SetInterfaceForUserPlaneAsyncService final
     : public AsyncService,
       public SetInterfaceForUserPlane::AsyncService {
- public:
+public:
   SetInterfaceForUserPlaneAsyncService(
       std::unique_ptr<ServerCompletionQueue> cq,
       std::unique_ptr<UpfMsgManageHandler> handler);
 
- protected:
+protected:
   void init_call_data();
 
- private:
+private:
   std::unique_ptr<UpfMsgManageHandler> handler_;
 };
 /**
@@ -145,30 +145,30 @@ class SetInterfaceForUserPlaneAsyncService final
 class SessionProxyResponderAsyncService final
     : public AsyncService,
       public SessionProxyResponder::AsyncService {
- public:
+public:
   SessionProxyResponderAsyncService(
       std::unique_ptr<ServerCompletionQueue> cq,
       std::shared_ptr<SessionProxyResponderHandler> handler);
 
- protected:
+protected:
   void init_call_data();
 
- private:
+private:
   std::shared_ptr<SessionProxyResponderHandler> handler_;
 };
 
 class AbortSessionResponderAsyncService final
     : public AsyncService,
       public AbortSessionResponder::AsyncService {
- public:
+public:
   AbortSessionResponderAsyncService(
       std::unique_ptr<ServerCompletionQueue> cq,
       std::shared_ptr<SessionProxyResponderHandler> handler);
 
- protected:
+protected:
   void init_call_data();
 
- private:
+private:
   std::shared_ptr<SessionProxyResponderHandler> handler_;
 };
 
@@ -179,7 +179,7 @@ class AbortSessionResponderAsyncService final
  * call proceed on them
  */
 class CallData {
- public:
+public:
   /**
    * proceed is called by the AsyncService loop when the CallData is found in
    * the queue
@@ -196,8 +196,8 @@ class CallData {
  */
 template <class GRPCService, class RequestType, class ResponseType>
 class AsyncGRPCRequest : public CallData {
- public:
-  AsyncGRPCRequest(ServerCompletionQueue* cq, GRPCService& service);
+public:
+  AsyncGRPCRequest(ServerCompletionQueue *cq, GRPCService &service);
   virtual ~AsyncGRPCRequest() = default;
 
   /**
@@ -207,8 +207,8 @@ class AsyncGRPCRequest : public CallData {
    */
   void proceed();
 
- protected:
-  ServerCompletionQueue* cq_;
+protected:
+  ServerCompletionQueue *cq_;
   ServerContext ctx_;
 
   enum CallStatus { PROCESS, FINISH };
@@ -217,9 +217,9 @@ class AsyncGRPCRequest : public CallData {
   RequestType request_;
   grpc::ServerAsyncResponseWriter<ResponseType> responder_;
 
-  GRPCService& service_;
+  GRPCService &service_;
 
- protected:
+protected:
   /**
    * Create new CallData for the request so that more requests can be processed
    */
@@ -242,20 +242,20 @@ class AsyncGRPCRequest : public CallData {
 class ReportRuleStatsCallData
     : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
                               RuleRecordTable, Void> {
- public:
-  ReportRuleStatsCallData(ServerCompletionQueue* cq,
-                          LocalSessionManager::AsyncService& service,
-                          LocalSessionManagerHandler& handler)
+public:
+  ReportRuleStatsCallData(ServerCompletionQueue *cq,
+                          LocalSessionManager::AsyncService &service,
+                          LocalSessionManagerHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     // By calling RequestReportRuleStats, any RPC to ReportRuleStats will get
     // added to the request queue cq_ with the tag being the memory address
     // of this instance. When the request is completed, it will be added to
     // cq_ again to be finished
     service_.RequestReportRuleStats(&ctx_, &request_, &responder_, cq_, cq_,
-                                    (void*)this);
+                                    (void *)this);
   }
 
- protected:
+protected:
   void clone() override {
     // When processing a request, create a new ReportRuleStatsCallData to
     // process another request if it comes in.
@@ -267,24 +267,24 @@ class ReportRuleStatsCallData
     handler_.ReportRuleStats(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  LocalSessionManagerHandler& handler_;
+private:
+  LocalSessionManagerHandler &handler_;
 };
 /*Set RPC calldata to invoke first first function of landing object for 5G */
 // AmfPduSessionSmContextToSmf
 class SetAmfSessionContextCallData
     : public AsyncGRPCRequest<AmfPduSessionSmContext::AsyncService,
                               SetSMSessionContext, SmContextVoid> {
- public:
-  SetAmfSessionContextCallData(ServerCompletionQueue* cq,
-                               AmfPduSessionSmContext::AsyncService& service,
-                               SetMessageManager& handler)
+public:
+  SetAmfSessionContextCallData(ServerCompletionQueue *cq,
+                               AmfPduSessionSmContext::AsyncService &service,
+                               SetMessageManager &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetAmfSessionContext(&ctx_, &request_, &responder_, cq_,
-                                         cq_, (void*)this);
+                                         cq_, (void *)this);
   }
 
- protected:
+protected:
   void clone() override {
     new SetAmfSessionContextCallData(cq_, service_, handler_);
   }
@@ -293,8 +293,8 @@ class SetAmfSessionContextCallData
     handler_.SetAmfSessionContext(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  SetMessageManager& handler_;
+private:
+  SetMessageManager &handler_;
 };
 
 /*
@@ -303,16 +303,16 @@ class SetAmfSessionContextCallData
 class SetUPFNodeStateCallData
     : public AsyncGRPCRequest<SetInterfaceForUserPlane::AsyncService,
                               UPFNodeState, SmContextVoid> {
- public:
-  SetUPFNodeStateCallData(ServerCompletionQueue* cq,
-                          SetInterfaceForUserPlane::AsyncService& service,
-                          UpfMsgManageHandler& handler)
+public:
+  SetUPFNodeStateCallData(ServerCompletionQueue *cq,
+                          SetInterfaceForUserPlane::AsyncService &service,
+                          UpfMsgManageHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetUPFNodeState(&ctx_, &request_, &responder_, cq_, cq_,
-                                    reinterpret_cast<void*>(this));
+                                    reinterpret_cast<void *>(this));
   }
 
- protected:
+protected:
   void clone() override {
     new SetUPFNodeStateCallData(cq_, service_, handler_);
   }
@@ -321,8 +321,8 @@ class SetUPFNodeStateCallData
     handler_.SetUPFNodeState(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  UpfMsgManageHandler& handler_;
+private:
+  UpfMsgManageHandler &handler_;
 };
 
 /*
@@ -331,16 +331,16 @@ class SetUPFNodeStateCallData
 class SetUPFSessionsConfigCallData
     : public AsyncGRPCRequest<SetInterfaceForUserPlane::AsyncService,
                               UPFSessionConfigState, SmContextVoid> {
- public:
-  SetUPFSessionsConfigCallData(ServerCompletionQueue* cq,
-                               SetInterfaceForUserPlane::AsyncService& service,
-                               UpfMsgManageHandler& handler)
+public:
+  SetUPFSessionsConfigCallData(ServerCompletionQueue *cq,
+                               SetInterfaceForUserPlane::AsyncService &service,
+                               UpfMsgManageHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetUPFSessionsConfig(&ctx_, &request_, &responder_, cq_,
-                                         cq_, (void*)this);
+                                         cq_, (void *)this);
   }
 
- protected:
+protected:
   void clone() override {
     new SetUPFSessionsConfigCallData(cq_, service_, handler_);
   }
@@ -349,8 +349,8 @@ class SetUPFSessionsConfigCallData
     handler_.SetUPFSessionsConfig(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  UpfMsgManageHandler& handler_;
+private:
+  UpfMsgManageHandler &handler_;
 };
 
 /**
@@ -360,24 +360,24 @@ class CreateSessionCallData
     : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
                               LocalCreateSessionRequest,
                               LocalCreateSessionResponse> {
- public:
-  CreateSessionCallData(ServerCompletionQueue* cq,
-                        LocalSessionManager::AsyncService& service,
-                        LocalSessionManagerHandler& handler)
+public:
+  CreateSessionCallData(ServerCompletionQueue *cq,
+                        LocalSessionManager::AsyncService &service,
+                        LocalSessionManagerHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestCreateSession(&ctx_, &request_, &responder_, cq_, cq_,
-                                  (void*)this);
+                                  (void *)this);
   }
 
- protected:
+protected:
   void clone() override { new CreateSessionCallData(cq_, service_, handler_); }
 
   void process() override {
     handler_.CreateSession(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  LocalSessionManagerHandler& handler_;
+private:
+  LocalSessionManagerHandler &handler_;
 };
 
 /**
@@ -386,24 +386,24 @@ class CreateSessionCallData
 class EndSessionCallData
     : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
                               LocalEndSessionRequest, LocalEndSessionResponse> {
- public:
-  EndSessionCallData(ServerCompletionQueue* cq,
-                     LocalSessionManager::AsyncService& service,
-                     LocalSessionManagerHandler& handler)
+public:
+  EndSessionCallData(ServerCompletionQueue *cq,
+                     LocalSessionManager::AsyncService &service,
+                     LocalSessionManagerHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestEndSession(&ctx_, &request_, &responder_, cq_, cq_,
-                               (void*)this);
+                               (void *)this);
   }
 
- protected:
+protected:
   void clone() override { new EndSessionCallData(cq_, service_, handler_); }
 
   void process() override {
     handler_.EndSession(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  LocalSessionManagerHandler& handler_;
+private:
+  LocalSessionManagerHandler &handler_;
 };
 
 /**
@@ -413,16 +413,16 @@ class BindPolicy2BearerCallData
     : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
                               PolicyBearerBindingRequest,
                               PolicyBearerBindingResponse> {
- public:
-  BindPolicy2BearerCallData(ServerCompletionQueue* cq,
-                            LocalSessionManager::AsyncService& service,
-                            LocalSessionManagerHandler& handler)
+public:
+  BindPolicy2BearerCallData(ServerCompletionQueue *cq,
+                            LocalSessionManager::AsyncService &service,
+                            LocalSessionManagerHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestBindPolicy2Bearer(&ctx_, &request_, &responder_, cq_, cq_,
-                                      (void*)this);
+                                      (void *)this);
   }
 
- protected:
+protected:
   void clone() override {
     new BindPolicy2BearerCallData(cq_, service_, handler_);
   }
@@ -431,8 +431,8 @@ class BindPolicy2BearerCallData
     handler_.BindPolicy2Bearer(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  LocalSessionManagerHandler& handler_;
+private:
+  LocalSessionManagerHandler &handler_;
 };
 
 /**
@@ -442,16 +442,16 @@ class BindPolicy2BearerCallData
 class UpdateTunnelIdsCallData
     : public AsyncGRPCRequest<LocalSessionManager::AsyncService,
                               UpdateTunnelIdsRequest, UpdateTunnelIdsResponse> {
- public:
-  UpdateTunnelIdsCallData(ServerCompletionQueue* cq,
-                          LocalSessionManager::AsyncService& service,
-                          LocalSessionManagerHandler& handler)
+public:
+  UpdateTunnelIdsCallData(ServerCompletionQueue *cq,
+                          LocalSessionManager::AsyncService &service,
+                          LocalSessionManagerHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestUpdateTunnelIds(&ctx_, &request_, &responder_, cq_, cq_,
-                                    (void*)this);
+                                    (void *)this);
   }
 
- protected:
+protected:
   void clone() override {
     new UpdateTunnelIdsCallData(cq_, service_, handler_);
   }
@@ -460,8 +460,8 @@ class UpdateTunnelIdsCallData
     handler_.UpdateTunnelIds(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  LocalSessionManagerHandler& handler_;
+private:
+  LocalSessionManagerHandler &handler_;
 };
 
 /**
@@ -470,16 +470,16 @@ class UpdateTunnelIdsCallData
 class SetSessionRulesCallData
     : public AsyncGRPCRequest<LocalSessionManager::AsyncService, SessionRules,
                               Void> {
- public:
-  SetSessionRulesCallData(ServerCompletionQueue* cq,
-                          LocalSessionManager::AsyncService& service,
-                          LocalSessionManagerHandler& handler)
+public:
+  SetSessionRulesCallData(ServerCompletionQueue *cq,
+                          LocalSessionManager::AsyncService &service,
+                          LocalSessionManagerHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetSessionRules(&ctx_, &request_, &responder_, cq_, cq_,
-                                    (void*)this);
+                                    (void *)this);
   }
 
- protected:
+protected:
   void clone() override {
     new SetSessionRulesCallData(cq_, service_, handler_);
   }
@@ -488,8 +488,8 @@ class SetSessionRulesCallData
     handler_.SetSessionRules(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  LocalSessionManagerHandler& handler_;
+private:
+  LocalSessionManagerHandler &handler_;
 };
 
 /**
@@ -498,24 +498,24 @@ class SetSessionRulesCallData
 class AbortSessionCallData
     : public AsyncGRPCRequest<AbortSessionResponder::AsyncService,
                               AbortSessionRequest, AbortSessionResult> {
- public:
-  AbortSessionCallData(ServerCompletionQueue* cq,
-                       AbortSessionResponder::AsyncService& service,
-                       SessionProxyResponderHandler& handler)
+public:
+  AbortSessionCallData(ServerCompletionQueue *cq,
+                       AbortSessionResponder::AsyncService &service,
+                       SessionProxyResponderHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestAbortSession(&ctx_, &request_, &responder_, cq_, cq_,
-                                 (void*)this);
+                                 (void *)this);
   }
 
- protected:
+protected:
   void clone() override { new AbortSessionCallData(cq_, service_, handler_); }
 
   void process() override {
     handler_.AbortSession(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  SessionProxyResponderHandler& handler_;
+private:
+  SessionProxyResponderHandler &handler_;
 };
 
 /**
@@ -524,24 +524,24 @@ class AbortSessionCallData
 class ChargingReAuthCallData
     : public AsyncGRPCRequest<SessionProxyResponder::AsyncService,
                               ChargingReAuthRequest, ChargingReAuthAnswer> {
- public:
-  ChargingReAuthCallData(ServerCompletionQueue* cq,
-                         SessionProxyResponder::AsyncService& service,
-                         SessionProxyResponderHandler& handler)
+public:
+  ChargingReAuthCallData(ServerCompletionQueue *cq,
+                         SessionProxyResponder::AsyncService &service,
+                         SessionProxyResponderHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestChargingReAuth(&ctx_, &request_, &responder_, cq_, cq_,
-                                   (void*)this);
+                                   (void *)this);
   }
 
- protected:
+protected:
   void clone() override { new ChargingReAuthCallData(cq_, service_, handler_); }
 
   void process() override {
     handler_.ChargingReAuth(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  SessionProxyResponderHandler& handler_;
+private:
+  SessionProxyResponderHandler &handler_;
 };
 
 /**
@@ -550,24 +550,24 @@ class ChargingReAuthCallData
 class PolicyReAuthCallData
     : public AsyncGRPCRequest<SessionProxyResponder::AsyncService,
                               PolicyReAuthRequest, PolicyReAuthAnswer> {
- public:
-  PolicyReAuthCallData(ServerCompletionQueue* cq,
-                       SessionProxyResponder::AsyncService& service,
-                       SessionProxyResponderHandler& handler)
+public:
+  PolicyReAuthCallData(ServerCompletionQueue *cq,
+                       SessionProxyResponder::AsyncService &service,
+                       SessionProxyResponderHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestPolicyReAuth(&ctx_, &request_, &responder_, cq_, cq_,
-                                 (void*)this);
+                                 (void *)this);
   }
 
- protected:
+protected:
   void clone() override { new PolicyReAuthCallData(cq_, service_, handler_); }
 
   void process() override {
     handler_.PolicyReAuth(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  SessionProxyResponderHandler& handler_;
+private:
+  SessionProxyResponderHandler &handler_;
 };
 
 /*
@@ -576,16 +576,16 @@ class PolicyReAuthCallData
 class SendPagingRequestCallData
     : public AsyncGRPCRequest<SetInterfaceForUserPlane::AsyncService,
                               UPFPagingInfo, SmContextVoid> {
- public:
-  SendPagingRequestCallData(ServerCompletionQueue* cq,
-                            SetInterfaceForUserPlane::AsyncService& service,
-                            UpfMsgManageHandler& handler)
+public:
+  SendPagingRequestCallData(ServerCompletionQueue *cq,
+                            SetInterfaceForUserPlane::AsyncService &service,
+                            UpfMsgManageHandler &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSendPagingRequest(&ctx_, &request_, &responder_, cq_, cq_,
-                                      (void*)this);
+                                      (void *)this);
   }
 
- protected:
+protected:
   void clone() override {
     new SendPagingRequestCallData(cq_, service_, handler_);
   }
@@ -594,8 +594,8 @@ class SendPagingRequestCallData
     handler_.SendPagingRequest(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  UpfMsgManageHandler& handler_;
+private:
+  UpfMsgManageHandler &handler_;
 };
 /*
  *  Class to handle SetSmfNofificationCallData
@@ -603,16 +603,16 @@ class SendPagingRequestCallData
 class SetSmfNotificationCallData
     : public AsyncGRPCRequest<AmfPduSessionSmContext::AsyncService,
                               SetSmNotificationContext, SmContextVoid> {
- public:
-  SetSmfNotificationCallData(ServerCompletionQueue* cq,
-                             AmfPduSessionSmContext::AsyncService& service,
-                             SetMessageManager& handler)
+public:
+  SetSmfNotificationCallData(ServerCompletionQueue *cq,
+                             AmfPduSessionSmContext::AsyncService &service,
+                             SetMessageManager &handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetSmfNotification(&ctx_, &request_, &responder_, cq_, cq_,
-                                       (void*)this);
+                                       (void *)this);
   }
 
- protected:
+protected:
   void clone() override {
     new SetSmfNotificationCallData(cq_, service_, handler_);
   }
@@ -621,7 +621,7 @@ class SetSmfNotificationCallData
     handler_.SetSmfNotification(&ctx_, &request_, get_finish_callback());
   }
 
- private:
-  SetMessageManager& handler_;
+private:
+  SetMessageManager &handler_;
 };
-}  // namespace magma
+} // namespace magma

@@ -10,10 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+#include <gtest/gtest.h>
 
 using ::testing::Test;
 
@@ -21,7 +21,7 @@ namespace magma5g {
 TEST(test_map, test_map) {
   // Initializations for Map: Key-uint64_t Data-uint64_t
   uint64_t data;
-  amf_app_desc_t* state_cache_p = new (amf_app_desc_t);
+  amf_app_desc_t *state_cache_p = new (amf_app_desc_t);
 
   // Initializations for Map: Key-guti_m5_t Data-uint64_t
   guti_m5_t guti_1;
@@ -97,7 +97,7 @@ TEST(test_map, test_map) {
 TEST(test_map, test_amf_state_ue_ht) {
   // Initializations for Map: Key-uint64_t Data-void*
   amf_ue_ngap_id_t ue_id = 1;
-  ue_m5gmm_context_s* ue_context = amf_create_new_ue_context();
+  ue_m5gmm_context_s *ue_context = amf_create_new_ue_context();
   map_uint64_ue_context_t state_ue_ht;
 
   EXPECT_EQ(state_ue_ht.get(2, &ue_context), magma::MAP_EMPTY);
@@ -110,4 +110,4 @@ TEST(test_map, test_amf_state_ue_ht) {
 
   delete ue_context;
 }
-}  // namespace magma5g
+} // namespace magma5g

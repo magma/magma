@@ -27,7 +27,7 @@ namespace magma {
 namespace lte {
 
 class HaServiceImpl final : public HaService::Service {
- public:
+public:
   HaServiceImpl();
 
   /*
@@ -39,10 +39,10 @@ class HaServiceImpl final : public HaService::Service {
                                 err message.
        * @return grpc Status instance
        */
-  grpc::Status StartAgwOffload(grpc::ServerContext* context,
-                               const StartAgwOffloadRequest* request,
-                               StartAgwOffloadResponse* response) override;
+  grpc::Status StartAgwOffload(grpc::ServerContext *context,
+                               const StartAgwOffloadRequest *request,
+                               StartAgwOffloadResponse *response) override;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

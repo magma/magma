@@ -24,15 +24,15 @@
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class SMODownlinkUnitdata;
-}  // namespace lte
+} // namespace lte
 namespace orc8r {
 class Void;
-}  // namespace orc8r
-}  // namespace magma
+} // namespace orc8r
+} // namespace magma
 
 using grpc::ServerContext;
 
@@ -42,7 +42,7 @@ using namespace orc8r;
 
 class SMSOrc8rGatewayServiceImpl final
     : public SMSOrc8rGatewayService::Service {
- public:
+public:
   SMSOrc8rGatewayServiceImpl();
 
   /*
@@ -54,9 +54,9 @@ class SMSOrc8rGatewayServiceImpl final
    * @param response (out): Void defined in common.proto
    * @return grpc Status instance
    */
-  grpc::Status SMODownlink(ServerContext* context,
-                           const SMODownlinkUnitdata* request,
-                           Void* response) override;
+  grpc::Status SMODownlink(ServerContext *context,
+                           const SMODownlinkUnitdata *request,
+                           Void *response) override;
 };
 
-}  // namespace magma
+} // namespace magma

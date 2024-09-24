@@ -10,20 +10,20 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 namespace magma5g {
 class M5GPDUSessionStatus {
- public:
+public:
   uint8_t iei;
   uint8_t len;
   uint16_t pduSessionStatus;
 
   M5GPDUSessionStatus();
   ~M5GPDUSessionStatus();
-  int EncodePDUSessionStatus(M5GPDUSessionStatus* pduSessionStatus, uint8_t iei,
-                             uint8_t* buffer, uint32_t len);
-  int DecodePDUSessionStatus(M5GPDUSessionStatus* pduSessionStatus, uint8_t iei,
-                             uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionStatus(M5GPDUSessionStatus *pduSessionStatus, uint8_t iei,
+                             uint8_t *buffer, uint32_t len);
+  int DecodePDUSessionStatus(M5GPDUSessionStatus *pduSessionStatus, uint8_t iei,
+                             uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

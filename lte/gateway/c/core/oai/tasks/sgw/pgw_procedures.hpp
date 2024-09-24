@@ -24,10 +24,10 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 
 typedef enum {
   // should introduce Gx IP CAN procedures, etc, here
@@ -43,7 +43,7 @@ typedef struct pgw_base_proc_s {
 
 typedef struct sgw_eps_bearer_entry_wrapper_s {
   LIST_ENTRY(sgw_eps_bearer_entry_wrapper_s) entries; /* List. */
-  sgw_eps_bearer_ctxt_t* sgw_eps_bearer_entry;
+  sgw_eps_bearer_ctxt_t *sgw_eps_bearer_entry;
 } sgw_eps_bearer_entry_wrapper_t;
 
 typedef struct pgw_ni_cbr_proc_s {
@@ -58,12 +58,12 @@ typedef struct pgw_ni_cbr_proc_s {
 #ifdef __cplusplus
 extern "C" {
 #endif
-void delete_pending_procedures(sgw_eps_bearer_context_information_t* ctx_p);
-void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc);
-pgw_ni_cbr_proc_t* pgw_get_procedure_create_bearer(
-    sgw_eps_bearer_context_information_t* const ctx_p);
+void delete_pending_procedures(sgw_eps_bearer_context_information_t *ctx_p);
+void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t **ni_cbr_proc);
+pgw_ni_cbr_proc_t *pgw_get_procedure_create_bearer(
+    sgw_eps_bearer_context_information_t *const ctx_p);
 #ifdef __cplusplus
 }
 #endif
-pgw_ni_cbr_proc_t* pgw_create_procedure_create_bearer(
-    sgw_eps_bearer_context_information_t* const ctx_p);
+pgw_ni_cbr_proc_t *pgw_create_procedure_create_bearer(
+    sgw_eps_bearer_context_information_t *const ctx_p);

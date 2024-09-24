@@ -26,9 +26,9 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 
 // typedef int (*mme_app_pdu_in_resp_t)(void *arg);
 // typedef int (*mme_app_pdu_in_rej_t)(void *arg);
@@ -97,9 +97,9 @@ typedef struct mme_app_s11_proc_update_bearer_s {
   ambr_t apn_ambr;
   ebi_t linked_ebi;
   // TODO here give a NAS/S1AP/.. reason -> GTPv2-C reason
-  bearer_contexts_to_be_updated_t*
-      bcs_tbu; /**< Store the bearer contexts to be created here, and don't
-                  register them yet in the MME_APP context. */
+  bearer_contexts_to_be_updated_t
+      *bcs_tbu; /**< Store the bearer contexts to be created here, and don't
+                   register them yet in the MME_APP context. */
 } mme_app_s11_proc_update_bearer_t;
 
 typedef struct mme_app_s11_proc_delete_bearer_s {
@@ -125,13 +125,13 @@ typedef struct mme_app_s1ap_proc_e_rab_modify_bearer_ind_s {
   e_rab_list_t e_rab_failed_to_be_modified_list;
 } mme_app_s1ap_proc_modify_bearer_ind_t;
 
-void mme_app_delete_s11_procedures(ue_mm_context_t* const ue_context_p);
-mme_app_s11_proc_create_bearer_t* mme_app_create_s11_procedure_create_bearer(
-    ue_mm_context_t* const ue_context_p);
-mme_app_s11_proc_create_bearer_t* mme_app_get_s11_procedure_create_bearer(
-    ue_mm_context_t* const ue_context_p);
+void mme_app_delete_s11_procedures(ue_mm_context_t *const ue_context_p);
+mme_app_s11_proc_create_bearer_t *
+mme_app_create_s11_procedure_create_bearer(ue_mm_context_t *const ue_context_p);
+mme_app_s11_proc_create_bearer_t *
+mme_app_get_s11_procedure_create_bearer(ue_mm_context_t *const ue_context_p);
 void mme_app_delete_s11_procedure_create_bearer(
-    ue_mm_context_t* const ue_context_p);
+    ue_mm_context_t *const ue_context_p);
 void mme_app_s11_procedure_create_bearer_send_response(
-    ue_mm_context_t* const ue_context_p,
-    mme_app_s11_proc_create_bearer_t* s11_proc_create);
+    ue_mm_context_t *const ue_context_p,
+    mme_app_s11_proc_create_bearer_t *s11_proc_create);

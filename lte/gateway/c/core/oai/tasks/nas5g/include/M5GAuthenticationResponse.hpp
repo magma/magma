@@ -10,18 +10,18 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationResponseParameter.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationResponseParameter.hpp"
+#include <sstream>
 
 namespace magma5g {
 // AuthenticationResponse Message Class
 class AuthenticationResponseMsg {
- public:
+public:
 #define AUTHENTICATION_RESPONSE_MINIMUM_LENGTH 3
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SecurityHeaderTypeMsg sec_header_type;
@@ -31,12 +31,12 @@ class AuthenticationResponseMsg {
 
   AuthenticationResponseMsg();
   ~AuthenticationResponseMsg();
-  int DecodeAuthenticationResponseMsg(AuthenticationResponseMsg* auth_response,
-                                      uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationResponseMsg(AuthenticationResponseMsg* auth_response,
-                                      uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationResponseMsg(AuthenticationResponseMsg *auth_response,
+                                      uint8_t *buffer, uint32_t len);
+  int EncodeAuthenticationResponseMsg(AuthenticationResponseMsg *auth_response,
+                                      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    Table 8.2.2.1.1: AUTHENTICATION RESPONSE message content --- TS 24.501

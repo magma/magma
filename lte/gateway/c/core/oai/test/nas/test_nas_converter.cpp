@@ -24,8 +24,8 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_state_converter.hpp"
 
 namespace magma {
 namespace lte {
@@ -54,11 +54,11 @@ TEST(NasStateConverterTest, TestEmmContextConversion) {
   emm_context.saved_imsi64 = 310150123456789;
 
   // Initialize EMM procedures
-  nas_emm_attach_proc_t* attach_proc = nas_new_attach_procedure(&emm_context);
-  nas_emm_auth_proc_t* auth_proc =
+  nas_emm_attach_proc_t *attach_proc = nas_new_attach_procedure(&emm_context);
+  nas_emm_auth_proc_t *auth_proc =
       nas_new_authentication_procedure(&emm_context);
-  nas_emm_smc_proc_t* smc_proc = nas_new_smc_procedure(&emm_context);
-  nas_emm_ident_proc_t* ident_proc =
+  nas_emm_smc_proc_t *smc_proc = nas_new_smc_procedure(&emm_context);
+  nas_emm_ident_proc_t *ident_proc =
       nas_new_identification_procedure(&emm_context);
   // TODO (ssanadhya): Add state for auth_info_proc
 
@@ -67,7 +67,7 @@ TEST(NasStateConverterTest, TestEmmContextConversion) {
   memset(emm_context._vector, sizeof(auth_vector_t), 1);
 
   emm_context.esm_ctx.esm_proc_data =
-      (esm_proc_data_t*)calloc(1, sizeof(*emm_context.esm_ctx.esm_proc_data));
+      (esm_proc_data_t *)calloc(1, sizeof(*emm_context.esm_ctx.esm_proc_data));
   emm_context.esm_ctx.esm_proc_data->pti = 5;
   bstring bstr = bfromcstr_with_str_len("192.168.0.1", 11);
   emm_context.esm_ctx.esm_proc_data->pdn_addr = bstr;
@@ -78,10 +78,10 @@ TEST(NasStateConverterTest, TestEmmContextConversion) {
   emm_context._tai_list.numberoflists = 0;
 
   emm_context.new_attach_info =
-      (new_attach_info_t*)calloc(1, sizeof(new_attach_info_t));
+      (new_attach_info_t *)calloc(1, sizeof(new_attach_info_t));
   emm_context.new_attach_info->mme_ue_s1ap_id = 1;
   emm_context.new_attach_info->is_mm_ctx_new = true;
-  emm_context.new_attach_info->ies = (emm_attach_request_ies_t*)calloc(
+  emm_context.new_attach_info->ies = (emm_attach_request_ies_t *)calloc(
       1, sizeof(*(emm_context.new_attach_info->ies)));
   ;
   emm_context.new_attach_info->ies->is_initial = true;
@@ -95,10 +95,10 @@ TEST(NasStateConverterTest, TestEmmContextConversion) {
 
   EXPECT_EQ(emm_context._imsi64, final_state._imsi64);
 
-  EXPECT_STREQ((char*)emm_context.esm_ctx.esm_proc_data->pdn_addr->data,
-               (char*)final_state.esm_ctx.esm_proc_data->pdn_addr->data);
-  EXPECT_STREQ((char*)emm_context.esm_ctx.esm_proc_data->apn,
-               (char*)final_state.esm_ctx.esm_proc_data->apn);
+  EXPECT_STREQ((char *)emm_context.esm_ctx.esm_proc_data->pdn_addr->data,
+               (char *)final_state.esm_ctx.esm_proc_data->pdn_addr->data);
+  EXPECT_STREQ((char *)emm_context.esm_ctx.esm_proc_data->apn,
+               (char *)final_state.esm_ctx.esm_proc_data->apn);
 
   EXPECT_TRUE(final_state.new_attach_info->ies->is_initial);
   EXPECT_EQ(final_state.new_attach_info->ies->type, EMM_ATTACH_TYPE_EPS);
@@ -112,16 +112,16 @@ TEST(NasStateConverterTest, TestEmmContextConversion) {
   // TODO (ssanadhya): Add check for Identification procedure, once state
   // conversion is implemented for it
 
-  free_wrapper((void**)&emm_context.new_attach_info->ies);
-  free_wrapper((void**)&emm_context.new_attach_info);
+  free_wrapper((void **)&emm_context.new_attach_info->ies);
+  free_wrapper((void **)&emm_context.new_attach_info);
   clear_emm_ctxt(&emm_context);
   bdestroy_wrapper(&bstr);
 
   bdestroy_wrapper(&final_state.esm_ctx.esm_proc_data->pdn_addr);
   bdestroy_wrapper(&final_state.esm_ctx.esm_proc_data->apn);
-  free_wrapper((void**)&final_state.new_attach_info->ies);
-  free_wrapper((void**)&final_state.new_attach_info);
-  free_wrapper((void**)&final_state.esm_ctx.esm_proc_data);
+  free_wrapper((void **)&final_state.new_attach_info->ies);
+  free_wrapper((void **)&final_state.new_attach_info);
+  free_wrapper((void **)&final_state.esm_ctx.esm_proc_data);
   clear_emm_ctxt(&final_state);
 }
 
@@ -180,12 +180,12 @@ TEST(NasStateConverterTest, TestNasEmmSmcProcSetInactiveT3460) {
   EXPECT_EQ(state_nas_emm_smc_proc.T3460.id, NAS_TIMER_INACTIVE_ID);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 // Note: This is necessary for setting up a log thread (Might be addressed by
 // #11736)
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   OAILOG_INIT("MME", OAILOG_LEVEL_INFO, MAX_LOG_PROTOS);
   return RUN_ALL_TESTS();

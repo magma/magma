@@ -15,11 +15,11 @@ limitations under the License.
 
 #include <cstdlib>
 
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_state_manager.hpp"
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
 extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
@@ -28,16 +28,16 @@ extern "C" {
 
 using magma::lte::SgwStateManager;
 
-int sgw_state_init(bool persist_state, const sgw_config_t* config) {
+int sgw_state_init(bool persist_state, const sgw_config_t *config) {
   SgwStateManager::getInstance().init(persist_state, config);
   return RETURNok;
 }
 
-sgw_state_t* get_sgw_state(bool read_from_db) {
+sgw_state_t *get_sgw_state(bool read_from_db) {
   return SgwStateManager::getInstance().get_state(read_from_db);
 }
 
-map_uint32_sgw_eps_bearer_context_t* get_s8_state_teid_map() {
+map_uint32_sgw_eps_bearer_context_t *get_s8_state_teid_map() {
   return SgwStateManager::getInstance().get_s8_state_teid_map();
 }
 
@@ -55,42 +55,42 @@ void put_sgw_state() {
   return;
 }
 
-void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64) { return; }
+void put_sgw_ue_state(sgw_state_t *sgw_state, imsi64_t imsi64) { return; }
 
 void delete_sgw_ue_state(imsi64_t imsi64) { return; }
 
 void sgw_s8_free_eps_bearer_context(
-    sgw_eps_bearer_ctxt_t** sgw_eps_bearer_ctxt) {
+    sgw_eps_bearer_ctxt_t **sgw_eps_bearer_ctxt) {
   if (*sgw_eps_bearer_ctxt) {
     if ((*sgw_eps_bearer_ctxt)->pgw_cp_ip_port) {
       free_wrapper(
-          reinterpret_cast<void**>(&(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port));
+          reinterpret_cast<void **>(&(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port));
     }
-    free_cpp_wrapper(reinterpret_cast<void**>(sgw_eps_bearer_ctxt));
+    free_cpp_wrapper(reinterpret_cast<void **>(sgw_eps_bearer_ctxt));
   }
 }
 
-void sgw_s8_free_pdn_connection(sgw_pdn_connection_t* pdn_connection_p) {
+void sgw_s8_free_pdn_connection(sgw_pdn_connection_t *pdn_connection_p) {
   if (pdn_connection_p) {
     if (pdn_connection_p->apn_in_use) {
-      free_wrapper(reinterpret_cast<void**>(&pdn_connection_p->apn_in_use));
+      free_wrapper(reinterpret_cast<void **>(&pdn_connection_p->apn_in_use));
     }
 
-    for (auto& ebix : pdn_connection_p->sgw_eps_bearers_array) {
+    for (auto &ebix : pdn_connection_p->sgw_eps_bearers_array) {
       sgw_s8_free_eps_bearer_context(&ebix);
     }
   }
 }
-void sgw_free_s11_bearer_context_information(void** ptr) {
+void sgw_free_s11_bearer_context_information(void **ptr) {
   if (!ptr) {
     return;
   }
-  sgw_eps_bearer_context_information_t* sgw_eps_context =
-      reinterpret_cast<sgw_eps_bearer_context_information_t*>(*ptr);
+  sgw_eps_bearer_context_information_t *sgw_eps_context =
+      reinterpret_cast<sgw_eps_bearer_context_information_t *>(*ptr);
   if (sgw_eps_context) {
     sgw_s8_free_pdn_connection(&sgw_eps_context->pdn_connection);
     delete_pending_procedures(sgw_eps_context);
-    free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+    free_cpp_wrapper(reinterpret_cast<void **>(ptr));
   }
   return;
 }

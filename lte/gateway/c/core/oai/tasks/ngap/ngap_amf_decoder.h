@@ -21,8 +21,8 @@
 #pragma once
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_common.h"
 
-int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw)
+int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t *pdu, const_bstring const raw)
     __attribute__((warn_unused_result));

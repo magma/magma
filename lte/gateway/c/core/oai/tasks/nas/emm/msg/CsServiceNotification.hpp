@@ -19,24 +19,24 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SsCode.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsIndicator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsClientIdentity.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsClientIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsIndicator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SsCode.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define CS_SERVICE_NOTIFICATION_MINIMUM_LENGTH (PAGING_IDENTITY_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define CS_SERVICE_NOTIFICATION_MAXIMUM_LENGTH             \
-  (PAGING_IDENTITY_MAXIMUM_LENGTH + CLI_MAXIMUM_LENGTH +   \
-   SS_CODE_MAXIMUM_LENGTH + LCS_INDICATOR_MAXIMUM_LENGTH + \
+#define CS_SERVICE_NOTIFICATION_MAXIMUM_LENGTH                                 \
+  (PAGING_IDENTITY_MAXIMUM_LENGTH + CLI_MAXIMUM_LENGTH +                       \
+   SS_CODE_MAXIMUM_LENGTH + LCS_INDICATOR_MAXIMUM_LENGTH +                     \
    LCS_CLIENT_IDENTITY_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -78,9 +78,9 @@ typedef struct cs_service_notification_msg_tag {
 } cs_service_notification_msg;
 
 int decode_cs_service_notification(
-    cs_service_notification_msg* csservicenotification, uint8_t* buffer,
+    cs_service_notification_msg *csservicenotification, uint8_t *buffer,
     uint32_t len);
 
 int encode_cs_service_notification(
-    cs_service_notification_msg* csservicenotification, uint8_t* buffer,
+    cs_service_notification_msg *csservicenotification, uint8_t *buffer,
     uint32_t len);

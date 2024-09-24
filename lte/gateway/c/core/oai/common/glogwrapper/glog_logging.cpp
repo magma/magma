@@ -28,27 +28,27 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#include <string>
-#include <vector>
-#include <regex>
-#include <algorithm>
-#include <fstream>
-#include <cstdio>
-#include <stdlib.h>
-#include <unistd.h>
 #include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.hpp"
+#include <algorithm>
+#include <cstdio>
+#include <fstream>
 #include <glog/logging.h>
 #include <glog/stl_logging.h>
+#include <regex>
+#include <stdlib.h>
+#include <string>
+#include <unistd.h>
+#include <vector>
 
-#include <sys/types.h>
 #include <dirent.h>
+#include <sys/types.h>
 
-std::vector<std::string> read_directory(const std::string& dir_path) {
-  char* absolute_dir_path = realpath(dir_path.c_str(), nullptr);
+std::vector<std::string> read_directory(const std::string &dir_path) {
+  char *absolute_dir_path = realpath(dir_path.c_str(), nullptr);
 
   std::vector<std::string> res;
-  DIR* dir;
-  struct dirent* ent;
+  DIR *dir;
+  struct dirent *ent;
   dir = opendir(absolute_dir_path);
   char file_name[MAX_FILE_NAME_LENGTH];
   while ((ent = readdir(dir)) != nullptr) {
@@ -60,7 +60,7 @@ std::vector<std::string> read_directory(const std::string& dir_path) {
   return res;
 }
 
-void init_logging(const char* log_dir, const char* app_name,
+void init_logging(const char *log_dir, const char *app_name,
                   uint32_t default_verbosity) {
   google::InitGoogleLogging(app_name);
 
@@ -70,7 +70,7 @@ void init_logging(const char* log_dir, const char* app_name,
   FLAGS_v = default_verbosity;
 }
 
-void init_logging(const char* app_name, uint32_t default_verbosity) {
+void init_logging(const char *app_name, uint32_t default_verbosity) {
   auto log_dir = "/var/log/";
   init_logging(log_dir, app_name, default_verbosity);
 
@@ -85,12 +85,14 @@ void init_logging(const char* app_name, uint32_t default_verbosity) {
   auto dir_files = read_directory(log_dir);
   std::vector<std::string> glog_files;
   std::regex match_mme_log(".*MME.*log.INFO.*");
-  for (const auto& filename : dir_files) {
-    if (regex_search(filename, match_mme_log)) glog_files.push_back(filename);
+  for (const auto &filename : dir_files) {
+    if (regex_search(filename, match_mme_log))
+      glog_files.push_back(filename);
   }
 
   sort(glog_files.begin(), glog_files.end());
-  if (glog_files.size() <= 10) return;
+  if (glog_files.size() <= 10)
+    return;
   for (unsigned long i = 0; i < glog_files.size() - 10; ++i) {
     std::remove(glog_files[i].c_str());
   }
@@ -98,7 +100,7 @@ void init_logging(const char* app_name, uint32_t default_verbosity) {
 
 void flush_log(int32_t log_level) { google::FlushLogFiles(log_level); }
 
-void log_string(int32_t log_level, const char* str) {
+void log_string(int32_t log_level, const char *str) {
   VLOG(log_level) << str;
   flush_log(log_level);
 }

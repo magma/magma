@@ -13,12 +13,12 @@
 
 #include <glog/logging.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
-#include <orc8r/protos/common.pb.h>
-#include <stdint.h>
-#include <yaml-cpp/yaml.h>
 #include <memory>
+#include <orc8r/protos/common.pb.h>
 #include <ostream>
+#include <stdint.h>
 #include <string>
+#include <yaml-cpp/yaml.h>
 
 #include "lte/gateway/c/connection_tracker/src/EventTracker.hpp"
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"
@@ -47,7 +47,7 @@ static magma::mconfig::ConnectionD load_mconfig() {
   return mconfig;
 }
 
-static uint32_t get_log_verbosity(const YAML::Node& config,
+static uint32_t get_log_verbosity(const YAML::Node &config,
                                   magma::mconfig::ConnectionD mconfig) {
   if (!config["log_level"].IsDefined()) {
     return magma::get_log_verbosity_from_mconfig(mconfig.log_level());

@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
+#include <cstdint>
+#include <cstring>
 #include <sstream>
 #include <string.h>
-#include <cstring>
-#include <cstdint>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,8 +20,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationResponseParameter.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationResponseParameter.hpp"
 
 namespace magma5g {
 AuthenticationResponseParameterMsg::AuthenticationResponseParameterMsg(){};
@@ -30,8 +30,8 @@ AuthenticationResponseParameterMsg::~AuthenticationResponseParameterMsg(){};
 // Decode AuthenticationResponseParameter IE
 int AuthenticationResponseParameterMsg::
     DecodeAuthenticationResponseParameterMsg(
-        AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
-        uint8_t* buffer, uint32_t len) {
+        AuthenticationResponseParameterMsg *response_parameter, uint8_t iei,
+        uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
 
   if (iei > 0) {
@@ -52,8 +52,8 @@ int AuthenticationResponseParameterMsg::
 // Encode AuthenticationResponseParameter IE
 int AuthenticationResponseParameterMsg::
     EncodeAuthenticationResponseParameterMsg(
-        AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
-        uint8_t* buffer, uint32_t len) {
+        AuthenticationResponseParameterMsg *response_parameter, uint8_t iei,
+        uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 #ifdef HANDLE_POST_MVC
   // Checking IEI and pointer
@@ -68,7 +68,7 @@ int AuthenticationResponseParameterMsg::
     return 0;
   }
 
-  lenPtr = (uint16_t*)(buffer + encoded);
+  lenPtr = (uint16_t *)(buffer + encoded);
   encoded++;
   std::copy(response_parameter->response_parameter.begin(),
             response_parameter->response_parameter.end(), buffer + encoded);
@@ -77,4 +77,4 @@ int AuthenticationResponseParameterMsg::
 #endif
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

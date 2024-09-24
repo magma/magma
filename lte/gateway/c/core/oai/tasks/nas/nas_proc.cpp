@@ -93,7 +93,7 @@ static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-void nas_proc_initialize(const mme_config_t* mme_config_p) {
+void nas_proc_initialize(const mme_config_t *mme_config_p) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
    * Initialize the EMM procedure manager
@@ -159,10 +159,11 @@ void nas_proc_cleanup(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e nas_proc_establish_ind(
-    const mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
-    const tai_t originating_tai, const ecgi_t ecgi, const as_cause_t as_cause,
-    const s_tmsi_t s_tmsi, STOLEN_REF bstring* msg) {
+status_code_e
+nas_proc_establish_ind(const mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
+                       const tai_t originating_tai, const ecgi_t ecgi,
+                       const as_cause_t as_cause, const s_tmsi_t s_tmsi,
+                       STOLEN_REF bstring *msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
 
@@ -211,7 +212,7 @@ status_code_e nas_proc_establish_ind(
  ***************************************************************************/
 status_code_e nas_proc_dl_transfer_cnf(const uint32_t ue_id,
                                        const nas_error_code_t status,
-                                       bstring* STOLEN_REF nas_msg) {
+                                       bstring *STOLEN_REF nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
@@ -255,7 +256,7 @@ status_code_e nas_proc_dl_transfer_cnf(const uint32_t ue_id,
  ***************************************************************************/
 status_code_e nas_proc_dl_transfer_rej(const uint32_t ue_id,
                                        const nas_error_code_t status,
-                                       bstring* STOLEN_REF nas_msg) {
+                                       bstring *STOLEN_REF nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
@@ -306,7 +307,7 @@ status_code_e nas_proc_dl_transfer_rej(const uint32_t ue_id,
 status_code_e nas_proc_ul_transfer_ind(const mme_ue_s1ap_id_t ue_id,
                                        const tai_t originating_tai,
                                        const ecgi_t cgi,
-                                       STOLEN_REF bstring* msg) {
+                                       STOLEN_REF bstring *msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
 
@@ -343,16 +344,17 @@ status_code_e nas_proc_ul_transfer_ind(const mme_ue_s1ap_id_t ue_id,
 }
 
 //-----------------------------------------------------------------------------
-status_code_e nas_proc_authentication_info_answer(
-    mme_app_desc_t* mme_app_desc_p, s6a_auth_info_ans_t* aia) {
+status_code_e
+nas_proc_authentication_info_answer(mme_app_desc_t *mme_app_desc_p,
+                                    s6a_auth_info_ans_t *aia) {
   imsi64_t imsi64 = INVALID_IMSI64;
   status_code_e rc = RETURNerror;
-  emm_context_t* emm_ctxt_p = NULL;
-  ue_mm_context_t* ue_mm_context_p = NULL;
+  emm_context_t *emm_ctxt_p = NULL;
+  ue_mm_context_t *ue_mm_context_p = NULL;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   DevAssert(aia);
-  IMSI_STRING_TO_IMSI64((char*)aia->imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char *)aia->imsi, &imsi64);
 
   OAILOG_DEBUG_UE(LOG_NAS_EMM, imsi64, "Handling imsi " IMSI_64_FMT "\n",
                   imsi64);
@@ -422,7 +424,7 @@ status_code_e nas_proc_authentication_info_answer(
 //------------------------------------------------------------------------------
 status_code_e nas_proc_auth_param_res(mme_ue_s1ap_id_t ue_id,
                                       uint8_t nb_vectors,
-                                      eutran_vector_t* vectors) {
+                                      eutran_vector_t *vectors) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
@@ -475,8 +477,8 @@ status_code_e nas_proc_ula_success(mme_ue_s1ap_id_t ue_id) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e nas_proc_cs_respose_success(
-    emm_cn_cs_response_success_t* cs_response_success) {
+status_code_e
+nas_proc_cs_respose_success(emm_cn_cs_response_success_t *cs_response_success) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
@@ -492,8 +494,8 @@ status_code_e nas_proc_cs_respose_success(
 }
 
 //------------------------------------------------------------------------------
-status_code_e nas_proc_ula_or_csrsp_fail(
-    emm_cn_ula_or_csrsp_fail_t* ula_or_csrsp_fail) {
+status_code_e
+nas_proc_ula_or_csrsp_fail(emm_cn_ula_or_csrsp_fail_t *ula_or_csrsp_fail) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
@@ -506,7 +508,7 @@ status_code_e nas_proc_ula_or_csrsp_fail(
 
 //------------------------------------------------------------------------------
 status_code_e nas_proc_create_dedicated_bearer(
-    emm_cn_activate_dedicated_bearer_req_t* emm_cn_activate) {
+    emm_cn_activate_dedicated_bearer_req_t *emm_cn_activate) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
@@ -518,7 +520,7 @@ status_code_e nas_proc_create_dedicated_bearer(
 
 //------------------------------------------------------------------------------
 status_code_e nas_proc_delete_dedicated_bearer(
-    emm_cn_deactivate_dedicated_bearer_req_t* emm_cn_deactivate) {
+    emm_cn_deactivate_dedicated_bearer_req_t *emm_cn_deactivate) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
@@ -542,7 +544,7 @@ status_code_e nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id_t ue_id) {
 
 //------------------------------------------------------------------------------
 status_code_e nas_proc_nw_initiated_detach_ue_request(
-    emm_cn_nw_initiated_detach_ue_t* const nw_initiated_detach_p) {
+    emm_cn_nw_initiated_detach_ue_t *const nw_initiated_detach_p) {
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
 
@@ -564,13 +566,13 @@ status_code_e nas_proc_nw_initiated_detach_ue_request(
 }
 
 //------------------------------------------------------------------------------
-status_code_e nas_proc_downlink_unitdata(
-    itti_sgsap_downlink_unitdata_t* dl_unitdata) {
+status_code_e
+nas_proc_downlink_unitdata(itti_sgsap_downlink_unitdata_t *dl_unitdata) {
   imsi64_t imsi64 = INVALID_IMSI64;
   status_code_e rc = RETURNerror;
-  emm_context_t* ctxt = NULL;
+  emm_context_t *ctxt = NULL;
   emm_sap_t emm_sap = {};
-  emm_as_data_t* emm_as = &emm_sap.u.emm_as.u.data;
+  emm_as_data_t *emm_as = &emm_sap.u.emm_as.u.data;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
@@ -606,7 +608,7 @@ status_code_e nas_proc_downlink_unitdata(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-status_code_e encode_mobileid_imsi_tmsi(MobileIdentity* out, MobileIdentity in,
+status_code_e encode_mobileid_imsi_tmsi(MobileIdentity *out, MobileIdentity in,
                                         uint8_t typeofidentity)
 
 {
@@ -653,8 +655,9 @@ status_code_e encode_mobileid_imsi_tmsi(MobileIdentity* out, MobileIdentity in,
 }
 
 //------------------------------------------------------------------------------
-status_code_e nas_proc_cs_domain_location_updt_fail(
-    SgsRejectCause_t cause, lai_t* lai, mme_ue_s1ap_id_t mme_ue_s1ap_id) {
+status_code_e
+nas_proc_cs_domain_location_updt_fail(SgsRejectCause_t cause, lai_t *lai,
+                                      mme_ue_s1ap_id_t mme_ue_s1ap_id) {
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
   emm_cn_cs_domain_location_updt_fail_t cs_location_updt_fail = {};
@@ -678,11 +681,11 @@ status_code_e nas_proc_cs_domain_location_updt_fail(
 }
 
 //------------------------------------------------------------------------------
-status_code_e nas_proc_sgs_release_req(
-    itti_sgsap_release_req_t* sgs_release_req) {
+status_code_e
+nas_proc_sgs_release_req(itti_sgsap_release_req_t *sgs_release_req) {
   imsi64_t imsi64 = INVALID_IMSI64;
   status_code_e rc = RETURNerror;
-  emm_context_t* ctxt = NULL;
+  emm_context_t *ctxt = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
@@ -769,89 +772,89 @@ static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental) {
      * Base protocol errors
      */
     switch (s6a_error) {
-        /*
-         * 3002
-         */
-      case ER_DIAMETER_UNABLE_TO_DELIVER: /* Fall through */
+      /*
+       * 3002
+       */
+    case ER_DIAMETER_UNABLE_TO_DELIVER: /* Fall through */
 
-        /*
-         * 3003
-         */
-      case ER_DIAMETER_REALM_NOT_SERVED: /* Fall through */
+      /*
+       * 3003
+       */
+    case ER_DIAMETER_REALM_NOT_SERVED: /* Fall through */
 
-        /*
-         * 5003
-         */
-      case ER_DIAMETER_AUTHORIZATION_REJECTED:
-        return NAS_CAUSE_IMSI_UNKNOWN_IN_HSS;
+      /*
+       * 5003
+       */
+    case ER_DIAMETER_AUTHORIZATION_REJECTED:
+      return NAS_CAUSE_IMSI_UNKNOWN_IN_HSS;
 
-        /*
-         * 5012
-         */
-      case ER_DIAMETER_UNABLE_TO_COMPLY: /* Fall through */
+      /*
+       * 5012
+       */
+    case ER_DIAMETER_UNABLE_TO_COMPLY: /* Fall through */
 
-        /*
-         * 5004
-         */
-      case ER_DIAMETER_INVALID_AVP_VALUE: /* Fall through */
+      /*
+       * 5004
+       */
+    case ER_DIAMETER_INVALID_AVP_VALUE: /* Fall through */
 
-        /*
-         * Any other permanent errors from the diameter base protocol
-         */
-      default:
-        break;
+      /*
+       * Any other permanent errors from the diameter base protocol
+       */
+    default:
+      break;
     }
   } else {
     switch (s6a_error) {
-        /*
-         * 4181
-         */
-      case DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE:
-        return NAS_CAUSE_ILLEGAL_UE;
+      /*
+       * 4181
+       */
+    case DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE:
+      return NAS_CAUSE_ILLEGAL_UE;
 
-        /*
-         * 5001
-         */
-      case DIAMETER_ERROR_USER_UNKNOWN:
-        return NAS_CAUSE_EPS_SERVICES_AND_NON_EPS_SERVICES_NOT_ALLOWED;
+      /*
+       * 5001
+       */
+    case DIAMETER_ERROR_USER_UNKNOWN:
+      return NAS_CAUSE_EPS_SERVICES_AND_NON_EPS_SERVICES_NOT_ALLOWED;
 
-        /*
-         * TODO: distinguish GPRS_DATA_SUBSCRIPTION
-         */
-        /*
-         * 5420
-         */
-      case DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION:
-        return NAS_CAUSE_NO_SUITABLE_CELLS_IN_TRACKING_AREA;
+      /*
+       * TODO: distinguish GPRS_DATA_SUBSCRIPTION
+       */
+      /*
+       * 5420
+       */
+    case DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION:
+      return NAS_CAUSE_NO_SUITABLE_CELLS_IN_TRACKING_AREA;
 
-        /*
-         * 5421
-         */
-      case DIAMETER_ERROR_RAT_NOT_ALLOWED:
-        /*
-         * One of the following parameter can be sent depending on
-         * operator preference:
-         * ROAMING_NOT_ALLOWED_IN_THIS_TRACKING_AREA
-         * TRACKING_AREA_NOT_ALLOWED
-         * NO_SUITABLE_CELLS_IN_TRACKING_AREA
-         */
-        return NAS_CAUSE_TRACKING_AREA_NOT_ALLOWED;
+      /*
+       * 5421
+       */
+    case DIAMETER_ERROR_RAT_NOT_ALLOWED:
+      /*
+       * One of the following parameter can be sent depending on
+       * operator preference:
+       * ROAMING_NOT_ALLOWED_IN_THIS_TRACKING_AREA
+       * TRACKING_AREA_NOT_ALLOWED
+       * NO_SUITABLE_CELLS_IN_TRACKING_AREA
+       */
+      return NAS_CAUSE_TRACKING_AREA_NOT_ALLOWED;
 
-        /*
-         * 5004 without error diagnostic
-         */
-      case DIAMETER_ERROR_ROAMING_NOT_ALLOWED:
-        return NAS_CAUSE_PLMN_NOT_ALLOWED;
+      /*
+       * 5004 without error diagnostic
+       */
+    case DIAMETER_ERROR_ROAMING_NOT_ALLOWED:
+      return NAS_CAUSE_PLMN_NOT_ALLOWED;
 
-        /*
-         * TODO: 5004 with error diagnostic of ODB_HPLMN_APN or
-         * ODB_VPLMN_APN
-         */
-        /*
-         * TODO: 5004 with error diagnostic of ODB_ALL_APN
-         */
-      default:
-        break;
+      /*
+       * TODO: 5004 with error diagnostic of ODB_HPLMN_APN or
+       * ODB_VPLMN_APN
+       */
+      /*
+       * TODO: 5004 with error diagnostic of ODB_ALL_APN
+       */
+    default:
+      break;
     }
   }
   return NAS_CAUSE_NETWORK_FAILURE;
@@ -860,7 +863,7 @@ static nas_cause_t s6a_error_2_nas_cause(uint32_t s6a_error, int experimental) {
 // Handle CS domain MM-Information request from MSC/VLR
 
 status_code_e nas_proc_cs_domain_mm_information_request(
-    itti_sgsap_mm_information_req_t* const mm_information_req_pP) {
+    itti_sgsap_mm_information_req_t *const mm_information_req_pP) {
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -885,7 +888,7 @@ status_code_e nas_proc_cs_domain_mm_information_request(
  **                                                                        **
  ***************************************************************************/
 status_code_e nas_proc_pdn_disconnect_rsp(
-    emm_cn_pdn_disconnect_rsp_t* emm_cn_pdn_disconnect_rsp) {
+    emm_cn_pdn_disconnect_rsp_t *emm_cn_pdn_disconnect_rsp) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};

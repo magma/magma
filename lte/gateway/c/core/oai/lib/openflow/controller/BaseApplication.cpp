@@ -30,20 +30,20 @@ namespace openflow {
 BaseApplication::BaseApplication(bool persist_state)
     : persist_state_(persist_state) {}
 
-void BaseApplication::event_callback(const ControllerEvent& ev,
-                                     const OpenflowMessenger& messenger) {
+void BaseApplication::event_callback(const ControllerEvent &ev,
+                                     const OpenflowMessenger &messenger) {
   if (ev.get_type() == EVENT_SWITCH_UP) {
     if (!persist_state_) {
       remove_all_flows(ev.get_connection(), messenger);
     }
     install_default_flow(ev.get_connection(), messenger);
   } else if (ev.get_type() == EVENT_ERROR) {
-    handle_error_message(static_cast<const ErrorEvent&>(ev));
+    handle_error_message(static_cast<const ErrorEvent &>(ev));
   }
 }
 
-void BaseApplication::install_default_flow(fluid_base::OFConnection* ofconn,
-                                           const OpenflowMessenger& messenger) {
+void BaseApplication::install_default_flow(fluid_base::OFConnection *ofconn,
+                                           const OpenflowMessenger &messenger) {
   of13::FlowMod fm = messenger.create_default_flow_mod(
       SPGW_OVS_TABLE_ID, of13::OFPFC_ADD, LOW_PRIORITY);
   // Output to next table
@@ -53,8 +53,8 @@ void BaseApplication::install_default_flow(fluid_base::OFConnection* ofconn,
   OAILOG_DEBUG(LOG_GTPV1U, "Default table 0 flow added\n");
 }
 
-void BaseApplication::remove_all_flows(fluid_base::OFConnection* ofconn,
-                                       const OpenflowMessenger& messenger) {
+void BaseApplication::remove_all_flows(fluid_base::OFConnection *ofconn,
+                                       const OpenflowMessenger &messenger) {
   of13::FlowMod fm = messenger.create_default_flow_mod(SPGW_OVS_TABLE_ID,
                                                        of13::OFPFC_DELETE, 0);
   // match all
@@ -64,7 +64,7 @@ void BaseApplication::remove_all_flows(fluid_base::OFConnection* ofconn,
   return;
 }
 
-void BaseApplication::handle_error_message(const ErrorEvent& ev) {
+void BaseApplication::handle_error_message(const ErrorEvent &ev) {
   // First 16 bits of error message are the type, second 16 bits are the code
   OAILOG_ERROR(LOG_GTPV1U,
                "Openflow error received - type: 0x%02x, code: 0x%02x\n",
@@ -77,4 +77,4 @@ void BaseApplication::handle_error_message(const ErrorEvent& ev) {
                     "error_code", code_str);
 }
 
-}  // namespace openflow
+} // namespace openflow

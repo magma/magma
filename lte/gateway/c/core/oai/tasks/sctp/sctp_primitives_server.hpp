@@ -34,8 +34,8 @@
 #include <netinet/in.h>
 #include <netinet/sctp.h>
 
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 /** \brief SCTP Init function. Initialize SCTP layer
  \param mme_config The global MME configuration structure
@@ -44,7 +44,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-int sctp_init(const mme_config_t* mme_config_p);
+int sctp_init(const mme_config_t *mme_config_p);
 #ifdef __cplusplus
 }
 #endif

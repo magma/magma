@@ -9,10 +9,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,16 +20,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
 
 namespace magma5g {
 M5GSMCauseMsg::M5GSMCauseMsg() {}
 M5GSMCauseMsg::~M5GSMCauseMsg() {}
 
 // Decode M5GSMCause IE
-int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg *m5gsm_cause, uint8_t iei,
+                                       uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   // CHECKING IEI
@@ -46,8 +46,8 @@ int M5GSMCauseMsg::DecodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
 }
 
 // Encode M5GSMCause IE
-int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg *m5gsm_cause, uint8_t iei,
+                                       uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
@@ -62,4 +62,4 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(M5GSMCauseMsg* m5gsm_cause, uint8_t iei,
 
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

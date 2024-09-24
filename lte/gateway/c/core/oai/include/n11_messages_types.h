@@ -118,7 +118,7 @@ typedef struct amf_pdn_type_value_s {
 } amf_pdn_type_value_t;
 
 typedef struct gtp_tunnel_s {
-  bstring endpoint_ip_address;  // Transport_Layer_Information
+  bstring endpoint_ip_address; // Transport_Layer_Information
   uint8_t gtp_tied[4];
 } gtp_tunnel;
 
@@ -229,11 +229,11 @@ typedef struct AggregatedMaximumBitrate_respose_t {
 typedef struct SessionAmbr_response_s {
   // Downlink unit type will be updated by sessiond
   uint32_t downlink_unit_type;
-  uint32_t downlink_units;  // Only to use lower 2 bytes (16 bit values)
+  uint32_t downlink_units; // Only to use lower 2 bytes (16 bit values)
 
   // Uplink unit type will be updated by sessiond
   uint32_t uplink_unit_type;
-  uint32_t uplink_units;  // Only to use lower 2 bytes (16 bit values)
+  uint32_t uplink_units; // Only to use lower 2 bytes (16 bit values)
 } SessionAmbr_response;
 
 typedef struct TeidSet_response_s {
@@ -253,7 +253,7 @@ typedef struct itti_n11_create_pdu_session_response_s {
   m5g_sm_cause_t m5gsm_cause;
   SessionAmbr_response session_ambr;
   QosRules_response
-      authorized_qos_rules[4];  // TODO 32 in NAS5g,3 in pcap, revisit later
+      authorized_qos_rules[4]; // TODO 32 in NAS5g,3 in pcap, revisit later
   bool always_on_pdu_session_indication;
   ssc_mode_t allowed_ssc_mode;
   bool m5gsm_congetion_re_attempt_indicator;
@@ -265,10 +265,10 @@ typedef struct itti_n11_create_pdu_session_response_s {
   uint8_t procedure_trans_identity;
 } itti_n11_create_pdu_session_response_t;
 
-#define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR) \
+#define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
   (mSGpTR)->ittiMsg.n11_create_pdu_session_response
 
-#define N11_NOTIFICATION_RECEIVED(mSGpTR) \
+#define N11_NOTIFICATION_RECEIVED(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.n11_notification_received
 
 // Resource relese request
@@ -337,7 +337,7 @@ typedef struct transport_layer_s {
 
 typedef enum {
   NORMAL_RELEASE,
-  AUTHENTICATION_FAILURE_NAS,  //#defined on AUTHENTICATION_FAILURE
+  AUTHENTICATION_FAILURE_NAS, //#defined on AUTHENTICATION_FAILURE
   DEREGISTER,
   UNSPECIFIED_NAS_CAUSE,
 } NAS_cause;
@@ -402,7 +402,7 @@ typedef struct pdu_session_resource_release_command_transfer_s {
 
 typedef pdu_session_resource_release_command_transfer
     pdu_session_resource_modify_unsuccessful_transfer_t;
-#define N11_NOTIFICATION_RECEIVED(mSGpTR) \
+#define N11_NOTIFICATION_RECEIVED(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.n11_notification_received
 
 // RequestType
@@ -420,19 +420,19 @@ typedef struct M5GSMCapability_received_s {
   bool multi_homed_ipv6_pdu_session;
 } M5GSMCapability_received;
 
-#define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR) \
+#define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
   (mSGpTR)->ittiMsg.n11_create_pdu_session_response
 
-#define N11_CREATE_PDU_SESSION_FAILURE(mSGpTR) \
+#define N11_CREATE_PDU_SESSION_FAILURE(mSGpTR)                                 \
   (mSGpTR)->ittiMsg.n11_create_pdu_session_failure
 
 typedef enum {
-  PDU_SESSION_INACTIVE_NOTIFY,         // AMF <=> SMF
-  UE_IDLE_MODE_NOTIFY,                 // AMF  => SMF
-  UE_PAGING_NOTIFY,                    // SMF  => AMF
-  UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY,  // AMF  => SMF
-  PDU_SESSION_STATE_NOTIFY,            // SMF <=> AMF
-  UE_SERVICE_REQUEST_ON_PAGING,        // AMF <=> SMF
+  PDU_SESSION_INACTIVE_NOTIFY,        // AMF <=> SMF
+  UE_IDLE_MODE_NOTIFY,                // AMF  => SMF
+  UE_PAGING_NOTIFY,                   // SMF  => AMF
+  UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY, // AMF  => SMF
+  PDU_SESSION_STATE_NOTIFY,           // SMF <=> AMF
+  UE_SERVICE_REQUEST_ON_PAGING,       // AMF <=> SMF
 } notify_ue_event;
 
 typedef struct itti_n11_received_notification_s {

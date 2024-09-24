@@ -34,7 +34,7 @@ namespace magma5g {
 NgapStateConverter::~NgapStateConverter() = default;
 NgapStateConverter::NgapStateConverter() = default;
 
-void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
+void NgapStateConverter::state_to_proto(ngap_state_t *state, NgapState *proto) {
   OAILOG_FUNC_IN(LOG_NGAP);
   proto->Clear();
 
@@ -46,17 +46,17 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
   hashtable_rc_t ht_rc;
   amf_ue_ngap_id_t amfid;
   sctp_assoc_id_t associd;
-  void* associd_ptr = nullptr;
+  void *associd_ptr = nullptr;
   auto amfid2associd = proto->mutable_amfid2associd();
 
-  hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->amfid2associd);
+  hashtable_key_array_t *keys = hashtable_ts_get_keys(&state->amfid2associd);
   if (!keys) {
     OAILOG_DEBUG(LOG_NGAP, "No keys in amfid2associd hashtable");
   } else {
     for (int i = 0; i < keys->num_keys; i++) {
       amfid = (amf_ue_ngap_id_t)keys->keys[i];
       ht_rc = hashtable_ts_get(&state->amfid2associd, (hash_key_t)amfid,
-                               reinterpret_cast<void**>(&associd_ptr));
+                               reinterpret_cast<void **>(&associd_ptr));
       AssertFatal(ht_rc == HASH_TABLE_OK, "amfid not in amfid2associd");
 
       if (associd_ptr) {
@@ -71,20 +71,20 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
-void NgapStateConverter::proto_to_state(const NgapState& proto,
-                                        ngap_state_t* state) {
+void NgapStateConverter::proto_to_state(const NgapState &proto,
+                                        ngap_state_t *state) {
   OAILOG_FUNC_IN(LOG_NGAP);
   proto_to_hashtable_ts<GnbDescription, gnb_description_t>(
       proto.gnbs(), &state->gnbs, proto_to_gnb, LOG_NGAP);
 
   hashtable_rc_t ht_rc;
   auto amfid2associd = proto.amfid2associd();
-  for (auto const& kv : amfid2associd) {
+  for (auto const &kv : amfid2associd) {
     amf_ue_ngap_id_t amfid = (amf_ue_ngap_id_t)kv.first;
     sctp_assoc_id_t associd = (sctp_assoc_id_t)kv.second;
 
     ht_rc = hashtable_ts_insert(&state->amfid2associd, (hash_key_t)amfid,
-                                (void*)(uintptr_t)associd);
+                                (void *)(uintptr_t)associd);
     AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
   }
 
@@ -92,8 +92,8 @@ void NgapStateConverter::proto_to_state(const NgapState& proto,
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
-void NgapStateConverter::gnb_to_proto(gnb_description_t* gnb,
-                                      GnbDescription* proto) {
+void NgapStateConverter::gnb_to_proto(gnb_description_t *gnb,
+                                      GnbDescription *proto) {
   OAILOG_FUNC_IN(LOG_NGAP);
   proto->Clear();
 
@@ -114,8 +114,8 @@ void NgapStateConverter::gnb_to_proto(gnb_description_t* gnb,
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
-void NgapStateConverter::proto_to_gnb(const GnbDescription& proto,
-                                      gnb_description_t* gnb) {
+void NgapStateConverter::proto_to_gnb(const GnbDescription &proto,
+                                      gnb_description_t *gnb) {
   OAILOG_FUNC_IN(LOG_NGAP);
   memset(gnb, 0, sizeof(*gnb));
 
@@ -138,7 +138,7 @@ void NgapStateConverter::proto_to_gnb(const GnbDescription& proto,
   bdestroy(ht_name);
 
   auto ue_ids = proto.ue_ids();
-  for (auto const& kv : ue_ids) {
+  for (auto const &kv : ue_ids) {
     amf_ue_ngap_id_t amf_ue_ngap_id = kv.first;
     uint64_t comp_ngap_id = kv.second;
 
@@ -153,8 +153,8 @@ void NgapStateConverter::proto_to_gnb(const GnbDescription& proto,
                              proto.supported_ta_list());
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
-void NgapStateConverter::ue_to_proto(const m5g_ue_description_t* ue,
-                                     Ngap_UeDescription* proto) {
+void NgapStateConverter::ue_to_proto(const m5g_ue_description_t *ue,
+                                     Ngap_UeDescription *proto) {
   OAILOG_FUNC_IN(LOG_NGAP);
   proto->Clear();
 
@@ -170,8 +170,8 @@ void NgapStateConverter::ue_to_proto(const m5g_ue_description_t* ue,
       ue->ngap_ue_context_rel_timer.msec);
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
-void NgapStateConverter::proto_to_ue(const Ngap_UeDescription& proto,
-                                     m5g_ue_description_t* ue) {
+void NgapStateConverter::proto_to_ue(const Ngap_UeDescription &proto,
+                                     m5g_ue_description_t *ue) {
   OAILOG_FUNC_IN(LOG_NGAP);
   memset(ue, 0, sizeof(*ue));
 
@@ -190,14 +190,14 @@ void NgapStateConverter::proto_to_ue(const Ngap_UeDescription& proto,
 }
 
 void NgapStateConverter::ngap_imsi_map_to_proto(
-    const ngap_imsi_map_t* ngap_imsi_map, NgapImsiMap* ngap_imsi_proto) {
+    const ngap_imsi_map_t *ngap_imsi_map, NgapImsiMap *ngap_imsi_proto) {
   OAILOG_FUNC_IN(LOG_NGAP);
   hashtable_uint64_ts_to_proto(ngap_imsi_map->amf_ue_id_imsi_htbl,
                                ngap_imsi_proto->mutable_amf_ue_id_imsi_map());
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 void NgapStateConverter::proto_to_ngap_imsi_map(
-    const NgapImsiMap& ngap_imsi_proto, ngap_imsi_map_t* ngap_imsi_map) {
+    const NgapImsiMap &ngap_imsi_proto, ngap_imsi_map_t *ngap_imsi_map) {
   OAILOG_FUNC_IN(LOG_NGAP);
   proto_to_hashtable_uint64_ts(ngap_imsi_proto.amf_ue_id_imsi_map(),
                                ngap_imsi_map->amf_ue_id_imsi_htbl);
@@ -205,13 +205,13 @@ void NgapStateConverter::proto_to_ngap_imsi_map(
 }
 
 void NgapStateConverter::supported_ta_list_to_proto(
-    const m5g_supported_ta_list_t* supported_ta_list,
-    oai::Ngap_SupportedTaList* supported_ta_list_proto) {
+    const m5g_supported_ta_list_t *supported_ta_list,
+    oai::Ngap_SupportedTaList *supported_ta_list_proto) {
   OAILOG_FUNC_IN(LOG_NGAP);
   supported_ta_list_proto->set_list_count(supported_ta_list->list_count);
   for (int idx = 0; idx < supported_ta_list->list_count; idx++) {
     OAILOG_DEBUG(LOG_NGAP, "Writing Ngap_Supported TAI list at index %d", idx);
-    oai::Ngap_SupportedTaiItems* supported_tai_item =
+    oai::Ngap_SupportedTaiItems *supported_tai_item =
         supported_ta_list_proto->add_supported_tai_items();
     supported_tai_item_to_proto(&supported_ta_list->supported_tai_items[idx],
                                 supported_tai_item);
@@ -220,8 +220,8 @@ void NgapStateConverter::supported_ta_list_to_proto(
 }
 
 void NgapStateConverter::proto_to_supported_ta_list(
-    m5g_supported_ta_list_t* supported_ta_list_state,
-    const oai::Ngap_SupportedTaList& supported_ta_list_proto) {
+    m5g_supported_ta_list_t *supported_ta_list_state,
+    const oai::Ngap_SupportedTaList &supported_ta_list_proto) {
   supported_ta_list_state->list_count = supported_ta_list_proto.list_count();
   OAILOG_FUNC_IN(LOG_NGAP);
   for (int idx = 0; idx < supported_ta_list_state->list_count; idx++) {
@@ -234,8 +234,8 @@ void NgapStateConverter::proto_to_supported_ta_list(
 }
 
 void NgapStateConverter::supported_tai_item_to_proto(
-    const m5g_supported_tai_items_t* state_supported_tai_item,
-    oai::Ngap_SupportedTaiItems* supported_tai_item_proto) {
+    const m5g_supported_tai_items_t *state_supported_tai_item,
+    oai::Ngap_SupportedTaiItems *supported_tai_item_proto) {
   supported_tai_item_proto->set_tac(state_supported_tai_item->tac);
   supported_tai_item_proto->set_bplmnlist_count(
       state_supported_tai_item->bplmnlist_count);
@@ -266,8 +266,8 @@ void NgapStateConverter::supported_tai_item_to_proto(
 }
 
 void NgapStateConverter::proto_to_supported_tai_items(
-    m5g_supported_tai_items_t* supported_tai_item_state,
-    const oai::Ngap_SupportedTaiItems& supported_tai_item_proto) {
+    m5g_supported_tai_items_t *supported_tai_item_state,
+    const oai::Ngap_SupportedTaiItems &supported_tai_item_proto) {
   supported_tai_item_state->tac = supported_tai_item_proto.tac();
   supported_tai_item_state->bplmnlist_count =
       supported_tai_item_proto.bplmnlist_count();
@@ -289,4 +289,4 @@ void NgapStateConverter::proto_to_supported_tai_items(
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

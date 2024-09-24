@@ -12,9 +12,9 @@ extern "C" {
 }
 #endif
 
-int match_fed_mode_map(const char* imsi, log_proto_t module);
+int match_fed_mode_map(const char *imsi, log_proto_t module);
 int verify_service_area_restriction(tac_t tac,
-                                    const regional_subscription_t* reg_sub,
+                                    const regional_subscription_t *reg_sub,
                                     uint8_t num_reg_sub);
 
 int mme_config_find_mnc_length(const char mcc_digit1P, const char mcc_digit2P,

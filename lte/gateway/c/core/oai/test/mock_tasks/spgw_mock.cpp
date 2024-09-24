@@ -17,45 +17,45 @@ static std::shared_ptr<MockSpgwHandler> spgw_handler_;
 
 void stop_mock_spgw_task();
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TERMINATE_MESSAGE: {
-      spgw_handler_.reset();
-      itti_free_msg_content(received_message_p);
-      free(received_message_p);
-      stop_mock_spgw_task();
-    } break;
+  case TERMINATE_MESSAGE: {
+    spgw_handler_.reset();
+    itti_free_msg_content(received_message_p);
+    free(received_message_p);
+    stop_mock_spgw_task();
+  } break;
 
-    case S11_CREATE_SESSION_REQUEST: {
-      spgw_handler_->sgw_handle_s11_create_session_request();
-    } break;
+  case S11_CREATE_SESSION_REQUEST: {
+    spgw_handler_->sgw_handle_s11_create_session_request();
+  } break;
 
-    case S11_DELETE_SESSION_REQUEST: {
-      spgw_handler_->sgw_handle_delete_session_request();
-    } break;
+  case S11_DELETE_SESSION_REQUEST: {
+    spgw_handler_->sgw_handle_delete_session_request();
+  } break;
 
-    case S11_MODIFY_BEARER_REQUEST: {
-      spgw_handler_->sgw_handle_modify_bearer_request();
-    } break;
+  case S11_MODIFY_BEARER_REQUEST: {
+    spgw_handler_->sgw_handle_modify_bearer_request();
+  } break;
 
-    case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
-      spgw_handler_->sgw_handle_release_access_bearers_request();
-    } break;
+  case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
+    spgw_handler_->sgw_handle_release_access_bearers_request();
+  } break;
 
-    case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
-      // Handle Dedicated bearer Activation Rsp from MME
-      spgw_handler_->sgw_handle_nw_initiated_actv_bearer_rsp();
-    } break;
+  case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
+    // Handle Dedicated bearer Activation Rsp from MME
+    spgw_handler_->sgw_handle_nw_initiated_actv_bearer_rsp();
+  } break;
 
-    case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
-      // Handle Dedicated bearer Deactivation Rsp from MME
-      spgw_handler_->sgw_handle_nw_initiated_deactv_bearer_rsp();
-    } break;
+  case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
+    // Handle Dedicated bearer Deactivation Rsp from MME
+    spgw_handler_->sgw_handle_nw_initiated_deactv_bearer_rsp();
+  } break;
 
-    default: {
-    } break;
+  default: {
+  } break;
   }
   itti_free_msg_content(received_message_p);
   free(received_message_p);

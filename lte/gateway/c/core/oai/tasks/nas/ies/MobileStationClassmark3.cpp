@@ -17,9 +17,9 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark3.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,8 +32,8 @@ extern "C" {
 #endif
 
 int decode_mobile_station_classmark_3(
-    MobileStationClassmark3* mobilestationclassmark3, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    MobileStationClassmark3 *mobilestationclassmark3, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -46,13 +46,13 @@ int decode_mobile_station_classmark_3(
   decoded++;
 
   decoded +=
-      ielen;  // Temporary fix so that we decode other IEs required for CSFB
+      ielen; // Temporary fix so that we decode other IEs required for CSFB
   return decoded;
 }
 
 int encode_mobile_station_classmark_3(
-    MobileStationClassmark3* mobilestationclassmark3, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    MobileStationClassmark3 *mobilestationclassmark3, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   Fatal("TODO Implement encode_mobile_station_classmark_3");
   return -1;
 }

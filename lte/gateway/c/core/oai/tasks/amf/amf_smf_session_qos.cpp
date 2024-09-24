@@ -17,11 +17,11 @@
 namespace magma5g {
 
 // Fill the qos rule with filter information to be added
-void amf_smf_session_api_fill_add_packet_filter(create_new_tft_t* new_tft,
-                                                QOSRule* qos_rule) {
+void amf_smf_session_api_fill_add_packet_filter(create_new_tft_t *new_tft,
+                                                QOSRule *qos_rule) {
   for (int i = 0; i < qos_rule->no_of_pkt_filters; i++) {
     NewQOSRulePktFilter new_qos_rule_pkt_filter = {};
-    packet_filter_t* pkt_filter = NULL;
+    packet_filter_t *pkt_filter = NULL;
     uint16_t pkt_filter_len = 0;
     pkt_filter = &new_tft[i];
 
@@ -34,47 +34,46 @@ void amf_smf_session_api_fill_add_packet_filter(create_new_tft_t* new_tft,
     // Check for the max label
     while (flag <= TRAFFIC_FLOW_TEMPLATE_MATCH_ALL_FLAG) {
       switch (pkt_filter->packetfiltercontents.flags & flag) {
-        case TRAFFIC_FLOW_TEMPLATE_MATCH_ALL_FLAG: {
-          // Match all type
-          new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              TRAFFIC_FLOW_TEMPLATE_MATCH_ALL;
-          pkt_filter_len++;
-        } break;
+      case TRAFFIC_FLOW_TEMPLATE_MATCH_ALL_FLAG: {
+        // Match all type
+        new_qos_rule_pkt_filter.contents[pkt_filter_len] =
+            TRAFFIC_FLOW_TEMPLATE_MATCH_ALL;
+        pkt_filter_len++;
+      } break;
 
-        case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG: {
-          // IPv4 remote address type
-          new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR;
-          pkt_filter_len++;
+      case TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG: {
+        // IPv4 remote address type
+        new_qos_rule_pkt_filter.contents[pkt_filter_len] =
+            TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR;
+        pkt_filter_len++;
 
-          // Copy IPV4 address and Mask
-          for (int j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
-            new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-                pkt_filter->packetfiltercontents.ipv4remoteaddr[j].addr;
-            new_qos_rule_pkt_filter
-                .contents[pkt_filter_len +
-                          TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE] =
-                pkt_filter->packetfiltercontents.ipv4remoteaddr[j].mask;
-            pkt_filter_len++;
-          }
-
-          pkt_filter_len += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
-        } break;
-        case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG: {
-          // Remote port type
+        // Copy IPV4 address and Mask
+        for (int j = 0; j < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; j++) {
           new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT;
+              pkt_filter->packetfiltercontents.ipv4remoteaddr[j].addr;
+          new_qos_rule_pkt_filter
+              .contents[pkt_filter_len + TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE] =
+              pkt_filter->packetfiltercontents.ipv4remoteaddr[j].mask;
           pkt_filter_len++;
-
-          new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              (0xFF00 & pkt_filter->packetfiltercontents.singleremoteport) >> 8;
-          pkt_filter_len++;
-          new_qos_rule_pkt_filter.contents[pkt_filter_len] =
-              (0x00FF & pkt_filter->packetfiltercontents.singleremoteport);
-          pkt_filter_len++;
-        } break;
-        default: {
         }
+
+        pkt_filter_len += TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE;
+      } break;
+      case TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG: {
+        // Remote port type
+        new_qos_rule_pkt_filter.contents[pkt_filter_len] =
+            TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT;
+        pkt_filter_len++;
+
+        new_qos_rule_pkt_filter.contents[pkt_filter_len] =
+            (0xFF00 & pkt_filter->packetfiltercontents.singleremoteport) >> 8;
+        pkt_filter_len++;
+        new_qos_rule_pkt_filter.contents[pkt_filter_len] =
+            (0x00FF & pkt_filter->packetfiltercontents.singleremoteport);
+        pkt_filter_len++;
+      } break;
+      default: {
+      }
       }
       flag = flag << 1;
     }
@@ -87,9 +86,9 @@ void amf_smf_session_api_fill_add_packet_filter(create_new_tft_t* new_tft,
 
 // Fill the qos rule for the filter to be deleted
 void amf_smf_session_api_fill_delete_packet_filter(
-    delete_packet_filter_t* delete_pkt_filter, QOSRule* qos_rule) {
+    delete_packet_filter_t *delete_pkt_filter, QOSRule *qos_rule) {
   NewQOSRulePktFilter new_qos_rule_pkt_filter = {};
-  delete_packet_filter_t* pkt_filter = NULL;
+  delete_packet_filter_t *pkt_filter = NULL;
 
   for (int i = 0; i < qos_rule->no_of_pkt_filters; i++) {
     pkt_filter = &delete_pkt_filter[i];
@@ -102,10 +101,10 @@ void amf_smf_session_api_fill_delete_packet_filter(
 // Convert the modification request from sessiond to modification message
 // for this transaction
 int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
-                                         bstring* authorized_qosrules,
-                                         bstring* qos_flow_descriptors) {
+                                         bstring *authorized_qosrules,
+                                         bstring *qos_flow_descriptors) {
   // Retrive message from sessoiond
-  qos_flow_list_t* pti_flow_list = smf_ctx->get_proc_flow_list();
+  qos_flow_list_t *pti_flow_list = smf_ctx->get_proc_flow_list();
 
   uint8_t qos_rules_msg_buffer[QOS_RULES_MSG_BUF_LEN_MAX];
   uint16_t qos_rules_msg_buf_len = 0;
@@ -117,7 +116,7 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
 
   // Prepare for sending message out to UE/GNB
   for (int i = 0; i < pti_flow_list->maxNumOfQosFlows; i++) {
-    qos_flow_setup_request_item* qos_flow_req_item =
+    qos_flow_setup_request_item *qos_flow_req_item =
         &(pti_flow_list->item[i].qos_flow_req_item);
 
     // Preparing QoS Rule Msg
@@ -177,14 +176,14 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
       }
       qos_rules_msg_buf_len += encoded_result;
-    }  // qos rule creation
+    } // qos rule creation
 
     // Preparing qos flow descriptors
     if (qos_flow_req_item->qos_flow_descriptor.qos_flow_identifier) {
       M5GQosFlowDescription flow_des = {};
       flow_des.numOfParams = 0;
 
-      qos_flow_descriptor_t* qos_flow_desc =
+      qos_flow_descriptor_t *qos_flow_desc =
           &qos_flow_req_item->qos_flow_descriptor;
       flow_des.operationCode = qos_flow_req_item->ul_tft.tftoperationcode << 5;
       flow_des.qfi = qos_flow_desc->qos_flow_identifier;
@@ -204,7 +203,7 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_mfbr_downlink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        M5GQosFlowParam *qosParams = &flow_des.paramList[flow_des.numOfParams];
         qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->mbr_dl);
         flow_des.numOfParams++;
       }
@@ -214,7 +213,7 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_mfbr_uplink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        M5GQosFlowParam *qosParams = &flow_des.paramList[flow_des.numOfParams];
         qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->mbr_ul);
         flow_des.numOfParams++;
       }
@@ -224,7 +223,7 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_gfbr_downlink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        M5GQosFlowParam *qosParams = &flow_des.paramList[flow_des.numOfParams];
         qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->gbr_dl);
         flow_des.numOfParams++;
       }
@@ -234,7 +233,7 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         flow_des.paramList[flow_des.numOfParams].iei =
             magma5g::M5GQosFlowParam::param_id_gfbr_uplink;
         flow_des.paramList[flow_des.numOfParams].length = 3;
-        M5GQosFlowParam* qosParams = &flow_des.paramList[flow_des.numOfParams];
+        M5GQosFlowParam *qosParams = &flow_des.paramList[flow_des.numOfParams];
         qosParams->mfbr_gbr_convert(qosParams, qos_flow_desc->gbr_ul);
         flow_des.numOfParams++;
       }
@@ -258,7 +257,7 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
         }
         qos_flow_desc_buf_len += encoded_result;
       }
-    }  // flow description operation
+    } // flow description operation
   }
 
   // Fill the autorized qos rule buffer
@@ -271,8 +270,8 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
 }
 
 // No qos rules received from SMF. Create a default one
-void amf_smf_session_set_default_qos_rule(qos_flow_list_t* pti_flow_list) {
-  qos_flow_setup_request_item* qos_flow_req_item =
+void amf_smf_session_set_default_qos_rule(qos_flow_list_t *pti_flow_list) {
+  qos_flow_setup_request_item *qos_flow_req_item =
       &(pti_flow_list->item[0].qos_flow_req_item);
 
   // Default Qos Already present return
@@ -298,7 +297,7 @@ void amf_smf_session_set_default_qos_rule(qos_flow_list_t* pti_flow_list) {
 // For setting the default qos if nothing frmm sessiond
 void amf_smf_session_set_default_qos_info(
     std::shared_ptr<smf_context_t> smf_ctx) {
-  qos_flow_list_t* pti_flow_list = smf_ctx->get_proc_flow_list();
+  qos_flow_list_t *pti_flow_list = smf_ctx->get_proc_flow_list();
 
   if (!pti_flow_list->maxNumOfQosFlows) {
     pti_flow_list->maxNumOfQosFlows = 1;
@@ -308,4 +307,4 @@ void amf_smf_session_set_default_qos_info(
   amf_smf_session_set_default_qos_rule(pti_flow_list);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

@@ -10,31 +10,31 @@ limitations under the License.
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // ExtendedProtocolDiscriminator IE Class
 class ExtendedProtocolDiscriminatorMsg {
- public:
+public:
   uint8_t extended_proto_discriminator;
 
   ExtendedProtocolDiscriminatorMsg();
   ~ExtendedProtocolDiscriminatorMsg();
   int EncodeExtendedProtocolDiscriminatorMsg(
-      ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
+      ExtendedProtocolDiscriminatorMsg *extended_protocol_discriminator,
+      uint8_t iei, uint8_t *buffer, uint32_t len);
   int DecodeExtendedProtocolDiscriminatorMsg(
-      ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
-  void copy(const ExtendedProtocolDiscriminatorMsg& e) {
+      ExtendedProtocolDiscriminatorMsg *extended_protocol_discriminator,
+      uint8_t iei, uint8_t *buffer, uint32_t len);
+  void copy(const ExtendedProtocolDiscriminatorMsg &e) {
     extended_proto_discriminator = e.extended_proto_discriminator;
   }
-  bool isEqual(const ExtendedProtocolDiscriminatorMsg& e) {
+  bool isEqual(const ExtendedProtocolDiscriminatorMsg &e) {
     if (extended_proto_discriminator == e.extended_proto_discriminator) {
       return true;
     }
     return false;
   }
 };
-}  // namespace magma5g
+} // namespace magma5g

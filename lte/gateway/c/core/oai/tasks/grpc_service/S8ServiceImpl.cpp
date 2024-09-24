@@ -19,22 +19,22 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 }
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace feg {
 class CreateBearerRequestPgw;
-}  // namespace feg
+} // namespace feg
 namespace orc8r {
 class Void;
-}  // namespace orc8r
-}  // namespace magma
+} // namespace orc8r
+} // namespace magma
 using grpc::ServerContext;
 
 namespace magma {
@@ -42,18 +42,18 @@ namespace magma {
 S8ServiceImpl::S8ServiceImpl() {}
 
 static void convert_proto_msg_to_itti_create_bearer_req(
-    const CreateBearerRequestPgw* request,
-    s8_create_bearer_request_t* itti_msg) {
+    const CreateBearerRequestPgw *request,
+    s8_create_bearer_request_t *itti_msg) {
   auto ip = request->pgwaddrs();
   itti_msg->pgw_cp_address =
-      reinterpret_cast<char*>(calloc(1, (ip.size() + 1)));
+      reinterpret_cast<char *>(calloc(1, (ip.size() + 1)));
   snprintf(itti_msg->pgw_cp_address, (ip.size() + 1), "%s", ip.c_str());
   itti_msg->context_teid = request->c_agw_teid();
   itti_msg->sequence_number = request->sequence_number();
   itti_msg->linked_eps_bearer_id = request->linked_bearer_id();
   get_pco_from_proto_msg(request->protocol_configuration_options(),
                          &itti_msg->pco);
-  s8_bearer_context_t* s8_bc = &(itti_msg->bearer_context[0]);
+  s8_bearer_context_t *s8_bc = &(itti_msg->bearer_context[0]);
   s8_bc->eps_bearer_id = request->bearer_context().id();
   s8_bc->charging_id = request->bearer_context().charging_id();
 
@@ -71,16 +71,16 @@ static void convert_proto_msg_to_itti_create_bearer_req(
   return;
 }
 
-grpc::Status S8ServiceImpl::CreateBearer(ServerContext* context,
-                                         const CreateBearerRequestPgw* request,
-                                         orc8r::Void* response) {
+grpc::Status S8ServiceImpl::CreateBearer(ServerContext *context,
+                                         const CreateBearerRequestPgw *request,
+                                         orc8r::Void *response) {
   OAILOG_INFO(LOG_SGW_S8,
               " Received Create Bearer Request from roaming network's PGW"
               " for context teid: " TEID_FMT "\n",
               request->c_agw_teid());
 
-  MessageDef* message_p = NULL;
-  s8_create_bearer_request_t* cb_req = NULL;
+  MessageDef *message_p = NULL;
+  s8_create_bearer_request_t *cb_req = NULL;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, S8_CREATE_BEARER_REQ);
   if (!message_p) {
     OAILOG_ERROR(LOG_SGW_S8,
@@ -103,8 +103,8 @@ grpc::Status S8ServiceImpl::CreateBearer(ServerContext* context,
 }
 
 static void convert_proto_msg_to_itti_delete_bearer_req(
-    const DeleteBearerRequestPgw* request,
-    s8_delete_bearer_request_t* itti_msg_db_req) {
+    const DeleteBearerRequestPgw *request,
+    s8_delete_bearer_request_t *itti_msg_db_req) {
   itti_msg_db_req->sequence_number = request->sequence_number();
   itti_msg_db_req->context_teid = request->c_agw_teid();
   itti_msg_db_req->linked_eps_bearer_id = request->linked_bearer_id();
@@ -116,16 +116,17 @@ static void convert_proto_msg_to_itti_delete_bearer_req(
                          &itti_msg_db_req->pco);
 }
 
-grpc::Status S8ServiceImpl::DeleteBearerRequest(
-    ServerContext* context, const DeleteBearerRequestPgw* request,
-    orc8r::Void* response) {
+grpc::Status
+S8ServiceImpl::DeleteBearerRequest(ServerContext *context,
+                                   const DeleteBearerRequestPgw *request,
+                                   orc8r::Void *response) {
   OAILOG_INFO(LOG_SGW_S8,
               " Received Delete Bearer Request from roaming network's PGW"
               " for context teid: " TEID_FMT "\n",
               request->c_agw_teid());
 
-  MessageDef* message_p = NULL;
-  s8_delete_bearer_request_t* db_req = NULL;
+  MessageDef *message_p = NULL;
+  s8_delete_bearer_request_t *db_req = NULL;
   message_p = itti_alloc_new_message(TASK_GRPC_SERVICE, S8_DELETE_BEARER_REQ);
   if (!message_p) {
     OAILOG_ERROR(LOG_SGW_S8,
@@ -146,4 +147,4 @@ grpc::Status S8ServiceImpl::DeleteBearerRequest(
   }
   return grpc::Status::OK;
 }
-}  // namespace magma
+} // namespace magma

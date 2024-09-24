@@ -17,12 +17,12 @@
 #include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
+#include <iostream>
 #include <lte/protos/abort_session.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <stdint.h>
-#include <iostream>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -50,7 +50,7 @@ using ::testing::Test;
 namespace magma {
 
 class SessionProxyResponderHandlerTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     evb = new folly::EventBase();
     std::thread([&]() {
@@ -85,15 +85,15 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
 
   virtual void TearDown() { delete evb; }
 
-  std::unique_ptr<SessionState> get_session(
-      std::shared_ptr<StaticRuleStore> rule_store) {
+  std::unique_ptr<SessionState>
+  get_session(std::shared_ptr<StaticRuleStore> rule_store) {
     SessionConfig cfg;
     Teids teids;
     teids.set_agw_teid(TEID_1_UL);
     teids.set_enb_teid(TEID_1_DL);
     cfg.common_context =
         build_common_context(IMSI1, IP1, "", teids, APN1, MSISDN, TGPP_WLAN);
-    const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+    const auto &wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context = TgppContext{};
     auto pdp_start_time = 12345;
@@ -151,11 +151,11 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     return request;
   }
 
-  void insert_static_rule(const std::string& rule_id) {
+  void insert_static_rule(const std::string &rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, "", 0));
   }
 
- protected:
+protected:
   std::string monitoring_key;
   std::string rule_id_1;
   std::string rule_id_2;
@@ -165,7 +165,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<LocalEnforcer> local_enforcer;
   SessionIDGenerator id_gen_;
-  folly::EventBase* evb;
+  folly::EventBase *evb;
   SessionMap session_map;
   std::shared_ptr<SessionStore> session_store;
   std::shared_ptr<StaticRuleStore> rule_store;
@@ -299,4 +299,4 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map[IMSI1].size(), 0);
 }
-}  // namespace magma
+} // namespace magma

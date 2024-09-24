@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstring>
 #include <cstdint>
+#include <cstring>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,8 +19,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterRAND.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterRAND.hpp"
 
 namespace magma5g {
 AuthenticationParameterRANDMsg::AuthenticationParameterRANDMsg(){};
@@ -28,7 +28,7 @@ AuthenticationParameterRANDMsg::~AuthenticationParameterRANDMsg(){};
 
 // Decode AuthenticationParameterRAND IE
 int AuthenticationParameterRANDMsg::DecodeAuthenticationParameterRANDMsg(
-    AuthenticationParameterRANDMsg* rand, uint8_t iei, uint8_t* buffer,
+    AuthenticationParameterRANDMsg *rand, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   uint8_t decoded = 0;
   /*** Not Implemented, Will be supported POST MVC ***/
@@ -37,7 +37,7 @@ int AuthenticationParameterRANDMsg::DecodeAuthenticationParameterRANDMsg(
 
 // Encode AuthenticationParameterRAND IE
 int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
-    AuthenticationParameterRANDMsg* rand, uint8_t iei, uint8_t* buffer,
+    AuthenticationParameterRANDMsg *rand, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   uint32_t encoded = 0;
 
@@ -55,4 +55,4 @@ int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
 
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

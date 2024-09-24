@@ -31,7 +31,7 @@ typedef enum {
   STATE_EVENT_REG_REQUEST,
   STATE_EVENT_SEC_MODE_COMPLETE,
   STATE_EVENT_REG_COMPLETE,
-  STATE_EVENT_DEREGISTER,  // Handling Deregister and Deregister init
+  STATE_EVENT_DEREGISTER, // Handling Deregister and Deregister init
   STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
   STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
   STATE_PDU_SESSION_MODIFICATION_REQUEST,
@@ -71,7 +71,7 @@ enum m5gmm_state_t {
 std::string get_ue_state_string(m5gmm_state_t ueState);
 
 typedef struct UE_Handlers_s {
-  const char* name;
+  const char *name;
   void (*func)(void);
 } UE_Handlers_t;
 
@@ -91,4 +91,4 @@ enum amf_fsm_state_t {
   AMF_COMMON_PROCEDURE_INITIATED,
   AMF_STATE_MAX
 };
-}  // namespace magma5g
+} // namespace magma5g

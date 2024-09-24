@@ -20,4 +20,4 @@ void update_amf_app_stats_registered_ue_add(void);
 void update_amf_app_stats_registered_ue_sub(void);
 void update_amf_app_stats_pdusessions_ue_add(void);
 void update_amf_app_stats_pdusessions_ue_sub(void);
-}  // namespace magma5g
+} // namespace magma5g

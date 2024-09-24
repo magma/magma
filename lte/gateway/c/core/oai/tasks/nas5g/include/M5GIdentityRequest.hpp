@@ -10,17 +10,17 @@
 */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSIdentityType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 // 5GSIdentityRequest Message Class
 class IdentityRequestMsg {
- public:
+public:
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SpareHalfOctetMsg spare_half_octet;
   SecurityHeaderTypeMsg sec_header_type;
@@ -30,12 +30,12 @@ class IdentityRequestMsg {
 
   IdentityRequestMsg();
   ~IdentityRequestMsg();
-  int DecodeIdentityRequestMsg(IdentityRequestMsg* identity_request,
-                               uint8_t* buffer, uint32_t len);
-  int EncodeIdentityRequestMsg(IdentityRequestMsg* identity_request,
-                               uint8_t* buffer, uint32_t len);
+  int DecodeIdentityRequestMsg(IdentityRequestMsg *identity_request,
+                               uint8_t *buffer, uint32_t len);
+  int EncodeIdentityRequestMsg(IdentityRequestMsg *identity_request,
+                               uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    SPEC TS-24501   Table 8.2.21.1.1: IDENTITY REQUEST message content

@@ -51,17 +51,17 @@ typedef uint32_t sctp_ppid_t;
 #define SCTP_INIT_MSG(msg) (msg)->ittiMsg.sctpInit
 #define SCTP_NEW_ASSOCIATION(msg) (msg)->ittiMsg.sctp_new_peer
 #define SCTP_CLOSE_ASSOCIATION(msg) (msg)->ittiMsg.sctp_close_association
-#define SCTP_MME_SERVER_INITIALIZED(msg) \
+#define SCTP_MME_SERVER_INITIALIZED(msg)                                       \
   (msg)->ittiMsg.sctp_mme_server_initialized
-#define SCTP_AMF_SERVER_INITIALIZED(msg) \
+#define SCTP_AMF_SERVER_INITIALIZED(msg)                                       \
   (msg)->ittiMsg.sctp_amf_server_initialized
 
 typedef struct sctp_data_cnf_s {
   bstring payload;
   sctp_assoc_id_t assoc_id;
   sctp_stream_id_t stream;
-  uint32_t agw_ue_xap_id;  // it will be set to mme_ue_s1ap_id or amf_ue_ngap_id
-                           // based on the xap_id
+  uint32_t agw_ue_xap_id; // it will be set to mme_ue_s1ap_id or amf_ue_ngap_id
+                          // based on the xap_id
   uint32_t mme_ue_s1ap_id;
   uint32_t amf_ue_ngap_id;
   sctp_ppid_t ppid;
@@ -74,19 +74,19 @@ typedef struct sctp_data_req_s {
   sctp_stream_id_t stream;
   uint32_t agw_ue_xap_id;  // it will be set to mme_ue_s1ap_id or amf_ue_ngap_id
                            // based on the xap_id
-  uint32_t mme_ue_s1ap_id;  // for helping data_rej
+  uint32_t mme_ue_s1ap_id; // for helping data_rej
   uint32_t amf_ue_ngap_id;
   sctp_ppid_t ppid;
 } sctp_data_req_t;
 
 typedef struct sctp_data_ind_s {
-  bstring payload;           ///< SCTP buffer
-  sctp_assoc_id_t assoc_id;  ///< SCTP physical association ID
-  sctp_stream_id_t stream;   ///< Stream number on which data had been received
-  uint16_t instreams;   ///< Number of input streams for the SCTP connection
-                        ///< between peers
-  uint16_t outstreams;  ///< Number of output streams for the SCTP connection
-                        ///< between peers
+  bstring payload;          ///< SCTP buffer
+  sctp_assoc_id_t assoc_id; ///< SCTP physical association ID
+  sctp_stream_id_t stream;  ///< Stream number on which data had been received
+  uint16_t instreams;       ///< Number of input streams for the SCTP connection
+                            ///< between peers
+  uint16_t outstreams; ///< Number of output streams for the SCTP connection
+                       ///< between peers
 } sctp_data_ind_t;
 
 typedef struct sctp_init_s {

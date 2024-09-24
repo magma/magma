@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,8 +20,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.hpp"
 
 namespace magma5g {
 PDUSessionTypeMsg::PDUSessionTypeMsg(){};
@@ -29,7 +29,7 @@ PDUSessionTypeMsg::~PDUSessionTypeMsg(){};
 
 // Decode PDUSessionType IE
 int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(
-    PDUSessionTypeMsg* pdu_session_type, uint8_t iei, uint8_t* buffer,
+    PDUSessionTypeMsg *pdu_session_type, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int decoded = 0;
 
@@ -46,7 +46,7 @@ int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(
 
 // Encode PDUSessionType IE
 int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
-    PDUSessionTypeMsg* pdu_session_type, uint8_t iei, uint8_t* buffer,
+    PDUSessionTypeMsg *pdu_session_type, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
 
@@ -62,4 +62,4 @@ int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
 
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

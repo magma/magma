@@ -10,12 +10,12 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 class EAPMessageMsg {
- public:
+public:
 #define EAP_MIN_LENGTH 3
   uint8_t iei;
   uint8_t len;
@@ -23,9 +23,9 @@ class EAPMessageMsg {
 
   EAPMessageMsg();
   ~EAPMessageMsg();
-  int EncodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
-                          uint8_t* buffer, uint32_t len);
-  int DecodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
-                          uint8_t* buffer, uint32_t len);
+  int EncodeEAPMessageMsg(EAPMessageMsg *eap_message, uint8_t iei,
+                          uint8_t *buffer, uint32_t len);
+  int DecodeEAPMessageMsg(EAPMessageMsg *eap_message, uint8_t iei,
+                          uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

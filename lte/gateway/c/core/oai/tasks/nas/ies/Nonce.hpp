@@ -24,6 +24,6 @@
 
 typedef uint32_t nonce_t;
 
-int encode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_nonce(nonce_t *nonce, uint8_t iei, uint8_t *buffer, uint32_t len);
 
-int decode_nonce(nonce_t* nonce, uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_nonce(nonce_t *nonce, uint8_t iei, uint8_t *buffer, uint32_t len);

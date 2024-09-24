@@ -35,8 +35,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 
 status_code_e mme_app_handle_s1ap_ue_capabilities_ind(
-    const itti_s1ap_ue_cap_ind_t* const s1ap_ue_cap_ind_pP) {
-  ue_mm_context_t* ue_context_p = NULL;
+    const itti_s1ap_ue_cap_ind_t *const s1ap_ue_cap_ind_pP) {
+  ue_mm_context_t *ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (s1ap_ue_cap_ind_pP == NULL) {
@@ -55,7 +55,7 @@ status_code_e mme_app_handle_s1ap_ue_capabilities_ind(
         " mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
         s1ap_ue_cap_ind_pP->enb_ue_s1ap_id, s1ap_ue_cap_ind_pP->mme_ue_s1ap_id);
 
-    free_wrapper((void**)&s1ap_ue_cap_ind_pP->radio_capabilities);
+    free_wrapper((void **)&s1ap_ue_cap_ind_pP->radio_capabilities);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 

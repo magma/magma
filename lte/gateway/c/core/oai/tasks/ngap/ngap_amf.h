@@ -23,7 +23,7 @@ extern bool hss_associated;
 /** \brief NGAP layer top init
  * @returns -1 in case of failure
  **/
-status_code_e ngap_amf_init(const amf_config_t* amf_config);
+status_code_e ngap_amf_init(const amf_config_t *amf_config);
 
 /** \brief NGAP layer top exit
  **/
@@ -33,12 +33,12 @@ void ngap_amf_exit(void);
  * Calls dump_ue for each UE in list
  * \param gnb_ref eNB structure reference to dump
  **/
-extern void ngap_dump_gnb(const gnb_description_t* const gnb_ref);
+extern void ngap_dump_gnb(const gnb_description_t *const gnb_ref);
 
 /** \brief Allocate and add to the list a new gNB descriptor
  * @returns Reference to the new gNB element in list
  **/
-gnb_description_t* ngap_new_gnb(ngap_state_t* state);
+gnb_description_t *ngap_new_gnb(ngap_state_t *state);
 
 /** \brief Allocate and add to the right eNB list a new UE descriptor
  * \param sctp_assoc_id association ID over SCTP
@@ -46,16 +46,16 @@ gnb_description_t* ngap_new_gnb(ngap_state_t* state);
  * @returns Reference to the new UE element in list
  **/
 
-m5g_ue_description_t* ngap_new_ue(ngap_state_t* state,
+m5g_ue_description_t *ngap_new_ue(ngap_state_t *state,
                                   const sctp_assoc_id_t sctp_assoc_id,
                                   gnb_ue_ngap_id_t gnb_ue_ngap_id);
 
 /** \brief Remove target UE from the list
  * \param ue_ref UE structure reference to remove
  **/
-void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref);
+void ngap_remove_ue(ngap_state_t *state, m5g_ue_description_t *ue_ref);
 
 /** \brief Remove target gNB from the list and remove any UE associated
  * \param gnb_ref gNB structure reference to remove
  **/
-void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref);
+void ngap_remove_gnb(ngap_state_t *state, gnb_description_t *gnb_ref);

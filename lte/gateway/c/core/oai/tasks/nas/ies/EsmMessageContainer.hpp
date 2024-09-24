@@ -30,14 +30,14 @@ extern "C" {
 struct scenario_s;
 struct scenario_player_msg_s;
 
-#define ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH 2  // [length]+[length]
-#define ESM_MESSAGE_CONTAINER_MAXIMUM_LENGTH \
-  65538  // [IEI]+[length]+[length]+[ESM msg]
+#define ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH 2 // [length]+[length]
+#define ESM_MESSAGE_CONTAINER_MAXIMUM_LENGTH                                   \
+  65538 // [IEI]+[length]+[length]+[ESM msg]
 
 typedef bstring EsmMessageContainer;
 
 int encode_esm_message_container(EsmMessageContainer esmmessagecontainer,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len);
+                                 uint8_t iei, uint8_t *buffer, uint32_t len);
 
-int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_esm_message_container(EsmMessageContainer *esmmessagecontainer,
+                                 uint8_t iei, uint8_t *buffer, uint32_t len);

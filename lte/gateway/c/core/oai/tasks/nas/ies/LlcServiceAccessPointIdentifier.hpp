@@ -25,13 +25,13 @@
 typedef uint8_t LlcServiceAccessPointIdentifier;
 
 int encode_llc_service_access_point_identifier(
-    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
-    uint8_t iei, uint8_t* buffer, uint32_t len);
+    LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
+    uint8_t iei, uint8_t *buffer, uint32_t len);
 
 void dump_llc_service_access_point_identifier_xml(
-    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
+    LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
     uint8_t iei);
 
 int decode_llc_service_access_point_identifier(
-    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
-    uint8_t iei, uint8_t* buffer, uint32_t len);
+    LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
+    uint8_t iei, uint8_t *buffer, uint32_t len);

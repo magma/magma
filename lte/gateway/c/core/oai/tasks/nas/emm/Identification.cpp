@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -62,24 +62,24 @@ extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
 
 extern int check_plmn_restriction(imsi_t imsi);
-extern int validate_imei(imeisv_t* imeisv);
+extern int validate_imei(imeisv_t *imeisv);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
 /* String representation of the requested identity type */
-static const char* emm_identity_type_str[] = {"NOT AVAILABLE", "IMSI", "IMEI",
+static const char *emm_identity_type_str[] = {"NOT AVAILABLE", "IMSI", "IMEI",
                                               "IMEISV", "TMSI"};
 
 // callbacks for identification procedure
-static int identification_ll_failure(struct emm_context_s* emm_context,
-                                     struct nas_emm_proc_s* emm_proc);
-static int identification_non_delivered_ho(struct emm_context_s* emm_context,
-                                           struct nas_emm_proc_s* emm_proc);
-static int identification_abort(struct emm_context_s* emm_context,
-                                struct nas_base_proc_s* base_proc);
+static int identification_ll_failure(struct emm_context_s *emm_context,
+                                     struct nas_emm_proc_s *emm_proc);
+static int identification_non_delivered_ho(struct emm_context_s *emm_context,
+                                           struct nas_emm_proc_s *emm_proc);
+static int identification_abort(struct emm_context_s *emm_context,
+                                struct nas_base_proc_s *base_proc);
 
-static status_code_e identification_request(nas_emm_ident_proc_t* const proc);
+static status_code_e identification_request(nas_emm_ident_proc_t *const proc);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -119,8 +119,8 @@ static status_code_e identification_request(nas_emm_ident_proc_t* const proc);
  **      Others:    _emm_data                                      **
  **                                                                **
  ********************************************************************/
-status_code_e emm_proc_identification(struct emm_context_s* const emm_context,
-                                      nas_emm_proc_t* const emm_proc,
+status_code_e emm_proc_identification(struct emm_context_s *const emm_context,
+                                      nas_emm_proc_t *const emm_proc,
                                       const identity_type2_t type,
                                       success_cb_t success,
                                       failure_cb_t failure) {
@@ -140,20 +140,20 @@ status_code_e emm_proc_identification(struct emm_context_s* const emm_context,
         "id " MME_UE_S1AP_ID_FMT "\n",
         emm_identity_type_str[type], type, emm_context, ue_id);
 
-    nas_emm_ident_proc_t* ident_proc =
+    nas_emm_ident_proc_t *ident_proc =
         nas_new_identification_procedure(emm_context);
     if (ident_proc) {
       if (emm_proc) {
         if ((NAS_EMM_PROC_TYPE_SPECIFIC == emm_proc->type) &&
             (EMM_SPEC_PROC_TYPE_ATTACH ==
-             ((nas_emm_specific_proc_t*)emm_proc)->type)) {
+             ((nas_emm_specific_proc_t *)emm_proc)->type)) {
           ident_proc->is_cause_is_attach = true;
         }
       }
       ident_proc->identity_type = type;
       ident_proc->retransmission_count = 0;
       ident_proc->ue_id = ue_id;
-      ((nas_base_proc_t*)ident_proc)->parent = (nas_base_proc_t*)emm_proc;
+      ((nas_base_proc_t *)ident_proc)->parent = (nas_base_proc_t *)emm_proc;
       ident_proc->emm_com_proc.emm_proc.delivered = NULL;
       ident_proc->emm_com_proc.emm_proc.previous_emm_fsm_state =
           emm_fsm_get_state(emm_context);
@@ -166,7 +166,7 @@ status_code_e emm_proc_identification(struct emm_context_s* const emm_context,
       ident_proc->emm_com_proc.emm_proc.base_proc.abort =
           (proc_abort_t)identification_abort;
       ident_proc->emm_com_proc.emm_proc.base_proc.fail_in =
-          NULL;  // only response
+          NULL; // only response
       ident_proc->emm_com_proc.emm_proc.base_proc.time_out =
           (time_out_t)mme_app_handle_identification_t3470_expiry;
     }
@@ -212,14 +212,14 @@ status_code_e emm_proc_identification(struct emm_context_s* const emm_context,
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
-                                               imsi_t* const imsi,
-                                               imei_t* const imei,
-                                               imeisv_t* const imeisv,
-                                               uint32_t* const tmsi) {
+                                               imsi_t *const imsi,
+                                               imei_t *const imei,
+                                               imeisv_t *const imeisv,
+                                               uint32_t *const tmsi) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   emm_sap_t emm_sap = {};
-  emm_context_t* emm_ctx = NULL;
+  emm_context_t *emm_ctx = NULL;
   bool notify = true;
 
   OAILOG_INFO(LOG_NAS_EMM,
@@ -228,10 +228,10 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
               ue_id);
 
   // Get the UE context
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
-    nas_emm_ident_proc_t* ident_proc =
+    nas_emm_ident_proc_t *ident_proc =
         get_nas_common_procedure_identification(emm_ctx);
 
     if (ident_proc) {
@@ -272,8 +272,8 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
       if (imsi) {
         imsi64_t imsi64 = imsi_to_imsi64(imsi);
         // If context already exists for this IMSI, perform implicit detach
-        mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-        ue_mm_context_t* old_imsi_ue_mm_ctx = mme_ue_context_exists_imsi(
+        mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+        ue_mm_context_t *old_imsi_ue_mm_ctx = mme_ue_context_exists_imsi(
             &mme_app_desc_p->mme_ue_contexts, imsi64);
         if ((emm_ctx->emm_context_state == UNKNOWN_GUTI) &&
             old_imsi_ue_mm_ctx) {
@@ -282,7 +282,7 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
                          "=." MME_UE_S1AP_ID_FMT
                          " Triggering implicit detach\n",
                          ue_id);
-          nas_emm_attach_proc_t* attach_proc =
+          nas_emm_attach_proc_t *attach_proc =
               get_nas_specific_procedure_attach(emm_ctx);
           if (!attach_proc) {
             OAILOG_ERROR_UE(
@@ -346,8 +346,8 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
 
       // Helper ident proc ptr to avoid double free from unknown GUTI attach
       // processing.
-      nas_emm_ident_proc_t* ident_proc_p =
-          reinterpret_cast<nas_emm_ident_proc_t*>(
+      nas_emm_ident_proc_t *ident_proc_p =
+          reinterpret_cast<nas_emm_ident_proc_t *>(
               calloc(1, sizeof(nas_emm_ident_proc_t)));
       memcpy(ident_proc_p, ident_proc, sizeof(nas_emm_ident_proc_t));
 
@@ -364,8 +364,8 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
           ident_proc_p->emm_com_proc.emm_proc.previous_emm_fsm_state;
       rc = emm_sap_send(&emm_sap);
 
-    }  // else ignore the response if procedure not found
-  }    // else ignore the response if ue context not found
+    } // else ignore the response if procedure not found
+  }   // else ignore the response if ue context not found
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -400,9 +400,9 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
+status_code_e mme_app_handle_identification_t3470_expiry(zloop_t *loop,
                                                          int timer_id,
-                                                         void* args) {
+                                                         void *args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_pop_timer_arg_ue_id(timer_id, &mme_ue_s1ap_id)) {
@@ -411,8 +411,8 @@ status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, const_cast<char*>("Identification T3470 Timer"));
+  struct ue_mm_context_s *ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, const_cast<char *>("Identification T3470 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -421,13 +421,13 @@ status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  emm_context_t* emm_ctx = &ue_context_p->emm_context;
+  emm_context_t *emm_ctx = &ue_context_p->emm_context;
 
   if (!(emm_ctx)) {
     OAILOG_ERROR(LOG_NAS_EMM, "T3470 timer expired No EMM context\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
-  nas_emm_ident_proc_t* ident_proc =
+  nas_emm_ident_proc_t *ident_proc =
       get_nas_common_procedure_identification(emm_ctx);
 
   if (ident_proc) {
@@ -464,14 +464,14 @@ status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
       emm_sap.u.emm_reg.notify = false;
       emm_sap.u.emm_reg.free_proc = true;
       emm_sap.u.emm_reg.u.common.common_proc =
-          (nas_emm_common_proc_t*)(&ident_proc->emm_com_proc);
+          (nas_emm_common_proc_t *)(&ident_proc->emm_com_proc);
       emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
-          ((nas_emm_proc_t*)ident_proc)->previous_emm_fsm_state;
+          ((nas_emm_proc_t *)ident_proc)->previous_emm_fsm_state;
       emm_sap_send(&emm_sap);
       nas_delete_all_emm_procedures(emm_ctx);
       /* clear emm_common_data_ctx */
       emm_common_cleanup_by_ueid(ue_id);
-      memset((void*)&emm_sap, 0, sizeof(emm_sap));
+      memset((void *)&emm_sap, 0, sizeof(emm_sap));
       emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
       emm_sap.u.emm_cn.u.emm_cn_implicit_detach.ue_id = ue_id;
       emm_sap_send(&emm_sap);
@@ -501,13 +501,13 @@ status_code_e mme_app_handle_identification_t3470_expiry(zloop_t* loop,
  *      Return:    RETURNok, RETURNerror
  *      Others:    T3470
  */
-static status_code_e identification_request(nas_emm_ident_proc_t* const proc) {
+static status_code_e identification_request(nas_emm_ident_proc_t *const proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNok;
-  struct emm_context_s* emm_ctx = NULL;
+  struct emm_context_s *emm_ctx = NULL;
 
-  ue_mm_context_t* ue_mm_context =
+  ue_mm_context_t *ue_mm_context =
       mme_ue_context_exists_mme_ue_s1ap_id(proc->ue_id);
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
@@ -546,12 +546,12 @@ static status_code_e identification_request(nas_emm_ident_proc_t* const proc) {
 }
 
 //------------------------------------------------------------------------------
-static int identification_ll_failure(struct emm_context_s* emm_ctx,
-                                     struct nas_emm_proc_s* emm_proc) {
+static int identification_ll_failure(struct emm_context_s *emm_ctx,
+                                     struct nas_emm_proc_s *emm_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   if ((emm_ctx) && (emm_proc)) {
-    nas_emm_ident_proc_t* ident_proc = (nas_emm_ident_proc_t*)emm_proc;
+    nas_emm_ident_proc_t *ident_proc = (nas_emm_ident_proc_t *)emm_proc;
     REQUIREMENT_3GPP_24_301(R10_5_4_4_6_a);
     emm_sap_t emm_sap = {};
 
@@ -565,12 +565,12 @@ static int identification_ll_failure(struct emm_context_s* emm_ctx,
 }
 
 //------------------------------------------------------------------------------
-static int identification_non_delivered_ho(struct emm_context_s* emm_ctx,
-                                           struct nas_emm_proc_s* emm_proc) {
+static int identification_non_delivered_ho(struct emm_context_s *emm_ctx,
+                                           struct nas_emm_proc_s *emm_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   if (emm_proc) {
-    nas_emm_ident_proc_t* ident_proc = (nas_emm_ident_proc_t*)emm_proc;
+    nas_emm_ident_proc_t *ident_proc = (nas_emm_ident_proc_t *)emm_proc;
     /************************README*******************************************
   ** NAS Non Delivery indication during HO handling will be added when HO is
   ** supported In non hand-over case if MME receives NAS Non Delivery
@@ -622,17 +622,17 @@ static int identification_non_delivered_ho(struct emm_context_s* emm_ctx,
  *      Return:    None
  *      Others:    T3470
  */
-static int identification_abort(struct emm_context_s* emm_context,
-                                struct nas_base_proc_s* base_proc) {
+static int identification_abort(struct emm_context_s *emm_context,
+                                struct nas_base_proc_s *base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
   if ((emm_context) && (base_proc)) {
-    nas_emm_ident_proc_t* ident_proc = (nas_emm_ident_proc_t*)base_proc;
+    nas_emm_ident_proc_t *ident_proc = (nas_emm_ident_proc_t *)base_proc;
     AssertFatal(
         (NAS_PROC_TYPE_EMM == base_proc->type) &&
-            (NAS_EMM_PROC_TYPE_COMMON == ((nas_emm_proc_t*)base_proc)->type) &&
-            (EMM_COMM_PROC_IDENT == ((nas_emm_common_proc_t*)base_proc)->type),
+            (NAS_EMM_PROC_TYPE_COMMON == ((nas_emm_proc_t *)base_proc)->type) &&
+            (EMM_COMM_PROC_IDENT == ((nas_emm_common_proc_t *)base_proc)->type),
         "Mismatch in procedure type");
 
     OAILOG_INFO(LOG_NAS_EMM,

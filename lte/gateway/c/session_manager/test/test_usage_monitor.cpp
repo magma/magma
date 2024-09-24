@@ -10,10 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
-#include <lte/protos/session_manager.pb.h>
 #include <algorithm>
 #include <cstdint>
+#include <gtest/gtest.h>
+#include <lte/protos/session_manager.pb.h>
 #include <memory>
 #include <set>
 #include <string>
@@ -79,7 +79,7 @@ TEST_F(SessionStateTest, test_remove_monitor) {
   session_state->get_updates(&update, &actions, &update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.usage_monitors_size(), 1);
-  auto& single_update = update.usage_monitors(0).update();
+  auto &single_update = update.usage_monitors(0).update();
   EXPECT_EQ(single_update.level(), MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(single_update.bytes_tx(), 1001);
   EXPECT_EQ(single_update.bytes_rx(), 0);
@@ -90,4 +90,4 @@ TEST_F(SessionStateTest, test_remove_monitor) {
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 0);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 0);
 }
-}  // namespace magma
+} // namespace magma

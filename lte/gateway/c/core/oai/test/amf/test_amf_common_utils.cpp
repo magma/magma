@@ -9,8 +9,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
+#include <gtest/gtest.h>
 
 using ::testing::Test;
 
@@ -22,46 +22,46 @@ TEST(test_ambr, test_ambr_convert) {
   M5GSessionAmbrUnit ambr_unit;
   uint16_t ambr_value;
 
-  pdu_ambr_response_unit = 0;     // BPS
-  pdu_ambr_response_value = 500;  // 500 BPS
+  pdu_ambr_response_unit = 0;    // BPS
+  pdu_ambr_response_value = 500; // 500 BPS
 
   convert_ambr(&pdu_ambr_response_unit, &pdu_ambr_response_value, &ambr_unit,
                &ambr_value);
   EXPECT_EQ(ambr_unit,
-            M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Illegal ambr case
-  EXPECT_EQ(ambr_value, 1);                        // 1 KBPS
+            M5GSessionAmbrUnit::MULTIPLES_1KBPS); // Illegal ambr case
+  EXPECT_EQ(ambr_value, 1);                       // 1 KBPS
+
+  pdu_ambr_response_unit = 1;    // KBPS
+  pdu_ambr_response_value = 500; // 500 KBPS
+
+  convert_ambr(&pdu_ambr_response_unit, &pdu_ambr_response_value, &ambr_unit,
+               &ambr_value);
+  EXPECT_EQ(ambr_unit, M5GSessionAmbrUnit::MULTIPLES_1KBPS); // Kbps
+  EXPECT_EQ(ambr_value, 500);                                // 500 Kbps
+
+  pdu_ambr_response_unit = 0;     // BPS
+  pdu_ambr_response_value = 5000; // 5000 BPS
+
+  convert_ambr(&pdu_ambr_response_unit, &pdu_ambr_response_value, &ambr_unit,
+               &ambr_value);
+  EXPECT_EQ(ambr_unit, M5GSessionAmbrUnit::MULTIPLES_1KBPS); // Kbps
+  EXPECT_EQ(ambr_value, 5);                                  // 5 Kbps
 
   pdu_ambr_response_unit = 1;     // KBPS
-  pdu_ambr_response_value = 500;  // 500 KBPS
+  pdu_ambr_response_value = 5000; // 5000 KBPS
 
   convert_ambr(&pdu_ambr_response_unit, &pdu_ambr_response_value, &ambr_unit,
                &ambr_value);
-  EXPECT_EQ(ambr_unit, M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
-  EXPECT_EQ(ambr_value, 500);                                 // 500 Kbps
+  EXPECT_EQ(ambr_unit, M5GSessionAmbrUnit::MULTIPLES_1KBPS); // KBPS
+  EXPECT_EQ(ambr_value, 5000);                               // 5000 KBPS
 
-  pdu_ambr_response_unit = 0;      // BPS
-  pdu_ambr_response_value = 5000;  // 5000 BPS
-
-  convert_ambr(&pdu_ambr_response_unit, &pdu_ambr_response_value, &ambr_unit,
-               &ambr_value);
-  EXPECT_EQ(ambr_unit, M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // Kbps
-  EXPECT_EQ(ambr_value, 5);                                   // 5 Kbps
-
-  pdu_ambr_response_unit = 1;      // KBPS
-  pdu_ambr_response_value = 5000;  // 5000 KBPS
+  pdu_ambr_response_unit = 0;          // BPS
+  pdu_ambr_response_value = 536870000; // 536870000 BPS
 
   convert_ambr(&pdu_ambr_response_unit, &pdu_ambr_response_value, &ambr_unit,
                &ambr_value);
-  EXPECT_EQ(ambr_unit, M5GSessionAmbrUnit::MULTIPLES_1KBPS);  // KBPS
-  EXPECT_EQ(ambr_value, 5000);                                // 5000 KBPS
-
-  pdu_ambr_response_unit = 0;           // BPS
-  pdu_ambr_response_value = 536870000;  // 536870000 BPS
-
-  convert_ambr(&pdu_ambr_response_unit, &pdu_ambr_response_value, &ambr_unit,
-               &ambr_value);
-  EXPECT_EQ(ambr_unit, M5GSessionAmbrUnit::MULTIPLES_1MBPS);  // Mbps
-  EXPECT_EQ(ambr_value, 536);                                 // 536 Mbps
+  EXPECT_EQ(ambr_unit, M5GSessionAmbrUnit::MULTIPLES_1MBPS); // Mbps
+  EXPECT_EQ(ambr_value, 536);                                // 536 Mbps
 }
 
 TEST(test_ambr, test_ambr_convert_pdu_aggregrate) {
@@ -89,4 +89,4 @@ TEST(test_ambr, test_ambr_convert_pdu_aggregrate) {
   EXPECT_EQ(ul_pdu_ambr, 6000000000);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

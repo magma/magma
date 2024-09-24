@@ -14,39 +14,39 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include <string.h>
 #include <sys/types.h>
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/gx_messages_types.h"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 int send_activate_bearer_request_itti(
-    itti_gx_nw_init_actv_bearer_request_t* itti_msg) {
+    itti_gx_nw_init_actv_bearer_request_t *itti_msg) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Sending nw_init_actv_bearer_request to SPGW \n");
-  MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
+  MessageDef *message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_GRPC_SERVICE, GX_NW_INITIATED_ACTIVATE_BEARER_REQ);
   message_p->ittiMsg.gx_nw_init_actv_bearer_request = *itti_msg;
 
-  IMSI_STRING_TO_IMSI64((char*)itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
+  IMSI_STRING_TO_IMSI64((char *)itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
 
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
 int send_deactivate_bearer_request_itti(
-    itti_gx_nw_init_deactv_bearer_request_t* itti_msg) {
+    itti_gx_nw_init_deactv_bearer_request_t *itti_msg) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Sending spgw_nw_init_deactv_bearer_request\n");
-  MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
+  MessageDef *message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   message_p->ittiMsg.gx_nw_init_deactv_bearer_request = *itti_msg;
 
-  IMSI_STRING_TO_IMSI64((char*)itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
+  IMSI_STRING_TO_IMSI64((char *)itti_msg->imsi, &message_p->ittiMsgHeader.imsi);
 
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }

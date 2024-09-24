@@ -17,26 +17,26 @@
 
 #pragma once
 
-#include <grpc++/grpc++.h>
-#include <stdint.h>
 #include <functional>
+#include <grpc++/grpc++.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
-#include "orc8r/protos/directoryd.grpc.pb.h"
 #include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
+#include "orc8r/protos/directoryd.grpc.pb.h"
 #include "orc8r/protos/directoryd.pb.h"
 
 namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace orc8r {
 class Void;
-}  // namespace orc8r
-}  // namespace magma
+} // namespace orc8r
+} // namespace magma
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -48,31 +48,31 @@ using namespace orc8r;
  * gRPC client for DirectoryService
  */
 class GatewayDirectoryServiceClient : public GRPCReceiver {
- public:
-  static bool UpdateRecord(const std::string& id, const std::string& location,
+public:
+  static bool UpdateRecord(const std::string &id, const std::string &location,
                            std::function<void(Status, Void)> callback);
 
-  static bool UpdateRecordField(const std::string& id,
-                                const std::string& field_key,
-                                const std::string& field_value,
+  static bool UpdateRecordField(const std::string &id,
+                                const std::string &field_key,
+                                const std::string &field_value,
                                 std::function<void(Status, Void)> callback);
 
-  static bool DeleteRecord(const std::string& id,
+  static bool DeleteRecord(const std::string &id,
                            std::function<void(Status, Void)> callback);
 
- private:
-  static bool updateRecordImpl(UpdateRecordRequest& request,
+private:
+  static bool updateRecordImpl(UpdateRecordRequest &request,
                                std::function<void(Status, Void)> callback);
 
- public:
-  GatewayDirectoryServiceClient(GatewayDirectoryServiceClient const&) = delete;
-  void operator=(GatewayDirectoryServiceClient const&) = delete;
+public:
+  GatewayDirectoryServiceClient(GatewayDirectoryServiceClient const &) = delete;
+  void operator=(GatewayDirectoryServiceClient const &) = delete;
 
- private:
+private:
   GatewayDirectoryServiceClient();
-  static GatewayDirectoryServiceClient& get_instance();
+  static GatewayDirectoryServiceClient &get_instance();
   std::shared_ptr<GatewayDirectoryService::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 30;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 30; // seconds
 };
 
-}  // namespace magma
+} // namespace magma

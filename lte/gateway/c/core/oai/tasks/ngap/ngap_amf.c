@@ -13,12 +13,12 @@
 
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <netinet/in.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
-#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #include "Ngap_TimeToWait.h"
 #include "lte/gateway/c/core/common/assertions.h"
@@ -59,7 +59,7 @@ uint64_t ngap_last_msg_latency = 0;
 
 static int ngap_send_init_sctp(void) {
   // Create and alloc new message
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_NGAP, SCTP_INIT_MSG);
   message_p->ittiMsg.sctpInit.port = NGAP_PORT_NUMBER;
@@ -79,9 +79,9 @@ static int ngap_send_init_sctp(void) {
   return ngap_send_msg_to_task(&ngap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  ngap_state_t* state = NULL;
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  ngap_state_t *state = NULL;
+  MessageDef *received_message_p = receive_msg(reader);
 
   imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
   state = get_ngap_state(false);
@@ -95,130 +95,128 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   bool is_task_state_same = false;
   bool is_ue_state_same = false;
 
-  ngap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p);  // microseconds
+  ngap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p); // microseconds
 
   OAILOG_DEBUG(LOG_NGAP, "NGAP ZMQ latency: %ld.", ngap_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case SCTP_DATA_IND: {
-      /*
-       * New message received from SCTP layer.
-       * * * * Decode and handle it.
-       */
+  case SCTP_DATA_IND: {
+    /*
+     * New message received from SCTP layer.
+     * * * * Decode and handle it.
+     */
 
-      // Invoke NGAP message decoder
-      Ngap_NGAP_PDU_t pdu = {0};
+    // Invoke NGAP message decoder
+    Ngap_NGAP_PDU_t pdu = {0};
 
-      if (ngap_amf_decode_pdu(&pdu,
-                              SCTP_DATA_IND(received_message_p).payload)) {
-        // TODO: Notify gNB of failure with right cause
-        OAILOG_ERROR(LOG_NGAP, "Failed to decode new buffer\n");
+    if (ngap_amf_decode_pdu(&pdu, SCTP_DATA_IND(received_message_p).payload)) {
+      // TODO: Notify gNB of failure with right cause
+      OAILOG_ERROR(LOG_NGAP, "Failed to decode new buffer\n");
 
-      } else {
-        ngap_amf_handle_message(state,
-                                SCTP_DATA_IND(received_message_p).assoc_id,
-                                SCTP_DATA_IND(received_message_p).stream, &pdu);
-      }
+    } else {
+      ngap_amf_handle_message(state, SCTP_DATA_IND(received_message_p).assoc_id,
+                              SCTP_DATA_IND(received_message_p).stream, &pdu);
+    }
 
-      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &pdu);
+    ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &pdu);
 
-      // Free received PDU array
-      bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
+    // Free received PDU array
+    bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
 
-    } break;
+  } break;
 
-    // SCTP layer notifies NGAP of disconnection of a peer.
-    case SCTP_CLOSE_ASSOCIATION: {
-      is_ue_state_same = true;
-      ngap_handle_sctp_disconnection(
-          state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
-          SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
-    } break;
+  // SCTP layer notifies NGAP of disconnection of a peer.
+  case SCTP_CLOSE_ASSOCIATION: {
+    is_ue_state_same = true;
+    ngap_handle_sctp_disconnection(
+        state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
+        SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
+  } break;
 
-    case SCTP_NEW_ASSOCIATION: {
-      is_ue_state_same = true;
-      increment_counter("amf_new_association", 1, NO_LABELS);
-      if (ngap_handle_new_association(
-              state, &received_message_p->ittiMsg.sctp_new_peer)) {
-        increment_counter("amf_new_association", 1, 1, "result", "failure");
-      } else {
-        increment_counter("amf_new_association", 1, 1, "result", "success");
-      }
-    } break;
+  case SCTP_NEW_ASSOCIATION: {
+    is_ue_state_same = true;
+    increment_counter("amf_new_association", 1, NO_LABELS);
+    if (ngap_handle_new_association(
+            state, &received_message_p->ittiMsg.sctp_new_peer)) {
+      increment_counter("amf_new_association", 1, 1, "result", "failure");
+    } else {
+      increment_counter("amf_new_association", 1, 1, "result", "success");
+    }
+  } break;
 
-    case NGAP_NAS_DL_DATA_REQ: {  // packets from NAS
+  case NGAP_NAS_DL_DATA_REQ: { // packets from NAS
 
-      /*
-       * New message received from NAS task.
-       * * * * This corresponds to a NGAP downlink nas transport message.
-       */
-      ngap_generate_downlink_nas_transport(
-          state, NGAP_NAS_DL_DATA_REQ(received_message_p).gnb_ue_ngap_id,
-          NGAP_NAS_DL_DATA_REQ(received_message_p).amf_ue_ngap_id,
-          &NGAP_NAS_DL_DATA_REQ(received_message_p).nas_msg, imsi64);
-    } break;
+    /*
+     * New message received from NAS task.
+     * * * * This corresponds to a NGAP downlink nas transport message.
+     */
+    ngap_generate_downlink_nas_transport(
+        state, NGAP_NAS_DL_DATA_REQ(received_message_p).gnb_ue_ngap_id,
+        NGAP_NAS_DL_DATA_REQ(received_message_p).amf_ue_ngap_id,
+        &NGAP_NAS_DL_DATA_REQ(received_message_p).nas_msg, imsi64);
+  } break;
 
-    case TERMINATE_MESSAGE: {
-      itti_free_msg_content(received_message_p);
-      free(received_message_p);
-      ngap_amf_exit();
-    } break;
+  case TERMINATE_MESSAGE: {
+    itti_free_msg_content(received_message_p);
+    free(received_message_p);
+    ngap_amf_exit();
+  } break;
 
-    case AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION: {
-      ngap_handle_amf_ue_id_notification(
-          state, &AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION(received_message_p));
-    } break;
+  case AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION: {
+    ngap_handle_amf_ue_id_notification(
+        state, &AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION(received_message_p));
+  } break;
 
-    // From AMF_APP task
-    case NGAP_UE_CONTEXT_RELEASE_COMMAND: {
-      is_ue_state_same = true;
-      ngap_handle_ue_context_release_command(
-          state, &received_message_p->ittiMsg.ngap_ue_context_release_command,
-          imsi64);
-    } break;
+  // From AMF_APP task
+  case NGAP_UE_CONTEXT_RELEASE_COMMAND: {
+    is_ue_state_same = true;
+    ngap_handle_ue_context_release_command(
+        state, &received_message_p->ittiMsg.ngap_ue_context_release_command,
+        imsi64);
+  } break;
 
-    case NGAP_INITIAL_CONTEXT_SETUP_REQ: {
-      ngap_handle_conn_est_cnf(
-          state, &NGAP_INITIAL_CONTEXT_SETUP_REQ(received_message_p));
-    } break;
+  case NGAP_INITIAL_CONTEXT_SETUP_REQ: {
+    ngap_handle_conn_est_cnf(
+        state, &NGAP_INITIAL_CONTEXT_SETUP_REQ(received_message_p));
+  } break;
 
-    case NGAP_PDUSESSION_RESOURCE_SETUP_REQ: {
-      ngap_generate_ngap_pdusession_resource_setup_req(
-          state, &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(received_message_p));
-    } break;
+  case NGAP_PDUSESSION_RESOURCE_SETUP_REQ: {
+    ngap_generate_ngap_pdusession_resource_setup_req(
+        state, &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(received_message_p));
+  } break;
 
-    case NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ: {
-      ngap_generate_ngap_pdusession_resource_modify_req(
-          state, &NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(received_message_p));
-    } break;
+  case NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ: {
+    ngap_generate_ngap_pdusession_resource_modify_req(
+        state, &NGAP_PDU_SESSION_RESOURCE_MODIFY_REQ(received_message_p));
+  } break;
 
-    case NGAP_PDUSESSIONRESOURCE_REL_REQ: {
-      ngap_generate_ngap_pdusession_resource_rel_cmd(
-          state, &NGAP_PDUSESSIONRESOURCE_REL_REQ(received_message_p));
-    } break;
+  case NGAP_PDUSESSIONRESOURCE_REL_REQ: {
+    ngap_generate_ngap_pdusession_resource_rel_cmd(
+        state, &NGAP_PDUSESSIONRESOURCE_REL_REQ(received_message_p));
+  } break;
 
-    case NGAP_GNB_INITIATED_RESET_ACK: {
-      is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same = true;
-      ngap_handle_gnb_initiated_reset_ack(
-          &NGAP_GNB_INITIATED_RESET_ACK(received_message_p));
-    } break;
+  case NGAP_GNB_INITIATED_RESET_ACK: {
+    is_task_state_same = true; // the following handler does not modify state
+    is_ue_state_same = true;
+    ngap_handle_gnb_initiated_reset_ack(
+        &NGAP_GNB_INITIATED_RESET_ACK(received_message_p));
+  } break;
 
-    case NGAP_PAGING_REQUEST: {
-      is_task_state_same = true;  // the following handler does not modify state
-      is_ue_state_same = true;
-      if (ngap_handle_paging_request(state,
-                                     &NGAP_PAGING_REQUEST(received_message_p),
-                                     imsi64) != RETURNok) {
-        OAILOG_ERROR(LOG_NGAP, "Failed to send paging message\n");
-      }
-    } break;
+  case NGAP_PAGING_REQUEST: {
+    is_task_state_same = true; // the following handler does not modify state
+    is_ue_state_same = true;
+    if (ngap_handle_paging_request(state,
+                                   &NGAP_PAGING_REQUEST(received_message_p),
+                                   imsi64) != RETURNok) {
+      OAILOG_ERROR(LOG_NGAP, "Failed to send paging message\n");
+    }
+  } break;
 
-    default: {
-      OAILOG_ERROR(LOG_NGAP, "Unknown message ID %d:%s\n",
-                   ITTI_MSG_ID(received_message_p),
-                   ITTI_MSG_NAME(received_message_p));
-    } break;
+  default: {
+    OAILOG_ERROR(LOG_NGAP, "Unknown message ID %d:%s\n",
+                 ITTI_MSG_ID(received_message_p),
+                 ITTI_MSG_NAME(received_message_p));
+  } break;
   }
 
   if (!is_task_state_same) {
@@ -234,7 +232,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 //------------------------------------------------------------------------------
-static void* ngap_amf_thread(__attribute__((unused)) void* args) {
+static void *ngap_amf_thread(__attribute__((unused)) void *args) {
   itti_mark_task_ready(TASK_NGAP);
   init_task_context(TASK_NGAP,
                     (task_id_t[]){TASK_AMF_APP, TASK_SCTP, TASK_SERVICE303}, 3,
@@ -255,7 +253,7 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e ngap_amf_init(const amf_config_t* amf_config_p) {
+status_code_e ngap_amf_init(const amf_config_t *amf_config_p) {
   OAILOG_DEBUG(LOG_NGAP, "Initializing NGAP interface\n");
 
   if (NULL == amf_config_p) {
@@ -292,8 +290,8 @@ void ngap_amf_exit(void) {
 }
 
 //------------------------------------------------------------------------------
-gnb_description_t* ngap_new_gnb(ngap_state_t* state) {
-  gnb_description_t* gnb_ref = NULL;
+gnb_description_t *ngap_new_gnb(ngap_state_t *state) {
+  gnb_description_t *gnb_ref = NULL;
 
   gnb_ref = calloc(1, sizeof(gnb_description_t));
   /*
@@ -307,18 +305,18 @@ gnb_description_t* ngap_new_gnb(ngap_state_t* state) {
   bstring bs = bfromcstr("ngap_ue_coll");
   // Need change in below line in future after amf_config
   hashtable_uint64_ts_init(&gnb_ref->ue_id_coll, amf_config.max_ues, NULL,
-                           bs);  // Need change
+                           bs); // Need change
   bdestroy_wrapper(&bs);
   gnb_ref->nb_ue_associated = 0;
   return gnb_ref;
 }
 
 //------------------------------------------------------------------------------
-m5g_ue_description_t* ngap_new_ue(ngap_state_t* state,
+m5g_ue_description_t *ngap_new_ue(ngap_state_t *state,
                                   const sctp_assoc_id_t sctp_assoc_id,
                                   gnb_ue_ngap_id_t gnb_ue_ngap_id) {
-  gnb_description_t* gnb_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  gnb_description_t *gnb_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   gnb_ref = ngap_state_get_gnb(state, sctp_assoc_id);
   DevAssert(gnb_ref != NULL);
@@ -335,14 +333,14 @@ m5g_ue_description_t* ngap_new_ue(ngap_state_t* state,
   ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
   ue_ref->comp_ngap_id = ngap_get_comp_ngap_id(sctp_assoc_id, gnb_ue_ngap_id);
 
-  hash_table_ts_t* state_ue_ht = get_ngap_ue_state();
+  hash_table_ts_t *state_ue_ht = get_ngap_ue_state();
   hashtable_rc_t hashrc = hashtable_ts_insert(
-      state_ue_ht, (const hash_key_t)ue_ref->comp_ngap_id, (void*)ue_ref);
+      state_ue_ht, (const hash_key_t)ue_ref->comp_ngap_id, (void *)ue_ref);
 
   if (HASH_TABLE_OK != hashrc) {
     OAILOG_ERROR(LOG_NGAP, "Could not insert UE descr in ue_coll: %s\n",
                  hashtable_rc_code2string(hashrc));
-    free_wrapper((void**)&ue_ref);
+    free_wrapper((void **)&ue_ref);
     return NULL;
   }
   // Increment number of UE
@@ -351,11 +349,12 @@ m5g_ue_description_t* ngap_new_ue(ngap_state_t* state,
 }
 
 //------------------------------------------------------------------------------
-void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
-  gnb_description_t* gNB_ref = NULL;
+void ngap_remove_ue(ngap_state_t *state, m5g_ue_description_t *ue_ref) {
+  gnb_description_t *gNB_ref = NULL;
 
   // NULL reference...
-  if (ue_ref == NULL) return;
+  if (ue_ref == NULL)
+    return;
 
   amf_ue_ngap_id_t amf_ue_ngap_id = ue_ref->amf_ue_ngap_id;
   gNB_ref = ngap_state_get_gnb(state, ue_ref->sctp_assoc_id);
@@ -365,13 +364,13 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
 
   ue_ref->ng_ue_state = NGAP_UE_INVALID_STATE;
 
-  hash_table_ts_t* state_ue_ht = get_ngap_ue_state();
+  hash_table_ts_t *state_ue_ht = get_ngap_ue_state();
   hashtable_ts_free(state_ue_ht, ue_ref->comp_ngap_id);
   hashtable_ts_free(&state->amfid2associd, amf_ue_ngap_id);
   hashtable_uint64_ts_remove(&gNB_ref->ue_id_coll, amf_ue_ngap_id);
 
   imsi64_t imsi64 = INVALID_IMSI64;
-  ngap_imsi_map_t* ngap_imsi_map = get_ngap_imsi_map();
+  ngap_imsi_map_t *ngap_imsi_map = get_ngap_imsi_map();
 
   hashtable_uint64_ts_get(ngap_imsi_map->amf_ue_id_imsi_htbl,
                           (const hash_key_t)amf_ue_ngap_id, &imsi64);
@@ -392,7 +391,7 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
 }
 
 //------------------------------------------------------------------------------
-void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
+void ngap_remove_gnb(ngap_state_t *state, gnb_description_t *gnb_ref) {
   if (gnb_ref == NULL) {
     return;
   }
@@ -402,8 +401,8 @@ void ngap_remove_gnb(ngap_state_t* state, gnb_description_t* gnb_ref) {
   state->num_gnbs--;
 }
 
-static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
-  ngap_state_t* ngap_state_p = get_ngap_state(false);
+static int handle_stats_timer(zloop_t *loop, int id, void *arg) {
+  ngap_state_t *ngap_state_p = get_ngap_state(false);
   application_ngap_stats_msg_t stats_msg;
 
   stats_msg.nb_gnb_connected = ngap_state_p->num_gnbs;
@@ -413,7 +412,7 @@ static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
 }
 
 static void start_stats_timer(void) {
-  ngap_state_t* ngap_state_p = get_ngap_state(false);
+  ngap_state_t *ngap_state_p = get_ngap_state(false);
   ngap_stats_timer_id =
       start_timer(&ngap_task_zmq_ctx, 1000 * ngap_stats_timer_sec,
                   TIMER_REPEAT_FOREVER, handle_stats_timer, NULL);

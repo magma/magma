@@ -35,7 +35,7 @@ extern "C" {
 #define MODIFY_EPS_BEARER_CONTEXT_ACCEPT_MINIMUM_LENGTH (0)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define MODIFY_EPS_BEARER_CONTEXT_ACCEPT_MAXIMUM_LENGTH \
+#define MODIFY_EPS_BEARER_CONTEXT_ACCEPT_MAXIMUM_LENGTH                        \
   (PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -69,9 +69,9 @@ typedef struct modify_eps_bearer_context_accept_msg_tag {
 } modify_eps_bearer_context_accept_msg;
 
 int decode_modify_eps_bearer_context_accept(
-    modify_eps_bearer_context_accept_msg* modifyepsbearercontextaccept,
-    uint8_t* buffer, uint32_t len);
+    modify_eps_bearer_context_accept_msg *modifyepsbearercontextaccept,
+    uint8_t *buffer, uint32_t len);
 
 int encode_modify_eps_bearer_context_accept(
-    modify_eps_bearer_context_accept_msg* modifyepsbearercontextaccept,
-    uint8_t* buffer, uint32_t len);
+    modify_eps_bearer_context_accept_msg *modifyepsbearercontextaccept,
+    uint8_t *buffer, uint32_t len);

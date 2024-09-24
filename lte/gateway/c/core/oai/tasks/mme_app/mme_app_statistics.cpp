@@ -36,15 +36,16 @@ static inline int get_max(int num1, int num2) {
 }
 // Number of Connected UEs
 void update_mme_app_stats_connected_ue_add(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   (mme_app_desc_p->nb_ue_connected)++;
   mme_app_desc_p->nb_ue_idle = get_max(
       mme_app_desc_p->nb_ue_attached - mme_app_desc_p->nb_ue_connected, 0);
   return;
 }
 void update_mme_app_stats_connected_ue_sub(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  if (mme_app_desc_p->nb_ue_connected != 0) (mme_app_desc_p->nb_ue_connected)--;
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  if (mme_app_desc_p->nb_ue_connected != 0)
+    (mme_app_desc_p->nb_ue_connected)--;
   mme_app_desc_p->nb_ue_idle = get_max(
       mme_app_desc_p->nb_ue_attached - mme_app_desc_p->nb_ue_connected, 0);
   return;
@@ -53,25 +54,26 @@ void update_mme_app_stats_connected_ue_sub(void) {
 /*****************************************************/
 // Number of S1U Bearers
 void update_mme_app_stats_s1u_bearer_add(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   (mme_app_desc_p->nb_s1u_bearers)++;
   return;
 }
 void update_mme_app_stats_s1u_bearer_sub(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  if (mme_app_desc_p->nb_s1u_bearers != 0) (mme_app_desc_p->nb_s1u_bearers)--;
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  if (mme_app_desc_p->nb_s1u_bearers != 0)
+    (mme_app_desc_p->nb_s1u_bearers)--;
   return;
 }
 
 /*****************************************************/
 // Number of Default EPS Bearers
 void update_mme_app_stats_default_bearer_add(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   (mme_app_desc_p->nb_default_eps_bearers)++;
   return;
 }
 void update_mme_app_stats_default_bearer_sub(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   if (mme_app_desc_p->nb_default_eps_bearers != 0)
     (mme_app_desc_p->nb_default_eps_bearers)--;
   return;
@@ -80,13 +82,14 @@ void update_mme_app_stats_default_bearer_sub(void) {
 /*****************************************************/
 // Number of Attached UEs
 void update_mme_app_stats_attached_ue_add(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   (mme_app_desc_p->nb_ue_attached)++;
   return;
 }
 void update_mme_app_stats_attached_ue_sub(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  if (mme_app_desc_p->nb_ue_attached != 0) (mme_app_desc_p->nb_ue_attached)--;
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  if (mme_app_desc_p->nb_ue_attached != 0)
+    (mme_app_desc_p->nb_ue_attached)--;
   mme_app_desc_p->nb_ue_idle = get_max(
       mme_app_desc_p->nb_ue_attached - mme_app_desc_p->nb_ue_connected, 0);
   return;

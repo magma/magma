@@ -17,31 +17,31 @@ static std::shared_ptr<MockSctpHandler> sctp_handler_;
 
 void stop_mock_sctp_task();
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case SCTP_INIT_MSG: {
-    } break;
+  case SCTP_INIT_MSG: {
+  } break;
 
-    case SCTP_CLOSE_ASSOCIATION: {
-    } break;
+  case SCTP_CLOSE_ASSOCIATION: {
+  } break;
 
-    case SCTP_DATA_REQ: {
-      sctp_handler_->sctpd_send_dl();
-    } break;
+  case SCTP_DATA_REQ: {
+    sctp_handler_->sctpd_send_dl();
+  } break;
 
-    case MESSAGE_TEST: {
-    } break;
+  case MESSAGE_TEST: {
+  } break;
 
-    case TERMINATE_MESSAGE: {
-      itti_free_msg_content(received_message_p);
-      free(received_message_p);
-      stop_mock_sctp_task();
-    } break;
+  case TERMINATE_MESSAGE: {
+    itti_free_msg_content(received_message_p);
+    free(received_message_p);
+    stop_mock_sctp_task();
+  } break;
 
-    default: {
-    } break;
+  default: {
+  } break;
   }
 
   itti_free_msg_content(received_message_p);

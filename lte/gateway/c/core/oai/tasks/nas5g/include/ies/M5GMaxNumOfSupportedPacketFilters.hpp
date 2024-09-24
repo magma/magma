@@ -10,11 +10,11 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 namespace magma5g {
 class M5GMaxNumOfSupportedPacketFilters {
- public:
+public:
   uint8_t iei;
   uint16_t maxNumOfSuppPktFilters : 11;
   uint16_t spare : 5;
@@ -22,10 +22,10 @@ class M5GMaxNumOfSupportedPacketFilters {
   M5GMaxNumOfSupportedPacketFilters();
   ~M5GMaxNumOfSupportedPacketFilters();
   int EncodeMaxNumOfSupportedPacketFilters(
-      M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      M5GMaxNumOfSupportedPacketFilters *maxNumOfSuppPktFilters, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
   int DecodeMaxNumOfSupportedPacketFilters(
-      M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      M5GMaxNumOfSupportedPacketFilters *maxNumOfSuppPktFilters, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

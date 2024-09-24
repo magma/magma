@@ -71,7 +71,7 @@ extern "C" {
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-status_code_e sgs_la_update_requested_handler(const sgs_fsm_t* evt) {
+status_code_e sgs_la_update_requested_handler(const sgs_fsm_t *evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   status_code_e rc = RETURNerror;
 
@@ -84,54 +84,54 @@ status_code_e sgs_la_update_requested_handler(const sgs_fsm_t* evt) {
   }
 
   switch (evt->primitive) {
-    case _SGS_LOCATION_UPDATE_ACCEPT: {
-      rc = sgs_fsm_la_updt_req_loc_updt_acc(evt);
-    } break;
+  case _SGS_LOCATION_UPDATE_ACCEPT: {
+    rc = sgs_fsm_la_updt_req_loc_updt_acc(evt);
+  } break;
 
-    case _SGS_LOCATION_UPDATE_REJECT: {
-      rc = sgs_fsm_la_updt_req_loc_updt_rej(evt);
-    } break;
+  case _SGS_LOCATION_UPDATE_REJECT: {
+    rc = sgs_fsm_la_updt_req_loc_updt_rej(evt);
+  } break;
 
-    case _SGS_PAGING_REQUEST: {
-      OAILOG_DEBUG(
-          LOG_MME_APP,
-          "Handle paging request in SGS_LA_UPDATE_REQUESTED state for ue-id :"
-          "" MME_UE_S1AP_ID_FMT " \n",
-          evt->ue_id);
-      rc = RETURNok;
-    } break;
+  case _SGS_PAGING_REQUEST: {
+    OAILOG_DEBUG(
+        LOG_MME_APP,
+        "Handle paging request in SGS_LA_UPDATE_REQUESTED state for ue-id :"
+        "" MME_UE_S1AP_ID_FMT " \n",
+        evt->ue_id);
+    rc = RETURNok;
+  } break;
 
-    case _SGS_EPS_DETACH_IND:
-      /*
-       * SGS EPS Detach procedure successful
-       * enter state SGS-NULL.
-       */
-      rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
-      break;
+  case _SGS_EPS_DETACH_IND:
+    /*
+     * SGS EPS Detach procedure successful
+     * enter state SGS-NULL.
+     */
+    rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
+    break;
 
-    case _SGS_IMSI_DETACH_IND:
-      /*
-       * SGS IMSI Detach procedure successful
-       * enter state SGS-NULL.
-       */
-      rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
-      break;
+  case _SGS_IMSI_DETACH_IND:
+    /*
+     * SGS IMSI Detach procedure successful
+     * enter state SGS-NULL.
+     */
+    rc = sgs_fsm_set_status(evt->ue_id, evt->ctx, SGS_NULL);
+    break;
 
-    case _SGS_RESET_INDICATION: {
-      /* No handling required, if Reset indication received in
-       * La-Update-Requested state */
-      OAILOG_DEBUG(LOG_MME_APP,
-                   " Received Reset Indication while SGS context is in "
-                   "La-Update-Requested state for ue_id"
-                   " :%d \n",
-                   evt->ue_id);
-      rc = RETURNok;
-    } break;
+  case _SGS_RESET_INDICATION: {
+    /* No handling required, if Reset indication received in
+     * La-Update-Requested state */
+    OAILOG_DEBUG(LOG_MME_APP,
+                 " Received Reset Indication while SGS context is in "
+                 "La-Update-Requested state for ue_id"
+                 " :%d \n",
+                 evt->ue_id);
+    rc = RETURNok;
+  } break;
 
-    default:
-      OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
-                   evt->primitive);
-      break;
+  default:
+    OAILOG_ERROR(LOG_MME_APP, "SGS-FSM   - Primitive is not valid (%d)\n",
+                 evt->primitive);
+    break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }

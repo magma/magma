@@ -12,21 +12,21 @@
  */
 #pragma once
 
+#include <cstdint>
+#include <experimental/optional>
 #include <folly/Format.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
+#include <functional>
 #include <google/protobuf/timestamp.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <sys/types.h>
-#include <cstdint>
-#include <experimental/optional>
-#include <functional>
 #include <set>
 #include <string>
+#include <sys/types.h>
 #include <unordered_map>
 #include <vector>
 
@@ -72,7 +72,7 @@ struct StoredSessionState {
   SessionConfig config;
   StoredChargingCreditMap credit_map;
   StoredMonitorMap monitor_map;
-  std::string session_level_key;  // "" maps to nullptr
+  std::string session_level_key; // "" maps to nullptr
   std::string imsi;
   uint16_t shard_id;
   std::string session_id;
@@ -180,45 +180,45 @@ struct SessionStateUpdateCriteria {
 
 SessionStateUpdateCriteria get_default_update_criteria();
 
-std::string serialize_stored_session_config(const SessionConfig& stored);
+std::string serialize_stored_session_config(const SessionConfig &stored);
 
-SessionConfig deserialize_stored_session_config(const std::string& serialized);
+SessionConfig deserialize_stored_session_config(const std::string &serialized);
 
-std::string serialize_stored_final_action_info(const FinalActionInfo& stored);
+std::string serialize_stored_final_action_info(const FinalActionInfo &stored);
 
-FinalActionInfo deserialize_stored_final_action_info(
-    const std::string& serialized);
+FinalActionInfo
+deserialize_stored_final_action_info(const std::string &serialized);
 
-std::string serialize_stored_session_credit(StoredSessionCredit& stored);
+std::string serialize_stored_session_credit(StoredSessionCredit &stored);
 
-StoredSessionCredit deserialize_stored_session_credit(
-    const std::string& serialized);
+StoredSessionCredit
+deserialize_stored_session_credit(const std::string &serialized);
 
-std::string serialize_stored_charging_grant(StoredChargingGrant& stored);
+std::string serialize_stored_charging_grant(StoredChargingGrant &stored);
 
-std::string serialize_stored_monitor(StoredMonitor& stored);
+std::string serialize_stored_monitor(StoredMonitor &stored);
 
-StoredMonitor deserialize_stored_monitor(const std::string& serialized);
+StoredMonitor deserialize_stored_monitor(const std::string &serialized);
 
-std::string serialize_stored_charging_credit_map(
-    StoredChargingCreditMap& stored);
+std::string
+serialize_stored_charging_credit_map(StoredChargingCreditMap &stored);
 
-StoredChargingCreditMap deserialize_stored_charging_credit_map(
-    std::string& serialized);
+StoredChargingCreditMap
+deserialize_stored_charging_credit_map(std::string &serialized);
 
-std::string serialize_stored_usage_monitor_map(StoredMonitorMap& stored);
+std::string serialize_stored_usage_monitor_map(StoredMonitorMap &stored);
 
-StoredMonitorMap deserialize_stored_usage_monitor_map(std::string& serialized);
+StoredMonitorMap deserialize_stored_usage_monitor_map(std::string &serialized);
 
-BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string& serialized);
+BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string &serialized);
 
 std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map);
 
-std::string serialize_stored_session(StoredSessionState& stored);
+std::string serialize_stored_session(StoredSessionState &stored);
 
-StoredSessionState deserialize_stored_session(std::string& serialized);
+StoredSessionState deserialize_stored_session(std::string &serialized);
 
 std::string serialize_policy_stats_map(PolicyStatsMap stats_map);
 
-PolicyStatsMap deserialize_policy_stats_map(std::string& serialized);
-}  // namespace magma
+PolicyStatsMap deserialize_policy_stats_map(std::string &serialized);
+} // namespace magma

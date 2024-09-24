@@ -11,17 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
 #include <iostream>
+#include <thread> // std::thread
 #include <utility>
 
 #include "lte/gateway/c/core/oai/tasks/ha/HaClient.hpp"
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/protos/ha_orc8r.pb.h"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 namespace magma {
 
-HaClient& HaClient::get_instance() {
+HaClient &HaClient::get_instance() {
   static HaClient client_instance;
   return client_instance;
 }
@@ -39,7 +39,7 @@ HaClient::HaClient() {
 void HaClient::get_eNB_offload_state(
     std::function<void(grpc::Status, lte::GetEnodebOffloadStateResponse)>
         callback) {
-  HaClient& client = get_instance();
+  HaClient &client = get_instance();
 
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
@@ -60,4 +60,4 @@ void HaClient::get_eNB_offload_state(
   resp->set_response_reader(std::move(resp_reader));
 }
 
-}  // namespace magma
+} // namespace magma

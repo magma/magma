@@ -13,8 +13,8 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "S1ap_S1AP-PDU.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 }
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
@@ -27,7 +27,7 @@ namespace lte {
 
 using oai::EnbDescription;
 TEST(test_s1ap_handle_new_association, empty_initial_state) {
-  oai::S1apState* s = create_s1ap_state();
+  oai::S1apState *s = create_s1ap_state();
   // 192.168.60.141 as network bytes
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p = {
@@ -62,7 +62,7 @@ TEST(test_s1ap_handle_new_association, empty_initial_state) {
 }
 
 TEST(test_s1ap_handle_new_association, shutdown) {
-  oai::S1apState* s = create_s1ap_state();
+  oai::S1apState *s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
@@ -81,7 +81,7 @@ TEST(test_s1ap_handle_new_association, shutdown) {
 }
 
 TEST(test_s1ap_handle_new_association, resetting) {
-  oai::S1apState* s = create_s1ap_state();
+  oai::S1apState *s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
@@ -100,7 +100,7 @@ TEST(test_s1ap_handle_new_association, resetting) {
 }
 
 TEST(test_s1ap_handle_new_association, reassociate) {
-  oai::S1apState* s = create_s1ap_state();
+  oai::S1apState *s = create_s1ap_state();
   sctp_new_peer_t p = {.assoc_id = 1};
   EXPECT_EQ(s1ap_handle_new_association(s, &p), RETURNok);
 
@@ -141,7 +141,7 @@ TEST(test_s1ap_handle_new_association, reassociate) {
 }
 
 TEST(test_s1ap_handle_new_association, clean_stale_association) {
-  oai::S1apState* s = create_s1ap_state();
+  oai::S1apState *s = create_s1ap_state();
   // 192.168.60.141 as network bytes
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p = {
@@ -154,7 +154,7 @@ TEST(test_s1ap_handle_new_association, clean_stale_association) {
 
   EXPECT_EQ(s->enbs_size(), 1);
 
-  EnbDescription* enb_ref = new EnbDescription();
+  EnbDescription *enb_ref = new EnbDescription();
 
   EnbDescription enb_associated;
   proto_map_uint32_enb_description_t enb_map;
@@ -166,9 +166,9 @@ TEST(test_s1ap_handle_new_association, clean_stale_association) {
   EXPECT_EQ(s->enbs_size(), 0);
 
   bdestroy(ran_cp_ipaddr);
-  free_enb_description(reinterpret_cast<void**>(&enb_ref));
+  free_enb_description(reinterpret_cast<void **>(&enb_ref));
   free_s1ap_state(s);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

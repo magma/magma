@@ -20,10 +20,10 @@ using google::protobuf::Message;
 using magma::orc8r::RedisState;
 namespace magma {
 
-std::function<bool(const Message&, std::string&, uint64_t&)>
+std::function<bool(const Message &, std::string &, uint64_t &)>
 get_proto_serializer() {
-  return [](const Message& message, std::string& str_out,
-            uint64_t& version) -> bool {
+  return [](const Message &message, std::string &str_out,
+            uint64_t &version) -> bool {
     auto can_parse = message.SerializeToString(&str_out);
     if (!can_parse) {
       return false;
@@ -35,8 +35,8 @@ get_proto_serializer() {
   };
 }
 
-std::function<bool(const std::string&, Message&)> get_proto_deserializer() {
-  return [](const std::string& str, Message& msg_out) -> bool {
+std::function<bool(const std::string &, Message &)> get_proto_deserializer() {
+  return [](const std::string &str, Message &msg_out) -> bool {
     RedisState redis_state;
     auto can_parse = redis_state.ParseFromString(str);
     if (!can_parse) {
@@ -45,4 +45,4 @@ std::function<bool(const std::string&, Message&)> get_proto_deserializer() {
     return msg_out.ParseFromString(redis_state.serialized_msg());
   };
 }
-}  // namespace magma
+} // namespace magma

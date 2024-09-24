@@ -27,5 +27,5 @@ uint64_t time_difference_from_now(const uint64_t timestamp);
 magma::mconfig::LIAgentD get_default_mconfig();
 magma::mconfig::LIAgentD load_mconfig();
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

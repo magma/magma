@@ -10,19 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <fstream>
 #include <algorithm>
+#include <fstream>
 
-#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.hpp"
 #include <google/protobuf/text_format.h>
 
 namespace magma {
 namespace lte {
 
 // loads paths of data samples of spgw states (storing in each line) from a file
-std::vector<std::string> load_file_into_vector_of_line_content(
-    const std::string& data_folder_path, const std::string& file_name) {
+std::vector<std::string>
+load_file_into_vector_of_line_content(const std::string &data_folder_path,
+                                      const std::string &file_name) {
   std::fstream file_content(file_name.c_str(), std::ios_base::in);
   std::string data_file_name;
   std::vector<std::string> vector_of_file_names;
@@ -43,9 +44,9 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 
 // mocking the reading spgw ue states from redis database by injecting local
 // samples
-status_code_e mock_read_spgw_ue_state_db(
-    const std::vector<std::string>& ue_samples) {
-  for (const auto& name_of_sample_file : ue_samples) {
+status_code_e
+mock_read_spgw_ue_state_db(const std::vector<std::string> &ue_samples) {
+  for (const auto &name_of_sample_file : ue_samples) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
     std::fstream input(name_of_sample_file.c_str(),
                        std::ios::in | std::ios::binary);
@@ -55,11 +56,11 @@ status_code_e mock_read_spgw_ue_state_db(
       return RETURNerror;
     }
 
-    spgw_ue_context_t* ue_context_p = new spgw_ue_context_t();
+    spgw_ue_context_t *ue_context_p = new spgw_ue_context_t();
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

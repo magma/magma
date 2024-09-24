@@ -11,25 +11,25 @@
  * limitations under the License.
  */
 
-#include <unistd.h>
-#include <sys/types.h>
 #include <pwd.h>
+#include <sys/types.h>
+#include <unistd.h>
 
+#include <cstdlib>
 #include <gtest/gtest.h>
 #include <string>
 #include <thread>
-#include <cstdlib>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
-#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
@@ -42,12 +42,12 @@ namespace lte {
 
 task_zmq_ctx_t task_zmq_ctx_main_spgw;
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
+  default: {
+  } break;
   }
 
   itti_free_msg_content(received_message_p);
@@ -123,10 +123,10 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
     spgw_app_init(&spgw_config, mme_config.use_stateless);
 
     // add injection of state loaded in SPGW state manager
-#ifdef CMAKE_BUILD  // if CMAKE is used the absolute path is needed
+#ifdef CMAKE_BUILD // if CMAKE is used the absolute path is needed
     std::string magma_root = std::getenv("MAGMA_ROOT");
     std::string path = magma_root + "/" + DEFAULT_SPGW_CONTEXT_DATA_PATH;
-#else  // if bazel is used the relative path is used
+#else // if bazel is used the relative path is used
     std::string path = DEFAULT_SPGW_CONTEXT_DATA_PATH;
 #endif
     name_of_ue_samples =
@@ -151,7 +151,7 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
         std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
   }
 
- protected:
+protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::string test_imsi_str = "001010000000002";
   uint64_t test_imsi64 = 1010000000002;
@@ -182,11 +182,11 @@ class SPGWAppInjectedStateProcedureTest : public ::testing::Test {
 };
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestDeleteSessionSuccess) {
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
@@ -257,7 +257,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestModifyBearerFailure) {
 }
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
 
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
@@ -288,7 +288,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerSuccess) {
 }
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
@@ -320,14 +320,14 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestReleaseBearerWithInvalidImsi64) {
 }
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
@@ -357,7 +357,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
 
   EXPECT_EQ(return_code, RETURNok);
 
-  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+  magma::lte::oai::SgwEpsBearerContextInfo *sgw_context_p =
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
   EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 1);
@@ -366,14 +366,14 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
   teid_t ue_ded_bearer_sgw_teid = 0;
   for (int proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
-    magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
+    magma::lte::oai::PgwCbrProcedure *pgw_ni_cbr_proc =
         sgw_context_p->mutable_pending_procedures(proc_index);
     EXPECT_TRUE(pgw_ni_cbr_proc->type() ==
                 PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST);
     for (int bearer_index = 0;
          bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
          bearer_index++) {
-      magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
+      magma::lte::oai::SgwEpsBearerContext *bearer_context_proto =
           pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
       ue_ded_bearer_sgw_teid = bearer_context_proto->sgw_teid_s1u_s12_s4_up();
     }
@@ -401,14 +401,14 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerActivation) {
 }
 
 TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
@@ -438,7 +438,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
 
   EXPECT_EQ(return_code, RETURNok);
 
-  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+  magma::lte::oai::SgwEpsBearerContextInfo *sgw_context_p =
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
   EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 1);
@@ -447,9 +447,9 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
   teid_t ue_ded_bearer_sgw_teid = 0;
   for (int proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
-    magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
+    magma::lte::oai::PgwCbrProcedure *pgw_ni_cbr_proc =
         sgw_context_p->mutable_pending_procedures(proc_index);
-    magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
+    magma::lte::oai::SgwEpsBearerContext *bearer_context_proto =
         pgw_ni_cbr_proc->mutable_pending_eps_bearers(0);
     ue_ded_bearer_sgw_teid = bearer_context_proto->sgw_teid_s1u_s12_s4_up();
   }
@@ -515,13 +515,13 @@ TEST_F(SPGWAppInjectedStateProcedureTest, TestDedicatedBearerDeactivation) {
 
 TEST_F(SPGWAppInjectedStateProcedureTest,
        TestDedicatedBearerDeactivationDeleteDefaultBearer) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
   teid_t ue_sgw_teid =
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // verify that exactly one session exists in SPGW state
@@ -551,7 +551,7 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
 
   EXPECT_EQ(return_code, RETURNok);
 
-  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+  magma::lte::oai::SgwEpsBearerContextInfo *sgw_context_p =
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
   EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 1);
@@ -633,5 +633,5 @@ TEST_F(SPGWAppInjectedStateProcedureTest,
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

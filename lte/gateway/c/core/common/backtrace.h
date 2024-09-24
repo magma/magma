@@ -35,6 +35,6 @@
 
 void display_backtrace(void);
 
-void backtrace_handle_signal(siginfo_t* info);
+void backtrace_handle_signal(siginfo_t *info);
 
 #endif /* BACKTRACE_H_ */

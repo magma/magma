@@ -17,11 +17,11 @@
 
 #pragma once
 
+#include <functional>
 #include <gmp.h>
 #include <grpc++/grpc++.h>
-#include <stdint.h>
-#include <functional>
 #include <memory>
+#include <stdint.h>
 
 #include "lte/protos/ha_orc8r.grpc.pb.h"
 #include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
@@ -33,7 +33,7 @@ namespace magma {
  * at the orchestrator.
  */
 class HaClient : public GRPCReceiver {
- public:
+public:
   /**
    * Proxy a purge gRPC call to s6a_proxy
    */
@@ -41,14 +41,14 @@ class HaClient : public GRPCReceiver {
       std::function<void(grpc::Status, lte::GetEnodebOffloadStateResponse)>
           callback);
 
-  HaClient(HaClient const&) = delete;
-  void operator=(HaClient const&) = delete;
+  HaClient(HaClient const &) = delete;
+  void operator=(HaClient const &) = delete;
 
- private:
+private:
   HaClient();
-  static HaClient& get_instance();
+  static HaClient &get_instance();
   std::unique_ptr<lte::Ha::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 3;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 3; // seconds
 };
 
-}  // namespace magma
+} // namespace magma

@@ -10,16 +10,16 @@
 */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 class SecurityModeRejectMsg {
- public:
+public:
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SecurityHeaderTypeMsg sec_header_type;
   SpareHalfOctetMsg spare_half_octet;
@@ -29,12 +29,12 @@ class SecurityModeRejectMsg {
 
   SecurityModeRejectMsg();
   ~SecurityModeRejectMsg();
-  int DecodeSecurityModeRejectMsg(SecurityModeRejectMsg* sec_mode_reject,
-                                  uint8_t* buffer, uint32_t len);
-  int EncodeSecurityModeRejectMsg(SecurityModeRejectMsg* sec_mode_reject,
-                                  uint8_t* buffer, uint32_t len);
+  int DecodeSecurityModeRejectMsg(SecurityModeRejectMsg *sec_mode_reject,
+                                  uint8_t *buffer, uint32_t len);
+  int EncodeSecurityModeRejectMsg(SecurityModeRejectMsg *sec_mode_reject,
+                                  uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 /******************************************************************************
    TS 24.501  Table 8.2.27.1.1: SECURITY_MODE REJECT message content
 -------------------------------------------------------------------------------

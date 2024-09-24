@@ -160,7 +160,7 @@ enum DiameterResultCode {
 };
 
 class DiameterCodeHandler {
- public:
+public:
   /** Diameter code of form 5xxx marks a permanent failure
    * @param code
    * @return
@@ -181,4 +181,4 @@ class DiameterCodeHandler {
    */
   static bool is_transient_failure(const uint32_t code);
 };
-}  // namespace magma
+} // namespace magma

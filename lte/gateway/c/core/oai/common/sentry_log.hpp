@@ -23,7 +23,7 @@ extern "C" {
  * @param format
  * @param ... variable args to be formatated into format
  */
-void sentry_error(const char* format, ...);
+void sentry_error(const char *format, ...);
 
 #ifdef __cplusplus
 }

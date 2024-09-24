@@ -12,8 +12,8 @@
  */
 #pragma once
 
-#include <pcap.h>
 #include <memory>
+#include <pcap.h>
 #include <string>
 
 #include "lte/gateway/c/li_agent/src/PDUGenerator.hpp"
@@ -26,8 +26,8 @@ namespace lte {
 #define PKT_BUF_READ_TIMEOUT_MS 1000
 
 class InterfaceMonitor {
- public:
-  InterfaceMonitor(const std::string& iface_name,
+public:
+  InterfaceMonitor(const std::string &iface_name,
                    std::unique_ptr<PDUGenerator> pkt_gen);
 
   /**
@@ -38,11 +38,11 @@ class InterfaceMonitor {
   int init_interface_monitor();
   int start_capture();
 
- private:
-  pcap_t* pcap_;
+private:
+  pcap_t *pcap_;
   std::string iface_name_;
   std::unique_ptr<PDUGenerator> pkt_gen_;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

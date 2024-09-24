@@ -13,9 +13,9 @@
 
 #include "lte/gateway/c/session_manager/ShardTracker.hpp"
 
-#include <stddef.h>
 #include <memory>
 #include <set>
+#include <stddef.h>
 #include <string>
 #include <vector>
 
@@ -31,7 +31,7 @@ uint16_t ShardTracker::add_ue(const std::string imsi) {
     // If the UE is already in the shard, return the shard id. This check
     // is meant to avoid multiple sessions for a UE being assigned duplicate
     // entries.
-    std::set<std::string>& imsis_at_id = imsis_per_shard_[shard_id];
+    std::set<std::string> &imsis_at_id = imsis_per_shard_[shard_id];
     // If the shard has space, insert the UE
     if (imsis_at_id.size() < max_shard_size_) {
       imsis_at_id.insert(imsi);
@@ -55,4 +55,4 @@ bool ShardTracker::remove_ue(const std::string imsi, const uint16_t shard_id) {
   return true;
 }
 
-}  // namespace magma
+} // namespace magma

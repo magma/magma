@@ -10,11 +10,11 @@
 #include "orc8r/gateway/c/common/ebpf/EbpfMap.h"
 
 #include <bcc/proto.h>
+#include <linux/erspan.h>
 #include <linux/if_packet.h>
 #include <linux/ip.h>
-#include <linux/socket.h>
 #include <linux/pkt_cls.h>
-#include <linux/erspan.h>
+#include <linux/socket.h>
 #include <linux/udp.h>
 
 // The map is pinned so that it can be accessed by pipelined or debugging tool
@@ -23,11 +23,11 @@ BPF_TABLE_PINNED("hash", struct ul_map_key, struct ul_map_info, ul_map,
                  1024 * 512, "/sys/fs/bpf/ul_map");
 
 // Ingress handler for Uplink traffic.
-int gtpu_ingress_handler(struct __sk_buff* skb) {
+int gtpu_ingress_handler(struct __sk_buff *skb) {
   int ret;
-  struct iphdr* iph;
-  void* data;
-  void* data_end;
+  struct iphdr *iph;
+  void *data;
+  void *data_end;
 
   int gtp_offset =
       sizeof(struct ethhdr) + sizeof(struct iphdr) + sizeof(struct udphdr);
@@ -35,8 +35,8 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
                      sizeof(struct udphdr) + gtp_hdr_size +
                      sizeof(struct iphdr);
   // 1. a. check GTP HDR
-  data = (void*)(long)skb->data;
-  data_end = (void*)(long)skb->data_end;
+  data = (void *)(long)skb->data;
+  data_end = (void *)(long)skb->data_end;
   int len = data_end - data;
 
   if ((data + inner_ip_hdr) > data_end) {
@@ -44,10 +44,10 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
                      len);
     return TC_ACT_OK;
   }
-  struct gtp1_header* gtp1 = (struct gtp1_header*)(data + gtp_offset);
+  struct gtp1_header *gtp1 = (struct gtp1_header *)(data + gtp_offset);
   int tid = ntohl(gtp1->tid);
 
-  struct udphdr* uh = data + sizeof(struct ethhdr) + sizeof(struct iphdr);
+  struct udphdr *uh = data + sizeof(struct ethhdr) + sizeof(struct iphdr);
   if (uh->dest != htons(GTP_PORT_NO)) {
     // not GTP packet, let it continue.
     bpf_trace_printk("ERR: Not GTP packet: %d\n", ntohs(uh->dest));
@@ -56,7 +56,7 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
   // 1. b. check UE map
   iph = data + gtp_offset + gtp_hdr_size;
   struct ul_map_key key = {iph->saddr};
-  struct ul_map_info* fwd = ul_map.lookup(&key);
+  struct ul_map_info *fwd = ul_map.lookup(&key);
   if (!fwd) {
     bpf_trace_printk("ERR: UE for IP %x not found\n", iph->saddr);
     // No UE entry.
@@ -72,8 +72,8 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
                      skb->protocol, skb->len);
     return TC_ACT_OK;
   }
-  data = (void*)(long)skb->data;
-  data_end = (void*)(long)skb->data_end;
+  data = (void *)(long)skb->data;
+  data_end = (void *)(long)skb->data_end;
   len = data_end - data;
 
   if ((data + sizeof(struct ethhdr)) > data_end) {
@@ -82,7 +82,7 @@ int gtpu_ingress_handler(struct __sk_buff* skb) {
     return TC_ACT_OK;
   }
 
-  struct ethhdr* eth = data;
+  struct ethhdr *eth = data;
 
   // 2.1. Update dest mac
   __builtin_memcpy(eth->h_dest, fwd->mac_dst, ETH_ALEN);

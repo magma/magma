@@ -13,11 +13,11 @@
 
 #pragma once
 
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 #define MAX_NO_OF_PDUSESSIONS 16
 #define MAX_QosFlow 16
@@ -56,7 +56,7 @@ typedef long Ngap_PDUSessionID_t;
 /* Ngap_S-NSSAI */
 typedef struct Ngap_S_NSSAI_s {
   bstring sST;
-  bstring* sD; /* OPTIONAL */
+  bstring *sD; /* OPTIONAL */
 } Ngap_SNSSAI_t;
 
 // 9.3.1.58 UE Aggregate Maximum Bit Rate
@@ -71,29 +71,29 @@ typedef struct ngap_ue_aggregate_maximum_bit_rate_s {
 typedef uint32_t ran_ue_ngap_id_t;
 
 typedef struct pdusession_setup_item_s {
-  bstring nas_pdu;  // 5GC – UE or UE – 5GC message that is transferred without
-                    // interpretation in the NG-RAN node  /*optional*/
+  bstring nas_pdu; // 5GC – UE or UE – 5GC message that is transferred without
+                   // interpretation in the NG-RAN node  /*optional*/
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
-  Ngap_SNSSAI_t Ngap_s_nssai;  // S-NSSAI as defined in TS 23.003 [23].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
+  Ngap_SNSSAI_t Ngap_s_nssai; // S-NSSAI as defined in TS 23.003 [23].
   pdu_session_resource_setup_request_transfer_t
-      PDU_Session_Resource_Setup_Request_Transfer;  // Containing the PDU
-                                                    // Session Resource
-                                                    // Setup Request
+      PDU_Session_Resource_Setup_Request_Transfer; // Containing the PDU
+                                                   // Session Resource
+                                                   // Setup Request
 } pdusession_setup_item_t;
 
 typedef struct pdusession_modify_item_s {
-  bstring nas_pdu;  // 5GC – UE or UE – 5GC message that is transferred without
-                    // interpretation in the NG-RAN node  /*optional*/
+  bstring nas_pdu; // 5GC – UE or UE – 5GC message that is transferred without
+                   // interpretation in the NG-RAN node  /*optional*/
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
-  Ngap_SNSSAI_t Ngap_s_nssai;  // S-NSSAI as defined in TS 23.003 [23].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
+  Ngap_SNSSAI_t Ngap_s_nssai; // S-NSSAI as defined in TS 23.003 [23].
   pdu_session_resource_modify_request_transfer_t
-      PDU_Session_Resource_Modify_Request_Transfer;  // Containing the PDU
-                                                     // Session Resource
-                                                     // Modify Request
+      PDU_Session_Resource_Modify_Request_Transfer; // Containing the PDU
+                                                    // Session Resource
+                                                    // Modify Request
 } pdusession_modify_item_t;
 
 typedef struct Ngap_PDUSession_Resource_Setup_Request_List_s {
@@ -124,12 +124,12 @@ typedef struct QosFlowPerTNLInformation_s {
 
 typedef struct pdusession_setup_response_item_s {
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
   QosFlowPerTNLInformation_t
-      PDU_Session_Resource_Setup_Response_Transfer;  // Containing the PDU
-                                                     // Session Resource
-                                                     // Setup Request
+      PDU_Session_Resource_Setup_Response_Transfer; // Containing the PDU
+                                                    // Session Resource
+                                                    // Setup Request
 } pdusession_setup_response_item_t;
 
 typedef struct Ngap_PDUSession_Resource_Setup_Response_List_s {
@@ -140,22 +140,22 @@ typedef struct Ngap_PDUSession_Resource_Setup_Response_List_s {
 
 typedef struct pdusession_resource_failed_To_setup_item_s {
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
   bstring
-      PDU_Session_Resource_Setup_Unsuccessful_Transfer;  // Containing the PDU
-                                                         // Session Resource
-                                                         // Setup Request
+      PDU_Session_Resource_Setup_Unsuccessful_Transfer; // Containing the PDU
+                                                        // Session Resource
+                                                        // Setup Request
 } pdusession_resource_failed_To_setup_item_t;
 
 typedef struct pdusession_resource_failed_To_modify_item_s {
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
   pdu_session_resource_modify_unsuccessful_transfer_t
-      PDU_Session_Resource_modify_Unsuccessful_Transfer;  // Containing the PDU
-                                                          // Session Resource
-                                                          // Setup Request
+      PDU_Session_Resource_modify_Unsuccessful_Transfer; // Containing the PDU
+                                                         // Session Resource
+                                                         // Setup Request
 } pdusession_resource_failed_To_modify_item_t;
 
 typedef struct Ngap_PDUSession_Resource_Failed_To_Setup_List_s {
@@ -180,12 +180,12 @@ typedef struct Ngap_PduSession_Resource_Modify_Response_Transfer_s {
 
 typedef struct pdusession_modify_response_item_s {
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
   Ngap_PduSession_Resource_Modify_Response_Transfer_t
-      PDU_Session_Resource_Mpdify_Response_Transfer;  // Containing the PDU
-                                                      // Session Resource
-                                                      // Modify Response
+      PDU_Session_Resource_Mpdify_Response_Transfer; // Containing the PDU
+                                                     // Session Resource
+                                                     // Modify Response
 } pdusession_modify_response_item_t;
 
 typedef struct Ngap_PDUSession_Resource_Modify_Response_List_s {
@@ -195,11 +195,11 @@ typedef struct Ngap_PDUSession_Resource_Modify_Response_List_s {
 
 typedef struct pdusession_resource_released_item_t_s {
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
-  bstring PDU_Session_Resource_Release_Response_Transfer;  // Containing the PDU
-                                                           // Session Resource
-                                                           // Setup Request
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
+  bstring PDU_Session_Resource_Release_Response_Transfer; // Containing the PDU
+                                                          // Session Resource
+                                                          // Setup Request
 } pdusession_resource_released_item_t;
 
 typedef struct Ngap_PDUSession_Resource_Released_List_s {
@@ -210,12 +210,12 @@ typedef struct Ngap_PDUSession_Resource_Released_List_s {
 
 typedef struct pdusession_resource_to_released_item_s {
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
   pdu_session_resource_release_command_transfer
-      PDU_Session_Resource_TO_Release_Command_Transfer;  // Containing the PDU
-                                                         // Session Resource
-                                                         // Setup Request
+      PDU_Session_Resource_TO_Release_Command_Transfer; // Containing the PDU
+                                                        // Session Resource
+                                                        // Setup Request
 } pdusession_resource_to_released_item_t;
 
 typedef struct Ngap_PDUSession_Resource_TO_Release_List_s {
@@ -231,14 +231,14 @@ typedef struct Ngap_PDUSession_Resource_TO_Release_List_s {
 typedef struct PDU_Session_resource_setup_request_s {
   Ngap_Message_Type_t Ngap_Message_Type;
   amf_ue_ngap_id_t
-      amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
-                       // the NG interface, as described in TS 38.401
+      amf_ue_ngap_id; // This IE uniquely identifies the UE association over
+                      // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t
-      ran_ue_ngap_id;  // This IE uniquely identifies the UE association over
-                       // the NG interface within the NG-RAN node
+      ran_ue_ngap_id; // This IE uniquely identifies the UE association over
+                      // the NG interface within the NG-RAN node
   Ngap_Paging_Priority_t RAN_Paging_Priority; /*optional*/
-  bstring nas_pdu;  // 5GC – UE or UE – 5GC message that is transferred without
-                    // interpretation in the NG-RAN node  /*optional*/
+  bstring nas_pdu; // 5GC – UE or UE – 5GC message that is transferred without
+                   // interpretation in the NG-RAN node  /*optional*/
   Ngap_PDUSession_Resource_Setup_Request_List_t pdusesssion_setup_list;
 } PDU_Session_resource_setup_request_t;
 
@@ -249,14 +249,14 @@ typedef struct PDU_Session_resource_setup_request_s {
 typedef struct PDU_Session_resource_setup_response_s {
   Ngap_Message_Type_t Ngap_Message_Type;
   amf_ue_ngap_id_t
-      amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
-                       // the NG interface, as described in TS 38.401
+      amf_ue_ngap_id; // This IE uniquely identifies the UE association over
+                      // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t
-      ran_ue_ngap_id;  // This IE uniquely identifies the UE association over
-                       // the NG interface within the NG-RAN node
+      ran_ue_ngap_id; // This IE uniquely identifies the UE association over
+                      // the NG interface within the NG-RAN node
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
 } PDU_Session_resource_setup_response_t;
 
 typedef struct ngap_plmn_s {
@@ -269,11 +269,10 @@ typedef struct ngap_plmn_s {
 } Ngap_plmn_t;
 
 typedef uint8_t Ngap_AMF_RegionID_t;
-typedef uint16_t
-    Ngap_AMF_SetID_t;  // 9.3.3.12 AMF Set ID is used to uniquely identify an
-                       // AMF Set within the AMF Region.
-typedef uint8_t Ngap_AMF_Pointer_t;  // 9.3.3.19 AMF Pointer is used to identify
-                                     // one or more AMF(s) within the AMF Set.
+typedef uint16_t Ngap_AMF_SetID_t; // 9.3.3.12 AMF Set ID is used to uniquely
+                                   // identify an AMF Set within the AMF Region.
+typedef uint8_t Ngap_AMF_Pointer_t; // 9.3.3.19 AMF Pointer is used to identify
+                                    // one or more AMF(s) within the AMF Set.
 
 typedef uint16_t NR_Encryption_Algo;
 typedef uint16_t NR_Integrity_Protection_Algo;
@@ -297,44 +296,44 @@ typedef struct Ngap_ue_security_capabilities_s {
 typedef struct Ngap_initial_context_setup_request_s {
   Ngap_Message_Type_t Ngap_Message_Type;
   amf_ue_ngap_id_t
-      amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
-                       // the NG interface, as described in TS 38.401
+      amf_ue_ngap_id; // This IE uniquely identifies the UE association over
+                      // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t
-      ran_ue_ngap_id;  // This IE uniquely identifies the UE association over
-                       // the NG interface within the NG-RAN node
+      ran_ue_ngap_id; // This IE uniquely identifies the UE association over
+                      // the NG interface within the NG-RAN node
   ngap_ue_aggregate_maximum_bit_rate_t
-      ue_aggregate_max_bit_rate;  // UE_AGGREGATED_BITRATE as specified in
-                                  // as specified in 38.413 [9.3.1.58]
+      ue_aggregate_max_bit_rate; // UE_AGGREGATED_BITRATE as specified in
+                                 // as specified in 38.413 [9.3.1.58]
   guamfi_t Ngap_guami;
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
-  Ngap_SNSSAI_t Ngap_s_nssai;  // S-NSSAI as defined in TS 23.003 [23].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
+  Ngap_SNSSAI_t Ngap_s_nssai; // S-NSSAI as defined in TS 23.003 [23].
   Ngap_PDUSession_Resource_Setup_Request_List_t
-      PDU_Session_Resource_Setup_Transfer_List;  // Containing the PDU Session
-                                                 // Resource Setup Request
-                                                 // Transfer IE specified in
-                                                 // subclause 9.3.4.1
+      PDU_Session_Resource_Setup_Transfer_List; // Containing the PDU Session
+                                                // Resource Setup Request
+                                                // Transfer IE specified in
+                                                // subclause 9.3.4.1
   Ngap_SNSSAI_t
-      allowed_nssai;  // 9.3.1.31 Allowed NSSAI contains the allowed NSSAI.
+      allowed_nssai; // 9.3.1.31 Allowed NSSAI contains the allowed NSSAI.
   Ngap_ue_security_capabilities_t ue_security_capabilities;
-  unsigned char*
-      Security_Key;  // 9.3.1.87 Security Key is used to apply security in the
+  unsigned char
+      *Security_Key; // 9.3.1.87 Security Key is used to apply security in the
                      // NG-RAN for different scenarios as defined in TS 33.501
   bstring nas_pdu;   // optional
 
 } Ngap_initial_context_setup_request_t;
 
-typedef unsigned char* Transport_Layer_Address_t;
+typedef unsigned char *Transport_Layer_Address_t;
 typedef uint32_t Ngap_Gtp_Teid_t;
 
 typedef union GTP_tunnel_s {
   Transport_Layer_Address_t
-      endpoint_ip_address;        // Transport Layer Address 9.3.2.4
-  Ngap_Gtp_Teid_t ngap_gtp_teid;  // 9.3.2.5 GTP-TEID IE is the GTP Tunnel
-                                  // Endpoint Identifier to
-                                  // be used for the user plane transport
-                                  // between the NG-RAN node and the UPF.
+      endpoint_ip_address;       // Transport Layer Address 9.3.2.4
+  Ngap_Gtp_Teid_t ngap_gtp_teid; // 9.3.2.5 GTP-TEID IE is the GTP Tunnel
+                                 // Endpoint Identifier to
+                                 // be used for the user plane transport
+                                 // between the NG-RAN node and the UPF.
 } GTP_tunnel_t;
 
 typedef struct UP_Transport_Layer_Info_s {
@@ -351,7 +350,7 @@ typedef enum QoS_Flow_Mapping_Indi {
 } QoS_Flow_Mapping_Indi_t;
 
 typedef struct Associated_QoS_Flow_List_s {
-  uint32_t QoS_Flow_Identifier;  // 9.3.1.51
+  uint32_t QoS_Flow_Identifier; // 9.3.1.51
   QoS_Flow_Mapping_Indi_t QoS_Flow_Mapping_Indi;
 } Associated_QoS_Flow_List_t;
 
@@ -360,8 +359,8 @@ typedef struct Associated_QoS_Flow_List_s {
 // QoS flows.
 
 typedef struct DL_QoS_Flow_per_TNL_Info_s {
-  UP_Transport_Layer_Info_t up_transport_layer_info;    //
-  Associated_QoS_Flow_List_t associated_qos_flow_list;  // 9.3.1.99
+  UP_Transport_Layer_Info_t up_transport_layer_info;   //
+  Associated_QoS_Flow_List_t associated_qos_flow_list; // 9.3.1.99
 } DL_QoS_Flow_per_TNL_Info_t;
 
 // 9.3.4.2 PDU Session Resource Setup Response Transfer
@@ -369,7 +368,7 @@ typedef struct DL_QoS_Flow_per_TNL_Info_s {
 
 typedef struct PDU_Session_Resource_Setup_Response_Transfer_s {
   DL_QoS_Flow_per_TNL_Info_t
-      dl_qos_flow_per_tnl_info;  // QoS Flow per TNL Information 9. 3.2.8
+      dl_qos_flow_per_tnl_info; // QoS Flow per TNL Information 9. 3.2.8
   // Additional DL QoS Flow per TNL Information //optional TODO :will be part of
   // PDU Session establishment exchanges
 
@@ -381,14 +380,14 @@ typedef struct PDU_Session_Resource_Setup_Response_Transfer_s {
 typedef struct Ngap_initial_context_setup_response_s {
   Ngap_Message_Type_t Ngap_Message_Type;
   amf_ue_ngap_id_t
-      amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
-                       // the NG interface, as described in TS 38.401
+      amf_ue_ngap_id; // This IE uniquely identifies the UE association over
+                      // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t
-      ran_ue_ngap_id;  // This IE uniquely identifies the UE association over
-                       // the NG interface within the NG-RAN node
+      ran_ue_ngap_id; // This IE uniquely identifies the UE association over
+                      // the NG interface within the NG-RAN node
   Ngap_PDUSessionID_t
-      Pdu_Session_ID;  // PDU Session for a UE. The definition and use of the
-                       // PDU Session ID is specified in TS 23.501 [9].
+      Pdu_Session_ID; // PDU Session for a UE. The definition and use of the
+                      // PDU Session ID is specified in TS 23.501 [9].
   PDU_Session_Resource_Setup_Response_Transfer_t
       PDU_session_resource_setup_res_trans;
 

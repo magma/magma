@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 #define S1AP_TIMER_INACTIVE_ID (-1)
-#define S1AP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
+#define S1AP_UE_CONTEXT_REL_COMP_TIMER 1 // in seconds
 
 // Map- Key: sctp_assoc_id of (uint32_t), Data: EnbDescription
 typedef magma::proto_map_s<uint32_t, magma::lte::oai::EnbDescription>
@@ -42,7 +42,7 @@ typedef magma::proto_map_s<uint32_t, magma::lte::oai::EnbDescription>
 
 // Map- Key:comp_s1ap_id (uint64_t), Data: pointer to protobuf object,
 // UeDescription
-typedef magma::proto_map_s<uint64_t, magma::lte::oai::UeDescription*>
+typedef magma::proto_map_s<uint64_t, magma::lte::oai::UeDescription *>
     map_uint64_ue_description_t;
 
 /* Maximum no. of Broadcast PLMNs. Value is 6
@@ -54,14 +54,14 @@ typedef magma::proto_map_s<uint64_t, magma::lte::oai::UeDescription*>
 
 /* Supported TAI items includes TAC and Broadcast PLMNs */
 typedef struct supported_tai_items_s {
-  uint16_t tac;             ///< Supported TAC value
-  uint8_t bplmnlist_count;  ///< Number of Broadcast PLMNs in the TAI
-  plmn_t bplmns[S1AP_MAX_BROADCAST_PLMNS];  ///< List of Broadcast PLMNS
+  uint16_t tac;            ///< Supported TAC value
+  uint8_t bplmnlist_count; ///< Number of Broadcast PLMNs in the TAI
+  plmn_t bplmns[S1AP_MAX_BROADCAST_PLMNS]; ///< List of Broadcast PLMNS
 } supported_tai_items_t;
 
 /* Supported TAs by eNB received in S1 Setup request message */
 typedef struct supported_ta_list_s {
-  uint8_t list_count;  ///< Number of TAIs in the list
+  uint8_t list_count; ///< Number of TAIs in the list
   supported_tai_items_t
-      supported_tai_items[S1AP_MAX_TAI_ITEMS];  ///< List of TAIs
+      supported_tai_items[S1AP_MAX_TAI_ITEMS]; ///< List of TAIs
 } supported_ta_list_t;

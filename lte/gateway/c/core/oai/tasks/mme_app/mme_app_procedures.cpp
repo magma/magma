@@ -48,14 +48,14 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
 
-static void mme_app_free_s11_procedure_create_bearer(
-    mme_app_s11_proc_t** s11_proc);
+static void
+mme_app_free_s11_procedure_create_bearer(mme_app_s11_proc_t **s11_proc);
 
 //------------------------------------------------------------------------------
-void mme_app_delete_s11_procedures(ue_mm_context_t* const ue_context_p) {
+void mme_app_delete_s11_procedures(ue_mm_context_t *const ue_context_p) {
   if (ue_context_p->s11_procedures) {
-    mme_app_s11_proc_t* s11_proc1 = NULL;
-    mme_app_s11_proc_t* s11_proc2 = NULL;
+    mme_app_s11_proc_t *s11_proc1 = NULL;
+    mme_app_s11_proc_t *s11_proc2 = NULL;
 
     s11_proc1 =
         LIST_FIRST(ue_context_p->s11_procedures); /* Faster List Deletion. */
@@ -63,26 +63,26 @@ void mme_app_delete_s11_procedures(ue_mm_context_t* const ue_context_p) {
       s11_proc2 = LIST_NEXT(s11_proc1, entries);
       if (MME_APP_S11_PROC_TYPE_CREATE_BEARER == s11_proc1->type) {
         mme_app_free_s11_procedure_create_bearer(&s11_proc1);
-      }  // else ...
+      } // else ...
       s11_proc1 = s11_proc2;
     }
     LIST_INIT(ue_context_p->s11_procedures);
-    free_wrapper((void**)&ue_context_p->s11_procedures);
+    free_wrapper((void **)&ue_context_p->s11_procedures);
   }
 }
 //------------------------------------------------------------------------------
-mme_app_s11_proc_create_bearer_t* mme_app_create_s11_procedure_create_bearer(
-    ue_mm_context_t* const ue_context_p) {
-  mme_app_s11_proc_create_bearer_t* s11_proc_create_bearer =
-      reinterpret_cast<mme_app_s11_proc_create_bearer_t*>(
+mme_app_s11_proc_create_bearer_t *mme_app_create_s11_procedure_create_bearer(
+    ue_mm_context_t *const ue_context_p) {
+  mme_app_s11_proc_create_bearer_t *s11_proc_create_bearer =
+      reinterpret_cast<mme_app_s11_proc_create_bearer_t *>(
           calloc(1, sizeof(mme_app_s11_proc_create_bearer_t)));
   s11_proc_create_bearer->proc.proc.type = MME_APP_BASE_PROC_TYPE_S11;
   s11_proc_create_bearer->proc.type = MME_APP_S11_PROC_TYPE_CREATE_BEARER;
-  mme_app_s11_proc_t* s11_proc = (mme_app_s11_proc_t*)s11_proc_create_bearer;
+  mme_app_s11_proc_t *s11_proc = (mme_app_s11_proc_t *)s11_proc_create_bearer;
 
   if (!ue_context_p->s11_procedures) {
     ue_context_p->s11_procedures =
-        reinterpret_cast<ue_mm_context_s::s11_procedures_s*>(
+        reinterpret_cast<ue_mm_context_s::s11_procedures_s *>(
             calloc(1, sizeof(ue_mm_context_s::s11_procedures_s)));
     LIST_INIT(ue_context_p->s11_procedures);
   }
@@ -91,14 +91,14 @@ mme_app_s11_proc_create_bearer_t* mme_app_create_s11_procedure_create_bearer(
 }
 
 //------------------------------------------------------------------------------
-mme_app_s11_proc_create_bearer_t* mme_app_get_s11_procedure_create_bearer(
-    ue_mm_context_t* const ue_context_p) {
+mme_app_s11_proc_create_bearer_t *
+mme_app_get_s11_procedure_create_bearer(ue_mm_context_t *const ue_context_p) {
   if (ue_context_p->s11_procedures) {
-    mme_app_s11_proc_t* s11_proc = NULL;
+    mme_app_s11_proc_t *s11_proc = NULL;
 
     LIST_FOREACH(s11_proc, ue_context_p->s11_procedures, entries) {
       if (MME_APP_S11_PROC_TYPE_CREATE_BEARER == s11_proc->type) {
-        return (mme_app_s11_proc_create_bearer_t*)s11_proc;
+        return (mme_app_s11_proc_create_bearer_t *)s11_proc;
       }
     }
   }
@@ -106,9 +106,9 @@ mme_app_s11_proc_create_bearer_t* mme_app_get_s11_procedure_create_bearer(
 }
 //------------------------------------------------------------------------------
 void mme_app_delete_s11_procedure_create_bearer(
-    ue_mm_context_t* const ue_context_p) {
+    ue_mm_context_t *const ue_context_p) {
   if (ue_context_p->s11_procedures) {
-    mme_app_s11_proc_t* s11_proc = NULL;
+    mme_app_s11_proc_t *s11_proc = NULL;
 
     LIST_FOREACH(s11_proc, ue_context_p->s11_procedures, entries) {
       if (MME_APP_S11_PROC_TYPE_CREATE_BEARER == s11_proc->type) {
@@ -120,25 +120,25 @@ void mme_app_delete_s11_procedure_create_bearer(
   }
 }
 //------------------------------------------------------------------------------
-static void mme_app_free_s11_procedure_create_bearer(
-    mme_app_s11_proc_t** s11_proc) {
+static void
+mme_app_free_s11_procedure_create_bearer(mme_app_s11_proc_t **s11_proc) {
   // DO here specific releases (memory,etc)
   // nothing to do actually
-  free_wrapper((void**)s11_proc);
+  free_wrapper((void **)s11_proc);
 }
 
 //------------------------------------------------------------------------------
 status_code_e mme_app_run_s1ap_procedure_modify_bearer_ind(
-    mme_app_s1ap_proc_modify_bearer_ind_t* proc,
-    const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind) {
+    mme_app_s1ap_proc_modify_bearer_ind_t *proc,
+    const itti_s1ap_e_rab_modification_ind_t *const e_rab_modification_ind) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  struct ue_mm_context_s* ue_context_p = NULL;
-  memcpy((void*)&proc->e_rab_to_be_modified_list,
-         (void*)&e_rab_modification_ind->e_rab_to_be_modified_list,
+  struct ue_mm_context_s *ue_context_p = NULL;
+  memcpy((void *)&proc->e_rab_to_be_modified_list,
+         (void *)&e_rab_modification_ind->e_rab_to_be_modified_list,
          sizeof(proc->e_rab_to_be_modified_list));
 
-  memcpy((void*)&proc->e_rab_not_to_be_modified_list,
-         (void*)&e_rab_modification_ind->e_rab_not_to_be_modified_list,
+  memcpy((void *)&proc->e_rab_not_to_be_modified_list,
+         (void *)&e_rab_modification_ind->e_rab_not_to_be_modified_list,
          sizeof(proc->e_rab_not_to_be_modified_list));
 
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(proc->mme_ue_s1ap_id);
@@ -151,10 +151,10 @@ status_code_e mme_app_run_s1ap_procedure_modify_bearer_ind(
   }
   for (int nb_bearer = 0;
        nb_bearer < proc->e_rab_to_be_modified_list.no_of_items; nb_bearer++) {
-    e_rab_to_be_modified_bearer_mod_ind_t* item =
+    e_rab_to_be_modified_bearer_mod_ind_t *item =
         &proc->e_rab_to_be_modified_list.item[nb_bearer];
     /** Get the bearer context. */
-    bearer_context_t* bearer_context = NULL;
+    bearer_context_t *bearer_context = NULL;
     bearer_context = mme_app_get_bearer_context(ue_context_p, item->e_rab_id);
     if (!bearer_context) {
       OAILOG_ERROR(
@@ -185,9 +185,9 @@ status_code_e mme_app_run_s1ap_procedure_modify_bearer_ind(
 
 //------------------------------------------------------------------------------
 void mme_app_s11_procedure_create_bearer_send_response(
-    ue_mm_context_t* const ue_context_p,
-    mme_app_s11_proc_create_bearer_t* s11_proc_create) {
-  MessageDef* message_p =
+    ue_mm_context_t *const ue_context_p,
+    mme_app_s11_proc_create_bearer_t *s11_proc_create) {
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, S11_CREATE_BEARER_RESPONSE);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -199,10 +199,10 @@ void mme_app_s11_procedure_create_bearer_send_response(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  itti_s11_create_bearer_response_t* s11_create_bearer_response =
+  itti_s11_create_bearer_response_t *s11_create_bearer_response =
       &message_p->ittiMsg.s11_create_bearer_response;
   s11_create_bearer_response->local_teid = ue_context_p->mme_teid_s11;
-  s11_create_bearer_response->trxn = (void*)s11_proc_create->proc.s11_trxn;
+  s11_create_bearer_response->trxn = (void *)s11_proc_create->proc.s11_trxn;
   s11_create_bearer_response->cause.cause_value = REQUEST_ACCEPTED;
   int msg_bearer_index = 0;
   int num_rejected = 0;
@@ -210,7 +210,7 @@ void mme_app_s11_procedure_create_bearer_send_response(
   for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
     ebi_t ebi = INDEX_TO_EBI(ebix);
     if (S11_PROC_BEARER_FAILED == s11_proc_create->bearer_status[ebix]) {
-      bearer_context_t* bc = mme_app_get_bearer_context(ue_context_p, ebi);
+      bearer_context_t *bc = mme_app_get_bearer_context(ue_context_p, ebi);
       // Find remote S11 teid == find pdn
       if ((bc) && (ue_context_p->pdn_contexts[bc->pdn_cx_id])) {
         s11_create_bearer_response->teid =
@@ -230,13 +230,13 @@ void mme_app_s11_procedure_create_bearer_send_response(
         s11_create_bearer_response->bearer_contexts
             .bearer_contexts[msg_bearer_index]
             .s1u_sgw_fteid =
-            bc->s_gw_fteid_s1u;  ///< This IE shall be sent on the S11
-                                 ///< interface. It shall be used
+            bc->s_gw_fteid_s1u; ///< This IE shall be sent on the S11
+                                ///< interface. It shall be used
         s11_create_bearer_response->bearer_contexts.num_bearer_context++;
       }
     } else if (S11_PROC_BEARER_SUCCESS ==
                s11_proc_create->bearer_status[ebix]) {
-      bearer_context_t* bc = mme_app_get_bearer_context(ue_context_p, ebi);
+      bearer_context_t *bc = mme_app_get_bearer_context(ue_context_p, ebi);
       if ((bc) && (ue_context_p->pdn_contexts[bc->pdn_cx_id])) {
         // Find remote S11 teid == find pdn
         s11_create_bearer_response->teid =
@@ -256,8 +256,8 @@ void mme_app_s11_procedure_create_bearer_send_response(
         s11_create_bearer_response->bearer_contexts
             .bearer_contexts[msg_bearer_index]
             .s1u_sgw_fteid =
-            bc->s_gw_fteid_s1u;  ///< This IE shall be sent on the S11
-                                 ///< interface. It shall be used
+            bc->s_gw_fteid_s1u; ///< This IE shall be sent on the S11
+                                ///< interface. It shall be used
         s11_create_bearer_response->bearer_contexts.num_bearer_context++;
       }
     }

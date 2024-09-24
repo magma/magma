@@ -22,8 +22,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
@@ -32,8 +32,8 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 int decode_apn_aggregate_maximum_bit_rate(
-    ApnAggregateMaximumBitRate* apnaggregatemaximumbitrate, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    ApnAggregateMaximumBitRate *apnaggregatemaximumbitrate, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -76,9 +76,9 @@ int decode_apn_aggregate_maximum_bit_rate(
 
 //------------------------------------------------------------------------------
 int encode_apn_aggregate_maximum_bit_rate(
-    ApnAggregateMaximumBitRate* apnaggregatemaximumbitrate, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+    ApnAggregateMaximumBitRate *apnaggregatemaximumbitrate, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*
@@ -123,14 +123,14 @@ int encode_apn_aggregate_maximum_bit_rate(
 }
 
 // Use 3GPP TS 24.008 figure 10.5.136A, table 10.5.154A
-void bit_rate_value_to_eps_qos(ApnAggregateMaximumBitRate* apn_ambr,
+void bit_rate_value_to_eps_qos(ApnAggregateMaximumBitRate *apn_ambr,
                                uint64_t ambr_dl, uint64_t ambr_ul,
                                const apn_ambr_bitrate_unit_t br_unit) {
   uint64_t ambr_dl_kbps = ambr_dl;
   uint64_t ambr_ul_kbps = ambr_ul;
   if (br_unit == BPS) {
-    ambr_dl_kbps = ambr_dl / 1000;  // ambr_dl is expected in bps
-    ambr_ul_kbps = ambr_ul / 1000;  // ambr_ul is expected in bps
+    ambr_dl_kbps = ambr_dl / 1000; // ambr_dl is expected in bps
+    ambr_ul_kbps = ambr_ul / 1000; // ambr_ul is expected in bps
   }
   apn_ambr->apnambrforuplink_extended2 = 0;
   apn_ambr->apnambrforuplink_extended = 0;

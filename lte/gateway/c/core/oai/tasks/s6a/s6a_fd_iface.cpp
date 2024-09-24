@@ -23,8 +23,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,8 +48,8 @@ extern task_zmq_ctx_t s6a_task_zmq_ctx;
 static int gnutls_log_level = 9;
 static long timer_id = 0;
 
-static void fd_gnutls_debug(int level, const char* str);
-static void oai_fd_logger(int loglevel, const char* format, va_list args);
+static void fd_gnutls_debug(int level, const char *str);
+static void oai_fd_logger(int loglevel, const char *format, va_list args);
 
 #define S6A_PEER_CONNECT_TIMEOUT_MSEC (1000)
 
@@ -57,13 +57,13 @@ static void oai_fd_logger(int loglevel, const char* format, va_list args);
 s6a_fd_cnf_t s6a_fd_cnf;
 
 //------------------------------------------------------------------------------
-static void fd_gnutls_debug(int loglevel, const char* str) {
+static void fd_gnutls_debug(int loglevel, const char *str) {
   OAILOG_EXTERNAL(loglevel, LOG_S6A, "[GTLS] %s", str);
 }
 
 //------------------------------------------------------------------------------
 // callback for freeDiameter logs
-static void oai_fd_logger(int loglevel, const char* format, va_list args) {
+static void oai_fd_logger(int loglevel, const char *format, va_list args) {
 #define FD_LOG_MAX_MESSAGE_LENGTH 8192
   char buffer[FD_LOG_MAX_MESSAGE_LENGTH];
   int rv = 0;
@@ -75,7 +75,7 @@ static void oai_fd_logger(int loglevel, const char* format, va_list args) {
   OAILOG_EXTERNAL(OAILOG_LEVEL_TRACE - loglevel, LOG_S6A, "%s\n", buffer);
 }
 
-static int handle_timer(zloop_t* loop, int id, void* arg) {
+static int handle_timer(zloop_t *loop, int id, void *arg) {
   /*
    * Trying to connect to peers
    */
@@ -96,7 +96,7 @@ static int handle_timer(zloop_t* loop, int id, void* arg) {
 }
 
 //------------------------------------------------------------------------------
-S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
+S6aFdIface::S6aFdIface(const s6a_config_t *const config) {
   int ret = RETURNok;
   memset(&s6a_fd_cnf, 0, sizeof(s6a_fd_cnf_t));
 
@@ -112,9 +112,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
         LOG_S6A,
         "An error occurred during freeDiameter log handler registration: %d\n",
         ret);
-    std::runtime_error(
-        "An error occurred during freeDiameter log handler "
-        "registration");
+    std::runtime_error("An error occurred during freeDiameter log handler "
+                       "registration");
   } else {
     OAILOG_DEBUG(LOG_S6A, "Initializing freeDiameter log handler done\n");
   }
@@ -130,9 +129,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
         "An error occurred during freeDiameter core library initialization: "
         "%d\n",
         ret);
-    std::runtime_error(
-        "An error occurred during freeDiameter core library "
-        "initialization");
+    std::runtime_error("An error occurred during freeDiameter core library "
+                       "initialization");
   } else {
     OAILOG_DEBUG(LOG_S6A, "Initializing freeDiameter core done\n");
   }
@@ -166,9 +164,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
   if (ret) {
     OAILOG_ERROR(LOG_S6A,
                  "An error occurred during freeDiameter core library start\n");
-    std::runtime_error(
-        "An error occurred during freeDiameter core library "
-        "start");
+    std::runtime_error("An error occurred during freeDiameter core library "
+                       "start");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_start done\n");
   }
@@ -177,9 +174,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
   if (ret) {
     OAILOG_ERROR(LOG_S6A,
                  "An error occurred during freeDiameter core library start\n");
-    std::runtime_error(
-        "An error occurred during freeDiameter core library "
-        "start\n");
+    std::runtime_error("An error occurred during freeDiameter core library "
+                       "start\n");
   } else {
     OAILOG_DEBUG(LOG_S6A, "fd_core_waitstartcomplete done\n");
   }
@@ -192,9 +188,8 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
     OAILOG_DEBUG(LOG_S6A, "s6a_fd_init_dict_objs done\n");
   }
 
-  OAILOG_DEBUG(LOG_S6A,
-               "Initializing S6a interface over free-diameter:"
-               "DONE\n");
+  OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface over free-diameter:"
+                        "DONE\n");
 
   /* Add timer here to connect to peer */
   timer_id = start_timer(&s6a_task_zmq_ctx, S6A_PEER_CONNECT_TIMEOUT_MSEC,
@@ -202,28 +197,28 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
 }
 
 //------------------------------------------------------------------------------
-bool S6aFdIface::update_location_req(s6a_update_location_req_t* ulr_p) {
+bool S6aFdIface::update_location_req(s6a_update_location_req_t *ulr_p) {
   if (s6a_generate_update_location(ulr_p))
     return false;
   else
     return true;
 }
 //------------------------------------------------------------------------------
-bool S6aFdIface::authentication_info_req(s6a_auth_info_req_t* air_p) {
+bool S6aFdIface::authentication_info_req(s6a_auth_info_req_t *air_p) {
   if (s6a_generate_authentication_info_req(air_p))
     return false;
   else
     return true;
 }
 //------------------------------------------------------------------------------
-bool S6aFdIface::send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
+bool S6aFdIface::send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP) {
   if (s6a_send_cancel_location_ans(cla_pP))
     return false;
   else
     return true;
 }
 //------------------------------------------------------------------------------
-bool S6aFdIface::purge_ue(const char* imsi) {
+bool S6aFdIface::purge_ue(const char *imsi) {
   if (s6a_generate_purge_ue_req(imsi))
     return false;
   else
@@ -233,7 +228,7 @@ bool S6aFdIface::purge_ue(const char* imsi) {
 S6aFdIface::~S6aFdIface() {
   stop_timer(&s6a_task_zmq_ctx, timer_id);
   // Release all resources
-  free_wrapper((void**)&fd_g_config->cnf_diamid);
+  free_wrapper((void **)&fd_g_config->cnf_diamid);
   fd_g_config->cnf_diamid_len = 0;
   int rv = RETURNok;
   /* Initialize shutdown of the framework */

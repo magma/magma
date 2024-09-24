@@ -13,9 +13,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <string>
 #include <tins/network_interface.h>
 #include <tins/tins.h>
-#include <string>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
@@ -31,22 +31,22 @@ namespace magma {
 namespace lte {
 
 class PacketGenerator {
- public:
-  PacketGenerator(const std::string& iface_name, const std::string& pkt_dst_mac,
-                  const std::string& pkt_src_mac);
+public:
+  PacketGenerator(const std::string &iface_name, const std::string &pkt_dst_mac,
+                  const std::string &pkt_src_mac);
   /**
    * Send packet based on provided flow information
    * @param flow_information - flow_information
    * @return true if the operation was successful
    */
-  bool send_packet(struct flow_information* flow);
+  bool send_packet(struct flow_information *flow);
 
- private:
+private:
   std::string iface_name_;
   std::string pkt_dst_mac_;
   std::string pkt_src_mac_;
   Tins::NetworkInterface iface_;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

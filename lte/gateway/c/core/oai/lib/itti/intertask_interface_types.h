@@ -37,8 +37,8 @@
 #ifndef INTERTASK_INTERFACE_TYPES_H_
 #define INTERTASK_INTERFACE_TYPES_H_
 
-#include <time.h>
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include <time.h>
 
 #include "lte/gateway/c/core/oai/include/messages_types.h"
 
@@ -47,12 +47,12 @@
 #define UL_BIT_SHIFT(vALUE, oFFSET) ((vALUE) << (oFFSET))
 #define UL_BIT_UNSHIFT(vALUE, oFFSET) ((vALUE) >> (oFFSET))
 
-#define UL_FIELD_MASK(oFFSET, lENGTH) \
+#define UL_FIELD_MASK(oFFSET, lENGTH)                                          \
   UL_BIT_SHIFT(UL_BIT_MASK(lENGTH), (oFFSET))
-#define UL_FIELD_INSERT(vALUE, fIELD, oFFSET, lENGTH) \
-  (((vALUE) & (~UL_FIELD_MASK(oFFSET, lENGTH))) |     \
+#define UL_FIELD_INSERT(vALUE, fIELD, oFFSET, lENGTH)                          \
+  (((vALUE) & (~UL_FIELD_MASK(oFFSET, lENGTH))) |                              \
    UL_BIT_SHIFT(((fIELD)&UL_BIT_MASK(lENGTH)), oFFSET))
-#define UL_FIELD_EXTRACT(vALUE, oFFSET, lENGTH) \
+#define UL_FIELD_EXTRACT(vALUE, oFFSET, lENGTH)                                \
   (UL_BIT_UNSHIFT((vALUE), (oFFSET)) & UL_BIT_MASK(lENGTH))
 
 /* Definitions of task ID fields */

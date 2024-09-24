@@ -10,22 +10,22 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 class PayloadContainerTypeMsg {
- public:
+public:
   uint8_t iei : 4;
   uint8_t type_val : 4;
 
   PayloadContainerTypeMsg();
   ~PayloadContainerTypeMsg();
   int EncodePayloadContainerTypeMsg(
-      PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      PayloadContainerTypeMsg *payload_container_type, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
   int DecodePayloadContainerTypeMsg(
-      PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      PayloadContainerTypeMsg *payload_container_type, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

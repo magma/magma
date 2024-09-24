@@ -19,23 +19,23 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define EXTENDED_SERVICE_REQUEST_MINIMUM_LENGTH                          \
-  (SERVICE_TYPE_MINIMUM_LENGTH + NAS_KEY_SET_IDENTIFIER_MINIMUM_LENGTH + \
+#define EXTENDED_SERVICE_REQUEST_MINIMUM_LENGTH                                \
+  (SERVICE_TYPE_MINIMUM_LENGTH + NAS_KEY_SET_IDENTIFIER_MINIMUM_LENGTH +       \
    MOBILE_IDENTITY_IE_MIN_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define EXTENDED_SERVICE_REQUEST_MAXIMUM_LENGTH                          \
-  (SERVICE_TYPE_MAXIMUM_LENGTH + NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH + \
+#define EXTENDED_SERVICE_REQUEST_MAXIMUM_LENGTH                                \
+  (SERVICE_TYPE_MAXIMUM_LENGTH + NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH +       \
    MOBILE_IDENTITY_IE_MAX_LENGTH + CSFB_RESPONSE_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -65,9 +65,9 @@ typedef struct extended_service_request_msg_tag {
 } extended_service_request_msg;
 
 int decode_extended_service_request(
-    extended_service_request_msg* extendedservicerequest, uint8_t* buffer,
+    extended_service_request_msg *extendedservicerequest, uint8_t *buffer,
     uint32_t len);
 
 int encode_extended_service_request(
-    extended_service_request_msg* extendedservicerequest, uint8_t* buffer,
+    extended_service_request_msg *extendedservicerequest, uint8_t *buffer,
     uint32_t len);

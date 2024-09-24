@@ -16,9 +16,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/include/amf_service_handler.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/amf_service_handler.h"
 #ifdef __cplusplus
 }
 #endif
@@ -30,7 +30,7 @@ extern "C" {
 namespace grpc {
 
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -47,7 +47,7 @@ using namespace lte;
 AmfServiceImpl::AmfServiceImpl() {}
 
 // Remove the Leading IMSI string if present
-inline void get_subscriber_id(const std::string& subscriber_id, char* imsi) {
+inline void get_subscriber_id(const std::string &subscriber_id, char *imsi) {
   // No parameter check as these should always be filled up
   uint8_t imsi_len = 0;
 
@@ -60,9 +60,9 @@ inline void get_subscriber_id(const std::string& subscriber_id, char* imsi) {
   strcpy(imsi, subscriber_id.c_str() + imsi_len);
 }
 
-Status AmfServiceImpl::SetAmfNotification(ServerContext* context,
-                                          const SetSmNotificationContext* notif,
-                                          SmContextVoid* response) {
+Status AmfServiceImpl::SetAmfNotification(ServerContext *context,
+                                          const SetSmNotificationContext *notif,
+                                          SmContextVoid *response) {
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSmNotificationContext request\n");
   // ToDo processing ITTI,ZMQ
 
@@ -76,10 +76,10 @@ Status AmfServiceImpl::SetAmfNotification(ServerContext* context,
 }
 
 Status AmfServiceImpl::SetAmfNotification_itti(
-    const SetSmNotificationContext* notif,
-    itti_n11_received_notification_t* itti_msg) {
-  auto& notify_common = notif->common_context();
-  auto& req_m5g = notif->rat_specific_notification();
+    const SetSmNotificationContext *notif,
+    itti_n11_received_notification_t *itti_msg) {
+  auto &notify_common = notif->common_context();
+  auto &req_m5g = notif->rat_specific_notification();
 
   // CommonSessionContext
   get_subscriber_id(notify_common.sid().id(), itti_msg->imsi);
@@ -103,9 +103,10 @@ Status AmfServiceImpl::SetAmfNotification_itti(
   return Status::OK;
 }
 // Set message from SessionD received
-Status AmfServiceImpl::SetSmfSessionContext(
-    ServerContext* context, const SetSMSessionContextAccess* request,
-    SmContextVoid* response) {
+Status
+AmfServiceImpl::SetSmfSessionContext(ServerContext *context,
+                                     const SetSMSessionContextAccess *request,
+                                     SmContextVoid *response) {
   itti_n11_create_pdu_session_response_t itti_msg;
   memset(&itti_msg, 0, sizeof(itti_n11_create_pdu_session_response_t));
 
@@ -119,16 +120,16 @@ Status AmfServiceImpl::SetSmfSessionContext(
 }
 
 bool AmfServiceImpl::SetSmfSessionContext_itti(
-    const SetSMSessionContextAccess* request,
-    itti_n11_create_pdu_session_response_t* itti_msg_p) {
+    const SetSMSessionContextAccess *request,
+    itti_n11_create_pdu_session_response_t *itti_msg_p) {
   uint32_t i = 0;
-  traffic_flow_template_t* ul_tft = NULL;
+  traffic_flow_template_t *ul_tft = NULL;
   int ul_count_packetfilters = 0;
   OAILOG_INFO(LOG_UTIL,
               "Received GRPC SetSmfSessionContext request from SMF\n");
 
-  auto& req_common = request->common_context();
-  auto& req_m5g = request->rat_specific_context().m5g_session_context_rsp();
+  auto &req_common = request->common_context();
+  auto &req_m5g = request->rat_specific_context().m5g_session_context_rsp();
 
   // CommonSessionContext
   get_subscriber_id(req_common.sid().id(), itti_msg_p->imsi);
@@ -172,25 +173,25 @@ bool AmfServiceImpl::SetSmfSessionContext_itti(
     itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
         .non_dynamic_5QI_desc.fiveQI =
-        req_m5g.subscribed_qos().qos_class_id();  // enum
+        req_m5g.subscribed_qos().qos_class_id(); // enum
     itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-        .priority_level = req_m5g.subscribed_qos().priority_level();  // uint32
+        .priority_level = req_m5g.subscribed_qos().priority_level(); // uint32
     itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
         .pre_emption_cap = (pre_emption_capability)req_m5g.subscribed_qos()
-                               .preemption_capability();  // enum
+                               .preemption_capability(); // enum
     itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
         .pre_emption_vul = (pre_emption_vulnerability)req_m5g.subscribed_qos()
-                               .preemption_vulnerability();  // enum
+                               .preemption_vulnerability(); // enum
     i++;
   }
 
   for (; i < req_m5g.qos_policy_size(); i++) {
     ul_tft = &itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.ul_tft;
     memset(ul_tft, 0, sizeof(traffic_flow_template_t));
-    auto& qos_rule = req_m5g.qos_policy(i);
+    auto &qos_rule = req_m5g.qos_policy(i);
     // Session ambr is policy ambr if policy attached
     itti_msg_p->session_ambr.uplink_units =
         qos_rule.qos().qos().max_req_bw_ul();
@@ -202,43 +203,42 @@ bool AmfServiceImpl::SetSmfSessionContext_itti(
 
     itti_msg_p->qos_flow_list.item[i]
         .qos_flow_req_item.qos_flow_level_qos_param.qos_characteristic
-        .non_dynamic_5QI_desc.fiveQI = qos_rule.qos().qos().qci();  // enum
+        .non_dynamic_5QI_desc.fiveQI = qos_rule.qos().qos().qci(); // enum
     if (qos_rule.qos().qos().arp().priority_level()) {
       itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .priority_level =
-          qos_rule.qos().qos().arp().priority_level();  // uint32
+          qos_rule.qos().qos().arp().priority_level(); // uint32
       itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .pre_emption_cap = (pre_emption_capability)qos_rule.qos()
                                  .qos()
                                  .arp()
-                                 .pre_capability();  // enum
+                                 .pre_capability(); // enum
       itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .pre_emption_vul = (pre_emption_vulnerability)qos_rule.qos()
                                  .qos()
                                  .arp()
-                                 .pre_vulnerability();  // enum
+                                 .pre_vulnerability(); // enum
     } else {
       itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
-          .priority_level =
-          req_m5g.subscribed_qos().priority_level();  // uint32
+          .priority_level = req_m5g.subscribed_qos().priority_level(); // uint32
       itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .pre_emption_cap = (pre_emption_capability)req_m5g.subscribed_qos()
-                                 .preemption_capability();  // enum
+                                 .preemption_capability(); // enum
       itti_msg_p->qos_flow_list.item[i]
           .qos_flow_req_item.qos_flow_level_qos_param.alloc_reten_priority
           .pre_emption_vul = (pre_emption_vulnerability)req_m5g.subscribed_qos()
-                                 .preemption_vulnerability();  // enum
+                                 .preemption_vulnerability(); // enum
     }
     itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.qos_flow_action =
-        (qos_flow_action_t)qos_rule.policy_action();  // enum
+        (qos_flow_action_t)qos_rule.policy_action(); // enum
     itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.qos_flow_version =
-        qos_rule.version();  // uint32
-    strncpy(reinterpret_cast<char*>(
+        qos_rule.version(); // uint32
+    strncpy(reinterpret_cast<char *>(
                 itti_msg_p->qos_flow_list.item[i].qos_flow_req_item.rule_id),
             qos_rule.qos().id().c_str(), strlen(qos_rule.qos().id().c_str()));
 
@@ -272,7 +272,7 @@ bool AmfServiceImpl::SetSmfSessionContext_itti(
             qos_rule.qos().qos().max_req_bw_ul();
       }
     }
-    for (const auto& flow : qos_rule.qos().flow_list()) {
+    for (const auto &flow : qos_rule.qos().flow_list()) {
       if (flow.action() == FlowDescription::DENY) {
         continue;
       }
@@ -354,7 +354,7 @@ bool AmfServiceImpl::SetSmfSessionContext_itti(
 }
 
 bool AmfServiceImpl::fillUpPacketFilterContents(
-    packet_filter_contents_t* pf_content, const FlowMatch* flow_match_rule) {
+    packet_filter_contents_t *pf_content, const FlowMatch *flow_match_rule) {
   uint16_t flags = 0;
   pf_content->protocolidentifier_nextheader = flow_match_rule->ip_proto();
   if (pf_content->protocolidentifier_nextheader) {
@@ -433,8 +433,8 @@ bool AmfServiceImpl::fillUpPacketFilterContents(
 
 // Extract and validate IP address and subnet mask
 // IPv4 network format ex.: 192.176.128.10/24
-ipv4_networks_t AmfServiceImpl::parseIpv4Network(
-    const std::string& ipv4network_str) {
+ipv4_networks_t
+AmfServiceImpl::parseIpv4Network(const std::string &ipv4network_str) {
   ipv4_networks_t result;
   const int slash_pos = ipv4network_str.find("/");
   std::string ipv4addr = (slash_pos != std::string::npos)
@@ -478,17 +478,17 @@ ipv4_networks_t AmfServiceImpl::parseIpv4Network(
 // ANY and it is equivalent to 0.0.0.0/0
 // But this function is called only for non-empty ipv4 string
 
-bool AmfServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
-                              const std::string& ipv4network_str) {
+bool AmfServiceImpl::fillIpv4(packet_filter_contents_t *pf_content,
+                              const std::string &ipv4network_str) {
   ipv4_networks_t ipv4network = parseIpv4Network(ipv4network_str);
   if (!ipv4network.success) {
     return false;
   }
 
-  uint32_t mask = UINT32_MAX;  // all ones
+  uint32_t mask = UINT32_MAX; // all ones
   mask =
       (mask << (32 -
-                ipv4network.mask_len));  // first mask_len bits are 1s, rest 0s
+                ipv4network.mask_len)); // first mask_len bits are 1s, rest 0s
   uint32_t ipv4addrHBO = ipv4network.addr_hbo;
 
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
@@ -510,7 +510,7 @@ bool AmfServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
   return true;
 }
 
-bool AmfServiceImpl::fillIpv6(packet_filter_contents_t* pf_content,
+bool AmfServiceImpl::fillIpv6(packet_filter_contents_t *pf_content,
                               const std::string ipv6network_str) {
   struct in6_addr in6addr;
   if (inet_pton(AF_INET6, ipv6network_str.c_str(), &in6addr) != 1) {
@@ -535,4 +535,4 @@ bool AmfServiceImpl::fillIpv6(packet_filter_contents_t* pf_content,
       pf_content->ipv6remoteaddr[14].addr, pf_content->ipv6remoteaddr[15].addr);
   return true;
 }
-}  // namespace magma
+} // namespace magma

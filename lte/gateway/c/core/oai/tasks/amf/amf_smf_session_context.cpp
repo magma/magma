@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
+#include <sstream>
 
 #ifdef __cplusplus
 extern "C" {
@@ -25,17 +25,19 @@ extern "C" {
 #endif
 
 namespace magma5g {
-status_code_e amf_smf_context_ue_aggregate_max_bit_rate_set(
-    amf_context_s* amf_ctxt_p, ambr_t subscribed_ue_ambr) {
+status_code_e
+amf_smf_context_ue_aggregate_max_bit_rate_set(amf_context_s *amf_ctxt_p,
+                                              ambr_t subscribed_ue_ambr) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   memcpy(&amf_ctxt_p->subscribed_ue_ambr, &subscribed_ue_ambr, sizeof(ambr_t));
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
 
-status_code_e amf_smf_context_ue_aggregate_max_bit_rate_get(
-    const amf_context_s* amf_ctxt_p, bit_rate_t* subscriber_ambr_dl,
-    bit_rate_t* subscriber_ambr_ul) {
+status_code_e
+amf_smf_context_ue_aggregate_max_bit_rate_get(const amf_context_s *amf_ctxt_p,
+                                              bit_rate_t *subscriber_ambr_dl,
+                                              bit_rate_t *subscriber_ambr_ul) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (amf_ctxt_p == NULL) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
@@ -55,8 +57,8 @@ status_code_e amf_smf_context_ue_aggregate_max_bit_rate_get(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void amf_config_get_default_slice_config(uint8_t* slice_type,
-                                         uint8_t* slice_differentiator) {
+void amf_config_get_default_slice_config(uint8_t *slice_type,
+                                         uint8_t *slice_differentiator) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   amf_config_read_lock(&amf_config);
 
@@ -82,7 +84,7 @@ void amf_config_get_default_slice_config(uint8_t* slice_type,
 // Function to fill the slice information in pdu session establishment
 // accept message
 void amf_smf_get_slice_configuration(std::shared_ptr<smf_context_t> smf_ctx,
-                                     s_nssai_t* slice_config) {
+                                     s_nssai_t *slice_config) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (slice_config == NULL) {
     OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -103,4 +105,4 @@ void amf_smf_get_slice_configuration(std::shared_ptr<smf_context_t> smf_ctx,
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

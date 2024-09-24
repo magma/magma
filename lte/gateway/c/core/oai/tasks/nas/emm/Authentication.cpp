@@ -15,10 +15,10 @@
  *      contact@openairinterface.org
  */
 
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -85,35 +85,34 @@ extern mme_congestion_params_t mme_congestion_params;
    --------------------------------------------------------------------------
 */
 // callbacks for authentication procedure
-static int authentication_ll_failure(struct emm_context_s* emm_context,
-                                     struct nas_emm_proc_s* emm_proc);
-static int authentication_non_delivered_ho(struct emm_context_s* emm_context,
-                                           struct nas_emm_proc_s* emm_proc);
-static int authentication_abort(struct emm_context_s* emm_context,
-                                struct nas_base_proc_s* base_proc);
+static int authentication_ll_failure(struct emm_context_s *emm_context,
+                                     struct nas_emm_proc_s *emm_proc);
+static int authentication_non_delivered_ho(struct emm_context_s *emm_context,
+                                           struct nas_emm_proc_s *emm_proc);
+static int authentication_abort(struct emm_context_s *emm_context,
+                                struct nas_base_proc_s *base_proc);
 
-static status_code_e start_authentication_information_procedure(
-    struct emm_context_s* emm_context, nas_emm_auth_proc_t* const auth_proc,
-    const_bstring auts);
-static int auth_info_proc_success_cb(struct emm_context_s* emm_ctx);
-static int auth_info_proc_failure_cb(struct emm_context_s* emm_ctx);
+static status_code_e
+start_authentication_information_procedure(struct emm_context_s *emm_context,
+                                           nas_emm_auth_proc_t *const auth_proc,
+                                           const_bstring auts);
+static int auth_info_proc_success_cb(struct emm_context_s *emm_ctx);
+static int auth_info_proc_failure_cb(struct emm_context_s *emm_ctx);
 
-static int authentication_check_imsi_5_4_2_5__1(
-    struct emm_context_s* emm_context);
-static int authentication_check_imsi_5_4_2_5__1_fail(
-    struct emm_context_s* emm_context);
-static status_code_e authentication_request(struct emm_context_s* emm_ctx,
-                                            nas_emm_auth_proc_t* auth_proc);
-static status_code_e authentication_reject(struct emm_context_s* emm_context,
-                                           struct nas_base_proc_s* base_proc);
+static int
+authentication_check_imsi_5_4_2_5__1(struct emm_context_s *emm_context);
+static int
+authentication_check_imsi_5_4_2_5__1_fail(struct emm_context_s *emm_context);
+static status_code_e authentication_request(struct emm_context_s *emm_ctx,
+                                            nas_emm_auth_proc_t *auth_proc);
+static status_code_e authentication_reject(struct emm_context_s *emm_context,
+                                           struct nas_base_proc_s *base_proc);
 
-static void nas_itti_auth_info_req(const mme_ue_s1ap_id_t ue_idP,
-                                   const imsi_t* const imsiP,
-                                   const bool is_initial_reqP,
-                                   plmn_t* const visited_plmnP,
-                                   const uint8_t num_vectorsP,
-                                   const_bstring const auts_pP,
-                                   const uint8_t dcnr);
+static void
+nas_itti_auth_info_req(const mme_ue_s1ap_id_t ue_idP, const imsi_t *const imsiP,
+                       const bool is_initial_reqP, plmn_t *const visited_plmnP,
+                       const uint8_t num_vectorsP, const_bstring const auts_pP,
+                       const uint8_t dcnr);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -156,11 +155,12 @@ static void nas_itti_auth_info_req(const mme_ue_s1ap_id_t ue_idP,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_authentication_ksi(
-    struct emm_context_s* emm_context,
-    nas_emm_specific_proc_t* const emm_specific_proc, ksi_t ksi,
-    const uint8_t* const rand, const uint8_t* const autn, success_cb_t success,
-    failure_cb_t failure) {
+status_code_e
+emm_proc_authentication_ksi(struct emm_context_s *emm_context,
+                            nas_emm_specific_proc_t *const emm_specific_proc,
+                            ksi_t ksi, const uint8_t *const rand,
+                            const uint8_t *const autn, success_cb_t success,
+                            failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
 
@@ -174,7 +174,7 @@ status_code_e emm_proc_authentication_ksi(
                    " EMM-PROC  - Initiate Authentication KSI = %d\n",
                    ue_id, ksi);
 
-    nas_emm_auth_proc_t* auth_proc =
+    nas_emm_auth_proc_t *auth_proc =
         get_nas_common_procedure_authentication(emm_context);
     if (!auth_proc) {
       auth_proc = nas_new_authentication_procedure(emm_context);
@@ -209,8 +209,8 @@ status_code_e emm_proc_authentication_ksi(
       auth_proc->emm_cause = EMM_CAUSE_SUCCESS;
       auth_proc->retransmission_count = 0;
       auth_proc->ue_id = ue_id;
-      ((nas_base_proc_t*)auth_proc)->parent =
-          (nas_base_proc_t*)emm_specific_proc;
+      ((nas_base_proc_t *)auth_proc)->parent =
+          (nas_base_proc_t *)emm_specific_proc;
       auth_proc->emm_com_proc.emm_proc.delivered = NULL;
       auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state =
           emm_fsm_get_state(emm_context);
@@ -223,7 +223,7 @@ status_code_e emm_proc_authentication_ksi(
       auth_proc->emm_com_proc.emm_proc.base_proc.abort =
           (proc_abort_t)authentication_abort;
       auth_proc->emm_com_proc.emm_proc.base_proc.fail_in =
-          NULL;  // only response
+          NULL; // only response
       auth_proc->emm_com_proc.emm_proc.base_proc.fail_out =
           (pdu_out_rej_t)authentication_reject;
       auth_proc->emm_com_proc.emm_proc.base_proc.time_out =
@@ -251,17 +251,17 @@ status_code_e emm_proc_authentication_ksi(
 }
 
 //------------------------------------------------------------------------------
-status_code_e emm_proc_authentication(
-    struct emm_context_s* emm_context,
-    nas_emm_specific_proc_t* const emm_specific_proc, success_cb_t success,
-    failure_cb_t failure) {
+status_code_e
+emm_proc_authentication(struct emm_context_s *emm_context,
+                        nas_emm_specific_proc_t *const emm_specific_proc,
+                        success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
 
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
-  nas_emm_auth_proc_t* auth_proc =
+  nas_emm_auth_proc_t *auth_proc =
       get_nas_common_procedure_authentication(emm_context);
   if (!auth_proc) {
     auth_proc = nas_new_authentication_procedure(emm_context);
@@ -278,7 +278,8 @@ status_code_e emm_proc_authentication(
     auth_proc->emm_cause = EMM_CAUSE_SUCCESS;
     auth_proc->retransmission_count = 0;
     auth_proc->ue_id = ue_id;
-    ((nas_base_proc_t*)auth_proc)->parent = (nas_base_proc_t*)emm_specific_proc;
+    ((nas_base_proc_t *)auth_proc)->parent =
+        (nas_base_proc_t *)emm_specific_proc;
     auth_proc->emm_com_proc.emm_proc.delivered = NULL;
     auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state =
         emm_fsm_get_state(emm_context);
@@ -288,7 +289,7 @@ status_code_e emm_proc_authentication(
     auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif = failure;
     auth_proc->emm_com_proc.emm_proc.base_proc.abort =
         (proc_abort_t)authentication_abort;
-    auth_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL;  // only response
+    auth_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL; // only response
     auth_proc->emm_com_proc.emm_proc.base_proc.fail_out =
         (pdu_out_rej_t)authentication_reject;
     auth_proc->emm_com_proc.emm_proc.base_proc.time_out = NULL;
@@ -296,7 +297,7 @@ status_code_e emm_proc_authentication(
     bool run_auth_info_proc = false;
     if (!IS_EMM_CTXT_VALID_AUTH_VECTORS(emm_context)) {
       // Ask upper layer to fetch new security context
-      nas_auth_info_proc_t* auth_info_proc =
+      nas_auth_info_proc_t *auth_info_proc =
           get_nas_cn_procedure_auth_info(emm_context);
       if (!auth_info_proc) {
         auth_info_proc = nas_new_cn_auth_info_procedure(emm_context);
@@ -340,15 +341,16 @@ status_code_e emm_proc_authentication(
 }
 
 //------------------------------------------------------------------------------
-static status_code_e start_authentication_information_procedure(
-    struct emm_context_s* emm_context, nas_emm_auth_proc_t* const auth_proc,
-    const_bstring auts) {
+static status_code_e
+start_authentication_information_procedure(struct emm_context_s *emm_context,
+                                           nas_emm_auth_proc_t *const auth_proc,
+                                           const_bstring auts) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
   // Ask upper layer to fetch new security context
-  nas_auth_info_proc_t* auth_info_proc =
+  nas_auth_info_proc_t *auth_info_proc =
       get_nas_cn_procedure_auth_info(emm_context);
   if (!auth_info_proc) {
     auth_info_proc = nas_new_cn_auth_info_procedure(emm_context);
@@ -383,11 +385,11 @@ static status_code_e start_authentication_information_procedure(
 
 //------------------------------------------------------------------------------
 static int start_authentication_information_procedure_synch(
-    struct emm_context_s* emm_context, nas_emm_auth_proc_t* const auth_proc,
+    struct emm_context_s *emm_context, nas_emm_auth_proc_t *const auth_proc,
     const_bstring auts) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   // Ask upper layer to fetch new security context
-  nas_auth_info_proc_t* auth_info_proc =
+  nas_auth_info_proc_t *auth_info_proc =
       get_nas_cn_procedure_auth_info(emm_context);
 
   AssertFatal(auth_info_proc == NULL,
@@ -402,9 +404,9 @@ static int start_authentication_information_procedure_synch(
 }
 
 //------------------------------------------------------------------------------
-static int auth_info_proc_success_cb(struct emm_context_s* emm_ctx) {
+static int auth_info_proc_success_cb(struct emm_context_s *emm_ctx) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  nas_auth_info_proc_t* auth_info_proc =
+  nas_auth_info_proc_t *auth_info_proc =
       get_nas_cn_procedure_auth_info(emm_ctx);
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
@@ -460,11 +462,11 @@ static int auth_info_proc_success_cb(struct emm_context_s* emm_ctx) {
           "EMM-PROC  - Received KASME .: " KASME_FORMAT " " KASME_FORMAT "\n",
           KASME_DISPLAY_1(emm_ctx->_vector[destination_index].kasme),
           KASME_DISPLAY_2(emm_ctx->_vector[destination_index].kasme));
-      emm_ctx_set_attribute_valid(
-          emm_ctx, EMM_CTXT_MEMBER_AUTH_VECTOR0 + destination_index);
+      emm_ctx_set_attribute_valid(emm_ctx, EMM_CTXT_MEMBER_AUTH_VECTOR0 +
+                                               destination_index);
     }
 
-    nas_emm_auth_proc_t* auth_proc =
+    nas_emm_auth_proc_t *auth_proc =
         get_nas_common_procedure_authentication(emm_ctx);
 
     if (auth_proc) {
@@ -498,7 +500,7 @@ static int auth_info_proc_success_cb(struct emm_context_s* emm_ctx) {
 
         rc = emm_proc_authentication_ksi(
             emm_ctx,
-            (nas_emm_specific_proc_t*)auth_info_proc->cn_proc.base_proc.parent,
+            (nas_emm_specific_proc_t *)auth_info_proc->cn_proc.base_proc.parent,
             eksi, emm_ctx->_vector[eksi % MAX_EPS_AUTH_VECTORS].rand,
             emm_ctx->_vector[eksi % MAX_EPS_AUTH_VECTORS].autn,
             auth_proc->emm_com_proc.emm_proc.base_proc.success_notif,
@@ -549,9 +551,9 @@ static int auth_info_proc_success_cb(struct emm_context_s* emm_ctx) {
 }
 
 //------------------------------------------------------------------------------
-static int auth_info_proc_failure_cb(struct emm_context_s* emm_ctx) {
+static int auth_info_proc_failure_cb(struct emm_context_s *emm_ctx) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  nas_auth_info_proc_t* auth_info_proc =
+  nas_auth_info_proc_t *auth_info_proc =
       get_nas_cn_procedure_auth_info(emm_ctx);
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
@@ -559,7 +561,7 @@ static int auth_info_proc_failure_cb(struct emm_context_s* emm_ctx) {
   int rc = RETURNerror;
 
   if (auth_info_proc) {
-    nas_emm_auth_proc_t* auth_proc =
+    nas_emm_auth_proc_t *auth_proc =
         get_nas_common_procedure_authentication(emm_ctx);
 
     int emm_cause = auth_info_proc->nas_cause;
@@ -590,7 +592,7 @@ static int auth_info_proc_failure_cb(struct emm_context_s* emm_ctx) {
               emm_ctx);
         } else {
           nas_delete_common_procedure(emm_ctx,
-                                      (nas_emm_common_proc_t**)&auth_proc);
+                                      (nas_emm_common_proc_t **)&auth_proc);
         }
       }
     }
@@ -604,8 +606,8 @@ status_code_e emm_proc_authentication_failure(mme_ue_s1ap_id_t ue_id,
                                               const_bstring auts) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   // Get the UE context
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
-  emm_context_t* emm_ctx = NULL;
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  emm_context_t *emm_ctx = NULL;
   status_code_e rc = RETURNerror;
 
   if (!ue_mm_context) {
@@ -622,7 +624,7 @@ status_code_e emm_proc_authentication_failure(mme_ue_s1ap_id_t ue_id,
                  "EMM-PROC  - Authentication failure (ue_id=" MME_UE_S1AP_ID_FMT
                  ", cause=%d)\n",
                  ue_id, emm_cause);
-  nas_emm_auth_proc_t* auth_proc =
+  nas_emm_auth_proc_t *auth_proc =
       get_nas_common_procedure_authentication(emm_ctx);
 
   if (auth_proc) {
@@ -631,117 +633,95 @@ status_code_e emm_proc_authentication_failure(mme_ue_s1ap_id_t ue_id,
     nas_stop_T3460(ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460);
 
     switch (emm_cause) {
-      case EMM_CAUSE_SYNCH_FAILURE:
-        /*
-         * USIM has detected a mismatch in SQN.
-         *  Ask for a new vector.
-         */
-        REQUIREMENT_3GPP_24_301(R10_5_4_2_4__3);
+    case EMM_CAUSE_SYNCH_FAILURE:
+      /*
+       * USIM has detected a mismatch in SQN.
+       *  Ask for a new vector.
+       */
+      REQUIREMENT_3GPP_24_301(R10_5_4_2_4__3);
 
-        auth_proc->sync_fail_count += 1;
-        if (EMM_AUTHENTICATION_SYNC_FAILURE_MAX > auth_proc->sync_fail_count) {
-          OAILOG_DEBUG_UE(
-              LOG_NAS_EMM, emm_ctx->_imsi64,
-              "EMM-PROC  - USIM has detected a mismatch in SQN Ask for new "
-              "vector(s)\n");
+      auth_proc->sync_fail_count += 1;
+      if (EMM_AUTHENTICATION_SYNC_FAILURE_MAX > auth_proc->sync_fail_count) {
+        OAILOG_DEBUG_UE(
+            LOG_NAS_EMM, emm_ctx->_imsi64,
+            "EMM-PROC  - USIM has detected a mismatch in SQN Ask for new "
+            "vector(s)\n");
 
-          REQUIREMENT_3GPP_24_301(R10_5_4_2_7_e__3);
-          // Pass back the current rand.
-          REQUIREMENT_3GPP_24_301(R10_5_4_2_7_e__2);
-          struct tagbstring resync_param;
-          resync_param.data =
-              reinterpret_cast<unsigned char*>(calloc(1, RESYNC_PARAM_LENGTH));
-          DevAssert(resync_param.data != NULL);
-          if (resync_param.data == NULL) {
-            OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-          }
-
-          memcpy(resync_param.data,
-                 (emm_ctx->_vector[emm_ctx->_security.vector_index].rand),
-                 RAND_LENGTH_OCTETS);
-          memcpy((resync_param.data + RAND_LENGTH_OCTETS), auts->data,
-                 AUTS_LENGTH);
-          // TODO: Double check this case as there is no identity request being
-          // sent.
-          start_authentication_information_procedure_synch(emm_ctx, auth_proc,
-                                                           &resync_param);
-          free_wrapper((void**)&resync_param.data);
-          emm_ctx_clear_auth_vectors(emm_ctx);
-          rc = RETURNok;
+        REQUIREMENT_3GPP_24_301(R10_5_4_2_7_e__3);
+        // Pass back the current rand.
+        REQUIREMENT_3GPP_24_301(R10_5_4_2_7_e__2);
+        struct tagbstring resync_param;
+        resync_param.data =
+            reinterpret_cast<unsigned char *>(calloc(1, RESYNC_PARAM_LENGTH));
+        DevAssert(resync_param.data != NULL);
+        if (resync_param.data == NULL) {
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
-        } else {
-          REQUIREMENT_3GPP_24_301(R10_5_4_2_7_e__NOTE3);
-          auth_proc->emm_cause = EMM_CAUSE_SYNCH_FAILURE;
-          emm_sap_t emm_sap = {};
-          emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
-          emm_sap.u.emm_reg.ue_id = ue_id;
-          emm_sap.u.emm_reg.ctx = emm_ctx;
-          emm_sap.u.emm_reg.notify = true;
-          emm_sap.u.emm_reg.free_proc = true;
-          emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
-          emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
-              auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
-          rc = emm_sap_send(&emm_sap);
         }
-        break;
-      case EMM_CAUSE_MAC_FAILURE:
-        REQUIREMENT_3GPP_24_301(R10_5_4_2_7_c__2);
-        auth_proc->mac_fail_count++;
-        auth_proc->sync_fail_count = 0;
-        if (!IS_EMM_CTXT_PRESENT_IMSI(
-                emm_ctx)) {  // VALID means received in IDENTITY RESPONSE
-          if (1 == auth_proc->mac_fail_count) {
-            // Only to return to a "valid" EMM state
-            {
-              emm_sap_t emm_sap = {};
-              emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
-              emm_sap.u.emm_reg.ue_id = ue_id;
-              emm_sap.u.emm_reg.ctx = emm_ctx;
-              emm_sap.u.emm_reg.notify = false;
-              emm_sap.u.emm_reg.free_proc = false;
-              emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
-              emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
-                  auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
-              rc = emm_sap_send(&emm_sap);
-            }
-            rc = emm_proc_identification(
-                emm_ctx, &auth_proc->emm_com_proc.emm_proc,
-                IDENTITY_TYPE_2_IMSI,
-                (success_cb_t)authentication_check_imsi_5_4_2_5__1,
-                (failure_cb_t)authentication_check_imsi_5_4_2_5__1_fail);
-          } else {
-            rc = RETURNerror;
-          }
 
-          if (rc != RETURNok) {
-            REQUIREMENT_3GPP_24_301(
-                R10_5_4_2_7_c__NOTE1);  // more or less this case...
-            // Failed to initiate the identification procedure
-            auth_proc->emm_cause =
-                EMM_CAUSE_MAC_FAILURE;  // EMM_CAUSE_ILLEGAL_UE;
-            /*
-             * Notify EMM that the authentication procedure failed
-             */
+        memcpy(resync_param.data,
+               (emm_ctx->_vector[emm_ctx->_security.vector_index].rand),
+               RAND_LENGTH_OCTETS);
+        memcpy((resync_param.data + RAND_LENGTH_OCTETS), auts->data,
+               AUTS_LENGTH);
+        // TODO: Double check this case as there is no identity request being
+        // sent.
+        start_authentication_information_procedure_synch(emm_ctx, auth_proc,
+                                                         &resync_param);
+        free_wrapper((void **)&resync_param.data);
+        emm_ctx_clear_auth_vectors(emm_ctx);
+        rc = RETURNok;
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+      } else {
+        REQUIREMENT_3GPP_24_301(R10_5_4_2_7_e__NOTE3);
+        auth_proc->emm_cause = EMM_CAUSE_SYNCH_FAILURE;
+        emm_sap_t emm_sap = {};
+        emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
+        emm_sap.u.emm_reg.ue_id = ue_id;
+        emm_sap.u.emm_reg.ctx = emm_ctx;
+        emm_sap.u.emm_reg.notify = true;
+        emm_sap.u.emm_reg.free_proc = true;
+        emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
+        emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
+            auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
+        rc = emm_sap_send(&emm_sap);
+      }
+      break;
+    case EMM_CAUSE_MAC_FAILURE:
+      REQUIREMENT_3GPP_24_301(R10_5_4_2_7_c__2);
+      auth_proc->mac_fail_count++;
+      auth_proc->sync_fail_count = 0;
+      if (!IS_EMM_CTXT_PRESENT_IMSI(
+              emm_ctx)) { // VALID means received in IDENTITY RESPONSE
+        if (1 == auth_proc->mac_fail_count) {
+          // Only to return to a "valid" EMM state
+          {
             emm_sap_t emm_sap = {};
-            emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
+            emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
             emm_sap.u.emm_reg.ue_id = ue_id;
             emm_sap.u.emm_reg.ctx = emm_ctx;
-            emm_sap.u.emm_reg.notify = true;
-            emm_sap.u.emm_reg.free_proc = true;
+            emm_sap.u.emm_reg.notify = false;
+            emm_sap.u.emm_reg.free_proc = false;
             emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
             emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
                 auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
-            increment_counter("authentication_failure", 1, 1, "cause",
-                              "mac_failure");
-            increment_counter("ue_attach", 1, 2, "result", "failure", "cause",
-                              "authentication_mac_failure");
             rc = emm_sap_send(&emm_sap);
           }
+          rc = emm_proc_identification(
+              emm_ctx, &auth_proc->emm_com_proc.emm_proc, IDENTITY_TYPE_2_IMSI,
+              (success_cb_t)authentication_check_imsi_5_4_2_5__1,
+              (failure_cb_t)authentication_check_imsi_5_4_2_5__1_fail);
         } else {
-          REQUIREMENT_3GPP_24_301(R10_5_4_2_5__2);
-          auth_proc->emm_cause =
-              EMM_CAUSE_MAC_FAILURE;  // EMM_CAUSE_ILLEGAL_UE;
-          // Do not accept the UE to attach to the network
+          rc = RETURNerror;
+        }
+
+        if (rc != RETURNok) {
+          REQUIREMENT_3GPP_24_301(
+              R10_5_4_2_7_c__NOTE1); // more or less this case...
+          // Failed to initiate the identification procedure
+          auth_proc->emm_cause = EMM_CAUSE_MAC_FAILURE; // EMM_CAUSE_ILLEGAL_UE;
+          /*
+           * Notify EMM that the authentication procedure failed
+           */
           emm_sap_t emm_sap = {};
           emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
           emm_sap.u.emm_reg.ue_id = ue_id;
@@ -757,76 +737,94 @@ status_code_e emm_proc_authentication_failure(mme_ue_s1ap_id_t ue_id,
                             "authentication_mac_failure");
           rc = emm_sap_send(&emm_sap);
         }
-        break;
-      case EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE:
+      } else {
+        REQUIREMENT_3GPP_24_301(R10_5_4_2_5__2);
+        auth_proc->emm_cause = EMM_CAUSE_MAC_FAILURE; // EMM_CAUSE_ILLEGAL_UE;
+        // Do not accept the UE to attach to the network
+        emm_sap_t emm_sap = {};
+        emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
+        emm_sap.u.emm_reg.ue_id = ue_id;
+        emm_sap.u.emm_reg.ctx = emm_ctx;
+        emm_sap.u.emm_reg.notify = true;
+        emm_sap.u.emm_reg.free_proc = true;
+        emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
+        emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
+            auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
         increment_counter("authentication_failure", 1, 1, "cause",
-                          "amf_unacceptable");
+                          "mac_failure");
         increment_counter("ue_attach", 1, 2, "result", "failure", "cause",
-                          "authentication_amf_failure");
-        // never happened TODO check the code
-        auth_proc->sync_fail_count = 0;
-        REQUIREMENT_3GPP_24_301(R10_5_4_2_7_d__1);
-        // test IS_EMM_CTXT_VALID_IMSI should be enough...
-        if ((emm_ctx->is_initial_identity_imsi) ||
-            (IS_EMM_CTXT_VALID_IMSI(emm_ctx))) {
-          rc = RETURNerror;
-        } else {
-          // Only to return to a "valid" EMM state
-          {
-            emm_sap_t emm_sap = {};
-            emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
-            emm_sap.u.emm_reg.ue_id = ue_id;
-            emm_sap.u.emm_reg.ctx = emm_ctx;
-            emm_sap.u.emm_reg.notify = false;
-            emm_sap.u.emm_reg.free_proc = false;
-            emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
-            emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
-                auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
-            rc = emm_sap_send(&emm_sap);
-          }
-          if (auth_proc->unchecked_imsi) {
-            free_wrapper((void**)&auth_proc->unchecked_imsi);
-          }
-          auth_proc->unchecked_imsi = reinterpret_cast<imsi_s*>(
-              calloc(1, sizeof(*auth_proc->unchecked_imsi)));
-          memcpy(auth_proc->unchecked_imsi, &emm_ctx->_imsi,
-                 sizeof(*auth_proc->unchecked_imsi));
-          rc = emm_proc_identification(
-              emm_ctx, &auth_proc->emm_com_proc.emm_proc, IDENTITY_TYPE_2_IMSI,
-              (success_cb_t)authentication_check_imsi_5_4_2_5__1,
-              (failure_cb_t)authentication_check_imsi_5_4_2_5__1_fail);
-        }
-        if (rc != RETURNok) {
-          REQUIREMENT_3GPP_24_301(
-              R10_5_4_2_7_d__NOTE2);  // more or less this case...
-          // Failed to initiate the identification procedure
-          OAILOG_WARNING_UE(
-              LOG_NAS_EMM, emm_ctx->_imsi64,
-              "ue_id=" MME_UE_S1AP_ID_FMT
-              "EMM-PROC  - Failed to initiate identification procedure\n",
-              ue_mm_context->mme_ue_s1ap_id);
-          auth_proc->emm_cause = EMM_CAUSE_ILLEGAL_UE;
-          // Do not accept the UE to attach to the network
+                          "authentication_mac_failure");
+        rc = emm_sap_send(&emm_sap);
+      }
+      break;
+    case EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE:
+      increment_counter("authentication_failure", 1, 1, "cause",
+                        "amf_unacceptable");
+      increment_counter("ue_attach", 1, 2, "result", "failure", "cause",
+                        "authentication_amf_failure");
+      // never happened TODO check the code
+      auth_proc->sync_fail_count = 0;
+      REQUIREMENT_3GPP_24_301(R10_5_4_2_7_d__1);
+      // test IS_EMM_CTXT_VALID_IMSI should be enough...
+      if ((emm_ctx->is_initial_identity_imsi) ||
+          (IS_EMM_CTXT_VALID_IMSI(emm_ctx))) {
+        rc = RETURNerror;
+      } else {
+        // Only to return to a "valid" EMM state
+        {
           emm_sap_t emm_sap = {};
-          emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
+          emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
           emm_sap.u.emm_reg.ue_id = ue_id;
           emm_sap.u.emm_reg.ctx = emm_ctx;
-          emm_sap.u.emm_reg.notify = true;
-          emm_sap.u.emm_reg.free_proc = true;
+          emm_sap.u.emm_reg.notify = false;
+          emm_sap.u.emm_reg.free_proc = false;
           emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
           emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
               auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
           rc = emm_sap_send(&emm_sap);
         }
-        break;
-
-      default:
-        auth_proc->sync_fail_count = 0;
-        OAILOG_DEBUG_UE(
+        if (auth_proc->unchecked_imsi) {
+          free_wrapper((void **)&auth_proc->unchecked_imsi);
+        }
+        auth_proc->unchecked_imsi = reinterpret_cast<imsi_s *>(
+            calloc(1, sizeof(*auth_proc->unchecked_imsi)));
+        memcpy(auth_proc->unchecked_imsi, &emm_ctx->_imsi,
+               sizeof(*auth_proc->unchecked_imsi));
+        rc = emm_proc_identification(
+            emm_ctx, &auth_proc->emm_com_proc.emm_proc, IDENTITY_TYPE_2_IMSI,
+            (success_cb_t)authentication_check_imsi_5_4_2_5__1,
+            (failure_cb_t)authentication_check_imsi_5_4_2_5__1_fail);
+      }
+      if (rc != RETURNok) {
+        REQUIREMENT_3GPP_24_301(
+            R10_5_4_2_7_d__NOTE2); // more or less this case...
+        // Failed to initiate the identification procedure
+        OAILOG_WARNING_UE(
             LOG_NAS_EMM, emm_ctx->_imsi64,
-            "EMM-PROC  - The MME received an unknown EMM CAUSE %d\n",
-            emm_cause);
-        OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+            "ue_id=" MME_UE_S1AP_ID_FMT
+            "EMM-PROC  - Failed to initiate identification procedure\n",
+            ue_mm_context->mme_ue_s1ap_id);
+        auth_proc->emm_cause = EMM_CAUSE_ILLEGAL_UE;
+        // Do not accept the UE to attach to the network
+        emm_sap_t emm_sap = {};
+        emm_sap.primitive = EMMREG_COMMON_PROC_REJ;
+        emm_sap.u.emm_reg.ue_id = ue_id;
+        emm_sap.u.emm_reg.ctx = emm_ctx;
+        emm_sap.u.emm_reg.notify = true;
+        emm_sap.u.emm_reg.free_proc = true;
+        emm_sap.u.emm_reg.u.common.common_proc = &auth_proc->emm_com_proc;
+        emm_sap.u.emm_reg.u.common.previous_emm_fsm_state =
+            auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
+        rc = emm_sap_send(&emm_sap);
+      }
+      break;
+
+    default:
+      auth_proc->sync_fail_count = 0;
+      OAILOG_DEBUG_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
+                      "EMM-PROC  - The MME received an unknown EMM CAUSE %d\n",
+                      emm_cause);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -856,7 +854,7 @@ status_code_e emm_proc_authentication_failure(mme_ue_s1ap_id_t ue_id,
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
-                                               authentication_response_msg* msg,
+                                               authentication_response_msg *msg,
                                                int emm_cause,
                                                const_bstring const res) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -865,8 +863,8 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
   bool is_val_fail = false;
 
   // Get the UE context
-  ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
-  emm_context_t* emm_ctx = NULL;
+  ue_mm_context_t *ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  emm_context_t *emm_ctx = NULL;
 
   if (!ue_mm_context) {
     OAILOG_WARNING(LOG_NAS_EMM,
@@ -881,7 +879,7 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
       "EMM-PROC  - Authentication complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       ue_id);
   emm_ctx = &ue_mm_context->emm_context;
-  nas_emm_auth_proc_t* auth_proc =
+  nas_emm_auth_proc_t *auth_proc =
       get_nas_common_procedure_authentication(emm_ctx);
 
   if (auth_proc) {
@@ -929,7 +927,7 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
 
     if (is_val_fail == true) {
       if (!IS_EMM_CTXT_PRESENT_IMSI(
-              emm_ctx)) {  // VALID means received in IDENTITY RESPONSE
+              emm_ctx)) { // VALID means received in IDENTITY RESPONSE
         OAILOG_WARNING(
             LOG_NAS_EMM,
             "XRES/RES Validation Failed for (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
@@ -942,11 +940,11 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
 
         if (rc != RETURNok) {
           REQUIREMENT_3GPP_24_301(
-              R10_5_4_2_7_c__NOTE1);  // more or less this case...
+              R10_5_4_2_7_c__NOTE1); // more or less this case...
           // Failed to initiate the identification procedure
           emm_ctx->emm_cause = EMM_CAUSE_ILLEGAL_UE;
           // Do not accept the UE to attach to the network
-          rc = authentication_reject(emm_ctx, (nas_base_proc_t*)auth_proc);
+          rc = authentication_reject(emm_ctx, (nas_base_proc_t *)auth_proc);
         }
       } else {
         REQUIREMENT_3GPP_24_301(R10_5_4_2_5__2);
@@ -960,7 +958,7 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
         increment_counter("ue_attach", 1, 2, "result", "failure", "cause",
                           "authentication_xres_validation_failed");
         // Do not accept the UE to attach to the network
-        rc = authentication_reject(emm_ctx, (nas_base_proc_t*)auth_proc);
+        rc = authentication_reject(emm_ctx, (nas_base_proc_t *)auth_proc);
       }
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
@@ -1004,14 +1002,14 @@ status_code_e emm_proc_authentication_complete(mme_ue_s1ap_id_t ue_id,
  * The memory for each procedure is allocated by the caller
  */
 
-void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t* auth_info_proc) {
+void set_callbacks_for_auth_info_proc(nas_auth_info_proc_t *auth_info_proc) {
   auth_info_proc->success_notif = (success_cb_t)auth_info_proc_success_cb;
   auth_info_proc->failure_notif = (failure_cb_t)auth_info_proc_failure_cb;
   auth_info_proc->cn_proc.base_proc.time_out =
       (time_out_t)mme_app_handle_air_timer_expiry;
 }
 
-void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc) {
+void set_callbacks_for_auth_proc(nas_emm_auth_proc_t *auth_proc) {
   auth_proc->emm_com_proc.emm_proc.not_delivered =
       (sdu_out_not_delivered_t)authentication_ll_failure;
   auth_proc->emm_com_proc.emm_proc.not_delivered_ho =
@@ -1056,8 +1054,8 @@ void set_callbacks_for_auth_proc(nas_emm_auth_proc_t* auth_proc) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
-                                               void* args) {
+status_code_e mme_app_handle_auth_t3460_expiry(zloop_t *loop, int timer_id,
+                                               void *args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
@@ -1067,8 +1065,8 @@ status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, const_cast<char*>("Authentication T3460 Timer"));
+  struct ue_mm_context_s *ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, const_cast<char *>("Authentication T3460 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -1077,13 +1075,13 @@ status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  emm_context_t* emm_ctx = &ue_context_p->emm_context;
+  emm_context_t *emm_ctx = &ue_context_p->emm_context;
 
   if (!(emm_ctx)) {
     OAILOG_ERROR(LOG_NAS_EMM, "T3460 timer expired No EMM context\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
-  nas_emm_auth_proc_t* auth_proc =
+  nas_emm_auth_proc_t *auth_proc =
       get_nas_common_procedure_authentication(emm_ctx);
   mme_ue_s1ap_id_t ue_id;
 
@@ -1109,7 +1107,7 @@ status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
        */
       authentication_request(emm_ctx, auth_proc);
     } else {
-      emm_context_t* emm_ctx = emm_context_get(&_emm_data, auth_proc->ue_id);
+      emm_context_t *emm_ctx = emm_context_get(&_emm_data, auth_proc->ue_id);
       /*
        * Abort the authentication and attach procedure
        */
@@ -1141,21 +1139,21 @@ status_code_e mme_app_handle_auth_t3460_expiry(zloop_t* loop, int timer_id,
    --------------------------------------------------------------------------
 */
 
-static int authentication_check_imsi_5_4_2_5__1(
-    struct emm_context_s* emm_context) {
+static int
+authentication_check_imsi_5_4_2_5__1(struct emm_context_s *emm_context) {
   int rc = RETURNerror;
 
   if (!(emm_context)) {
     OAILOG_ERROR(LOG_NAS_EMM, "T3460 timer expired No EMM context\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-  nas_emm_auth_proc_t* auth_proc =
+  nas_emm_auth_proc_t *auth_proc =
       get_nas_common_procedure_authentication(emm_context);
 
   if (auth_proc) {
     REQUIREMENT_3GPP_24_301(R10_5_4_2_5__1);
     if (IS_EMM_CTXT_VALID_IMSI(
-            emm_context)) {  // VALID means received in IDENTITY RESPONSE
+            emm_context)) { // VALID means received in IDENTITY RESPONSE
       // if IMSI are not equal
       if (memcmp(auth_proc->unchecked_imsi, &emm_context->_imsi,
                  sizeof(imsi_t))) {
@@ -1167,8 +1165,8 @@ static int authentication_check_imsi_5_4_2_5__1(
             auth_proc->emm_com_proc.emm_proc.base_proc.success_notif;
         failure_cb_t failure_cb =
             auth_proc->emm_com_proc.emm_proc.base_proc.failure_notif;
-        nas_emm_specific_proc_t* emm_specific_proc =
-            (nas_emm_specific_proc_t*)((nas_base_proc_t*)auth_proc)->parent;
+        nas_emm_specific_proc_t *emm_specific_proc =
+            (nas_emm_specific_proc_t *)((nas_base_proc_t *)auth_proc)->parent;
 
         emm_sap_t emm_sap = {};
         emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
@@ -1202,14 +1200,14 @@ static int authentication_check_imsi_5_4_2_5__1(
 }
 
 //------------------------------------------------------------------------------
-static int authentication_check_imsi_5_4_2_5__1_fail(
-    struct emm_context_s* emm_context) {
+static int
+authentication_check_imsi_5_4_2_5__1_fail(struct emm_context_s *emm_context) {
   int rc = RETURNerror;
   if (!(emm_context)) {
     OAILOG_ERROR(LOG_NAS_EMM, "T3460 timer expired No EMM context\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
-  nas_emm_auth_proc_t* auth_proc =
+  nas_emm_auth_proc_t *auth_proc =
       get_nas_common_procedure_authentication(emm_context);
 
   if (auth_proc) {
@@ -1241,8 +1239,8 @@ static int authentication_check_imsi_5_4_2_5__1_fail(
  **      Return:    RETURNok, RETURNerror                      **
  **                                                                        **
  ***************************************************************************/
-static status_code_e authentication_request(struct emm_context_s* emm_ctx,
-                                            nas_emm_auth_proc_t* auth_proc) {
+static status_code_e authentication_request(struct emm_context_s *emm_ctx,
+                                            nas_emm_auth_proc_t *auth_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
 
@@ -1301,13 +1299,13 @@ static status_code_e authentication_request(struct emm_context_s* emm_ctx,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static status_code_e authentication_reject(emm_context_t* emm_context,
-                                           struct nas_base_proc_s* base_proc) {
+static status_code_e authentication_reject(emm_context_t *emm_context,
+                                           struct nas_base_proc_s *base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNerror;
   if ((base_proc) && (emm_context)) {
-    nas_emm_auth_proc_t* auth_proc = (nas_emm_auth_proc_t*)base_proc;
+    nas_emm_auth_proc_t *auth_proc = (nas_emm_auth_proc_t *)base_proc;
 
     /*
      * Notify EMM-AS SAP that Authentication Reject message has to be sent
@@ -1342,13 +1340,13 @@ static status_code_e authentication_reject(emm_context_t* emm_context,
  **      Others:    T3460                                      **
  **                                                                        **
  ***************************************************************************/
-static int authentication_ll_failure(struct emm_context_s* emm_context,
-                                     struct nas_emm_proc_s* emm_proc) {
+static int authentication_ll_failure(struct emm_context_s *emm_context,
+                                     struct nas_emm_proc_s *emm_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   if ((emm_proc) && (emm_context)) {
     REQUIREMENT_3GPP_24_301(R10_5_4_2_7_a);
-    nas_emm_auth_proc_t* auth_proc = (nas_emm_auth_proc_t*)emm_proc;
+    nas_emm_auth_proc_t *auth_proc = (nas_emm_auth_proc_t *)emm_proc;
     emm_sap_t emm_sap = {};
 
     emm_sap.primitive = EMMREG_COMMON_PROC_ABORT;
@@ -1376,15 +1374,15 @@ static int authentication_ll_failure(struct emm_context_s* emm_context,
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-static int authentication_non_delivered_ho(struct emm_context_s* emm_ctx,
-                                           struct nas_emm_proc_s* emm_proc) {
+static int authentication_non_delivered_ho(struct emm_context_s *emm_ctx,
+                                           struct nas_emm_proc_s *emm_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
   if ((emm_proc) && (emm_ctx)) {
-    ue_mm_context_t* ue_mm_context =
+    ue_mm_context_t *ue_mm_context =
         PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
-    nas_emm_auth_proc_t* auth_proc = (nas_emm_auth_proc_t*)emm_proc;
+    nas_emm_auth_proc_t *auth_proc = (nas_emm_auth_proc_t *)emm_proc;
     REQUIREMENT_3GPP_24_301(R10_5_4_2_7_j);
     mme_ue_s1ap_id_t ue_id = auth_proc->ue_id;
     /************************README********************************************
@@ -1438,13 +1436,13 @@ static int authentication_non_delivered_ho(struct emm_context_s* emm_ctx,
  **     Others: None                                                       **
  **                                                                        **
  ***************************************************************************/
-static int authentication_abort(emm_context_t* emm_ctx,
-                                struct nas_base_proc_s* base_proc) {
+static int authentication_abort(emm_context_t *emm_ctx,
+                                struct nas_base_proc_s *base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   if ((base_proc) && (emm_ctx)) {
-    nas_emm_auth_proc_t* auth_proc = (nas_emm_auth_proc_t*)base_proc;
-    ue_mm_context_t* ue_mm_context =
+    nas_emm_auth_proc_t *auth_proc = (nas_emm_auth_proc_t *)base_proc;
+    ue_mm_context_t *ue_mm_context =
         PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
     OAILOG_INFO_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
                    "EMM-PROC  - Abort authentication procedure "
@@ -1480,16 +1478,14 @@ static int authentication_abort(emm_context_t* emm_ctx,
  **     Return: None                                                       **
  **                                                                        **
  ***************************************************************************/
-static void nas_itti_auth_info_req(const mme_ue_s1ap_id_t ue_id,
-                                   const imsi_t* const imsiP,
-                                   const bool is_initial_reqP,
-                                   plmn_t* const visited_plmnP,
-                                   const uint8_t num_vectorsP,
-                                   const_bstring const auts_pP,
-                                   const uint8_t dcnr) {
+static void
+nas_itti_auth_info_req(const mme_ue_s1ap_id_t ue_id, const imsi_t *const imsiP,
+                       const bool is_initial_reqP, plmn_t *const visited_plmnP,
+                       const uint8_t num_vectorsP, const_bstring const auts_pP,
+                       const uint8_t dcnr) {
   OAILOG_FUNC_IN(LOG_NAS);
-  MessageDef* message_p = NULL;
-  s6a_auth_info_req_t* auth_info_req = NULL;
+  MessageDef *message_p = NULL;
+  s6a_auth_info_req_t *auth_info_req = NULL;
 
   OAILOG_INFO(LOG_NAS_EMM,
               "Sending Authentication Information Request message to S6A"
@@ -1565,8 +1561,8 @@ static void nas_itti_auth_info_req(const mme_ue_s1ap_id_t ue_id,
  ** Inputs:  args:      handler parameters                             **
  **                                                                    **
  ***********************************************************************/
-status_code_e mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id,
-                                              void* args) {
+status_code_e mme_app_handle_air_timer_expiry(zloop_t *loop, int timer_id,
+                                              void *args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
@@ -1575,8 +1571,8 @@ status_code_e mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id,
                    timer_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, const_cast<char*>("Authentication Info Request Timer"));
+  struct ue_mm_context_s *ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, const_cast<char *>("Authentication Info Request Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -1585,10 +1581,10 @@ status_code_e mme_app_handle_air_timer_expiry(zloop_t* loop, int timer_id,
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  emm_context_t* emm_ctx = &ue_context_p->emm_context;
+  emm_context_t *emm_ctx = &ue_context_p->emm_context;
 
   if (emm_ctx) {
-    nas_auth_info_proc_t* auth_info_proc =
+    nas_auth_info_proc_t *auth_info_proc =
         get_nas_cn_procedure_auth_info(emm_ctx);
     if (!auth_info_proc) {
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);

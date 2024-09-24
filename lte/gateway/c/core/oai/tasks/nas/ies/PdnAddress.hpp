@@ -32,8 +32,8 @@ typedef struct PdnAddress_tag {
   bstring pdnaddressinformation;
 } PdnAddress;
 
-int encode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
+int encode_pdn_address(PdnAddress *pdnaddress, uint8_t iei, uint8_t *buffer,
                        uint32_t len);
 
-int decode_pdn_address(PdnAddress* pdnaddress, uint8_t iei, uint8_t* buffer,
+int decode_pdn_address(PdnAddress *pdnaddress, uint8_t iei, uint8_t *buffer,
                        uint32_t len);

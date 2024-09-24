@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/DeactivateEpsBearerContextAccept.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,9 +31,9 @@ extern "C" {
 #endif
 
 int decode_deactivate_eps_bearer_context_accept(
-    deactivate_eps_bearer_context_accept_msg*
-        deactivate_eps_bearer_context_accept,
-    uint8_t* buffer, uint32_t len) {
+    deactivate_eps_bearer_context_accept_msg
+        *deactivate_eps_bearer_context_accept,
+    uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -54,27 +54,28 @@ int decode_deactivate_eps_bearer_context_accept(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
-        if ((decoded_result = decode_protocol_configuration_options_ie(
-                 &deactivate_eps_bearer_context_accept
-                      ->protocolconfigurationoptions,
-                 true, buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
+      if ((decoded_result = decode_protocol_configuration_options_ie(
+               &deactivate_eps_bearer_context_accept
+                    ->protocolconfigurationoptions,
+               true, buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        deactivate_eps_bearer_context_accept->presencemask |=
-            DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      deactivate_eps_bearer_context_accept->presencemask |=
+          DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -82,9 +83,9 @@ int decode_deactivate_eps_bearer_context_accept(
 }
 
 int encode_deactivate_eps_bearer_context_accept(
-    deactivate_eps_bearer_context_accept_msg*
-        deactivate_eps_bearer_context_accept,
-    uint8_t* buffer, uint32_t len) {
+    deactivate_eps_bearer_context_accept_msg
+        *deactivate_eps_bearer_context_accept,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
 

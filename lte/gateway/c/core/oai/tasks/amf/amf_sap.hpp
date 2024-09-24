@@ -22,8 +22,8 @@ extern "C" {
 };
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 
 namespace magma5g {
 /****************************************************************************/
@@ -105,7 +105,7 @@ enum amf_primitive_t {
  * -------------------------------------
  */
 typedef struct amf_reg_register_s {
-  nas_amf_registration_proc_t* proc;
+  nas_amf_registration_proc_t *proc;
 } amf_reg_register_t;
 
 /*
@@ -113,13 +113,13 @@ typedef struct amf_reg_register_s {
  */
 typedef struct sap_primitive_s {
   amf_reg_register_t registered;
-  struct nas_amf_common_proc_s* common_proc;
+  struct nas_amf_common_proc_s *common_proc;
 } sap_primitive_t;
 
 typedef struct amf_reg_s {
   amf_primitive_t primitive;
   amf_ue_ngap_id_t ue_id;
-  amf_context_t* ctx;
+  amf_context_t *ctx;
   bool notify;
   bool free_proc;
   sap_primitive_t u;
@@ -133,7 +133,7 @@ typedef struct amf_cn_auth_res_s {
   uint8_t nb_vectors;
 
   /* Consider only one E-UTRAN vector for the moment... */
-  m5gauth_vector_t* vector[MAX_EPS_AUTH_VECTORS];
+  m5gauth_vector_t *vector[MAX_EPS_AUTH_VECTORS];
 } amf_cn_auth_res_t;
 
 typedef struct amf_cn_implicit_detach_ue_s {
@@ -144,7 +144,7 @@ typedef struct amf_cn_implicit_detach_ue_s {
 typedef struct amf_cn_s {
   amf_cn_primitive_t primitive;
   union {
-    amf_cn_auth_res_t* auth_res;
+    amf_cn_auth_res_t *auth_res;
     amf_cn_implicit_deregister_ue_t amf_cn_implicit_deregister;
   } u;
 } amf_cn_t;
@@ -164,10 +164,10 @@ typedef struct amf_sap_s {
 } amf_sap_t;
 
 // Message passing from Access to Service Access Point.
-status_code_e amf_sap_send(amf_sap_t* msg);
+status_code_e amf_sap_send(amf_sap_t *msg);
 
 // Functions to handle all UL message final actions*/
-status_code_e amf_cn_send(const amf_cn_t* msg);
-status_code_e amf_reg_send(amf_sap_t* const msg);
+status_code_e amf_cn_send(const amf_cn_t *msg);
+status_code_e amf_reg_send(amf_sap_t *const msg);
 
-}  // namespace  magma5g
+} // namespace  magma5g

@@ -15,8 +15,8 @@
 
 #include <google/protobuf/text_format.h>
 
-#include <fstream>
 #include <algorithm>
+#include <fstream>
 #include <sstream>
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"
@@ -25,8 +25,9 @@ namespace magma {
 namespace lte {
 
 // loads paths of data samples of s1ap states (storing in each line) from a file
-std::vector<std::string> load_file_into_vector_of_line_content(
-    const std::string& data_folder_path, const std::string& file_name) {
+std::vector<std::string>
+load_file_into_vector_of_line_content(const std::string &data_folder_path,
+                                      const std::string &file_name) {
   std::fstream file_content(file_name.c_str(), std::ios_base::in);
   std::string data_file_name;
   std::vector<std::string> vector_of_file_names;
@@ -47,15 +48,15 @@ std::vector<std::string> load_file_into_vector_of_line_content(
 
 // mocking the reading s1ap ue states from redis database by injecting local
 // samples
-status_code_e mock_read_s1ap_ue_state_db(
-    const std::vector<std::string>& ue_samples) {
-  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+status_code_e
+mock_read_s1ap_ue_state_db(const std::vector<std::string> &ue_samples) {
+  map_uint64_ue_description_t *state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
     std::cerr << "Cannot get S1AP UE State" << std::endl;
     return RETURNerror;
   }
 
-  for (const auto& name_of_sample_file : ue_samples) {
+  for (const auto &name_of_sample_file : ue_samples) {
     oai::UeDescription ue_proto = oai::UeDescription();
     std::fstream input(name_of_sample_file.c_str(),
                        std::ios::in | std::ios::binary);
@@ -65,7 +66,7 @@ status_code_e mock_read_s1ap_ue_state_db(
       return RETURNerror;
     }
 
-    oai::UeDescription* ue_context_p = new oai::UeDescription();
+    oai::UeDescription *ue_context_p = new oai::UeDescription();
     if (!ue_context_p) {
       std::cerr << "Failed to allocate memory for ue_context_p" << std::endl;
       return RETURNerror;
@@ -74,12 +75,12 @@ status_code_e mock_read_s1ap_ue_state_db(
 
     proto_map_rc_t rc = state_ue_map->insert(
         ue_context_p->comp_s1ap_id(),
-        reinterpret_cast<oai::UeDescription*>(ue_context_p));
+        reinterpret_cast<oai::UeDescription *>(ue_context_p));
 
     if (rc != magma::PROTO_MAP_OK) {
       std::cerr << "Failed to insert UE state :" << name_of_sample_file
                 << std::endl;
-      free_ue_description(reinterpret_cast<void**>(&ue_context_p));
+      free_ue_description(reinterpret_cast<void **>(&ue_context_p));
       return RETURNerror;
     }
   }
@@ -88,9 +89,9 @@ status_code_e mock_read_s1ap_ue_state_db(
 
 // mocking the reading s1ap ue states from redis database by injecting local
 // samples
-status_code_e mock_read_s1ap_state_db(
-    const std::string& file_name_state_sample) {
-  oai::S1apState* state_cache_p = get_s1ap_state(false);
+status_code_e
+mock_read_s1ap_state_db(const std::string &file_name_state_sample) {
+  oai::S1apState *state_cache_p = get_s1ap_state(false);
 
   oai::S1apState state_proto = oai::S1apState();
 
@@ -106,5 +107,5 @@ status_code_e mock_read_s1ap_state_db(
   return RETURNok;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

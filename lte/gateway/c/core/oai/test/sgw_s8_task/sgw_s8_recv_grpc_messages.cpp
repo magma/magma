@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
+#include "feg/protos/s8_proxy.grpc.pb.h"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include <gtest/gtest.h>
 #include <thread>
-#include "feg/protos/s8_proxy.grpc.pb.h"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
 extern "C" {
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
 }
@@ -23,16 +23,16 @@ extern "C" {
 using grpc::ServerContext;
 using ::testing::Test;
 task_zmq_ctx_t task_zmq_ctx_main_grpc;
-static int handle_message_test_s8_grpc(zloop_t* loop, zsock_t* reader,
-                                       void* arg);
+static int handle_message_test_s8_grpc(zloop_t *loop, zsock_t *reader,
+                                       void *arg);
 class SgwS8MessagesTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp();
   virtual void TearDown();
-  void build_grpc_create_bearer_req(magma::feg::CreateBearerRequestPgw* cb_req);
-  void build_grpc_delete_bearer_req(magma::feg::DeleteBearerRequestPgw* db_req);
+  void build_grpc_create_bearer_req(magma::feg::CreateBearerRequestPgw *cb_req);
+  void build_grpc_delete_bearer_req(magma::feg::DeleteBearerRequestPgw *db_req);
 
- protected:
+protected:
   std::shared_ptr<magma::S8ServiceImpl> s8_message_receiver;
   std::shared_ptr<MockS8Handler> sgw_s8_handler;
 };
@@ -61,7 +61,7 @@ void SgwS8MessagesTest::TearDown() {
 }
 
 void SgwS8MessagesTest::build_grpc_delete_bearer_req(
-    magma::feg::DeleteBearerRequestPgw* db_req) {
+    magma::feg::DeleteBearerRequestPgw *db_req) {
   db_req->set_sequence_number(2);
   db_req->set_c_agw_teid(10);
   db_req->set_linked_bearer_id(5);
@@ -69,7 +69,7 @@ void SgwS8MessagesTest::build_grpc_delete_bearer_req(
 }
 
 void SgwS8MessagesTest::build_grpc_create_bearer_req(
-    magma::feg::CreateBearerRequestPgw* cb_req) {
+    magma::feg::CreateBearerRequestPgw *cb_req) {
   cb_req->set_pgwaddrs("192.168.32.118:12342");
   cb_req->set_sequence_number(1);
   cb_req->set_c_agw_teid(10);
@@ -77,13 +77,13 @@ void SgwS8MessagesTest::build_grpc_create_bearer_req(
   return;
 }
 
-static int handle_message_test_s8_grpc(zloop_t* loop, zsock_t* reader,
-                                       void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message_test_s8_grpc(zloop_t *loop, zsock_t *reader,
+                                       void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
+  default: {
+  } break;
   }
 
   itti_free_msg_content(received_message_p);

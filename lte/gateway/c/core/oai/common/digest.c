@@ -35,9 +35,9 @@
    \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdlib.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
+#include <stdlib.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/digest.h"
@@ -45,16 +45,16 @@
 
 //------------------------------------------------------------------------------
 // evp_x can be EVP_sha256, ...
-status_code_e digest_buffer(const EVP_MD* (*evp_x)(void),
-                            const unsigned char* buffer, size_t buffer_len,
-                            unsigned char** digest, unsigned int* digest_len) {
-  EVP_MD_CTX* mdctx = NULL;
+status_code_e digest_buffer(const EVP_MD *(*evp_x)(void),
+                            const unsigned char *buffer, size_t buffer_len,
+                            unsigned char **digest, unsigned int *digest_len) {
+  EVP_MD_CTX *mdctx = NULL;
 
   if ((mdctx = EVP_MD_CTX_create())) {
     if (1 == EVP_DigestInit_ex(mdctx, (*evp_x)(), NULL)) {
       if (1 == EVP_DigestUpdate(mdctx, buffer, buffer_len)) {
         if ((*digest =
-                 (unsigned char*)OPENSSL_malloc(EVP_MD_size((*evp_x)())))) {
+                 (unsigned char *)OPENSSL_malloc(EVP_MD_size((*evp_x)())))) {
           if (1 == EVP_DigestFinal_ex(mdctx, *digest, digest_len)) {
             EVP_MD_CTX_destroy(mdctx);
             return RETURNok;

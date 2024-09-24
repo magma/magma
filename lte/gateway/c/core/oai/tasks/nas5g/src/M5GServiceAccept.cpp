@@ -17,22 +17,22 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.hpp"
 
 namespace magma5g {
 ServiceAcceptMsg::ServiceAcceptMsg(){};
 ServiceAcceptMsg::~ServiceAcceptMsg(){};
 
 // Decoding Service Accept Message and its IEs
-int ServiceAcceptMsg::DecodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
-                                             uint8_t* buffer, uint32_t len) {
+int ServiceAcceptMsg::DecodeServiceAcceptMsg(ServiceAcceptMsg *svc_acpt,
+                                             uint8_t *buffer, uint32_t len) {
   return 0;
 }
 
 // Encoding Service Accept Message and its IEs
-int ServiceAcceptMsg::EncodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
-                                             uint8_t* buffer, uint32_t len) {
+int ServiceAcceptMsg::EncodeServiceAcceptMsg(ServiceAcceptMsg *svc_acpt,
+                                             uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, SERVICE_ACCEPT_MINIMUM_LENGTH,
@@ -77,4 +77,4 @@ int ServiceAcceptMsg::EncodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
 
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

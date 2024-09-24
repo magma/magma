@@ -42,7 +42,7 @@
 //..............................................................................
 // 11.2.3.1.1  Protocol discriminator
 //..............................................................................
-typedef uint8_t eps_protocol_discriminator_t;  // 4 bits only
+typedef uint8_t eps_protocol_discriminator_t; // 4 bits only
 
 typedef enum eps_protocol_discriminator_value_e {
   GROUP_CALL_CONTROL = 0x0,
@@ -55,7 +55,7 @@ typedef enum eps_protocol_discriminator_value_e {
   RADIO_RESOURCES_MANAGEMENT_MESSAGE = 0x6,
   EPS_MOBILITY_MANAGEMENT_MESSAGE =
       0x7, /* Protocol discriminator identifier for EPS Mobility Management */
-  M5GS_MOBILITY_MANAGEMENT_MESSAGE = 0x7E,  // NEED TO CHECK
+  M5GS_MOBILITY_MANAGEMENT_MESSAGE = 0x7E, // NEED TO CHECK
   GPRS_MOBILITY_MANAGEMENT_MESSAGE = 0x8,
   SMS_MESSAGE = 0x9,
   GPRS_SESSION_MANAGEMENT_MESSAGE = 0xA,
@@ -65,7 +65,7 @@ typedef enum eps_protocol_discriminator_value_e {
 //..............................................................................
 // 11.2.3.1.5  EPS bearer identity
 //..............................................................................
-typedef uint8_t ebi_t;  // 4 bits only
+typedef uint8_t ebi_t; // 4 bits only
 
 #define EPS_BEARER_IDENTITY_UNASSIGNED (ebi_t)0
 #define EPS_BEARER_IDENTITY_RESERVED1 (ebi_t)1
@@ -87,7 +87,7 @@ typedef uint8_t pti_t;
 //..............................................................................
 // 11.2.3.1b PDU session identity
 //..............................................................................
-typedef uint8_t psi_t;  // 4 bits only
+typedef uint8_t psi_t; // 4 bits only
 
 #define NO_PDU_SESSION_IDENTITY (psi_t)0
 #define PDU_SESSION_IDENTITY_VALUE_1 (psi_t)1

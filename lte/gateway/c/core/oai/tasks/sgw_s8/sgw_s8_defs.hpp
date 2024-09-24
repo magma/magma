@@ -21,7 +21,7 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
-status_code_e sgw_s8_init(sgw_config_t* sgw_config_p);
+status_code_e sgw_s8_init(sgw_config_t *sgw_config_p);
 #ifdef __cplusplus
 }
 #endif

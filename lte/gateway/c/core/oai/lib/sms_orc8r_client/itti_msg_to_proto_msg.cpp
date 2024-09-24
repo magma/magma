@@ -17,10 +17,10 @@
 
 #include <iomanip>
 
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.hpp"
 #include "lte/protos/mconfig/mconfigs.pb.h"
 #include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
-#include "lte/gateway/c/core/oai/lib/sms_orc8r_client/itti_msg_to_proto_msg.hpp"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/lib/message_utils/ie_to_bytes.h"
@@ -38,7 +38,7 @@ namespace magma {
 using namespace lte;
 
 SMOUplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_smo_proto_msg(
-    const itti_sgsap_uplink_unitdata_t* msg) {
+    const itti_sgsap_uplink_unitdata_t *msg) {
   SMOUplinkUnitdata ret;
   ret.Clear();
 
@@ -77,4 +77,4 @@ SMOUplinkUnitdata convert_itti_sgsap_uplink_unitdata_to_smo_proto_msg(
   return ret;
 }
 
-}  // namespace magma
+} // namespace magma

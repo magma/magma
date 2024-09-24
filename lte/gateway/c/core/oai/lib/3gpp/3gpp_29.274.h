@@ -41,8 +41,8 @@
 #include <arpa/inet.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 //-------------------------------------
 // 8.4 Cause
@@ -51,7 +51,7 @@ typedef enum gtpv2c_cause_value_e {
   /* Request / Initial message */
   LOCAL_DETACH = 2,
   COMPLETE_DETACH = 3,
-  RAT_CHANGE_3GPP_TO_NON_3GPP = 4,  ///< RAT changed from 3GPP to Non-3GPP
+  RAT_CHANGE_3GPP_TO_NON_3GPP = 4, ///< RAT changed from 3GPP to Non-3GPP
   ISR_DEACTIVATION = 5,
   ERROR_IND_FROM_RNC_ENB_SGSN = 6,
   IMSI_DETACH_ONLY = 7,
@@ -63,9 +63,9 @@ typedef enum gtpv2c_cause_value_e {
   /* Acceptance in a Response/Triggered message */
   REQUEST_ACCEPTED = 16,
   REQUEST_ACCEPTED_PARTIALLY = 17,
-  NEW_PDN_TYPE_NW_PREF = 18,  ///< New PDN type due to network preference
+  NEW_PDN_TYPE_NW_PREF = 18, ///< New PDN type due to network preference
   NEW_PDN_TYPE_SAB_ONLY =
-      19,  ///< New PDN type due to single address bearer only
+      19, ///< New PDN type due to single address bearer only
   /* Rejection in a Response triggered message. */
   CONTEXT_NOT_FOUND = 64,
   INVALID_MESSAGE_FORMAT = 65,
@@ -112,17 +112,17 @@ typedef enum gtpv2c_cause_value_e {
   FALLBACK_TO_GTPV1 = 108,
   INVALID_PEER = 109,
   TEMP_REJECT_HO_IN_PROGRESS =
-      110,  ///< Temporarily rejected due to handover procedure in progress
+      110, ///< Temporarily rejected due to handover procedure in progress
   MODIFICATIONS_NOT_LIMITED_TO_S1_U_BEARERS = 111,
   REJECTED_FOR_PMIPv6_REASON =
-      112,  ///< Request rejected for a PMIPv6 reason (see 3GPP TS 29.275 [26]).
+      112, ///< Request rejected for a PMIPv6 reason (see 3GPP TS 29.275 [26]).
   APN_CONGESTION = 113,
   BEARER_HANDLING_NOT_SUPPORTED = 114,
   UE_ALREADY_RE_ATTACHED = 115,
   M_PDN_APN_NOT_ALLOWED =
-      116,  ///< Multiple PDN connections for a given APN not allowed.
+      116, ///< Multiple PDN connections for a given APN not allowed.
   LATE_OVERLAPPING_REQUEST =
-      121,  ///< If the response message has not been received yet..
+      121, ///< If the response message has not been received yet..
   SGW_CAUSE_MAX
 } gtpv2c_cause_value_t;
 
@@ -182,8 +182,8 @@ typedef struct bearer_qos_s {
    */
   unsigned pvi : 1;
   uint8_t qci;
-  ambr_t gbr;  ///< Guaranteed bit rate
-  ambr_t mbr;  ///< Maximum bit rate
+  ambr_t gbr; ///< Guaranteed bit rate
+  ambr_t mbr; ///< Maximum bit rate
 } bearer_qos_t;
 
 //-------------------------------------
@@ -230,7 +230,7 @@ typedef struct fteid_s {
   unsigned ipv4 : 1;
   unsigned ipv6 : 1;
   interface_type_t interface_type;
-  teid_t teid;  ///< TEID or GRE Key
+  teid_t teid; ///< TEID or GRE Key
   struct in_addr ipv4_address;
   struct in6_addr ipv6_address;
 } fteid_t;
@@ -239,27 +239,26 @@ typedef struct fteid_s {
 // 7.2.3-2: Bearer Context within Create Bearer Request
 
 typedef struct bearer_context_within_create_bearer_request_s {
-  uint8_t eps_bearer_id;  ///< EBI,  Mandatory CSR
-  traffic_flow_template_t
-      tft;  ///< Bearer TFT, Optional CSR, This IE may be included on the S4/S11
-            ///< and S5/S8 interfaces.
-  fteid_t s1u_sgw_fteid;  ///< This IE shall be sent on the S11 interface if the
-                          ///< S1-U interface is used.
+  uint8_t eps_bearer_id;       ///< EBI,  Mandatory CSR
+  traffic_flow_template_t tft; ///< Bearer TFT, Optional CSR, This IE may be
+                               ///< included on the S4/S11 and S5/S8 interfaces.
+  fteid_t s1u_sgw_fteid; ///< This IE shall be sent on the S11 interface if the
+                         ///< S1-U interface is used.
   ///< If SGW supports both IPv4 and IPv6, it shall send both an
   ///< IPv4 address and an IPv6 address within the S1-U SGW F-TEID IE.
-  fteid_t s5_s8_u_pgw_fteid;  ///< This IE shall be sent on the S4, S5/S8 and
-                              ///< S11 interfaces for GTP-based S5/S8 interface.
-                              ///< The MME/SGSN shall
+  fteid_t s5_s8_u_pgw_fteid; ///< This IE shall be sent on the S4, S5/S8 and
+                             ///< S11 interfaces for GTP-based S5/S8 interface.
+                             ///< The MME/SGSN shall
   ///< ignore the IE on S11/S4 for PMIP-based S5/S8 interface.
   fteid_t s12_sgw_fteid;   ///< This IE shall be sent on the S4 interface if the
                            ///< S12 interface is used. See NOTE 1.
   fteid_t s4_u_sgw_fteid;  ///< This IE shall be sent on the S4 interface if the
                            ///< S4-U interface is used. See NOTE 1.
-  fteid_t s2b_u_pgw_fteid;  ///< This IE (for user plane) shall be sent on the
-                            ///< S2b interface.
-  bearer_qos_t bearer_level_qos;  ///<
+  fteid_t s2b_u_pgw_fteid; ///< This IE (for user plane) shall be sent on the
+                           ///< S2b interface.
+  bearer_qos_t bearer_level_qos; ///<
   protocol_configuration_options_t
-      pco;  ///< This IE may be sent on the S5/S8 and S4/S11 interfaces
+      pco; ///< This IE may be sent on the S5/S8 and S4/S11 interfaces
   ///< if ePCO is not supported by the UE or the network. This bearer level IE
   ///< takes precedence over the PCO IE in the message body if they both exist.
 } bearer_context_within_create_bearer_request_t;
@@ -268,44 +267,43 @@ typedef struct bearer_context_within_create_bearer_request_s {
 // 7.2.4-2: Bearer Context within Create Bearer Response
 
 typedef struct bearer_context_within_create_bearer_response_s {
-  uint8_t eps_bearer_id;  ///< EBI
+  uint8_t eps_bearer_id; ///< EBI
   gtpv2c_cause_t
-      cause;  ///< This IE shall indicate if the bearer handling was successful,
-              ///< and if not, it gives information on the reason.
-  fteid_t s1u_enb_fteid;  ///< This IE shall be sent on the S11 interface if the
-                          ///< S1-U interface is used.
-  fteid_t s1u_sgw_fteid;  ///< This IE shall be sent on the S11 interface. It
-                          ///< shall be used to correlate the bearers with those
-                          ///< in the Create Bearer Request.
-  fteid_t
-      s5_s8_u_sgw_fteid;  ///< This IE shall be sent on the S5/S8 interfaces.
-  fteid_t s5_s8_u_pgw_fteid;  ///< This IE shall be sent on the S5/S8
-                              ///< interfaces. It shall be
+      cause; ///< This IE shall indicate if the bearer handling was successful,
+             ///< and if not, it gives information on the reason.
+  fteid_t s1u_enb_fteid; ///< This IE shall be sent on the S11 interface if the
+                         ///< S1-U interface is used.
+  fteid_t s1u_sgw_fteid; ///< This IE shall be sent on the S11 interface. It
+                         ///< shall be used to correlate the bearers with those
+                         ///< in the Create Bearer Request.
+  fteid_t s5_s8_u_sgw_fteid; ///< This IE shall be sent on the S5/S8 interfaces.
+  fteid_t s5_s8_u_pgw_fteid; ///< This IE shall be sent on the S5/S8
+                             ///< interfaces. It shall be
   ///< used to correlate the bearers with those in the Create
   ///< Bearer Request.
-  fteid_t s12_rnc_fteid;  ///< C This IE shall be sent on the S4 interface if
-                          ///< the S12 interface is used. See NOTE 1.
-  fteid_t s12_sgw_fteid;  ///< C This IE shall be sent on the S4 interface. It
-                          ///< shall be used to correlate the bearers with those
-                          ///< in the Create Bearer Request. See NOTE1.
+  fteid_t s12_rnc_fteid; ///< C This IE shall be sent on the S4 interface if
+                         ///< the S12 interface is used. See NOTE 1.
+  fteid_t s12_sgw_fteid; ///< C This IE shall be sent on the S4 interface. It
+                         ///< shall be used to correlate the bearers with those
+                         ///< in the Create Bearer Request. See NOTE1.
   fteid_t s4_u_sgsn_fteid;  ///< C This IE shall be sent on the S4 interface if
                             ///< the S4-U interface is used. See NOTE1.
   fteid_t s4_u_sgw_fteid;   ///< C This IE shall be sent on the S4 interface. It
                             ///< shall be used to correlate the bearers with
                             ///< those in the Create Bearer Request. See NOTE1.
-  fteid_t s2b_u_epdg_fteid;  ///<  C This IE shall be sent on the S2b interface.
-  fteid_t s2b_u_pgw_fteid;   ///<  C This IE shall be sent on the S2b interface.
-                             ///<  It shall be used to correlate the bearers
-                             ///< with those in the Create Bearer Request.
+  fteid_t s2b_u_epdg_fteid; ///<  C This IE shall be sent on the S2b interface.
+  fteid_t s2b_u_pgw_fteid;  ///<  C This IE shall be sent on the S2b interface.
+                            ///<  It shall be used to correlate the bearers
+                            ///< with those in the Create Bearer Request.
   bearer_qos_t bearer_level_qos;
   protocol_configuration_options_t
-      pco;  ///< If the UE includes the PCO IE in the corresponding
-            ///< message, then the MME/SGSN shall copy the content of
-            ///< this IE transparently from the PCO IE included by the UE.
-            ///< If the SGW receives PCO from MME/SGSN, SGW shall
-            ///< forward it to the PGW. This bearer level IE takes
-            ///< precedence over the PCO IE in the message body if they
-            ///< both exist.
+      pco; ///< If the UE includes the PCO IE in the corresponding
+           ///< message, then the MME/SGSN shall copy the content of
+           ///< this IE transparently from the PCO IE included by the UE.
+           ///< If the SGW receives PCO from MME/SGSN, SGW shall
+           ///< forward it to the PGW. This bearer level IE takes
+           ///< precedence over the PCO IE in the message body if they
+           ///< both exist.
 } bearer_context_within_create_bearer_response_t;
 
 //-------------------------------------
@@ -313,8 +311,8 @@ typedef struct bearer_context_within_create_bearer_response_s {
 
 typedef struct flow_qos_s {
   uint8_t qci;
-  ambr_t gbr;  ///< Guaranteed bit rate
-  ambr_t mbr;  ///< Maximum bit rate
+  ambr_t gbr; ///< Guaranteed bit rate
+  ambr_t mbr; ///< Maximum bit rate
 } flow_qos_t;
 
 #endif /* FILE_3GPP_29_274_SEEN */

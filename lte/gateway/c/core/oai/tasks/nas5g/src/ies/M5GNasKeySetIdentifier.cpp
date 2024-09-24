@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,8 +19,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
 
 namespace magma5g {
 NASKeySetIdentifierMsg::NASKeySetIdentifierMsg(){};
@@ -28,8 +28,8 @@ NASKeySetIdentifierMsg::~NASKeySetIdentifierMsg(){};
 
 // Decode NASKeySetIdentifier IE
 int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
-    NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    NASKeySetIdentifierMsg *nas_key_set_identifier, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   // Checking IEI and pointer
@@ -49,8 +49,8 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
 
 // Encode NASKeySetIdentifier IE
 int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
-    NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    NASKeySetIdentifierMsg *nas_key_set_identifier, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -69,4 +69,4 @@ int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
 
   return encoded;
 };
-}  // namespace magma5g
+} // namespace magma5g

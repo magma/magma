@@ -10,12 +10,12 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 class NASKeySetIdentifierMsg {
- public:
+public:
   uint8_t iei;
   uint8_t tsc : 1;
   uint8_t nas_key_set_identifier : 3;
@@ -24,10 +24,10 @@ class NASKeySetIdentifierMsg {
   NASKeySetIdentifierMsg();
   ~NASKeySetIdentifierMsg();
   int EncodeNASKeySetIdentifierMsg(
-      NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      NASKeySetIdentifierMsg *nas_key_set_identifier, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
   int DecodeNASKeySetIdentifierMsg(
-      NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      NASKeySetIdentifierMsg *nas_key_set_identifier, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

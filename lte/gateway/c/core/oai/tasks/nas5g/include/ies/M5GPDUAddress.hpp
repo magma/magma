@@ -10,8 +10,8 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 #define PDU_SESSION_TYPE_LENGTH 1
@@ -19,7 +19,7 @@ namespace magma5g {
 #define PDU_ADDRESS_CONTENT_MAX_LENGTH 12
 // PDUAddress IE Class
 class PDUAddressMsg {
- public:
+public:
   uint8_t iei;
   uint8_t length;
   uint8_t type_val : 3;
@@ -27,9 +27,9 @@ class PDUAddressMsg {
 
   PDUAddressMsg();
   ~PDUAddressMsg();
-  int EncodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
-                          uint8_t* buffer, uint32_t len);
-  int DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
-                          uint8_t* buffer, uint32_t len);
+  int EncodePDUAddressMsg(PDUAddressMsg *pdu_address, uint8_t iei,
+                          uint8_t *buffer, uint32_t len);
+  int DecodePDUAddressMsg(PDUAddressMsg *pdu_address, uint8_t iei,
+                          uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

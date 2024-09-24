@@ -18,8 +18,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommandReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationCommandReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
@@ -28,8 +28,8 @@ PDUSessionModificationCommandReject::~PDUSessionModificationCommandReject() {}
 
 int PDUSessionModificationCommandReject::
     EncodePDUSessionModificationCommandReject(
-        PDUSessionModificationCommandReject* pdu_sess_mod_comd_rej,
-        uint8_t* buffer, uint32_t len) {
+        PDUSessionModificationCommandReject *pdu_sess_mod_comd_rej,
+        uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
@@ -82,8 +82,8 @@ int PDUSessionModificationCommandReject::
 
 int PDUSessionModificationCommandReject::
     DecodePDUSessionModificationCommandReject(
-        PDUSessionModificationCommandReject* pdu_sess_mod_comd_rej,
-        uint8_t* buffer, uint32_t len) {
+        PDUSessionModificationCommandReject *pdu_sess_mod_comd_rej,
+        uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   uint32_t decoded_result = 0;
 
@@ -145,4 +145,4 @@ int PDUSessionModificationCommandReject::
 
   return decoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

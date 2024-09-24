@@ -13,19 +13,19 @@
 
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <functional>
 #include <gmock/gmock.h>
 #include <grpcpp/impl/codegen/server_context.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
+#include <iostream>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
+#include <memory>
 #include <orc8r/protos/common.pb.h>
 #include <stdint.h>
-#include <functional>
-#include <iostream>
-#include <memory>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -65,7 +65,7 @@ ACTION_P(CallSetupCallback, result) {
 }
 
 class SessionManagerHandlerTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     monitoring_key = "mk1";
 
@@ -108,8 +108,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
   }
 
   void insert_static_rule(std::shared_ptr<StaticRuleStore> rule_store,
-                          const std::string& m_key, uint32_t charging_key,
-                          const std::string& rule_id) {
+                          const std::string &m_key, uint32_t charging_key,
+                          const std::string &rule_id) {
     PolicyRule rule;
     rule.set_id(rule_id);
     rule.set_rating_group(charging_key);
@@ -140,10 +140,10 @@ class SessionManagerHandlerTest : public ::testing::Test {
     evb->loopOnce();
   }
 
-  void initialize_session(SessionMap& session_map,
-                          const std::string& session_id,
-                          const SessionConfig& cfg,
-                          const CreateSessionResponse& response) {
+  void initialize_session(SessionMap &session_map,
+                          const std::string &session_id,
+                          const SessionConfig &cfg,
+                          const CreateSessionResponse &response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
     local_enforcer->update_session_with_policy_response(session, response,
@@ -151,7 +151,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     session_map[imsi].push_back(std::move(session));
   }
 
- protected:
+protected:
   std::string monitoring_key;
 
   std::shared_ptr<SessionStore> session_store;
@@ -162,7 +162,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
   std::shared_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockEventsReporter> events_reporter;
   SessionIDGenerator id_gen_;
-  folly::EventBase* evb;
+  folly::EventBase *evb;
   SessionMap session_map_;
 };
 
@@ -175,11 +175,11 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   LocalCreateSessionRequest request;
   CreateSessionResponse response;
 
-  const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
+  const std::string &hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
   SessionConfig cfg;
   cfg.common_context =
       build_common_context(IMSI1, "", "", teids0, "apn1", MSISDN, TGPP_WLAN);
-  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  const auto &wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
   cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   response.set_session_id(SESSION_ID_1);
@@ -205,7 +205,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   auto it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
-  auto& session = session_map[IMSI1][0];
+  auto &session = session_map[IMSI1][0];
   EXPECT_EQ(session->get_config().common_context.apn(), "apn1");
 
   grpc::ServerContext create_context;
@@ -214,7 +214,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
       build_common_context(IMSI1, "", "", teids0, "apn2", MSISDN, TGPP_WLAN);
   request.mutable_common_context()->CopyFrom(common);
   request.mutable_rat_specific_context()->mutable_wlan_context()->CopyFrom(
-      wlan);  // use same WLAN config as previous
+      wlan); // use same WLAN config as previous
 
   // Ensure session is not reported as its a duplicate
   EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
@@ -234,7 +234,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
-  auto& session_apn2 = session_map[IMSI1][0];
+  auto &session_apn2 = session_map[IMSI1][0];
   EXPECT_EQ(session_apn2->get_config().common_context.apn(), "apn2");
 }
 
@@ -276,7 +276,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   auto it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
-  auto& session = session_map[IMSI1][0];
+  auto &session = session_map[IMSI1][0];
   EXPECT_EQ(session->get_config().common_context.apn(), APN1);
 
   // Only active, identical sessions can be recycled for LTE
@@ -304,7 +304,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   it = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
-  auto& session_apn2 = session_map[IMSI1][0];
+  auto &session_apn2 = session_map[IMSI1][0];
   EXPECT_EQ(session_apn2->get_config().common_context.apn(), APN1);
 
   // Now make the config not identical but with the same APN=apn1, this should
@@ -427,7 +427,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   SessionConfig cfg = {};
   cfg.common_context =
       build_common_context(IMSI1, IP1, IPv6_1, teids, "APN", MSISDN, TGPP_LTE);
-  const auto& lte_context =
+  const auto &lte_context =
       build_lte_context("127.0.0.1", "imei", "plmn_id", "imsi_plmn_id",
                         "user_loc", BEARER_ID_1, nullptr);
   cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
@@ -477,12 +477,12 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1025,
                                 response.mutable_credits()->Add());
-  const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  const std::string& apn = "apn1";
+  const std::string &hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
+  const std::string &apn = "apn1";
   SessionConfig cfg;
   cfg.common_context =
       build_common_context(IMSI1, "", "", teids, apn, MSISDN, TGPP_WLAN);
-  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  const auto &wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
   cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   auto session_map = session_store->read_sessions({IMSI1});
@@ -516,4 +516,4 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   session_map = session_store->read_sessions({IMSI1});
   EXPECT_EQ(session_map[IMSI1].size(), 0);
 }
-}  // namespace magma
+} // namespace magma

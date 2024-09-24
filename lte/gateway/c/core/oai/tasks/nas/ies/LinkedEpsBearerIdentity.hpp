@@ -25,16 +25,16 @@
 typedef uint8_t linked_eps_bearer_identity_t;
 
 int encode_linked_eps_bearer_identity(
-    linked_eps_bearer_identity_t* linkedepsbeareridentity, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    linked_eps_bearer_identity_t *linkedepsbeareridentity, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 uint8_t encode_u8_linked_eps_bearer_identity(
-    linked_eps_bearer_identity_t* linkedepsbeareridentity);
+    linked_eps_bearer_identity_t *linkedepsbeareridentity);
 
 int decode_linked_eps_bearer_identity(
-    linked_eps_bearer_identity_t* linkedepsbeareridentity, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    linked_eps_bearer_identity_t *linkedepsbeareridentity, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 int decode_u8_linked_eps_bearer_identity(
-    linked_eps_bearer_identity_t* linkedepsbeareridentity, uint8_t iei,
+    linked_eps_bearer_identity_t *linkedepsbeareridentity, uint8_t iei,
     uint8_t value, uint32_t len);

@@ -10,17 +10,17 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
+#include <sstream>
 
 namespace magma5g {
 // PDUSessionReleaseCommand Message Class
 class PDUSessionReleaseCommandMsg {
- public:
+public:
 #define PDU_SESSION_RELEASE_COMMAND_MIN_LEN 5
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   PDUSessionIdentityMsg pdu_session_identity;
@@ -31,10 +31,10 @@ class PDUSessionReleaseCommandMsg {
   PDUSessionReleaseCommandMsg();
   ~PDUSessionReleaseCommandMsg();
   int DecodePDUSessionReleaseCommandMsg(
-      PDUSessionReleaseCommandMsg* pdu_session_release_command, uint8_t* buffer,
+      PDUSessionReleaseCommandMsg *pdu_session_release_command, uint8_t *buffer,
       uint32_t len);
   int EncodePDUSessionReleaseCommandMsg(
-      PDUSessionReleaseCommandMsg* pdu_session_release_command, uint8_t* buffer,
+      PDUSessionReleaseCommandMsg *pdu_session_release_command, uint8_t *buffer,
       uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

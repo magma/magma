@@ -10,9 +10,9 @@
  */
 
 #pragma once
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include <cstdint>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,26 +25,26 @@ namespace magma5g {
 
 // Protocol Configuration Options IE Class
 class ProtocolConfigurationOptions {
- public:
+public:
   protocol_configuration_options_t pco;
 
   ProtocolConfigurationOptions();
   ~ProtocolConfigurationOptions();
 
   int m5g_encode_protocol_configuration_options(
-      const protocol_configuration_options_t* const pco, uint8_t* buffer,
+      const protocol_configuration_options_t *const pco, uint8_t *buffer,
       const uint32_t len);
 
-  int EncodeProtocolConfigurationOptions(ProtocolConfigurationOptions* pco,
-                                         uint8_t iei, uint8_t* buffer,
+  int EncodeProtocolConfigurationOptions(ProtocolConfigurationOptions *pco,
+                                         uint8_t iei, uint8_t *buffer,
                                          uint32_t len);
 
   int m5g_decode_protocol_configuration_options(
-      protocol_configuration_options_t* pco, const uint8_t* const buffer,
+      protocol_configuration_options_t *pco, const uint8_t *const buffer,
       const uint32_t len);
 
-  int DecodeProtocolConfigurationOptions(ProtocolConfigurationOptions* pco,
-                                         uint8_t iei, uint8_t* buffer,
+  int DecodeProtocolConfigurationOptions(ProtocolConfigurationOptions *pco,
+                                         uint8_t iei, uint8_t *buffer,
                                          uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

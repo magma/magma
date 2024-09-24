@@ -25,7 +25,7 @@
 
 namespace grpc {
 class Channel;
-}  // namespace grpc
+} // namespace grpc
 
 using ::testing::_;
 using ::testing::AllOf;
@@ -39,7 +39,7 @@ namespace magma {
 namespace sctpd {
 
 class MockSctpdUplinkClient final : public SctpdUplinkClient {
- public:
+public:
   MockSctpdUplinkClient(std::shared_ptr<Channel> channel)
       : SctpdUplinkClient(channel) {
     ON_CALL(*this, sendUl(_, _)).WillByDefault(Return(0));
@@ -47,13 +47,13 @@ class MockSctpdUplinkClient final : public SctpdUplinkClient {
     ON_CALL(*this, closeAssoc(_, _)).WillByDefault(Return(0));
   }
 
-  MOCK_METHOD2(sendUl, int(const SendUlReq&, SendUlRes*));
-  MOCK_METHOD2(newAssoc, int(const NewAssocReq&, NewAssocRes*));
-  MOCK_METHOD2(closeAssoc, int(const CloseAssocReq&, CloseAssocRes*));
+  MOCK_METHOD2(sendUl, int(const SendUlReq &, SendUlRes *));
+  MOCK_METHOD2(newAssoc, int(const NewAssocReq &, NewAssocRes *));
+  MOCK_METHOD2(closeAssoc, int(const CloseAssocReq &, CloseAssocRes *));
 };
 
 class EventHandlerTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     send_ul_req.set_assoc_id(123);
     send_ul_req.set_stream(321);
@@ -140,5 +140,5 @@ TEST_F(EventHandlerTest, test_event_handler_send_ul) {
                        send_ul_req.stream(), send_ul_req.payload());
 }
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

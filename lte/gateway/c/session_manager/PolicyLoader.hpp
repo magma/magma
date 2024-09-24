@@ -10,18 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <atomic>
+#include <functional>
 #include <lte/protos/apn.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <stdint.h>
-#include <atomic>
-#include <functional>
 #include <vector>
 
 namespace magma {
 namespace lte {
 class PolicyRule;
 }
-}  // namespace magma
+} // namespace magma
 
 namespace magma {
 using namespace lte;
@@ -29,7 +29,7 @@ using namespace lte;
  * PolicyLoader is used to sync policies with Redis every so often
  */
 class PolicyLoader {
- public:
+public:
   /**
    * start_loop is the main function to call to initiate a load loop. Based on
    * the given loop interval length, this function will load the policies from
@@ -43,7 +43,7 @@ class PolicyLoader {
    */
   void stop();
 
- private:
+private:
   std::atomic<bool> is_running_;
 };
-}  // namespace magma
+} // namespace magma

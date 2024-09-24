@@ -31,10 +31,10 @@ typedef struct PlmnList_tag {
   uint8_t mncdigit1 : 4;
 } PlmnList;
 
-int encode_plmn_list(PlmnList* plmnlist, uint8_t iei, uint8_t* buffer,
+int encode_plmn_list(PlmnList *plmnlist, uint8_t iei, uint8_t *buffer,
                      uint32_t len);
 
-int decode_plmn_list(PlmnList* plmnlist, uint8_t iei, uint8_t* buffer,
+int decode_plmn_list(PlmnList *plmnlist, uint8_t iei, uint8_t *buffer,
                      uint32_t len);
 
-void dump_plmn_list_xml(PlmnList* plmnlist, uint8_t iei);
+void dump_plmn_list_xml(PlmnList *plmnlist, uint8_t iei);

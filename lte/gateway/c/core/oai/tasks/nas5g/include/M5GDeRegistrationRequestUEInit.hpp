@@ -10,18 +10,18 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSDeRegistrationType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSDeRegistrationType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 class DeRegistrationRequestUEInitMsg {
- public:
+public:
   DeRegistrationRequestUEInitMsg();
   ~DeRegistrationRequestUEInitMsg();
 
@@ -34,13 +34,13 @@ class DeRegistrationRequestUEInitMsg {
   M5GSMobileIdentityMsg m5gs_mobile_identity;
 #define DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH 3
   int DecodeDeRegistrationRequestUEInitMsg(
-      DeRegistrationRequestUEInitMsg* de_reg_req_ue, uint8_t* buffer,
+      DeRegistrationRequestUEInitMsg *de_reg_req_ue, uint8_t *buffer,
       uint32_t len);
   int EncodeDeRegistrationRequestUEInitMsg(
-      DeRegistrationRequestUEInitMsg* de_reg_req_ue, uint8_t* buffer,
+      DeRegistrationRequestUEInitMsg *de_reg_req_ue, uint8_t *buffer,
       uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
              DEREGISTRATION REQUEST UE Initiated message content

@@ -9,17 +9,17 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 PTIMsg::PTIMsg(){};
 PTIMsg::~PTIMsg(){};
 
 // Decode PTI IE
-int PTIMsg::DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
+int PTIMsg::DecodePTIMsg(PTIMsg *pti, uint8_t iei, uint8_t *buffer,
                          uint32_t len) {
   uint8_t decoded = 0;
 
@@ -30,7 +30,7 @@ int PTIMsg::DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
 };
 
 // Encode PTI IE
-int PTIMsg::EncodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
+int PTIMsg::EncodePTIMsg(PTIMsg *pti, uint8_t iei, uint8_t *buffer,
                          uint32_t len) {
   int encoded = 0;
 
@@ -39,4 +39,4 @@ int PTIMsg::EncodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
 
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

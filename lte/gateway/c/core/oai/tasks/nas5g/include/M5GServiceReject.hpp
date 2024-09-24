@@ -10,19 +10,19 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer2.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionStatus.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionStatus.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer2.hpp"
+#include <sstream>
 
 namespace magma5g {
 // ServiceAccept Message Class
 class ServiceRejectMsg {
- public:
+public:
 #define M5G_SERVICE_REJECT_MINIMUM_LENGTH 3
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SecurityHeaderTypeMsg sec_header_type;
@@ -34,9 +34,9 @@ class ServiceRejectMsg {
 
   ServiceRejectMsg();
   ~ServiceRejectMsg();
-  int DecodeServiceRejectMsg(ServiceRejectMsg* service_reject, uint8_t* buffer,
+  int DecodeServiceRejectMsg(ServiceRejectMsg *service_reject, uint8_t *buffer,
                              uint32_t len);
-  int EncodeServiceRejectMsg(ServiceRejectMsg* service_reject, uint8_t* buffer,
+  int EncodeServiceRejectMsg(ServiceRejectMsg *service_reject, uint8_t *buffer,
                              uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

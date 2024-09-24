@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 IntegrityProtMaxDataRateMsg::IntegrityProtMaxDataRateMsg(){};
@@ -20,8 +20,8 @@ IntegrityProtMaxDataRateMsg::~IntegrityProtMaxDataRateMsg(){};
 
 // Decode IntegrityProtMaxDataRate IE
 int IntegrityProtMaxDataRateMsg::DecodeIntegrityProtMaxDataRateMsg(
-    IntegrityProtMaxDataRateMsg* integrity_prot_max_data_rate, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    IntegrityProtMaxDataRateMsg *integrity_prot_max_data_rate, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   uint8_t decoded = 0;
 
   integrity_prot_max_data_rate->max_uplink = *(buffer + decoded);
@@ -33,8 +33,8 @@ int IntegrityProtMaxDataRateMsg::DecodeIntegrityProtMaxDataRateMsg(
 
 // Encode IntegrityProtMaxDataRate IE
 int IntegrityProtMaxDataRateMsg::EncodeIntegrityProtMaxDataRateMsg(
-    IntegrityProtMaxDataRateMsg* integrity_prot_max_data_rate, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    IntegrityProtMaxDataRateMsg *integrity_prot_max_data_rate, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   *(buffer + encoded) = integrity_prot_max_data_rate->max_uplink;
@@ -43,4 +43,4 @@ int IntegrityProtMaxDataRateMsg::EncodeIntegrityProtMaxDataRateMsg(
   encoded++;
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

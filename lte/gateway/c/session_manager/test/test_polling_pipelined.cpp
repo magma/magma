@@ -10,12 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <functional>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.pb.h>
-#include <stdint.h>
-#include <functional>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -34,7 +34,7 @@
 namespace grpc {
 class ServerContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -48,7 +48,7 @@ Teids teids1;
 Teids teids2;
 
 class LocalEnforcerStatsPollerTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     reporter = std::make_shared<MockSessionReporter>();
     pipelined_mock = std::make_shared<MockPipelined>();
@@ -75,7 +75,7 @@ class LocalEnforcerStatsPollerTest : public ::testing::Test {
     teids2.set_enb_teid(TEID_2_DL);
   }
 
-  SessionConfig get_default_config(const std::string& imsi) {
+  SessionConfig get_default_config(const std::string &imsi) {
     SessionConfig cfg;
     cfg.common_context =
         build_common_context(imsi, IP1, IPv6_1, teids1, APN1, MSISDN, TGPP_LTE);
@@ -83,21 +83,21 @@ class LocalEnforcerStatsPollerTest : public ::testing::Test {
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
     qos_info.set_br_unit(QosInformationRequest_BitrateUnitsAMBR_KBPS);
-    const auto& lte_context =
+    const auto &lte_context =
         build_lte_context(IP2, "", "", "", "", BEARER_ID_1, &qos_info);
     cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
     return cfg;
   }
 
-  void insert_static_rule(uint32_t rating_group, const std::string& m_key,
-                          const std::string& rule_id) {
+  void insert_static_rule(uint32_t rating_group, const std::string &m_key,
+                          const std::string &rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
-  void initialize_session(SessionMap& session_map,
-                          const std::string& session_id,
-                          const SessionConfig& cfg,
-                          const CreateSessionResponse& response) {
+  void initialize_session(SessionMap &session_map,
+                          const std::string &session_id,
+                          const SessionConfig &cfg,
+                          const CreateSessionResponse &response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
     local_enforcer->update_session_with_policy_response(session, response,
@@ -105,7 +105,7 @@ class LocalEnforcerStatsPollerTest : public ::testing::Test {
     session_map[imsi].push_back(std::move(session));
   }
 
- protected:
+protected:
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<SessionStore> session_store;
@@ -163,4 +163,4 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
       .Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 }
-}  // namespace magma
+} // namespace magma

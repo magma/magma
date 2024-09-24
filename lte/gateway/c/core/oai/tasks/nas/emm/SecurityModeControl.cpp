@@ -42,8 +42,8 @@
 
 *****************************************************************************/
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -109,24 +109,24 @@ extern mme_congestion_params_t mme_congestion_params;
 /*
    Timer handlers
 */
-static int security_ll_failure(emm_context_t* emm_context,
-                               struct nas_emm_proc_s* nas_emm_proc);
-static int security_non_delivered_ho(emm_context_t* emm_context,
-                                     struct nas_emm_proc_s* nas_emm_proc);
+static int security_ll_failure(emm_context_t *emm_context,
+                               struct nas_emm_proc_s *nas_emm_proc);
+static int security_non_delivered_ho(emm_context_t *emm_context,
+                                     struct nas_emm_proc_s *nas_emm_proc);
 
 /*
    Function executed whenever the ongoing EMM procedure that initiated
    the security mode control procedure is aborted or the maximum value of the
    retransmission timer counter is exceed
 */
-static int security_abort(emm_context_t* emm_context,
-                          struct nas_base_proc_s* base_proc);
+static int security_abort(emm_context_t *emm_context,
+                          struct nas_base_proc_s *base_proc);
 static status_code_e security_select_algorithms(const int ue_eiaP,
                                                 const int ue_eeaP,
-                                                int* const mme_eiaP,
-                                                int* const mme_eeaP);
+                                                int *const mme_eiaP,
+                                                int *const mme_eeaP);
 
-static status_code_e security_request(nas_emm_smc_proc_t* const smc_proc);
+static status_code_e security_request(nas_emm_smc_proc_t *const smc_proc);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -171,10 +171,11 @@ static status_code_e security_request(nas_emm_smc_proc_t* const smc_proc);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_proc_security_mode_control(
-    struct emm_context_s* emm_ctx,
-    nas_emm_specific_proc_t* const emm_specific_proc, ksi_t ksi,
-    success_cb_t success, failure_cb_t failure) {
+status_code_e
+emm_proc_security_mode_control(struct emm_context_s *emm_ctx,
+                               nas_emm_specific_proc_t *const emm_specific_proc,
+                               ksi_t ksi, success_cb_t success,
+                               failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   status_code_e rc = RETURNerror;
   bool security_context_is_new = false;
@@ -206,7 +207,7 @@ status_code_e emm_proc_security_mode_control(
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
-  nas_emm_smc_proc_t* smc_proc = get_nas_common_procedure_smc(emm_ctx);
+  nas_emm_smc_proc_t *smc_proc = get_nas_common_procedure_smc(emm_ctx);
   if (!smc_proc) {
     smc_proc = nas_new_smc_procedure(emm_ctx);
     if (smc_proc) {
@@ -282,7 +283,8 @@ status_code_e emm_proc_security_mode_control(
     /*
      * Setup ongoing EMM procedure callback functions
      */
-    ((nas_base_proc_t*)smc_proc)->parent = (nas_base_proc_t*)emm_specific_proc;
+    ((nas_base_proc_t *)smc_proc)->parent =
+        (nas_base_proc_t *)emm_specific_proc;
     smc_proc->emm_com_proc.emm_proc.delivered = NULL;
     smc_proc->emm_com_proc.emm_proc.previous_emm_fsm_state =
         emm_fsm_get_state(emm_ctx);
@@ -294,7 +296,7 @@ status_code_e emm_proc_security_mode_control(
     smc_proc->emm_com_proc.emm_proc.base_proc.failure_notif = failure;
     smc_proc->emm_com_proc.emm_proc.base_proc.abort =
         (proc_abort_t)security_abort;
-    smc_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL;  // only response
+    smc_proc->emm_com_proc.emm_proc.base_proc.fail_in = NULL; // only response
     smc_proc->emm_com_proc.emm_proc.base_proc.fail_out = NULL;
     smc_proc->emm_com_proc.emm_proc.base_proc.time_out =
         (time_out_t)mme_app_handle_security_t3460_expiry;
@@ -367,11 +369,12 @@ status_code_e emm_proc_security_mode_control(
     // smc_proc->imeisv_request = (IS_EMM_CTXT_PRESENT_IMEISV(emm_ctx)) ?
     // false:true;
 
-    if IS_EMM_CTXT_PRESENT_UE_ADDITIONAL_SECURITY_CAPABILITY (emm_ctx) {
-      smc_proc->replayed_ue_add_sec_cap_present = true;
-      smc_proc->_5g_ea = emm_ctx->ue_additional_security_capability._5g_ea;
-      smc_proc->_5g_ia = emm_ctx->ue_additional_security_capability._5g_ia;
-    }
+    if
+      IS_EMM_CTXT_PRESENT_UE_ADDITIONAL_SECURITY_CAPABILITY(emm_ctx) {
+        smc_proc->replayed_ue_add_sec_cap_present = true;
+        smc_proc->_5g_ea = emm_ctx->ue_additional_security_capability._5g_ea;
+        smc_proc->_5g_ia = emm_ctx->ue_additional_security_capability._5g_ia;
+      }
 
     /*
      * Send security mode command message to the UE
@@ -411,7 +414,7 @@ status_code_e emm_proc_security_mode_control(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int validate_imei(imeisv_t* imeisv) {
+int validate_imei(imeisv_t *imeisv) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /* First convert only TAC to uint64_t. If TAC is not found in the hashlist,
    * convert IMEI(TAC + SNR) into uint64_t and check if the key is found
@@ -467,10 +470,10 @@ int validate_imei(imeisv_t* imeisv) {
  **                                                                        **
  ***************************************************************************/
 status_code_e emm_proc_security_mode_complete(
-    mme_ue_s1ap_id_t ue_id, const imeisv_mobile_identity_t* const imeisvmob) {
+    mme_ue_s1ap_id_t ue_id, const imeisv_mobile_identity_t *const imeisvmob) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  ue_mm_context_t* ue_mm_context = NULL;
-  emm_context_t* emm_ctx = NULL;
+  ue_mm_context_t *ue_mm_context = NULL;
+  emm_context_t *emm_ctx = NULL;
   status_code_e rc = RETURNerror;
 
   /*
@@ -495,7 +498,7 @@ status_code_e emm_proc_security_mode_complete(
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
-  nas_emm_smc_proc_t* smc_proc = get_nas_common_procedure_smc(emm_ctx);
+  nas_emm_smc_proc_t *smc_proc = get_nas_common_procedure_smc(emm_ctx);
 
   if (smc_proc) {
     /* Process SMC complete msg only if T3460 timer is running.
@@ -635,8 +638,8 @@ status_code_e emm_proc_security_mode_complete(
  ***************************************************************************/
 status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  ue_mm_context_t* ue_mm_context = NULL;
-  emm_context_t* emm_ctx = NULL;
+  ue_mm_context_t *ue_mm_context = NULL;
+  emm_context_t *emm_ctx = NULL;
   status_code_e rc = RETURNerror;
 
   /*
@@ -658,7 +661,7 @@ status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
-  nas_emm_smc_proc_t* smc_proc = get_nas_common_procedure_smc(emm_ctx);
+  nas_emm_smc_proc_t *smc_proc = get_nas_common_procedure_smc(emm_ctx);
 
   if (smc_proc) {
     /*
@@ -706,7 +709,7 @@ status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
  * The memory for each procedure is allocated by the caller
  */
 
-void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
+void set_callbacks_for_smc_proc(nas_emm_smc_proc_t *smc_proc) {
   smc_proc->emm_com_proc.emm_proc.not_delivered =
       (sdu_out_not_delivered_t)security_ll_failure;
   smc_proc->emm_com_proc.emm_proc.not_delivered_ho =
@@ -749,8 +752,8 @@ void set_callbacks_for_smc_proc(nas_emm_smc_proc_t* smc_proc) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
-                                                   void* args) {
+status_code_e mme_app_handle_security_t3460_expiry(zloop_t *loop, int timer_id,
+                                                   void *args) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
@@ -760,8 +763,8 @@ status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, const_cast<char*>("Security T3460 Timer"));
+  struct ue_mm_context_s *ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, const_cast<char *>("Security T3460 Timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -770,7 +773,7 @@ status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
 
-  emm_context_t* emm_ctx = &ue_context_p->emm_context;
+  emm_context_t *emm_ctx = &ue_context_p->emm_context;
 
   if (!(emm_ctx)) {
     OAILOG_ERROR(LOG_NAS_EMM,
@@ -779,7 +782,7 @@ status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
                  mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
   }
-  nas_emm_smc_proc_t* smc_proc = get_nas_common_procedure_smc(emm_ctx);
+  nas_emm_smc_proc_t *smc_proc = get_nas_common_procedure_smc(emm_ctx);
 
   if (smc_proc) {
     /*
@@ -806,7 +809,7 @@ status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
                         NO_LABELS);
       increment_counter("ue_attach", 1, 2, "result", "failure", "cause",
                         "no_response_for_security_mode_command");
-      security_abort(emm_ctx, (struct nas_base_proc_s*)smc_proc);
+      security_abort(emm_ctx, (struct nas_base_proc_s *)smc_proc);
       emm_common_cleanup_by_ueid(smc_proc->ue_id);
       emm_sap_t emm_sap = {};
       emm_sap.primitive = EMMCN_IMPLICIT_DETACH_UE;
@@ -840,10 +843,10 @@ status_code_e mme_app_handle_security_t3460_expiry(zloop_t* loop, int timer_id,
  **      Others:    T3460                                      **
  **                                                                        **
  ***************************************************************************/
-static status_code_e security_request(nas_emm_smc_proc_t* const smc_proc) {
+static status_code_e security_request(nas_emm_smc_proc_t *const smc_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
-  ue_mm_context_t* ue_mm_context = NULL;
-  struct emm_context_s* emm_ctx = NULL;
+  ue_mm_context_t *ue_mm_context = NULL;
+  struct emm_context_s *emm_ctx = NULL;
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNerror;
 
@@ -912,12 +915,12 @@ static status_code_e security_request(nas_emm_smc_proc_t* const smc_proc) {
 }
 
 //------------------------------------------------------------------------------
-static int security_ll_failure(emm_context_t* emm_context,
-                               struct nas_emm_proc_s* nas_emm_proc) {
+static int security_ll_failure(emm_context_t *emm_context,
+                               struct nas_emm_proc_s *nas_emm_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   if (nas_emm_proc) {
-    nas_emm_smc_proc_t* smc_proc = (nas_emm_smc_proc_t*)nas_emm_proc;
+    nas_emm_smc_proc_t *smc_proc = (nas_emm_smc_proc_t *)nas_emm_proc;
     REQUIREMENT_3GPP_24_301(R10_5_4_3_7_a);
     emm_sap_t emm_sap = {};
     mme_ue_s1ap_id_t ue_id =
@@ -938,8 +941,8 @@ static int security_ll_failure(emm_context_t* emm_context,
 }
 
 //------------------------------------------------------------------------------
-static int security_non_delivered_ho(emm_context_t* emm_ctx,
-                                     struct nas_emm_proc_s* nas_emm_proc) {
+static int security_non_delivered_ho(emm_context_t *emm_ctx,
+                                     struct nas_emm_proc_s *nas_emm_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
@@ -956,9 +959,9 @@ static int security_non_delivered_ho(emm_context_t* emm_ctx,
     /*
      * Abort the security mode control and attach procedure
      */
-    nas_emm_smc_proc_t* smc_proc = (nas_emm_smc_proc_t*)nas_emm_proc;
+    nas_emm_smc_proc_t *smc_proc = (nas_emm_smc_proc_t *)nas_emm_proc;
     smc_proc->is_new = false;
-    security_abort(emm_ctx, (struct nas_base_proc_s*)smc_proc);
+    security_abort(emm_ctx, (struct nas_base_proc_s *)smc_proc);
     emm_common_cleanup_by_ueid(smc_proc->ue_id);
     // Clean up MME APP UE context
     emm_sap_t emm_sap = {};
@@ -984,14 +987,14 @@ static int security_non_delivered_ho(emm_context_t* emm_ctx,
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-static int security_abort(emm_context_t* emm_ctx,
-                          struct nas_base_proc_s* base_proc) {
+static int security_abort(emm_context_t *emm_ctx,
+                          struct nas_base_proc_s *base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
   unsigned int ue_id;
 
   if (emm_ctx && base_proc) {
-    nas_emm_smc_proc_t* smc_proc = (nas_emm_smc_proc_t*)base_proc;
+    nas_emm_smc_proc_t *smc_proc = (nas_emm_smc_proc_t *)base_proc;
     ue_id = smc_proc->ue_id;
     OAILOG_WARNING_UE(LOG_NAS_EMM, emm_ctx->_imsi64,
                       "EMM-PROC - Abort security mode control\
@@ -1037,8 +1040,8 @@ static int security_abort(emm_context_t* emm_ctx,
  ***************************************************************************/
 static status_code_e security_select_algorithms(const int ue_eiaP,
                                                 const int ue_eeaP,
-                                                int* const mme_eiaP,
-                                                int* const mme_eeaP) {
+                                                int *const mme_eiaP,
+                                                int *const mme_eeaP) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int preference_index;
 

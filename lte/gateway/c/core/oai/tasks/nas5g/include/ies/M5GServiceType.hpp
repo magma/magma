@@ -10,12 +10,12 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 class ServiceTypeMsg {
- public:
+public:
   uint8_t iei : 4;
 
 #define SERVICE_TYPE_SIGNALING 0X00
@@ -28,9 +28,9 @@ class ServiceTypeMsg {
 
   ServiceTypeMsg();
   ~ServiceTypeMsg();
-  int EncodeServiceTypeMsg(ServiceTypeMsg* service_type, uint8_t iei,
-                           uint8_t* buffer, uint32_t len);
-  int DecodeServiceTypeMsg(ServiceTypeMsg* service_type, uint8_t iei,
-                           uint8_t* buffer, uint32_t len);
+  int EncodeServiceTypeMsg(ServiceTypeMsg *service_type, uint8_t iei,
+                           uint8_t *buffer, uint32_t len);
+  int DecodeServiceTypeMsg(ServiceTypeMsg *service_type, uint8_t iei,
+                           uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

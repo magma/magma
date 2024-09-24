@@ -38,20 +38,20 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
-#define S6A_UPDATE_LOCATION_REQ(mSGpTR) \
+#define S6A_UPDATE_LOCATION_REQ(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s6a_update_location_req
-#define S6A_UPDATE_LOCATION_ANS(mSGpTR) \
+#define S6A_UPDATE_LOCATION_ANS(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s6a_update_location_ans
 #define S6A_AUTH_INFO_REQ(mSGpTR) (mSGpTR)->ittiMsg.s6a_auth_info_req
 #define S6A_AUTH_INFO_ANS(mSGpTR) (mSGpTR)->ittiMsg.s6a_auth_info_ans
-#define S6A_CANCEL_LOCATION_REQ(mSGpTR) \
+#define S6A_CANCEL_LOCATION_REQ(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s6a_cancel_location_req
-#define S6A_CANCEL_LOCATION_ANS(mSGpTR) \
+#define S6A_CANCEL_LOCATION_ANS(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s6a_cancel_location_ans
 #define S6A_PURGE_UE_REQ(mSGpTR) (mSGpTR)->ittiMsg.s6a_purge_ue_req
 #define S6A_PURGE_UE_ANS(mSGpTR) (mSGpTR)->ittiMsg.s6a_purge_ue_ans
@@ -67,11 +67,11 @@ typedef struct s6a_update_location_req_s {
   unsigned initial_attach : 1;
 #define DUAL_REGIS_5G_IND (0x1)
   unsigned dual_regis_5g_ind : 1;
-  char imsi[IMSI_BCD_DIGITS_MAX + 1];  // username
-  uint8_t imsi_length;                 // username
+  char imsi[IMSI_BCD_DIGITS_MAX + 1]; // username
+  uint8_t imsi_length;                // username
 
-  plmn_t visited_plmn;  // visited plmn id
-  rat_type_t rat_type;  // rat type
+  plmn_t visited_plmn; // visited plmn id
+  rat_type_t rat_type; // rat type
   /* Supported features AVP to have NR as RAT feature in AIR and ULR */
   supported_features_t supportedfeatures;
   // missing                           // origin host
@@ -86,8 +86,8 @@ typedef struct s6a_update_location_req_s {
 } s6a_update_location_req_t;
 
 typedef struct s6a_update_location_ans_s {
-  s6a_result_t result;  // Result of the update location request procedure
-  subscription_data_t subscription_data;  // subscriber status,
+  s6a_result_t result; // Result of the update location request procedure
+  subscription_data_t subscription_data; // subscriber status,
   // Maximum Requested Bandwidth Uplink, downlink
   // access restriction data
   // msisdn
@@ -128,18 +128,18 @@ typedef struct s6a_auth_info_ans_s {
 } s6a_auth_info_ans_t;
 
 typedef struct s6a_cancel_location_req_s {
-  char imsi[IMSI_BCD_DIGITS_MAX + 1];  // username
+  char imsi[IMSI_BCD_DIGITS_MAX + 1]; // username
   uint8_t imsi_length;
   s6a_cancellation_type_t cancellation_type;
-  void* msg_cla_p;  // message pointer to send the answer
+  void *msg_cla_p; // message pointer to send the answer
 
 } s6a_cancel_location_req_t;
 
 typedef struct s6a_cancel_location_ans_s {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   uint8_t imsi_length;
-  int result;       // Result of the cancel location request procedure
-  void* msg_cla_p;  // message pointer to send the answer
+  int result;      // Result of the cancel location request procedure
+  void *msg_cla_p; // message pointer to send the answer
 
 } s6a_cancel_location_ans_t;
 

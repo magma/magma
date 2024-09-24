@@ -53,9 +53,9 @@ typedef struct esm_information_request_msg_tag {
 } esm_information_request_msg;
 
 int decode_esm_information_request(
-    esm_information_request_msg* esminformationrequest, uint8_t* buffer,
+    esm_information_request_msg *esminformationrequest, uint8_t *buffer,
     uint32_t len);
 
 int encode_esm_information_request(
-    esm_information_request_msg* esminformationrequest, uint8_t* buffer,
+    esm_information_request_msg *esminformationrequest, uint8_t *buffer,
     uint32_t len);

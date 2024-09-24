@@ -40,7 +40,7 @@
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-char* get_pid_file_name(bstring pid_dir);
+char *get_pid_file_name(bstring pid_dir);
 
 /*
  * Generate the exe absolute path using a specified basepath.
@@ -50,9 +50,9 @@ char* get_pid_file_name(bstring pid_dir);
  *
  * @return a C string for the exe absolute path.
  */
-char* get_exe_absolute_path(char const* basepath);
+char *get_exe_absolute_path(char const *basepath);
 
-bool pid_file_lock(char const* pid_file_name);
+bool pid_file_lock(char const *pid_file_name);
 
 void pid_file_unlock(void);
 

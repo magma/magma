@@ -26,12 +26,12 @@ SpgwStateManager::SpgwStateManager() : config_(nullptr) {}
 
 SpgwStateManager::~SpgwStateManager() { free_state(); }
 
-SpgwStateManager& SpgwStateManager::getInstance() {
+SpgwStateManager &SpgwStateManager::getInstance() {
   static SpgwStateManager instance;
   return instance;
 }
 
-void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
+void SpgwStateManager::init(bool persist_state, const spgw_config_t *config) {
   log_task = LOG_SPGW_APP;
   task_name = SPGW_TASK_NAME;
   table_key = SPGW_STATE_TABLE_NAME;
@@ -47,14 +47,15 @@ void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
 
 void SpgwStateManager::create_state() {
   // Allocating spgw_state_p
-  state_cache_p = (spgw_state_t*)calloc(1, sizeof(spgw_state_t));
+  state_cache_p = (spgw_state_t *)calloc(1, sizeof(spgw_state_t));
 
   state_teid_map.map =
-      new google::protobuf::Map<uint32_t, magma::lte::oai::S11BearerContext*>();
+      new google::protobuf::Map<uint32_t,
+                                magma::lte::oai::S11BearerContext *>();
   state_teid_map.set_name(S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_teid_map.bind_callback(spgw_free_s11_bearer_context_information);
 
-  state_ue_map.map = new google::protobuf::Map<uint64_t, spgw_ue_context_s*>();
+  state_ue_map.map = new google::protobuf::Map<uint64_t, spgw_ue_context_s *>();
   state_ue_map.set_name(SPGW_STATE_UE_MAP);
   state_ue_map.bind_callback(sgw_free_ue_context);
 
@@ -92,7 +93,7 @@ void SpgwStateManager::free_state() {
     OAI_FPRINTF_ERR("An error occurred while destroying state_teid_map");
   }
 
-  free_wrapper((void**)&state_cache_p);
+  free_wrapper((void **)&state_cache_p);
 }
 
 status_code_e SpgwStateManager::read_ue_state_from_db() {
@@ -100,19 +101,19 @@ status_code_e SpgwStateManager::read_ue_state_from_db() {
     return RETURNok;
   }
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
-  for (const auto& key : keys) {
+  for (const auto &key : keys) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
     if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
     OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());
-    spgw_ue_context_t* ue_context_p = new spgw_ue_context_t();
+    spgw_ue_context_t *ue_context_p = new spgw_ue_context_t();
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;
 }
 
-state_teid_map_t* SpgwStateManager::get_state_teid_map() {
+state_teid_map_t *SpgwStateManager::get_state_teid_map() {
   AssertFatal(
       is_initialized,
       "StateManager init() function should be called to initialize state");
@@ -120,9 +121,9 @@ state_teid_map_t* SpgwStateManager::get_state_teid_map() {
   return &state_teid_map;
 }
 
-map_uint64_spgw_ue_context_t* SpgwStateManager::get_spgw_ue_state_map() {
+map_uint64_spgw_ue_context_t *SpgwStateManager::get_spgw_ue_state_map() {
   return &state_ue_map;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

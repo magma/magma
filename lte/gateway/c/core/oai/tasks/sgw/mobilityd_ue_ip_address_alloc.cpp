@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #ifdef __cplusplus
@@ -32,7 +32,7 @@ extern "C" {
 struct in_addr;
 
 void release_ue_ipv4_address(const std::string imsi, const std::string apn,
-                             struct in_addr* addr) {
+                             struct in_addr *addr) {
   increment_counter("ue_pdn_connection", 1, 2, "pdn_type", "ipv4", "result",
                     "ip_address_released");
   // Release IP address back to PGW IP Address allocator
@@ -40,14 +40,14 @@ void release_ue_ipv4_address(const std::string imsi, const std::string apn,
 }
 
 void release_ue_ipv6_address(const std::string imsi, const std::string apn,
-                             struct in6_addr* addr) {
+                             struct in6_addr *addr) {
   increment_counter("ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result",
                     "ip_address_released");
   // Release IP address back to PGW IP Address allocator
   release_ipv6_address(imsi, apn, addr);
 }
 
-int get_ip_block(struct in_addr* netaddr, uint32_t* netmask) {
+int get_ip_block(struct in_addr *netaddr, uint32_t *netmask) {
   int rv;
 
   rv = get_assigned_ipv4_block(0, netaddr, netmask);

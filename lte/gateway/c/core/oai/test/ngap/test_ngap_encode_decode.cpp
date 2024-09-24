@@ -22,8 +22,8 @@ namespace magma5g {
 TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_asn_raw) {
   bstring stream_setup_failure;
   Ngap_NGAP_PDU_t decode_pdu;
-  Ngap_NGSetupFailure_t* container;
-  Ngap_NGSetupFailureIEs_t* ie;
+  Ngap_NGSetupFailure_t *container;
+  Ngap_NGSetupFailureIEs_t *ie;
   int ret = 0;
   bool decode_op = false;
 
@@ -51,9 +51,9 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_pdu) {
   bstring stream_setup_failure;
   Ngap_NGAP_PDU_t encode_pdu;
   Ngap_NGAP_PDU_t decode_pdu;
-  Ngap_NGSetupFailure_t* container;
-  Ngap_NGSetupFailureIEs_t* ie;
-  uint8_t* buffer_p = NULL;
+  Ngap_NGSetupFailure_t *container;
+  Ngap_NGSetupFailureIEs_t *ie;
+  uint8_t *buffer_p = NULL;
   uint32_t length = 0;
   int ret = 0;
   bool decode_op = false;
@@ -255,4 +255,4 @@ TEST(test_ngap_pkt_tests, test_ngap_setup_request_sd) {
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &init_ue_pdu);
 }
-}  // namespace magma5g
+} // namespace magma5g

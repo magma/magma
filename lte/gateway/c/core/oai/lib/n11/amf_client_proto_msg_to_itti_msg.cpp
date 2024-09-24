@@ -13,24 +13,24 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #ifdef __cplusplus
 }
 #endif
 
 #include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
 
+#include <iostream>
 #include <stdint.h>
 #include <string.h>
-#include <iostream>
 #include <string>
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 
-#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 
 extern "C" {}
 
@@ -40,7 +40,7 @@ namespace magma5g {
 
 void convert_proto_msg_to_itti_m5g_auth_info_ans(
     M5GAuthenticationInformationAnswer msg,
-    itti_amf_subs_auth_info_ans_t* itti_msg) {
+    itti_amf_subs_auth_info_ans_t *itti_msg) {
   if (msg.m5gauth_vectors_size() > MAX_EPS_AUTH_VECTORS) {
     OAILOG_ERROR(LOG_AMF_APP, "Number of m5g auth vectors received is:%d\n",
                  msg.m5gauth_vectors_size());
@@ -50,7 +50,7 @@ void convert_proto_msg_to_itti_m5g_auth_info_ans(
   uint8_t idx = 0;
   while (idx < itti_msg->auth_info.nb_of_vectors) {
     auto m5gauth_vector = msg.m5gauth_vectors(idx);
-    m5gauth_vector_t* itti_m5gauth_vector =
+    m5gauth_vector_t *itti_m5gauth_vector =
         &(itti_msg->auth_info.m5gauth_vector[idx]);
     if (m5gauth_vector.rand().length() <= RAND_LENGTH_OCTETS) {
       memcpy(itti_m5gauth_vector->rand, m5gauth_vector.rand().c_str(),
@@ -90,7 +90,7 @@ void convert_proto_msg_to_itti_m5g_auth_info_ans(
 
 void convert_proto_msg_to_itti_amf_decrypted_msin_info_ans(
     M5GSUCIRegistrationAnswer response,
-    itti_amf_decrypted_msin_info_ans_t* amf_app_decrypted_msin_info_resp) {
+    itti_amf_decrypted_msin_info_ans_t *amf_app_decrypted_msin_info_resp) {
   if (response.ue_msin_recv().length() <= 0) {
     OAILOG_ERROR(LOG_AMF_APP, "Decrypted MSIN response is invalid:%lu\n",
                  response.ue_msin_recv().length());
@@ -103,4 +103,4 @@ void convert_proto_msg_to_itti_amf_decrypted_msin_info_ans(
          amf_app_decrypted_msin_info_resp->msin_length);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

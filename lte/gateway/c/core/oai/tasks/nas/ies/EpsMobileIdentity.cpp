@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,23 +32,23 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/common_defs.h"
 
-static int decode_guti_eps_mobile_identity(guti_eps_mobile_identity_t* guti,
-                                           uint8_t* buffer);
-static int decode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t* imsi,
-                                           uint8_t* buffer, uint8_t ie_len);
-static int decode_imei_eps_mobile_identity(imei_eps_mobile_identity_t* imei,
-                                           uint8_t* buffer);
+static int decode_guti_eps_mobile_identity(guti_eps_mobile_identity_t *guti,
+                                           uint8_t *buffer);
+static int decode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t *imsi,
+                                           uint8_t *buffer, uint8_t ie_len);
+static int decode_imei_eps_mobile_identity(imei_eps_mobile_identity_t *imei,
+                                           uint8_t *buffer);
 
-static int encode_guti_eps_mobile_identity(guti_eps_mobile_identity_t* guti,
-                                           uint8_t* buffer);
-static int encode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t* imsi,
-                                           uint8_t* buffer);
-static int encode_imei_eps_mobile_identity(imei_eps_mobile_identity_t* imei,
-                                           uint8_t* buffer);
+static int encode_guti_eps_mobile_identity(guti_eps_mobile_identity_t *guti,
+                                           uint8_t *buffer);
+static int encode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t *imsi,
+                                           uint8_t *buffer);
+static int encode_imei_eps_mobile_identity(imei_eps_mobile_identity_t *imei,
+                                           uint8_t *buffer);
 
 //------------------------------------------------------------------------------
-int decode_eps_mobile_identity(eps_mobile_identity_t* epsmobileidentity,
-                               uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_eps_mobile_identity(eps_mobile_identity_t *epsmobileidentity,
+                               uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded_rc = TLV_VALUE_DOESNT_MATCH;
   int decoded = 0;
   uint8_t ielen = 0;
@@ -81,9 +81,9 @@ int decode_eps_mobile_identity(eps_mobile_identity_t* epsmobileidentity,
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_mobile_identity(eps_mobile_identity_t* epsmobileidentity,
-                               uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+int encode_eps_mobile_identity(eps_mobile_identity_t *epsmobileidentity,
+                               uint8_t iei, uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   int encoded_rc = TLV_VALUE_DOESNT_MATCH;
   uint32_t encoded = 0;
 
@@ -123,8 +123,8 @@ int encode_eps_mobile_identity(eps_mobile_identity_t* epsmobileidentity,
 }
 
 //------------------------------------------------------------------------------
-static int decode_guti_eps_mobile_identity(guti_eps_mobile_identity_t* guti,
-                                           uint8_t* buffer) {
+static int decode_guti_eps_mobile_identity(guti_eps_mobile_identity_t *guti,
+                                           uint8_t *buffer) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int decoded = 0;
 
@@ -165,8 +165,8 @@ static int decode_guti_eps_mobile_identity(guti_eps_mobile_identity_t* guti,
 }
 
 //------------------------------------------------------------------------------
-static int decode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t* imsi,
-                                           uint8_t* buffer, uint8_t len) {
+static int decode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t *imsi,
+                                           uint8_t *buffer, uint8_t len) {
   uint8_t decoded = 0;
   uint8_t ielen = 0;
 
@@ -244,8 +244,8 @@ static int decode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t* imsi,
 }
 
 //------------------------------------------------------------------------------
-static int decode_imei_eps_mobile_identity(imei_eps_mobile_identity_t* imei,
-                                           uint8_t* buffer) {
+static int decode_imei_eps_mobile_identity(imei_eps_mobile_identity_t *imei,
+                                           uint8_t *buffer) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int decoded = 0;
 
@@ -283,8 +283,8 @@ static int decode_imei_eps_mobile_identity(imei_eps_mobile_identity_t* imei,
 }
 
 //------------------------------------------------------------------------------
-static int encode_guti_eps_mobile_identity(guti_eps_mobile_identity_t* guti,
-                                           uint8_t* buffer) {
+static int encode_guti_eps_mobile_identity(guti_eps_mobile_identity_t *guti,
+                                           uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) =
@@ -307,8 +307,8 @@ static int encode_guti_eps_mobile_identity(guti_eps_mobile_identity_t* guti,
 }
 
 //------------------------------------------------------------------------------
-static int encode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t* imsi,
-                                           uint8_t* buffer) {
+static int encode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t *imsi,
+                                           uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) = 0x00 | (imsi->identity_digit1 << 4) |
@@ -377,8 +377,8 @@ static int encode_imsi_eps_mobile_identity(imsi_eps_mobile_identity_t* imsi,
 }
 
 //------------------------------------------------------------------------------
-static int encode_imei_eps_mobile_identity(imei_eps_mobile_identity_t* imei,
-                                           uint8_t* buffer) {
+static int encode_imei_eps_mobile_identity(imei_eps_mobile_identity_t *imei,
+                                           uint8_t *buffer) {
   uint32_t encoded = 0;
 
   // IMEI fixed length of 15 digits

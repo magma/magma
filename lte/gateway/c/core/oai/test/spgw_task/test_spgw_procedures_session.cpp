@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
+#include <chrono>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <netinet/in.h>
-#include <chrono>
 #include <memory>
+#include <netinet/in.h>
 #include <thread>
 
 #include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
@@ -43,7 +43,7 @@ namespace magma {
 namespace lte {
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
 
   // Create session
   create_default_session(spgw_state);
@@ -53,7 +53,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionSuccess) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   itti_s11_create_session_request_t sample_session_req_p = {};
   fill_create_session_request(&sample_session_req_p, test_imsi_str,
                               DEFAULT_MME_S11_TEID, DEFAULT_BEARER_INDEX,
@@ -66,7 +66,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
   ASSERT_EQ(create_session_rc, RETURNok);
 
   // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
   ASSERT_TRUE(ue_context_p != nullptr);
 
   // Verify that teid is created
@@ -75,7 +75,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
   // Verify that no IP address is allocated for this UE
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
@@ -103,7 +103,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionIPAllocFailure) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   // expect call to MME create session response
   itti_s11_create_session_request_t sample_session_req_p = {};
   fill_create_session_request(&sample_session_req_p, test_imsi_str,
@@ -117,7 +117,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
   ASSERT_EQ(create_session_rc, RETURNok);
 
   // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
   ASSERT_TRUE(ue_context_p != nullptr);
 
   // Verify that teid is created
@@ -126,7 +126,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
   // Verify that no IP address is allocated for this UE
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
@@ -176,7 +176,7 @@ TEST_F(SPGWAppProcedureTest, TestCreateSessionPCEFFailure) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
@@ -205,5 +205,5 @@ TEST_F(SPGWAppProcedureTest, TestDeleteSessionSuccess) {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

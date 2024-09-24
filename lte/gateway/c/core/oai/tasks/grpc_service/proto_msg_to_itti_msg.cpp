@@ -17,16 +17,16 @@
 
 #include "lte/gateway/c/core/oai/tasks/grpc_service/proto_msg_to_itti_msg.hpp"
 
+#include <iostream>
 #include <stdint.h>
 #include <string.h>
-#include <iostream>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "feg/protos/csfb.pb.h"
+#include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "feg/protos/csfb.pb.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/protos/sms_orc8r.pb.h"
 
 extern "C" {
@@ -38,7 +38,7 @@ using namespace lte;
 
 // SMS Orc8r Downlink
 void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
-    const SMODownlinkUnitdata* msg, itti_sgsap_downlink_unitdata_t* itti_msg) {
+    const SMODownlinkUnitdata *msg, itti_sgsap_downlink_unitdata_t *itti_msg) {
   std::string imsi = msg->imsi();
   // If north bound is Orc8r itself, IMSI prefix is used;
   // in AGW local tests, IMSI prefix is not used
@@ -58,12 +58,12 @@ void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
   return;
 }
 
-}  // namespace magma
+} // namespace magma
 
 namespace magma {
 using namespace feg;
 void convert_proto_msg_to_itti_sgsap_eps_detach_ack(
-    const EPSDetachAck* msg, itti_sgsap_eps_detach_ack_t* itti_msg) {
+    const EPSDetachAck *msg, itti_sgsap_eps_detach_ack_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -72,7 +72,7 @@ void convert_proto_msg_to_itti_sgsap_eps_detach_ack(
 }
 
 void convert_proto_msg_to_itti_sgsap_imsi_detach_ack(
-    const IMSIDetachAck* msg, itti_sgsap_imsi_detach_ack_t* itti_msg) {
+    const IMSIDetachAck *msg, itti_sgsap_imsi_detach_ack_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -81,8 +81,8 @@ void convert_proto_msg_to_itti_sgsap_imsi_detach_ack(
 }
 
 void convert_proto_msg_to_itti_sgsap_location_update_accept(
-    const LocationUpdateAccept* msg,
-    itti_sgsap_location_update_acc_t* itti_msg) {
+    const LocationUpdateAccept *msg,
+    itti_sgsap_location_update_acc_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -122,8 +122,8 @@ void convert_proto_msg_to_itti_sgsap_location_update_accept(
 }
 
 void convert_proto_msg_to_itti_sgsap_location_update_reject(
-    const LocationUpdateReject* msg,
-    itti_sgsap_location_update_rej_t* itti_msg) {
+    const LocationUpdateReject *msg,
+    itti_sgsap_location_update_rej_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -145,7 +145,7 @@ void convert_proto_msg_to_itti_sgsap_location_update_reject(
 }
 
 void convert_proto_msg_to_itti_sgsap_paging_request(
-    const PagingRequest* msg, itti_sgsap_paging_request_t* itti_msg) {
+    const PagingRequest *msg, itti_sgsap_paging_request_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -167,12 +167,12 @@ void convert_proto_msg_to_itti_sgsap_paging_request(
   if (cli.length() != 0) {
     presencemask = presencemask | PAGING_REQUEST_CLI_PARAMETER_PRESENT;
 
-    unsigned char* cli_char = new unsigned char[cli.length()];
+    unsigned char *cli_char = new unsigned char[cli.length()];
     for (int i = 0; i < cli.length(); ++i) {
       cli_char[i] = cli[i];
     }
 
-    tagbstring* cli_tbstr = new tagbstring();
+    tagbstring *cli_tbstr = new tagbstring();
     cli_tbstr->mlen = cli.length();
     cli_tbstr->slen = cli.length();
     cli_tbstr->data = cli_char;
@@ -193,8 +193,8 @@ void convert_proto_msg_to_itti_sgsap_paging_request(
   return;
 }
 
-void convert_proto_msg_to_itti_sgsap_status_t(const Status* msg,
-                                              itti_sgsap_status_t* itti_msg) {
+void convert_proto_msg_to_itti_sgsap_status_t(const Status *msg,
+                                              itti_sgsap_status_t *itti_msg) {
   uint8_t presencemask = 0;
   auto imsi = msg->imsi();
   if (imsi.length() != 0) {
@@ -212,7 +212,7 @@ void convert_proto_msg_to_itti_sgsap_status_t(const Status* msg,
 }
 
 void convert_proto_msg_to_itti_sgsap_vlr_reset_indication(
-    const ResetIndication* msg, itti_sgsap_vlr_reset_indication_t* itti_msg) {
+    const ResetIndication *msg, itti_sgsap_vlr_reset_indication_t *itti_msg) {
   auto vlr_name = msg->vlr_name();
   itti_msg->length = vlr_name.length();
   strcpy(itti_msg->vlr_name, vlr_name.c_str());
@@ -220,7 +220,7 @@ void convert_proto_msg_to_itti_sgsap_vlr_reset_indication(
 }
 
 void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
-    const DownlinkUnitdata* msg, itti_sgsap_downlink_unitdata_t* itti_msg) {
+    const DownlinkUnitdata *msg, itti_sgsap_downlink_unitdata_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -235,7 +235,7 @@ void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
 }
 
 void convert_proto_msg_to_itti_sgsap_release_req(
-    const ReleaseRequest* msg, itti_sgsap_release_req_t* itti_msg) {
+    const ReleaseRequest *msg, itti_sgsap_release_req_t *itti_msg) {
   uint8_t presencemask = 0;
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
@@ -251,7 +251,7 @@ void convert_proto_msg_to_itti_sgsap_release_req(
 }
 
 void convert_proto_msg_to_itti_sgsap_alert_request(
-    const AlertRequest* msg, itti_sgsap_alert_request_t* itti_msg) {
+    const AlertRequest *msg, itti_sgsap_alert_request_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -260,7 +260,7 @@ void convert_proto_msg_to_itti_sgsap_alert_request(
 }
 
 void convert_proto_msg_to_itti_sgsap_service_abort_req(
-    const ServiceAbortRequest* msg, itti_sgsap_service_abort_req_t* itti_msg) {
+    const ServiceAbortRequest *msg, itti_sgsap_service_abort_req_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -268,8 +268,8 @@ void convert_proto_msg_to_itti_sgsap_service_abort_req(
 }
 
 void convert_proto_msg_to_itti_sgsap_mm_information_req(
-    const MMInformationRequest* msg,
-    itti_sgsap_mm_information_req_t* itti_msg) {
+    const MMInformationRequest *msg,
+    itti_sgsap_mm_information_req_t *itti_msg) {
   auto imsi = msg->imsi();
   itti_msg->imsi_length = imsi.length();
   strcpy(itti_msg->imsi, imsi.c_str());
@@ -277,4 +277,4 @@ void convert_proto_msg_to_itti_sgsap_mm_information_req(
   return;
 }
 
-}  // namespace magma
+} // namespace magma

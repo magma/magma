@@ -10,13 +10,13 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // SessionAMBR Class
 class SessionAMBRMsg {
- public:
+public:
 #define AMBR_MIN_LEN 2
   uint8_t iei;
   uint8_t length;
@@ -27,9 +27,9 @@ class SessionAMBRMsg {
 
   SessionAMBRMsg();
   ~SessionAMBRMsg();
-  int EncodeSessionAMBRMsg(SessionAMBRMsg* session_ambr, uint8_t iei,
-                           uint8_t* buffer, uint32_t len);
-  int DecodeSessionAMBRMsg(SessionAMBRMsg* session_ambr, uint8_t iei,
-                           uint8_t* buffer, uint32_t len);
+  int EncodeSessionAMBRMsg(SessionAMBRMsg *session_ambr, uint8_t iei,
+                           uint8_t *buffer, uint32_t len);
+  int DecodeSessionAMBRMsg(SessionAMBRMsg *session_ambr, uint8_t iei,
+                           uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

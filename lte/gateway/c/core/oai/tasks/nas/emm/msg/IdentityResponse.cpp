@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_identity_response(identity_response_msg* identity_response,
-                             uint8_t* buffer, uint32_t len) {
+int decode_identity_response(identity_response_msg *identity_response,
+                             uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -51,8 +51,8 @@ int decode_identity_response(identity_response_msg* identity_response,
   return decoded;
 }
 
-int encode_identity_response(identity_response_msg* identity_response,
-                             uint8_t* buffer, uint32_t len) {
+int encode_identity_response(identity_response_msg *identity_response,
+                             uint8_t *buffer, uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
 
@@ -64,7 +64,7 @@ int encode_identity_response(identity_response_msg* identity_response,
 
   if ((encode_result = encode_mobile_identity_ie(
            &identity_response->mobileidentity, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

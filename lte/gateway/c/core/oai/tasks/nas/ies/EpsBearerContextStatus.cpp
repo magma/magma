@@ -22,16 +22,16 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
 int decode_eps_bearer_context_status(
-    eps_bearer_context_status_t* epsbearercontextstatus, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    eps_bearer_context_status_t *epsbearercontextstatus, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -50,9 +50,9 @@ int decode_eps_bearer_context_status(
 
 //------------------------------------------------------------------------------
 int encode_eps_bearer_context_status(
-    eps_bearer_context_status_t* epsbearercontextstatus, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+    eps_bearer_context_status_t *epsbearercontextstatus, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*

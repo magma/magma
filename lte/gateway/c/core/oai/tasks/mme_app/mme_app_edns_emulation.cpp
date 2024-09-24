@@ -24,9 +24,9 @@
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.hpp"
 
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -43,24 +43,24 @@ extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
-static obj_hash_table_t* g_e_dns_entries = NULL;
+static obj_hash_table_t *g_e_dns_entries = NULL;
 
 //------------------------------------------------------------------------------
-struct in_addr* mme_app_edns_get_sgw_entry(bstring id) {
-  struct in_addr* in_addr = NULL;
-  obj_hashtable_get(g_e_dns_entries, bdata(id), blength(id), (void**)&in_addr);
+struct in_addr *mme_app_edns_get_sgw_entry(bstring id) {
+  struct in_addr *in_addr = NULL;
+  obj_hashtable_get(g_e_dns_entries, bdata(id), blength(id), (void **)&in_addr);
 
   return in_addr;
 }
 
 //------------------------------------------------------------------------------
 status_code_e mme_app_edns_add_sgw_entry(bstring id, struct in_addr in_addr) {
-  char* cid = reinterpret_cast<char*>(calloc(1, blength(id) + 1));
+  char *cid = reinterpret_cast<char *>(calloc(1, blength(id) + 1));
   if (cid) {
-    strncpy(cid, (const char*)id->data, blength(id));
+    strncpy(cid, (const char *)id->data, blength(id));
 
-    struct in_addr* data =
-        reinterpret_cast<struct in_addr*>(malloc(sizeof(struct in_addr)));
+    struct in_addr *data =
+        reinterpret_cast<struct in_addr *>(malloc(sizeof(struct in_addr)));
     if (data) {
       data->s_addr = in_addr.s_addr;
 
@@ -77,7 +77,7 @@ status_code_e mme_app_edns_add_sgw_entry(bstring id, struct in_addr in_addr) {
 }
 
 //------------------------------------------------------------------------------
-status_code_e mme_app_edns_init(const mme_config_t* mme_config_p) {
+status_code_e mme_app_edns_init(const mme_config_t *mme_config_p) {
   status_code_e rc = RETURNok;
   g_e_dns_entries = obj_hashtable_create(OAI_MIN(32, MME_CONFIG_MAX_SGW), NULL,
                                          free_wrapper, free_wrapper, NULL);

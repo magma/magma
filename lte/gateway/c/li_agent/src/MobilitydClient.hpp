@@ -13,10 +13,10 @@
 #pragma once
 
 #include <arpa/inet.h>
-#include <grpc++/grpc++.h>
-#include <stdint.h>
 #include <functional>
+#include <grpc++/grpc++.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 
 #include "lte/protos/mobilityd.grpc.pb.h"
@@ -26,20 +26,20 @@
 namespace grpc {
 class Channel;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace lte {
 class IPAddress;
 class SubscriberID;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 namespace magma {
 namespace lte {
 
 class MobilitydClient {
- public:
+public:
   virtual ~MobilitydClient() = default;
 
   /*
@@ -51,7 +51,7 @@ class MobilitydClient {
    * @return void
    */
   virtual void get_subscriber_id_from_ip(
-      const struct in_addr& ip,
+      const struct in_addr &ip,
       std::function<void(grpc::Status status, SubscriberID)> callback) = 0;
 };
 
@@ -60,24 +60,24 @@ class MobilitydClient {
  * UE information.
  */
 class AsyncMobilitydClient : public GRPCReceiver, public MobilitydClient {
- public:
+public:
   AsyncMobilitydClient();
   explicit AsyncMobilitydClient(
       std::shared_ptr<grpc::Channel> mobilityd_channel);
 
   void get_subscriber_id_from_ip(
-      const struct in_addr& ip,
+      const struct in_addr &ip,
       std::function<void(grpc::Status status, SubscriberID)> callback);
 
- private:
+private:
   static const uint32_t RESPONSE_TIMEOUT_SECONDS = 6;
   std::unique_ptr<MobilityService::Stub> stub_;
 
- private:
+private:
   void get_subscriber_id_from_ip_rpc(
-      const IPAddress& request,
+      const IPAddress &request,
       std::function<void(grpc::Status, SubscriberID)> callback);
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

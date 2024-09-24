@@ -26,7 +26,7 @@
 namespace magma {
 
 class OperationalStatesHandlerTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     rule_store = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
@@ -103,4 +103,4 @@ TEST_F(OperationalStatesHandlerTest, test_get_operational_states) {
   EXPECT_EQ(content["ipv4"], IP2);
   EXPECT_EQ(content["session_id"], SESSION_ID_2);
 }
-}  // namespace magma
+} // namespace magma

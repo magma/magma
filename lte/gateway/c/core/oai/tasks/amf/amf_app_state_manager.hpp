@@ -23,10 +23,10 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
+#include "lte/gateway/c/core/oai/include/state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.hpp"
-#include "lte/gateway/c/core/oai/include/state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
 
 using magma::lte::oai::MmeNasState;
 namespace magma5g {
@@ -45,7 +45,7 @@ const int NUM_MAX_UE_HTBL_LISTS = 6;
  * persist state flag is set, load it from the data store.
  * This is only done by the amf_app task.
  */
-int amf_nas_state_init(const amf_config_t* amf_config_p);
+int amf_nas_state_init(const amf_config_t *amf_config_p);
 
 /**
  * Return pointer to the in-memory AMF/NAS state from state manager before
@@ -53,7 +53,7 @@ int amf_nas_state_init(const amf_config_t* amf_config_p);
  * If the read_from_db flag is set to true, the state is loaded from data store
  * before returning the pointer.
  */
-amf_app_desc_t* get_amf_nas_state(bool read_from_redis);
+amf_app_desc_t *get_amf_nas_state(bool read_from_redis);
 
 /**
  * Write the AMF/NAS state to data store after processing any message. This is a
@@ -68,10 +68,10 @@ void put_amf_nas_state();
 void clear_amf_nas_state();
 
 // Retrieving respective global hash table
-map_uint64_ue_context_t* get_amf_ue_state();
+map_uint64_ue_context_t *get_amf_ue_state();
 
 // Persists UE AMF state for subscriber into db
-void put_amf_ue_state(magma5g::amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+void put_amf_ue_state(magma5g::amf_app_desc_t *amf_app_desc_p, imsi64_t imsi64,
                       bool force_ue_write);
 // Deletes entry for UE AMF state on db
 void delete_amf_ue_state(imsi64_t imsi64);
@@ -85,28 +85,28 @@ class AmfNasStateManager
     : public magma::lte::StateManager<amf_app_desc_t, ue_m5gmm_context_t,
                                       MmeNasState, UeContext,
                                       AmfNasStateConverter> {
- public:
+public:
   /**
    * Returns an instance of AmfNasStateManager, guaranteed to be thread safe and
    * initialized only once.
    **/
-  static AmfNasStateManager& getInstance();
+  static AmfNasStateManager &getInstance();
 
   // Initialize the local in-memory state when Amf app inits
-  status_code_e initialize_state(const amf_config_t* amf_config_p);
+  status_code_e initialize_state(const amf_config_t *amf_config_p);
 
   /**
    * Retrieve the state pointer from state manager. The read_from_db flag is a
    * debug flag; if set to true, the state is loaded from the data store on
    * every get.
    */
-  amf_app_desc_t* get_state(bool read_from_redis) override;
+  amf_app_desc_t *get_state(bool read_from_redis) override;
 
   // Retriving respective hash table from global data
-  map_uint64_ue_context_t* get_ue_state_map();
+  map_uint64_ue_context_t *get_ue_state_map();
 
   // Persists UE AMF state for subscriber into db
-  void put_amf_ue_state(amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+  void put_amf_ue_state(amf_app_desc_t *amf_app_desc_p, imsi64_t imsi64,
                         bool force_ue_write);
 
   void clear_db_state();
@@ -115,8 +115,8 @@ class AmfNasStateManager
    * Copy constructor and assignment operator are marked as deleted functions.
    * Making them public for better debugging/logging.
    */
-  AmfNasStateManager(AmfNasStateManager const&) = delete;
-  AmfNasStateManager& operator=(AmfNasStateManager const&) = delete;
+  AmfNasStateManager(AmfNasStateManager const &) = delete;
+  AmfNasStateManager &operator=(AmfNasStateManager const &) = delete;
 
   // AMF state initializemanager flag
   uint32_t max_ue_htbl_lists_;
@@ -128,11 +128,11 @@ class AmfNasStateManager
   void write_state_to_db() override;
   status_code_e read_state_from_db() override;
 
-  void write_ue_state_to_db(const ue_m5gmm_context_t* ue_context,
-                            const std::string& imsi_str) override;
+  void write_ue_state_to_db(const ue_m5gmm_context_t *ue_context,
+                            const std::string &imsi_str) override;
   status_code_e read_ue_state_from_db() override;
 
- private:
+private:
   AmfNasStateManager();
   ~AmfNasStateManager();
 
@@ -149,4 +149,4 @@ class AmfNasStateManager
    */
   void create_state() override;
 };
-}  // namespace magma5g
+} // namespace magma5g

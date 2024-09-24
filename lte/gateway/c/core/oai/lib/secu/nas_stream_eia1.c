@@ -15,19 +15,19 @@
  *      contact@openairinterface.org
  */
 
+#include <math.h> // double ceil(double x);
 #include <stdint.h>
+#include <stdlib.h> // malloc, free
 #include <string.h>
-#include <math.h>    // double ceil(double x);
-#include <stdlib.h>  // malloc, free
 
-#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/lib/secu/snow3g.h"
 
 uint64_t MUL64x(uint64_t V, uint64_t c);
 uint64_t MUL64xPOW(uint64_t V, uint32_t i, uint64_t c);
 uint64_t MUL64(uint64_t V, uint64_t P, uint64_t c);
-int nas_stream_encrypt_eia1(nas_stream_cipher_t* const stream_cipher,
+int nas_stream_encrypt_eia1(nas_stream_cipher_t *const stream_cipher,
                             uint8_t const out[4]);
 
 // see spec 3GPP Confidentiality and Integrity Algorithms UEA2&UIA2. Document 1:
@@ -78,7 +78,8 @@ uint64_t MUL64(uint64_t V, uint64_t P, uint64_t c) {
   int i = 0;
 
   for (i = 0; i < 64; i++) {
-    if ((P >> i) & 0x1) result ^= MUL64xPOW(V, i, c);
+    if ((P >> i) & 0x1)
+      result ^= MUL64xPOW(V, i, c);
   }
 
   return result;
@@ -92,9 +93,11 @@ uint64_t MUL64(uint64_t V, uint64_t P, uint64_t c) {
 uint32_t mask32bit(int n) {
   uint32_t mask = 0x0;
 
-  if (n % 32 == 0) return 0xffffffff;
+  if (n % 32 == 0)
+    return 0xffffffff;
 
-  while (n--) mask = (mask >> 1) ^ 0x80000000;
+  while (n--)
+    mask = (mask >> 1) ^ 0x80000000;
 
   return mask;
 }
@@ -105,7 +108,7 @@ uint32_t mask32bit(int n) {
    encoding
    @param[out] out For EIA1 the output string is 32 bits long
 */
-int nas_stream_encrypt_eia1(nas_stream_cipher_t* const stream_cipher,
+int nas_stream_encrypt_eia1(nas_stream_cipher_t *const stream_cipher,
                             uint8_t const out[4]) {
   snow_3g_context_t snow_3g_context;
   uint32_t K[4], IV[4], z[5];
@@ -119,8 +122,8 @@ int nas_stream_encrypt_eia1(nas_stream_cipher_t* const stream_cipher,
   uint64_t M_D_2;
   int rem_bits;
   uint32_t mask = 0;
-  uint32_t* message =
-      (uint32_t*)malloc(sizeof(uint32_t) * ((stream_cipher->blength >> 5) + 1));
+  uint32_t *message = (uint32_t *)malloc(sizeof(uint32_t) *
+                                         ((stream_cipher->blength >> 5) + 1));
 
   /* copy message to avoid memory alignment issues */
   memcpy(message, stream_cipher->message, ceil(stream_cipher->blength / 8.0));
@@ -203,7 +206,8 @@ int nas_stream_encrypt_eia1(nas_stream_cipher_t* const stream_cipher,
    */
   rem_bits = stream_cipher->blength % 64;
 
-  if (rem_bits == 0) rem_bits = 64;
+  if (rem_bits == 0)
+    rem_bits = 64;
 
   mask = mask32bit(rem_bits % 32);
 
@@ -227,7 +231,7 @@ int nas_stream_encrypt_eia1(nas_stream_cipher_t* const stream_cipher,
   MAC_I = (uint32_t)(EVAL >> 32) ^ z[4];
   // printf ("MAC_I:%16X\n",MAC_I);
   MAC_I = hton_int32(MAC_I);
-  memcpy((void*)out, &MAC_I, 4);
+  memcpy((void *)out, &MAC_I, 4);
   free(message);
   return 0;
 }

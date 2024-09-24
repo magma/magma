@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,16 +20,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GRequestType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GRequestType.hpp"
 
 namespace magma5g {
 RequestType::RequestType() {}
 RequestType::~RequestType() {}
 
 // Decode RequestType IE
-int RequestType::DecodeRequestType(RequestType* reqest_type, uint8_t iei,
-                                   uint8_t* buffer, uint32_t len) {
+int RequestType::DecodeRequestType(RequestType *reqest_type, uint8_t iei,
+                                   uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   // Store the IEI Information
@@ -44,8 +44,8 @@ int RequestType::DecodeRequestType(RequestType* reqest_type, uint8_t iei,
 }
 
 // Encode RequestType IE
-int RequestType::EncodeRequestType(RequestType* reqest_type, uint8_t iei,
-                                   uint8_t* buffer, uint32_t len) {
+int RequestType::EncodeRequestType(RequestType *reqest_type, uint8_t iei,
+                                   uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
@@ -59,4 +59,4 @@ int RequestType::EncodeRequestType(RequestType* reqest_type, uint8_t iei,
 
   return (encoded);
 }
-}  // namespace magma5g
+} // namespace magma5g

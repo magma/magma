@@ -26,21 +26,21 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include <cstdlib>
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
+#include <cstdlib>
 
 #ifdef __cplusplus
 }
 #endif
 
-#include <unordered_map>
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/redis_utils/redis_client.hpp"
+#include <unordered_map>
 
 namespace {
 constexpr char IMSI_PREFIX[] = "IMSI";
-}  // namespace
+} // namespace
 
 namespace magma {
 namespace lte {
@@ -48,11 +48,11 @@ namespace lte {
 template <typename StateType, typename UeContextType, typename ProtoType,
           typename ProtoUe, typename StateConverter>
 class StateManager {
- public:
+public:
   /**
    * @param read_from_db forces a read from db when true
    */
-  virtual StateType* get_state(bool read_from_db) {
+  virtual StateType *get_state(bool read_from_db) {
     AssertFatal(
         is_initialized,
         "StateManager init() function should be called to initialize state");
@@ -73,7 +73,7 @@ class StateManager {
     return state_cache_p;
   }
 
-  virtual hash_table_ts_t* get_ue_state_ht() {
+  virtual hash_table_ts_t *get_ue_state_ht() {
     AssertFatal(
         is_initialized,
         "StateManager init() function should be called to initialize state");
@@ -108,9 +108,9 @@ class StateManager {
       return RETURNok;
     }
     auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
-    for (const auto& key : keys) {
+    for (const auto &key : keys) {
       ProtoUe ue_proto = ProtoUe();
-      auto* ue_context = (UeContextType*)(calloc(1, sizeof(UeContextType)));
+      auto *ue_context = (UeContextType *)(calloc(1, sizeof(UeContextType)));
       if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
         return RETURNerror;
       }
@@ -121,7 +121,7 @@ class StateManager {
       StateConverter::proto_to_ue(ue_proto, ue_context);
 
       hashtable_ts_insert(state_ue_ht, get_imsi_from_key(key),
-                          (void*)ue_context);
+                          (void *)ue_context);
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     }
     return RETURNok;
@@ -161,8 +161,8 @@ class StateManager {
     }
   }
 
-  virtual void write_ue_state_to_db(const UeContextType* ue_context,
-                                    const std::string& imsi_str) {
+  virtual void write_ue_state_to_db(const UeContextType *ue_context,
+                                    const std::string &imsi_str) {
     AssertFatal(
         is_initialized,
         "StateManager init() function should be called to initialize state");
@@ -194,11 +194,11 @@ class StateManager {
         "StateManager init() function should be called to initialize state");
 
     char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-    IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
+    IMSI64_TO_STRING(imsi64, (char *)imsi_str, IMSI_BCD_DIGITS_MAX);
     return imsi_str;
   }
 
-  void clear_ue_state_db(const std::string& imsi_str) {
+  void clear_ue_state_db(const std::string &imsi_str) {
     AssertFatal(
         is_initialized,
         "StateManager init() function should be called to initialize state");
@@ -221,19 +221,12 @@ class StateManager {
 
   bool is_persist_state_enabled() const { return persist_state_enabled; }
 
- protected:
+protected:
   StateManager()
-      : state_cache_p(nullptr),
-        state_ue_ht(nullptr),
-        redis_client(nullptr),
-        is_initialized(false),
-        state_dirty(false),
-        persist_state_enabled(false),
-        task_state_version(0),
-        ue_state_version(0),
-        task_state_hash(0),
-        ue_state_hash(0),
-        log_task(LOG_UTIL) {}
+      : state_cache_p(nullptr), state_ue_ht(nullptr), redis_client(nullptr),
+        is_initialized(false), state_dirty(false), persist_state_enabled(false),
+        task_state_version(0), ue_state_version(0), task_state_hash(0),
+        ue_state_hash(0), log_task(LOG_UTIL) {}
   virtual ~StateManager() = default;
 
   /**
@@ -241,7 +234,7 @@ class StateManager {
    */
   virtual void create_state() = 0;
 
-  imsi64_t get_imsi_from_key(const std::string& key) const {
+  imsi64_t get_imsi_from_key(const std::string &key) const {
     imsi64_t imsi64;
     std::string imsi_str_prefix = key.substr(0, key.find(':'));
     std::string imsi_str = imsi_str_prefix.substr(4, imsi_str_prefix.length());
@@ -250,8 +243,8 @@ class StateManager {
   }
 
   // TODO: Make this a unique_ptr
-  StateType* state_cache_p;
-  hash_table_ts_t* state_ue_ht;
+  StateType *state_cache_p;
+  hash_table_ts_t *state_ue_ht;
   // TODO: Revisit one shared connection for all types of state
   std::unique_ptr<RedisClient> redis_client;
   // Flag for check asserting if the state has been initialized.
@@ -267,11 +260,11 @@ class StateManager {
   std::size_t task_state_hash;
   std::unordered_map<std::string, std::size_t> ue_state_hash;
 
- protected:
+protected:
   std::string table_key;
   std::string task_name;
   log_proto_t log_task;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

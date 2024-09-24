@@ -13,9 +13,9 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <map>
 #include <memory>
+#include <stdint.h>
 
 #include "lte/gateway/c/sctpd/src/sctp_assoc.hpp"
 
@@ -26,14 +26,14 @@ using AssocMap = std::map<uint32_t, SctpAssoc>;
 
 // Models the state of an SCTP connection and its assocations
 class SctpDesc {
- public:
+public:
   // Construct a SCTP assocation on socket, sd
   SctpDesc(int sd);
 
   // Add assocation, assoc, to the list of assocations - keyed by assoc_id
-  void addAssoc(const SctpAssoc& assoc);
+  void addAssoc(const SctpAssoc &assoc);
   // Get association keyed by assoc_id, throw std::out_of_range otherwise
-  SctpAssoc& getAssoc(uint32_t assoc_id);
+  SctpAssoc &getAssoc(uint32_t assoc_id);
   // Remove assoc keyed by assoc_id from assoc list, returns 0/-1 on ok/fail
   int delAssoc(uint32_t assoc_id);
 
@@ -48,12 +48,12 @@ class SctpDesc {
   // Dump debug information about the SCTP connection to the log
   void dump() const;
 
- private:
+private:
   // List (map) of assocations for the SCTP connection
   AssocMap _assocs;
   // Socket descriptor for the SCTP connection
   int _sd;
 };
 
-}  // namespace sctpd
-}  // namespace magma
+} // namespace sctpd
+} // namespace magma

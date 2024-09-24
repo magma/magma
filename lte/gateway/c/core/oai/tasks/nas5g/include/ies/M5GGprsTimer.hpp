@@ -9,12 +9,12 @@
  * limitations under the License.
  * */
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 class GPRSTimerMsg {
- public:
+public:
 #define GPRS_TIMER_MINIMUM_LENGTH 2
 #define GPRS_TIMER_MAXIMUM_LENGTH 2
 
@@ -23,10 +23,10 @@ class GPRSTimerMsg {
   GPRSTimerMsg();
   ~GPRSTimerMsg();
 
-  int EncodeGPRSTimerMsg(GPRSTimerMsg* gprstimer, uint8_t iei, uint8_t* buffer,
+  int EncodeGPRSTimerMsg(GPRSTimerMsg *gprstimer, uint8_t iei, uint8_t *buffer,
                          uint32_t len);
 
-  int DecodeGPRSTimerMsg(GPRSTimerMsg* gprstimer, uint8_t iei, uint8_t* buffer,
+  int DecodeGPRSTimerMsg(GPRSTimerMsg *gprstimer, uint8_t iei, uint8_t *buffer,
                          uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

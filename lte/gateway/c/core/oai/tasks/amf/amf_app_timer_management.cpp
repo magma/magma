@@ -12,15 +12,15 @@ limitations under the License.
 */
 //--C includes -----------------------------------------------------------------
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
 //--C++ includes ---------------------------------------------------------------
-#include <utility>
 #include <stdexcept>
+#include <utility>
 //--Other includes -------------------------------------------------------------
 
 namespace magma5g {
@@ -42,7 +42,7 @@ void amf_app_stop_timer(int timer_id) {
 }
 
 //------------------------------------------------------------------------------
-bool amf_pop_timer_arg(int timer_id, timer_arg_t* arg) {
+bool amf_pop_timer_arg(int timer_id, timer_arg_t *arg) {
   return magma5g::AmfUeContext::Instance().PopTimerArgById(timer_id, arg);
 }
 
@@ -71,13 +71,13 @@ void AmfUeContext::StopTimer(int timer_id) {
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 //------------------------------------------------------------------------------
-bool AmfUeContext::PopTimerArgById(const int timer_id, timer_arg_t* arg) {
+bool AmfUeContext::PopTimerArgById(const int timer_id, timer_arg_t *arg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   try {
     *arg = amf_app_timers.at(timer_id);
     amf_app_timers.erase(timer_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, true);
-  } catch (std::out_of_range& e) {
+  } catch (std::out_of_range &e) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, false);
   }
 }
@@ -97,7 +97,7 @@ void amf_pdu_stop_timer(int timer_id) {
 }
 
 //------------------------------------------------------------------------------
-bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t* arg) {
+bool amf_pop_pdu_timer_arg(int timer_id, ue_pdu_id_t *arg) {
   return magma5g::AmfUeContext::Instance().PopPduTimerArgById(timer_id, arg);
 }
 
@@ -122,15 +122,15 @@ void AmfUeContext::StopPduTimer(int timer_id) {
 }
 
 //------------------------------------------------------------------------------
-bool AmfUeContext::PopPduTimerArgById(const int timer_id, ue_pdu_id_t* arg) {
+bool AmfUeContext::PopPduTimerArgById(const int timer_id, ue_pdu_id_t *arg) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   try {
     *arg = amf_pdu_timers.at(timer_id);
     amf_pdu_timers.erase(timer_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, true);
-  } catch (std::out_of_range& e) {
+  } catch (std::out_of_range &e) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, false);
   }
 }
 
-}  // namespace magma5g
+} // namespace magma5g

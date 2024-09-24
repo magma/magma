@@ -81,22 +81,23 @@ extern "C" {
  * --------------------------------------------------------------------------
  */
 
-status_code_e esm_send_status(pti_t pti, ebi_t ebi, esm_status_msg* msg,
+status_code_e esm_send_status(pti_t pti, ebi_t ebi, esm_status_msg *msg,
                               int esm_cause);
 
 /*
  * Transaction related messages
  * ----------------------------
  */
-status_code_e esm_send_esm_information_request(
-    pti_t pti, ebi_t ebi, esm_information_request_msg* msg);
+status_code_e
+esm_send_esm_information_request(pti_t pti, ebi_t ebi,
+                                 esm_information_request_msg *msg);
 
 status_code_e esm_send_pdn_connectivity_reject(pti_t pti,
-                                               pdn_connectivity_reject_msg* msg,
+                                               pdn_connectivity_reject_msg *msg,
                                                int esm_cause);
 
 status_code_e esm_send_pdn_disconnect_reject(pti_t pti,
-                                             pdn_disconnect_reject_msg* msg,
+                                             pdn_disconnect_reject_msg *msg,
                                              int esm_cause);
 
 /*
@@ -104,17 +105,17 @@ status_code_e esm_send_pdn_disconnect_reject(pti_t pti,
  * ---------------------------------------
  */
 status_code_e esm_send_activate_default_eps_bearer_context_request(
-    pti_t pti, ebi_t ebi, activate_default_eps_bearer_context_request_msg* msg,
-    pdn_context_t* pdn_context_p, const protocol_configuration_options_t* pco,
-    int pdn_type, bstring pdn_addr, const EpsQualityOfService* qos,
+    pti_t pti, ebi_t ebi, activate_default_eps_bearer_context_request_msg *msg,
+    pdn_context_t *pdn_context_p, const protocol_configuration_options_t *pco,
+    int pdn_type, bstring pdn_addr, const EpsQualityOfService *qos,
     int esm_cause);
 
 status_code_e esm_send_activate_dedicated_eps_bearer_context_request(
     pti_t pti, ebi_t ebi,
-    activate_dedicated_eps_bearer_context_request_msg* msg, ebi_t linked_ebi,
-    const EpsQualityOfService* qos, traffic_flow_template_t* tft,
-    protocol_configuration_options_t* pco);
+    activate_dedicated_eps_bearer_context_request_msg *msg, ebi_t linked_ebi,
+    const EpsQualityOfService *qos, traffic_flow_template_t *tft,
+    protocol_configuration_options_t *pco);
 
 status_code_e esm_send_deactivate_eps_bearer_context_request(
-    pti_t pti, ebi_t ebi, deactivate_eps_bearer_context_request_msg* msg,
+    pti_t pti, ebi_t ebi, deactivate_eps_bearer_context_request_msg *msg,
     int esm_cause);

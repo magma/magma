@@ -10,21 +10,21 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GServiceType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GServiceType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.hpp"
+#include <sstream>
 
 namespace magma5g {
 // ServiceRequest Message Class
 class ServiceRequestMsg {
- public:
+public:
 #define SERVICE_REQUEST_MINIMUM_LENGTH 13
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SecurityHeaderTypeMsg sec_header_type;
@@ -38,9 +38,9 @@ class ServiceRequestMsg {
 
   ServiceRequestMsg();
   ~ServiceRequestMsg();
-  int DecodeServiceRequestMsg(ServiceRequestMsg* svc_request, uint8_t* buffer,
+  int DecodeServiceRequestMsg(ServiceRequestMsg *svc_request, uint8_t *buffer,
                               uint32_t len);
-  int EncodeServiceRequestMsg(ServiceRequestMsg* svc_request, uint8_t* buffer,
+  int EncodeServiceRequestMsg(ServiceRequestMsg *svc_request, uint8_t *buffer,
                               uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

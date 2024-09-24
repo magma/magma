@@ -39,13 +39,13 @@ Description Defines the EMM primitives available at the EMMAS Service
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -99,7 +99,7 @@ typedef struct emm_as_security_data_s {
  */
 typedef struct emm_as_security_s {
   mme_ue_s1ap_id_t ue_id;      /* UE lower layer identifier        */
-  const guti_t* guti;          /* GUTI temporary mobile identity   */
+  const guti_t *guti;          /* GUTI temporary mobile identity   */
   emm_as_security_data_t sctx; /* EPS NAS security context     */
   int emm_cause;               /* EMM failure cause code       */
   uint64_t puid;               // linked to procedure UID
@@ -107,8 +107,8 @@ typedef struct emm_as_security_s {
    * Identity request/response
    */
   uint8_t ident_type; /* Type of requested UE's identity  */
-  const imsi_t* imsi; /* The requested IMSI of the UE     */
-  const imei_t* imei; /* The requested IMEI of the UE     */
+  const imsi_t *imsi; /* The requested IMSI of the UE     */
+  const imei_t *imei; /* The requested IMEI of the UE     */
   uint8_t imeisv_request_enabled;
   uint32_t tmsi; /* The requested TMSI of the UE     */
   /*
@@ -154,11 +154,11 @@ typedef struct emm_as_security_s {
  * --------------------------------------------
  */
 typedef struct emm_as_EPS_identity_s {
-  const guti_t* guti;    /* The GUTI, if valid               */
-  const tai_t* last_tai; /* The last visited registered Tracking
+  const guti_t *guti;    /* The GUTI, if valid               */
+  const tai_t *last_tai; /* The last visited registered Tracking
                           * Area Identity, if available          */
-  const imsi_t* imsi;    /* IMSI in case of "AttachWithImsi"     */
-  const imei_t* imei;    /* UE's IMEI for emergency bearer services  */
+  const imsi_t *imsi;    /* IMSI in case of "AttachWithImsi"     */
+  const imei_t *imei;    /* UE's IMEI for emergency bearer services  */
 } emm_as_EPS_identity_t;
 
 typedef location_area_identification_t LAI_t;
@@ -180,10 +180,10 @@ typedef struct emm_as_establish_s {
   uint8_t encryption : 4; /* Ciphering algorithm           */
   uint8_t integrity : 4;  /* Integrity protection algorithm    */
   uint8_t emm_cause;      /* EMM failure cause code        */
-  const guti_t* new_guti; /* New GUTI, if re-allocated         */
+  const guti_t *new_guti; /* New GUTI, if re-allocated         */
   int n_tacs;             /* Number of consecutive tracking areas
                            * the UE is registered to       */
-  const tai_t* tai;       /* The first tracking area the UE is registered to */
+  const tai_t *tai;       /* The first tracking area the UE is registered to */
   // tac_t                  tac;                         /* Code of the first
   // tracking area the UE
   //                                                     * is registered to */
@@ -200,23 +200,23 @@ typedef struct emm_as_establish_s {
                      * initial NAS information message   */
 
   uint8_t eps_update_result;           /* TAU EPS update result   */
-  uint32_t* t3412;                     /* GPRS T3412 timer   */
-  guti_t* guti;                        /* TAU GUTI   */
+  uint32_t *t3412;                     /* GPRS T3412 timer   */
+  guti_t *guti;                        /* TAU GUTI   */
   tai_list_t tai_list;                 /* Valid field if num tai > 0 */
-  uint16_t* eps_bearer_context_status; /* TAU EPS bearer context status   */
-  LAI_t* location_area_identification; /* TAU Location area identification */
-  mobile_identity_t* ms_identity; /* TAU 8.2.26.7   MS identity This IE may be
+  uint16_t *eps_bearer_context_status; /* TAU EPS bearer context status   */
+  LAI_t *location_area_identification; /* TAU Location area identification */
+  mobile_identity_t *ms_identity; /* TAU 8.2.26.7   MS identity This IE may be
                                      included to assign or unassign a new TMSI
                                      to a UE during a combined TA/LA update. */
-  int* combined_tau_emm_cause;    /* TAU EMM failure cause code   */
-  uint32_t* t3402;                /* TAU GPRS T3402 timer   */
-  uint32_t* t3423;                /* TAU GPRS T3423 timer   */
-  void* equivalent_plmns;         /* TAU Equivalent PLMNs   */
-  void* emergency_number_list;    /* TAU Emergency number list   */
-  eps_network_feature_support_t*
-      eps_network_feature_support;   /* TAU Network feature support   */
-  uint8_t* additional_update_result; /* TAU Additional update result   */
-  uint32_t* t3412_extended;          /* TAU GPRS timer   */
+  int *combined_tau_emm_cause;    /* TAU EMM failure cause code   */
+  uint32_t *t3402;                /* TAU GPRS T3402 timer   */
+  uint32_t *t3423;                /* TAU GPRS T3423 timer   */
+  void *equivalent_plmns;         /* TAU Equivalent PLMNs   */
+  void *emergency_number_list;    /* TAU Emergency number list   */
+  eps_network_feature_support_t
+      *eps_network_feature_support;  /* TAU Network feature support   */
+  uint8_t *additional_update_result; /* TAU Additional update result   */
+  uint32_t *t3412_extended;          /* TAU GPRS timer   */
   uint8_t csfb_response; /* CSFB MT call accepted or rejected by ue */
 #define SERVICE_TYPE_PRESENT (1 << 0)
   uint8_t presencemask; /* Indicates the presence of some params like service
@@ -231,7 +231,7 @@ typedef struct emm_as_establish_s {
  */
 typedef struct emm_as_release_s {
   mme_ue_s1ap_id_t ue_id; /* UE lower layer identifier          */
-  const guti_t* guti;     /* GUTI temporary mobile identity     */
+  const guti_t *guti;     /* GUTI temporary mobile identity     */
 #define EMM_AS_CAUSE_AUTHENTICATION 0x01 /* Authentication failure */
 #define EMM_AS_CAUSE_DETACH 0x02         /* Detach requested   */
   uint8_t cause;                         /* Release cause */
@@ -244,21 +244,21 @@ typedef struct emm_as_release_s {
 typedef struct emm_as_data_s {
   mme_ue_s1ap_id_t ue_id;       /* UE lower layer identifier        */
   emm_as_EPS_identity_t eps_id; /* UE's EPS mobile identity         */
-  const guti_t* guti;           /* GUTI temporary mobile identity   */
-  const guti_t* new_guti;       /* New GUTI, if re-allocated        */
+  const guti_t *guti;           /* GUTI temporary mobile identity   */
+  const guti_t *new_guti;       /* New GUTI, if re-allocated        */
   emm_as_security_data_t sctx;  /* EPS NAS security context         */
   uint8_t encryption : 4;       /* Ciphering algorithm              */
   uint8_t integrity : 4;        /* Integrity protection algorithm   */
-  const plmn_t* plmn_id;        /* Identifier of the selected PLMN  */
+  const plmn_t *plmn_id;        /* Identifier of the selected PLMN  */
   ecgi_t ecgi;      /* E-UTRAN CGI This information element is used to globally
                        identify a cell */
-  const tai_t* tai; /* Code of the first tracking area identity the UE is
+  const tai_t *tai; /* Code of the first tracking area identity the UE is
                        registered to          */
   tai_list_t tai_list; /* Valid field if num tai > 0 */
-  eps_network_feature_support_t*
-      eps_network_feature_support; /* TAU Network feature support */
-  bool switch_off;                 /* true if the UE is switched off   */
-  uint8_t type;                    /* Network detach type          */
+  eps_network_feature_support_t
+      *eps_network_feature_support; /* TAU Network feature support */
+  bool switch_off;                  /* true if the UE is switched off   */
+  uint8_t type;                     /* Network detach type          */
 #define EMM_AS_DATA_DELIVERED_LOWER_LAYER_FAILURE 0
 #define EMM_AS_DATA_DELIVERED_TRUE 1
 #define EMM_AS_DATA_DELIVERED_LOWER_LAYER_NON_DELIVERY_INDICATION_DUE_TO_HO 2
@@ -269,7 +269,7 @@ typedef struct emm_as_data_s {
 #define EMM_AS_NAS_DATA_ATTACH_ACCEPT 0x04 /* Attach Accept            */
 #define EMM_AS_NAS_EMM_INFORMATION 0x05    /* Emm information          */
 #define EMM_AS_NAS_DATA_DETACH_ACCEPT 0x06 /* Detach Accept            */
-#define EMM_AS_NAS_DATA_CS_SERVICE_NOTIFICATION \
+#define EMM_AS_NAS_DATA_CS_SERVICE_NOTIFICATION                                \
   0x07                                   /* CS Service Notification  */
 #define EMM_AS_NAS_DATA_INFO_SR 0x08     /* Service Reject in DL NAS */
 #define EMM_AS_NAS_DL_NAS_TRANSPORT 0x09 /* Downlink Nas Transport */
@@ -278,19 +278,19 @@ typedef struct emm_as_data_s {
   bstring full_network_name;
   bstring short_network_name;
   uint8_t daylight_saving_time;
-  LAI_t* location_area_identification; /* Location area identification */
-  mobile_identity_t*
-      ms_identity; /* MS identity This IE may be included to assign or unassign
-                      a new TMSI to a UE during a combined TA/LA update. */
-  uint8_t* additional_update_result;   /* TAU Additional update result   */
-  uint32_t* emm_cause;                 /* EMM failure cause code        */
-  uint16_t* eps_bearer_context_status; /* TAU EPS bearer context status   */
+  LAI_t *location_area_identification; /* Location area identification */
+  mobile_identity_t
+      *ms_identity; /* MS identity This IE may be included to assign or unassign
+                       a new TMSI to a UE during a combined TA/LA update. */
+  uint8_t *additional_update_result;   /* TAU Additional update result   */
+  uint32_t *emm_cause;                 /* EMM failure cause code        */
+  uint16_t *eps_bearer_context_status; /* TAU EPS bearer context status   */
   uint32_t sgs_loc_updt_status;
-  uint32_t* sgs_reject_cause;
-  uint8_t paging_identity;  // Paging_id could be IMSI or TMSI, as indicated by
-                            // MME app
-  bstring cli;              // Calling Line Identification
-  uint8_t eps_update_result;  // TAU EPS update result
+  uint32_t *sgs_reject_cause;
+  uint8_t paging_identity;   // Paging_id could be IMSI or TMSI, as indicated by
+                             // MME app
+  bstring cli;               // Calling Line Identification
+  uint8_t eps_update_result; // TAU EPS update result
 } emm_as_data_t;
 
 /*
@@ -324,7 +324,7 @@ typedef struct emm_as_deactivate_bearer_context_req_s {
  */
 typedef struct emm_as_status_s {
   mme_ue_s1ap_id_t ue_id;      /* UE lower layer identifier        */
-  const guti_t* guti;          /* GUTI temporary mobile identity   */
+  const guti_t *guti;          /* GUTI temporary mobile identity   */
   emm_as_security_data_t sctx; /* EPS NAS security context     */
   int emm_cause;               /* EMM failure cause code       */
 } emm_as_status_t;
@@ -375,5 +375,5 @@ typedef struct emm_as_s {
  * Defined in LowerLayer.c
  * Setup security data according to the given EPS security context
  */
-void emm_as_set_security_data(emm_as_security_data_t* data, const void* context,
+void emm_as_set_security_data(emm_as_security_data_t *data, const void *context,
                               bool is_new, bool is_ciphered);

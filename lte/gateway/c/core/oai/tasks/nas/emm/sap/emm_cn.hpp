@@ -37,4 +37,4 @@ Description
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
-status_code_e emm_cn_send(const emm_cn_t* msg);
+status_code_e emm_cn_send(const emm_cn_t *msg);

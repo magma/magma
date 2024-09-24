@@ -1,17 +1,17 @@
 #include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
 
+#include <functional>
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <functional>
 #include <ostream>
 #include <utility>
 
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 using grpc::Status;
 
@@ -23,7 +23,7 @@ void call_back_void_amf(grpc::Status, magma::SmContextVoid respvoid) {
 std::function<void(grpc::Status, magma::SmContextVoid)> callback =
     call_back_void_amf;
 
-}  // namespace
+} // namespace
 
 namespace magma {
 
@@ -37,9 +37,9 @@ AsyncAmfServiceClient::AsyncAmfServiceClient()
               "amf_service", ServiceRegistrySingleton::LOCAL)) {}
 
 bool AsyncAmfServiceClient::handle_response_to_access(
-    const magma::SetSMSessionContextAccess& response) {
+    const magma::SetSMSessionContextAccess &response) {
   MLOG(MDEBUG) << "Sending Set SM Session Response from SMF ";
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(response));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(response));
   auto local_resp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
                                                           RESPONSE_TIMEOUT);
   local_resp->set_response_reader(stub_->AsyncSetSmfSessionContext(
@@ -48,7 +48,7 @@ bool AsyncAmfServiceClient::handle_response_to_access(
 }
 
 bool AsyncAmfServiceClient::handle_notification_to_access(
-    const magma::SetSmNotificationContext& notif) {
+    const magma::SetSmNotificationContext &notif) {
   MLOG(MDEBUG) << "Sending Set SM Session Notification from SMF ";
   auto local_resp = new AsyncLocalResponse<SmContextVoid>(std::move(callback),
                                                           RESPONSE_TIMEOUT);
@@ -57,4 +57,4 @@ bool AsyncAmfServiceClient::handle_notification_to_access(
   return true;
 }
 
-}  // namespace magma
+} // namespace magma

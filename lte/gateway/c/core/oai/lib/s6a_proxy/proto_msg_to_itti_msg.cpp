@@ -15,33 +15,34 @@
  *      contact@openairinterface.org
  */
 
+#include <iostream>
 #include <stdint.h>
 #include <string.h>
-#include <iostream>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "feg/protos/s6a_proxy.pb.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
 
 extern "C" {}
 
 namespace magma {
 
-void copy_charging_characteristics(charging_characteristics_t* target,
-                                   const char* proto_c_str, int length) {
+void copy_charging_characteristics(charging_characteristics_t *target,
+                                   const char *proto_c_str, int length) {
   if (length > CHARGING_CHARACTERISTICS_LENGTH) {
     length = CHARGING_CHARACTERISTICS_LENGTH;
   }
-  if (length) memcpy(target->value, proto_c_str, length);
+  if (length)
+    memcpy(target->value, proto_c_str, length);
   target->value[length] = '\0';
   target->length = length;
 }
 
 void convert_proto_msg_to_itti_s6a_auth_info_ans(
-    AuthenticationInformationAnswer msg, s6a_auth_info_ans_t* itti_msg) {
+    AuthenticationInformationAnswer msg, s6a_auth_info_ans_t *itti_msg) {
   if (msg.eutran_vectors_size() > MAX_EPS_AUTH_VECTORS) {
     std::cout << "[ERROR] Number of eutran auth vectors received is:"
               << msg.eutran_vectors_size() << std::endl;
@@ -51,7 +52,7 @@ void convert_proto_msg_to_itti_s6a_auth_info_ans(
   uint8_t idx = 0;
   while (idx < itti_msg->auth_info.nb_of_vectors) {
     auto eutran_vector = msg.eutran_vectors(idx);
-    eutran_vector_t* itti_eutran_vector =
+    eutran_vector_t *itti_eutran_vector =
         &(itti_msg->auth_info.eutran_vector[idx]);
     if (eutran_vector.rand().length() <= RAND_LENGTH_OCTETS) {
       memcpy(itti_eutran_vector->rand, eutran_vector.rand().c_str(),
@@ -89,7 +90,7 @@ void convert_proto_msg_to_itti_s6a_auth_info_ans(
 }
 
 void convert_proto_msg_to_itti_s6a_update_location_ans(
-    UpdateLocationAnswer msg, s6a_update_location_ans_t* itti_msg) {
+    UpdateLocationAnswer msg, s6a_update_location_ans_t *itti_msg) {
   itti_msg->subscription_data.apn_config_profile.context_identifier =
       msg.default_context_id();
   itti_msg->subscription_data.subscribed_ambr.br_ul =
@@ -167,7 +168,7 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
   itti_msg->subscription_data.apn_config_profile.nb_apns = nb_apns;
   for (uint8_t idx = 0; idx < nb_apns; ++idx) {
     auto apn = msg.apn(idx);
-    struct apn_configuration_s* itti_msg_apn = &(
+    struct apn_configuration_s *itti_msg_apn = &(
         itti_msg->subscription_data.apn_config_profile.apn_configuration[idx]);
 
     itti_msg_apn->context_identifier = apn.context_id();
@@ -206,4 +207,4 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
   return;
 }
 
-}  // namespace magma
+} // namespace magma

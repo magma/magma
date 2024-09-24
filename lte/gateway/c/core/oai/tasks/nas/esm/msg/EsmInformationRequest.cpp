@@ -22,15 +22,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_esm_information_request(
-    esm_information_request_msg* esm_information_request, uint8_t* buffer,
+    esm_information_request_msg *esm_information_request, uint8_t *buffer,
     uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   uint32_t decoded = 0;
@@ -46,7 +46,7 @@ int decode_esm_information_request(
 }
 
 int encode_esm_information_request(
-    esm_information_request_msg* esm_information_request, uint8_t* buffer,
+    esm_information_request_msg *esm_information_request, uint8_t *buffer,
     uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int encoded = 0;

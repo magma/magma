@@ -15,15 +15,15 @@
 #include <pthread.h>
 
 #include <iostream>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
 namespace std {
 typedef size_t hash_size_t;
 /*Default hash function*/
-static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
+static hash_size_t def_hashfunc(const void *const keyP, const int key_sizeP) {
   hash_size_t hash = 0;
   int key_size = key_sizeP;
 
@@ -33,7 +33,7 @@ static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
     int size = sizeof(val);
     while ((size > 0) && (key_size > 0)) {
       val = val << 8;
-      val |= (reinterpret_cast<const uint8_t*>(keyP))[key_size - 1];
+      val |= (reinterpret_cast<const uint8_t *>(keyP))[key_size - 1];
       size--;
       key_size--;
     }
@@ -43,9 +43,8 @@ static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
   return hash;
 }
 // specialise std::equal_to function for type guti_m5_t
-template <>
-struct equal_to<guti_m5_t> {
-  bool operator()(const guti_m5_t& guti1, const guti_m5_t& guti2) const {
+template <> struct equal_to<guti_m5_t> {
+  bool operator()(const guti_m5_t &guti1, const guti_m5_t &guti2) const {
     return (guti1.m_tmsi == guti2.m_tmsi);
   }
 };
@@ -54,13 +53,12 @@ struct equal_to<guti_m5_t> {
   HashFunction for Guti as key and unit64 data
   Note: This HashFunc in turn calls the def_hashfunc which supports hashing
   only for unit64*/
-template <>
-struct hash<guti_m5_t> {
-  size_t operator()(const guti_m5_t& k) const {
+template <> struct hash<guti_m5_t> {
+  size_t operator()(const guti_m5_t &k) const {
     return def_hashfunc(&k, sizeof(k));
   }
 };
-}  // namespace std
+} // namespace std
 namespace magma {
 
 /*Enum for Map Return code
@@ -87,40 +85,40 @@ typedef enum map_return_code_e {
 
 static inline std::string map_rc_code2string(map_rc_t rc) {
   switch (rc) {
-    case MAP_OK:
-      return "MAP_OK";
-      break;
+  case MAP_OK:
+    return "MAP_OK";
+    break;
 
-    case MAP_KEY_NOT_EXISTS:
-      return "MAP_KEY_NOT_EXISTS";
-      break;
+  case MAP_KEY_NOT_EXISTS:
+    return "MAP_KEY_NOT_EXISTS";
+    break;
 
-    case MAP_SEARCH_NO_RESULT:
-      return "MAP_SEARCH_NO_RESULT";
-      break;
+  case MAP_SEARCH_NO_RESULT:
+    return "MAP_SEARCH_NO_RESULT";
+    break;
 
-    case MAP_KEY_ALREADY_EXISTS:
-      return "MAP_KEY_ALREADY_EXISTS";
-      break;
+  case MAP_KEY_ALREADY_EXISTS:
+    return "MAP_KEY_ALREADY_EXISTS";
+    break;
 
-    case MAP_BAD_PARAMETER_KEY:
-      return "MAP_BAD_PARAMETER_KEY";
-      break;
+  case MAP_BAD_PARAMETER_KEY:
+    return "MAP_BAD_PARAMETER_KEY";
+    break;
 
-    case MAP_BAD_PARAMETER_VALUE:
-      return "MAP_BAD_PARAMETER_VALUE";
-      break;
+  case MAP_BAD_PARAMETER_VALUE:
+    return "MAP_BAD_PARAMETER_VALUE";
+    break;
 
-    case MAP_EMPTY:
-      return "MAP_EMPTY";
-      break;
+  case MAP_EMPTY:
+    return "MAP_EMPTY";
+    break;
 
-    case MAP_DUMP_FAIL:
-      return "MAP_DUMP_FAIL";
-      break;
+  case MAP_DUMP_FAIL:
+    return "MAP_DUMP_FAIL";
+    break;
 
-    default:
-      return "UNKNOWN map_rc_t";
+  default:
+    return "UNKNOWN map_rc_t";
   }
 }
 
@@ -161,7 +159,7 @@ struct map_s {
   **              else returns error.                                       **
   **                                                                        **
   ***************************************************************************/
-  map_rc_t get(const keyT key, valueT* valueP) {
+  map_rc_t get(const keyT key, valueT *valueP) {
     if (umap.empty()) {
       return MAP_EMPTY;
     }
@@ -253,4 +251,4 @@ typedef magma::map_s<uint64_t, uint64_t> map_uint64_uint64_t;
 // Map- Key: string , Data: string
 typedef magma::map_s<std::string, std::string> map_string_string_t;
 
-}  // namespace magma
+} // namespace magma

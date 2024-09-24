@@ -37,41 +37,8 @@ Description Defines EPS Mobility Management messages and functions used
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/DetachType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateResult.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/KsiAndSequenceNumber.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsClientIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsIndicator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasMessageContainer.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ShortMac.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SsCode.hpp"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeRadioCapabilityInformationUpdateNeeded.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachReject.hpp"
@@ -101,6 +68,39 @@ Description Defines EPS Mobility Management messages and functions used
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/UplinkNasTransport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_msgDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Cli.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/CsfbResponse.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/DetachType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsBearerContextStatus.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsUpdateType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/KsiAndSequenceNumber.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsClientIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/LcsIndicator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasSecurityAlgorithms.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/Nonce.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/PagingIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ServiceType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ShortMac.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SsCode.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeRadioCapabilityInformationUpdateNeeded.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeSecurityCapability.hpp"
 
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -155,11 +155,11 @@ typedef union {
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-int emm_msg_decode_header(emm_msg_header_t* header, const uint8_t* buffer,
+int emm_msg_decode_header(emm_msg_header_t *header, const uint8_t *buffer,
                           uint32_t len);
-int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len);
+int emm_msg_decode(EMM_msg *msg, uint8_t *buffer, uint32_t len);
 
-int emm_msg_encode(EMM_msg* msg, uint8_t* buffer, uint32_t len);
+int emm_msg_encode(EMM_msg *msg, uint8_t *buffer, uint32_t len);
 
-int emm_msg_encode_header(const emm_msg_header_t* header, uint8_t* buffer,
+int emm_msg_encode_header(const emm_msg_header_t *header, uint8_t *buffer,
                           uint32_t len);

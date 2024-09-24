@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,15 +19,15 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIMEISVRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIMEISVRequest.hpp"
 
 namespace magma5g {
 ImeisvRequestMsg::ImeisvRequestMsg(){};
 ImeisvRequestMsg::~ImeisvRequestMsg(){};
 
-int ImeisvRequestMsg::DecodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
-                                             uint8_t iei, uint8_t* buffer,
+int ImeisvRequestMsg::DecodeImeisvRequestMsg(ImeisvRequestMsg *imeisv_request,
+                                             uint8_t iei, uint8_t *buffer,
                                              uint32_t len) {
   int decoded = 0;
 
@@ -44,8 +44,8 @@ int ImeisvRequestMsg::DecodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
   return decoded;
 };
 
-int ImeisvRequestMsg::EncodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
-                                             uint8_t iei, uint8_t* buffer,
+int ImeisvRequestMsg::EncodeImeisvRequestMsg(ImeisvRequestMsg *imeisv_request,
+                                             uint8_t iei, uint8_t *buffer,
                                              uint32_t len) {
   uint32_t encoded = 0;
 
@@ -55,4 +55,4 @@ int ImeisvRequestMsg::EncodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
 
   return encoded;
 };
-}  // namespace magma5g
+} // namespace magma5g

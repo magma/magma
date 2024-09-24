@@ -27,10 +27,10 @@
  * cast it to magma::TableID in directoryd.cpp .
  */
 
-bool directoryd_report_location(char* imsi);
+bool directoryd_report_location(char *imsi);
 
-bool directoryd_remove_location(char* imsi);
+bool directoryd_remove_location(char *imsi);
 
-bool directoryd_update_location(char* imsi, char* location);
+bool directoryd_update_location(char *imsi, char *location);
 
-bool directoryd_update_record_field(char* imsi, std::string key, char* value);
+bool directoryd_update_record_field(char *imsi, std::string key, char *value);

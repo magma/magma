@@ -29,7 +29,7 @@ constexpr char S11_BEARER_CONTEXT_INFO_HT_NAME[] =
 constexpr char SPGW_STATE_UE_MAP[] = "spgw_state_ue_map";
 constexpr char SPGW_STATE_TABLE_NAME[] = "spgw_state";
 constexpr char SPGW_TASK_NAME[] = "SPGW";
-}  // namespace
+} // namespace
 
 namespace magma {
 namespace lte {
@@ -42,27 +42,27 @@ namespace lte {
 class SpgwStateManager
     : public StateManager<spgw_state_t, spgw_ue_context_t, oai::SpgwState,
                           oai::SpgwUeContext, SpgwStateConverter> {
- public:
+public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
    * initialized only once.
    * @return SpgwStateManager instance.
    */
-  static SpgwStateManager& getInstance();
+  static SpgwStateManager &getInstance();
   /**
    * Initialization function to initialize member variables.
    * @param persist_state should read and write state from db
    * @param config SPGW config struct
    */
-  void init(bool persist_state, const spgw_config_t* config);
+  void init(bool persist_state, const spgw_config_t *config);
 
   /**
    * Singleton class, copy constructor and assignment operator are marked
    * as deleted functions.
    */
   // Making them public for better debugging logging.
-  SpgwStateManager(SpgwStateManager const&) = delete;
-  SpgwStateManager& operator=(SpgwStateManager const&) = delete;
+  SpgwStateManager(SpgwStateManager const &) = delete;
+  SpgwStateManager &operator=(SpgwStateManager const &) = delete;
 
   /**
    * Frees all memory allocated on spgw_state_t.
@@ -71,10 +71,10 @@ class SpgwStateManager
 
   status_code_e read_ue_state_from_db() override;
 
-  state_teid_map_t* get_state_teid_map();
-  map_uint64_spgw_ue_context_t* get_spgw_ue_state_map();
+  state_teid_map_t *get_state_teid_map();
+  map_uint64_spgw_ue_context_t *get_spgw_ue_state_map();
 
- private:
+private:
   SpgwStateManager();
   ~SpgwStateManager();
 
@@ -85,9 +85,9 @@ class SpgwStateManager
   void create_state() override;
 
   state_teid_map_t state_teid_map;
-  const spgw_config_t* config_;
+  const spgw_config_t *config_;
   map_uint64_spgw_ue_context_t state_ue_map;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

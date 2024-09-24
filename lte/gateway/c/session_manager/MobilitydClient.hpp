@@ -12,12 +12,12 @@
  */
 #pragma once
 
+#include <functional>
 #include <lte/protos/apn.pb.h>
 #include <lte/protos/mobilityd.grpc.pb.h>
-#include <stdint.h>
-#include <functional>
 #include <memory>
 #include <mutex>
+#include <stdint.h>
 #include <unordered_map>
 
 #include "lte/gateway/c/session_manager/SessionState.hpp"
@@ -27,13 +27,13 @@
 namespace grpc {
 class Channel;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class IPAddress;
 class SubscriberID;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::Status;
 
@@ -44,14 +44,14 @@ using namespace lte;
  * MobilitydClient is the base class for managing interactions with MobilityD.
  */
 class MobilitydClient {
- public:
+public:
   virtual ~MobilitydClient() = default;
 
   /**
    * Get SubscriberID for correspoding of UE_IP
    */
   virtual void get_subscriberid_from_ipv4(
-      const IPAddress& ue_ip_addr,
+      const IPAddress &ue_ip_addr,
       std::function<void(Status status, SubscriberID)> callback) = 0;
 };
 
@@ -60,7 +60,7 @@ class MobilitydClient {
  * UE information.
  */
 class AsyncMobilitydClient : public GRPCReceiver, public MobilitydClient {
- public:
+public:
   AsyncMobilitydClient();
 
   explicit AsyncMobilitydClient(
@@ -70,11 +70,11 @@ class AsyncMobilitydClient : public GRPCReceiver, public MobilitydClient {
    * Get SubscriberID for correspoding of UE_IP
    */
   void get_subscriberid_from_ipv4(
-      const IPAddress& ue_ip_addr,
+      const IPAddress &ue_ip_addr,
       std::function<void(Status status, SubscriberID)> callback);
 
- private:
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+private:
+  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<MobilityService::Stub> stub_;
 };
-}  // namespace magma
+} // namespace magma

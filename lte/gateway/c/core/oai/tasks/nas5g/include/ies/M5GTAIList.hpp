@@ -9,11 +9,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 namespace magma5g {
 class TAIListMsg {
- public:
+public:
   uint8_t iei;
   uint8_t len;
   uint8_t list_type : 2;
@@ -27,9 +27,9 @@ class TAIListMsg {
   uint8_t tac[3];
   TAIListMsg();
   ~TAIListMsg();
-  int EncodeTAIListMsg(TAIListMsg* nssai, uint8_t iei, uint8_t* buffer,
+  int EncodeTAIListMsg(TAIListMsg *nssai, uint8_t iei, uint8_t *buffer,
                        uint32_t len);
-  int DecodeTAIListMsg(TAIListMsg* nssai, uint8_t iei, uint8_t* buffer,
+  int DecodeTAIListMsg(TAIListMsg *nssai, uint8_t iei, uint8_t *buffer,
                        uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

@@ -15,8 +15,8 @@
   Description Handles the Supported Features Diameter AVP
 *****************************************************************************/
 
-#include <stdint.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -35,15 +35,16 @@ extern "C" {
 
 struct avp;
 
-int s6a_parse_supported_features(struct avp* avp_supported_features,
-                                 supported_features_t* subscription_data) {
-  struct avp* avp = NULL;
-  struct avp_hdr* hdr;
+int s6a_parse_supported_features(struct avp *avp_supported_features,
+                                 supported_features_t *subscription_data) {
+  struct avp *avp = NULL;
+  struct avp_hdr *hdr;
   uint32_t feature_list_id = 0;
   uint32_t feature_list = 0;
 
   CHECK_FCT(fd_msg_browse_internal(avp_supported_features, MSG_BRW_FIRST_CHILD,
-                                   reinterpret_cast<msg_or_avp**>(&avp), NULL));
+                                   reinterpret_cast<msg_or_avp **>(&avp),
+                                   NULL));
 
   while (avp) {
     hdr = NULL;
@@ -51,35 +52,35 @@ int s6a_parse_supported_features(struct avp* avp_supported_features,
 
     if (hdr) {
       switch (hdr->avp_code) {
-        case AVP_CODE_VENDOR_ID:
-          // no check
-          break;
+      case AVP_CODE_VENDOR_ID:
+        // no check
+        break;
 
-        case AVP_CODE_FEATURE_LIST_ID:
-          if (hdr->avp_value) {
-            feature_list_id = hdr->avp_value->u32;
-          } else {
-            return RETURNerror;
-          }
-          break;
-
-        case AVP_CODE_FEATURE_LIST:
-          if (hdr->avp_value) {
-            feature_list = hdr->avp_value->u32;
-            if (feature_list_id == 2) {
-              subscription_data->external_identifier = true;
-              subscription_data->nr_as_secondary_rat =
-                  FLAG_IS_SET(feature_list, FLID_NR_AS_SECONDARY_RAT);
-            }
-          } else {
-            return RETURNerror;
-          }
-          break;
-
-        default:
-          OAILOG_DEBUG(LOG_S6A, "Unknown AVP code %d not processed\n",
-                       hdr->avp_code);
+      case AVP_CODE_FEATURE_LIST_ID:
+        if (hdr->avp_value) {
+          feature_list_id = hdr->avp_value->u32;
+        } else {
           return RETURNerror;
+        }
+        break;
+
+      case AVP_CODE_FEATURE_LIST:
+        if (hdr->avp_value) {
+          feature_list = hdr->avp_value->u32;
+          if (feature_list_id == 2) {
+            subscription_data->external_identifier = true;
+            subscription_data->nr_as_secondary_rat =
+                FLAG_IS_SET(feature_list, FLID_NR_AS_SECONDARY_RAT);
+          }
+        } else {
+          return RETURNerror;
+        }
+        break;
+
+      default:
+        OAILOG_DEBUG(LOG_S6A, "Unknown AVP code %d not processed\n",
+                     hdr->avp_code);
+        return RETURNerror;
       }
     } else {
       OAILOG_DEBUG(LOG_S6A, "Supported Features parsing Error\n");
@@ -90,7 +91,7 @@ int s6a_parse_supported_features(struct avp* avp_supported_features,
      * Go to next AVP in the grouped AVP
      */
     CHECK_FCT(fd_msg_browse_internal(
-        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp**>(&avp), NULL));
+        avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp **>(&avp), NULL));
   }
 
   return RETURNok;

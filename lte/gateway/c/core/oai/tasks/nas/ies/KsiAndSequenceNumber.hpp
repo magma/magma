@@ -27,8 +27,8 @@ typedef struct KsiAndSequenceNumber_tag {
   uint8_t sequencenumber : 5;
 } KsiAndSequenceNumber;
 
-int encode_ksi_and_sequence_number(KsiAndSequenceNumber* ksiandsequencenumber,
-                                   uint8_t iei, uint8_t* buffer, uint32_t len);
+int encode_ksi_and_sequence_number(KsiAndSequenceNumber *ksiandsequencenumber,
+                                   uint8_t iei, uint8_t *buffer, uint32_t len);
 
-int decode_ksi_and_sequence_number(KsiAndSequenceNumber* ksiandsequencenumber,
-                                   uint8_t iei, uint8_t* buffer, uint32_t len);
+int decode_ksi_and_sequence_number(KsiAndSequenceNumber *ksiandsequencenumber,
+                                   uint8_t iei, uint8_t *buffer, uint32_t len);

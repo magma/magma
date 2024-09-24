@@ -13,6 +13,8 @@
 
 #include "lte/gateway/c/session_manager/PipelinedClient.hpp"
 
+#include <algorithm>
+#include <cstdint>
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/status.h>
@@ -22,8 +24,6 @@
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include <algorithm>
-#include <cstdint>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -34,25 +34,25 @@
 #include "lte/gateway/c/session_manager/EnumToString.hpp"
 #include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 #include "lte/gateway/c/session_manager/Types.hpp"
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 namespace google {
 namespace protobuf {
 class Message;
-}  // namespace protobuf
-}  // namespace google
+} // namespace protobuf
+} // namespace google
 
 using grpc::Status;
 
-namespace {  // anonymous
+namespace { // anonymous
 using std::experimental::optional;
 
 // Preparation of Set Session request to UPF
-magma::SessionSet create_session_set_req(
-    magma::SessionState::SessionInfo info,
-    const magma::RulesToProcess& rules_to_activate,
-    const magma::RulesToProcess& rules_to_deactivate) {
+magma::SessionSet
+create_session_set_req(magma::SessionState::SessionInfo info,
+                       const magma::RulesToProcess &rules_to_activate,
+                       const magma::RulesToProcess &rules_to_deactivate) {
   magma::SessionSet req;
   req.set_subscriber_id(info.subscriber_id);
   req.set_session_version(info.ver_no);
@@ -61,14 +61,14 @@ magma::SessionSet create_session_set_req(
   req.mutable_node_id()->set_node_id_type(magma::NodeID::IPv4);
   req.mutable_state()->set_state(info.state);
 
-  for (auto& final_req : info.pdr_rules) {
+  for (auto &final_req : info.pdr_rules) {
     final_req.set_gnb_teid(info.teids.enb_teid());
-    for (const auto& val : rules_to_activate) {
+    for (const auto &val : rules_to_activate) {
       magma::VersionedPolicy versioned_rule;
       versioned_rule.set_version(val.version);
       versioned_rule.mutable_rule()->set_id(val.rule.id());
       versioned_rule.mutable_rule()->set_priority(val.rule.priority());
-      for (const auto& flow : val.rule.flow_list()) {
+      for (const auto &flow : val.rule.flow_list()) {
         if (final_req.pdi().net_instance().find("uplink") !=
             std::string::npos) {
           if (flow.match().direction() ==
@@ -93,7 +93,7 @@ magma::SessionSet create_session_set_req(
           ->Add()
           ->CopyFrom(versioned_rule);
     }
-    for (const magma::RuleToProcess& val : rules_to_deactivate) {
+    for (const magma::RuleToProcess &val : rules_to_deactivate) {
       magma::VersionedPolicyID versioned_policy;
       versioned_policy.set_version(val.version);
       versioned_policy.set_rule_id(val.rule.id());
@@ -108,11 +108,11 @@ magma::SessionSet create_session_set_req(
   return req;
 }
 
-magma::DeactivateFlowsRequest make_deactivate_req(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids teids,
-    const magma::RequestOriginType_OriginType origin_type,
-    const bool remove_default_drop_rules) {
+magma::DeactivateFlowsRequest
+make_deactivate_req(const std::string &imsi, const std::string &ip_addr,
+                    const std::string &ipv6_addr, const magma::Teids teids,
+                    const magma::RequestOriginType_OriginType origin_type,
+                    const bool remove_default_drop_rules) {
   magma::DeactivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
@@ -146,9 +146,9 @@ magma::GetStatsRequest make_stat_req(int cookie, int cookie_mask) {
  * @return magma::DeactivateReqByTeids
  */
 magma::DeactivateReqByTeids make_deactivate_req_by_teid(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids default_teids,
-    const magma::RulesToProcess& to_process,
+    const std::string &imsi, const std::string &ip_addr,
+    const std::string &ipv6_addr, const magma::Teids default_teids,
+    const magma::RulesToProcess &to_process,
     const magma::RequestOriginType_OriginType origin_type,
     const bool remove_default_drop_rules) {
   magma::DeactivateReqByTeids deactivate_req_by_teids;
@@ -160,8 +160,8 @@ magma::DeactivateReqByTeids make_deactivate_req_by_teid(
     return deactivate_req_by_teids;
   }
 
-  for (const magma::RuleToProcess& val : to_process) {
-    const magma::Teids& dedicated_teids = val.teids;
+  for (const magma::RuleToProcess &val : to_process) {
+    const magma::Teids &dedicated_teids = val.teids;
     if (deactivate_req_by_teids.find(dedicated_teids) ==
         deactivate_req_by_teids.end()) {
       deactivate_req_by_teids[dedicated_teids] =
@@ -176,12 +176,12 @@ magma::DeactivateReqByTeids make_deactivate_req_by_teid(
   return deactivate_req_by_teids;
 }
 
-magma::ActivateFlowsRequest make_activate_req(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids teids,
-    const std::string& msisdn,
-    const optional<magma::AggregatedMaximumBitrate>& ambr,
-    const magma::RequestOriginType_OriginType origin_type) {
+magma::ActivateFlowsRequest
+make_activate_req(const std::string &imsi, const std::string &ip_addr,
+                  const std::string &ipv6_addr, const magma::Teids teids,
+                  const std::string &msisdn,
+                  const optional<magma::AggregatedMaximumBitrate> &ambr,
+                  const magma::RequestOriginType_OriginType origin_type) {
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
@@ -212,11 +212,11 @@ magma::ActivateFlowsRequest make_activate_req(
  * @return magma::ActivateReqByTeids
  */
 magma::ActivateReqByTeids make_activate_req_by_teid(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids default_teids,
-    const std::string& msisdn,
-    const optional<magma::AggregatedMaximumBitrate>& ambr,
-    const magma::RulesToProcess& to_process,
+    const std::string &imsi, const std::string &ip_addr,
+    const std::string &ipv6_addr, const magma::Teids default_teids,
+    const std::string &msisdn,
+    const optional<magma::AggregatedMaximumBitrate> &ambr,
+    const magma::RulesToProcess &to_process,
     const magma::RequestOriginType_OriginType origin_type) {
   magma::ActivateReqByTeids activate_req_by_teids;
   if (to_process.empty()) {
@@ -226,8 +226,8 @@ magma::ActivateReqByTeids make_activate_req_by_teid(
     return activate_req_by_teids;
   }
 
-  for (const magma::RuleToProcess& val : to_process) {
-    const magma::Teids& dedicated_teids = val.teids;
+  for (const magma::RuleToProcess &val : to_process) {
+    const magma::Teids &dedicated_teids = val.teids;
     if (activate_req_by_teids.find(dedicated_teids) ==
         activate_req_by_teids.end()) {
       activate_req_by_teids[dedicated_teids] = make_activate_req(
@@ -242,9 +242,9 @@ magma::ActivateReqByTeids make_activate_req_by_teid(
 }
 
 magma::UEMacFlowRequest create_add_ue_mac_flow_req(
-    const magma::SubscriberID& sid, const std::string& ue_mac_addr,
-    const std::string& msisdn, const std::string& ap_mac_addr,
-    const std::string& ap_name, const std::uint64_t& pdp_start_time) {
+    const magma::SubscriberID &sid, const std::string &ue_mac_addr,
+    const std::string &msisdn, const std::string &ap_mac_addr,
+    const std::string &ap_name, const std::uint64_t &pdp_start_time) {
   magma::UEMacFlowRequest req;
   req.mutable_sid()->CopyFrom(sid);
   req.set_mac_addr(ue_mac_addr);
@@ -255,24 +255,25 @@ magma::UEMacFlowRequest create_add_ue_mac_flow_req(
   return req;
 }
 
-magma::UEMacFlowRequest create_delete_ue_mac_flow_req(
-    const magma::SubscriberID& sid, const std::string& ue_mac_addr) {
+magma::UEMacFlowRequest
+create_delete_ue_mac_flow_req(const magma::SubscriberID &sid,
+                              const std::string &ue_mac_addr) {
   magma::UEMacFlowRequest req;
   req.mutable_sid()->CopyFrom(sid);
   req.set_mac_addr(ue_mac_addr);
   return req;
 }
 
-magma::SetupDefaultRequest create_setup_default_req(
-    const std::uint64_t& epoch) {
+magma::SetupDefaultRequest
+create_setup_default_req(const std::uint64_t &epoch) {
   magma::SetupDefaultRequest req;
   req.set_epoch(epoch);
   return req;
 }
 
 magma::SetupPolicyRequest create_setup_policy_req(
-    const std::vector<magma::SessionState::SessionInfo>& infos,
-    const std::uint64_t& epoch) {
+    const std::vector<magma::SessionState::SessionInfo> &infos,
+    const std::uint64_t &epoch) {
   magma::SetupPolicyRequest req;
   req.set_epoch(epoch);
   auto mut_requests = req.mutable_requests();
@@ -281,14 +282,14 @@ magma::SetupPolicyRequest create_setup_policy_req(
     magma::ActivateReqByTeids gx_activate_reqs = make_activate_req_by_teid(
         it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, it->ambr,
         it->gx_rules, magma::RequestOriginType::GX);
-    for (auto& activate_pair : gx_activate_reqs) {
+    for (auto &activate_pair : gx_activate_reqs) {
       mut_requests->Add()->CopyFrom(activate_pair.second);
     }
 
     magma::ActivateReqByTeids gy_activate_reqs = make_activate_req_by_teid(
         it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, {},
         it->gy_dynamic_rules, magma::RequestOriginType::GY);
-    for (auto& activate_pair : gy_activate_reqs) {
+    for (auto &activate_pair : gy_activate_reqs) {
       mut_requests->Add()->CopyFrom(activate_pair.second);
     }
   }
@@ -296,13 +297,13 @@ magma::SetupPolicyRequest create_setup_policy_req(
 }
 
 magma::SetupUEMacRequest create_setup_ue_mac_req(
-    const std::vector<magma::SessionState::SessionInfo>& infos,
+    const std::vector<magma::SessionState::SessionInfo> &infos,
     const std::vector<std::string> ue_mac_addrs,
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
     const std::vector<std::string> apn_names,
     const std::vector<std::uint64_t> pdp_start_times,
-    const std::uint64_t& epoch) {
+    const std::uint64_t &epoch) {
   magma::SetupUEMacRequest req;
   std::vector<magma::UEMacFlowRequest> activation_reqs;
 
@@ -315,7 +316,7 @@ magma::SetupUEMacRequest create_setup_ue_mac_req(
     activation_reqs.push_back(activate_req);
   }
   auto mut_requests = req.mutable_requests();
-  for (const auto& act_req : activation_reqs) {
+  for (const auto &act_req : activation_reqs) {
     mut_requests->Add()->CopyFrom(act_req);
   }
   req.set_epoch(epoch);
@@ -323,16 +324,16 @@ magma::SetupUEMacRequest create_setup_ue_mac_req(
 }
 
 magma::UpdateSubscriberQuotaStateRequest create_subscriber_quota_state_req(
-    const std::vector<magma::SubscriberQuotaUpdate>& updates) {
+    const std::vector<magma::SubscriberQuotaUpdate> &updates) {
   magma::UpdateSubscriberQuotaStateRequest req;
   auto p_updates = req.mutable_updates();
-  for (const auto& update : updates) {
+  for (const auto &update : updates) {
     p_updates->Add()->CopyFrom(update);
   }
   return req;
 }
 
-}  // namespace
+} // namespace
 
 namespace magma {
 
@@ -347,14 +348,14 @@ AsyncPipelinedClient::AsyncPipelinedClient()
           "pipelined", ServiceRegistrySingleton::LOCAL)) {}
 
 void AsyncPipelinedClient::setup_cwf(
-    const std::vector<SessionState::SessionInfo>& infos,
-    const std::vector<SubscriberQuotaUpdate>& quota_updates,
+    const std::vector<SessionState::SessionInfo> &infos,
+    const std::vector<SubscriberQuotaUpdate> &quota_updates,
     const std::vector<std::string> ue_mac_addrs,
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
     const std::vector<std::string> apn_names,
     const std::vector<std::uint64_t> pdp_start_times,
-    const std::uint64_t& epoch,
+    const std::uint64_t &epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
   SetupDefaultRequest setup_default_req = create_setup_default_req(epoch);
   setup_default_controllers_rpc(setup_default_req, callback);
@@ -370,8 +371,8 @@ void AsyncPipelinedClient::setup_cwf(
 }
 
 void AsyncPipelinedClient::setup_lte(
-    const std::vector<SessionState::SessionInfo>& infos,
-    const std::uint64_t& epoch,
+    const std::vector<SessionState::SessionInfo> &infos,
+    const std::uint64_t &epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
   SetupDefaultRequest setup_default_req = create_setup_default_req(epoch);
   setup_default_controllers_rpc(setup_default_req, callback);
@@ -391,10 +392,10 @@ void AsyncPipelinedClient::set_upf_session(
 }
 
 void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const std::vector<Teids>& teids,
+    const std::string &imsi, const std::string &ip_addr,
+    const std::string &ipv6_addr, const std::vector<Teids> &teids,
     const RequestOriginType_OriginType origin_type) {
-  for (const Teids& t : teids) {
+  for (const Teids &t : teids) {
     MLOG(MDEBUG) << "Deactivating all rules and default drop flows "
                  << "for " << imsi << ", ipv4: " << ip_addr
                  << ", ipv6: " << ipv6_addr << ", agw teid: " << t.agw_teid()
@@ -407,8 +408,8 @@ void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
 }
 
 void AsyncPipelinedClient::deactivate_flows_for_rules(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids,
+    const std::string &imsi, const std::string &ip_addr,
+    const std::string &ipv6_addr, const Teids teids,
     const RulesToProcess to_process,
     const RequestOriginType_OriginType origin_type) {
   MLOG(MDEBUG) << "Deactivating " << to_process.size()
@@ -417,12 +418,12 @@ void AsyncPipelinedClient::deactivate_flows_for_rules(
 
   DeactivateReqByTeids reqs = make_deactivate_req_by_teid(
       imsi, ip_addr, ipv6_addr, teids, to_process, origin_type, false);
-  for (auto& req_pair : reqs) {
+  for (auto &req_pair : reqs) {
     deactivate_flows(req_pair.second);
   }
 }
 
-void AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
+void AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest &request) {
   auto imsi = request.sid().id();
   deactivate_flows_rpc(
       request, [imsi](Status status, DeactivateFlowsResult resp) {
@@ -434,9 +435,9 @@ void AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
 }
 
 void AsyncPipelinedClient::activate_flows_for_rules(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
-    const optional<AggregatedMaximumBitrate>& ambr,
+    const std::string &imsi, const std::string &ip_addr,
+    const std::string &ipv6_addr, const Teids teids, const std::string &msisdn,
+    const optional<AggregatedMaximumBitrate> &ambr,
     const RulesToProcess to_process,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
   MLOG(MDEBUG) << "Activating " << to_process.size() << " rules for " << imsi
@@ -445,27 +446,27 @@ void AsyncPipelinedClient::activate_flows_for_rules(
   ActivateReqByTeids reqs =
       make_activate_req_by_teid(imsi, ip_addr, ipv6_addr, teids, msisdn, ambr,
                                 to_process, RequestOriginType::GX);
-  for (auto& activate_pair : reqs) {
+  for (auto &activate_pair : reqs) {
     activate_flows_rpc(activate_pair.second, callback);
   }
 }
 
 void AsyncPipelinedClient::add_ue_mac_flow(
-    const SubscriberID& sid, const std::string& ue_mac_addr,
-    const std::string& msisdn, const std::string& ap_mac_addr,
-    const std::string& ap_name,
+    const SubscriberID &sid, const std::string &ue_mac_addr,
+    const std::string &msisdn, const std::string &ap_mac_addr,
+    const std::string &ap_name,
     std::function<void(Status status, FlowResponse)> callback) {
   auto req = create_add_ue_mac_flow_req(sid, ue_mac_addr, msisdn, ap_mac_addr,
                                         ap_name, 0);
   add_ue_mac_flow_rpc(req, callback);
 }
 
-void AsyncPipelinedClient::update_ipfix_flow(const SubscriberID& sid,
-                                             const std::string& ue_mac_addr,
-                                             const std::string& msisdn,
-                                             const std::string& ap_mac_addr,
-                                             const std::string& ap_name,
-                                             const uint64_t& pdp_start_time) {
+void AsyncPipelinedClient::update_ipfix_flow(const SubscriberID &sid,
+                                             const std::string &ue_mac_addr,
+                                             const std::string &msisdn,
+                                             const std::string &ap_mac_addr,
+                                             const std::string &ap_name,
+                                             const uint64_t &pdp_start_time) {
   auto req = create_add_ue_mac_flow_req(sid, ue_mac_addr, msisdn, ap_mac_addr,
                                         ap_name, pdp_start_time);
   update_ipfix_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
@@ -476,8 +477,8 @@ void AsyncPipelinedClient::update_ipfix_flow(const SubscriberID& sid,
   });
 }
 
-void AsyncPipelinedClient::delete_ue_mac_flow(const SubscriberID& sid,
-                                              const std::string& ue_mac_addr) {
+void AsyncPipelinedClient::delete_ue_mac_flow(const SubscriberID &sid,
+                                              const std::string &ue_mac_addr) {
   auto req = create_delete_ue_mac_flow_req(sid, ue_mac_addr);
   delete_ue_mac_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
     if (!status.ok()) {
@@ -488,7 +489,7 @@ void AsyncPipelinedClient::delete_ue_mac_flow(const SubscriberID& sid,
 }
 
 void AsyncPipelinedClient::update_subscriber_quota_state(
-    const std::vector<SubscriberQuotaUpdate>& updates) {
+    const std::vector<SubscriberQuotaUpdate> &updates) {
   auto req = create_subscriber_quota_state_req(updates);
   update_subscriber_quota_state_rpc(req, [](Status status, FlowResponse resp) {
     if (!status.ok()) {
@@ -509,8 +510,8 @@ void AsyncPipelinedClient::poll_stats(
 }
 
 void AsyncPipelinedClient::add_gy_final_action_flow(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
+    const std::string &imsi, const std::string &ip_addr,
+    const std::string &ipv6_addr, const Teids teids, const std::string &msisdn,
     const RulesToProcess to_process) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
   ActivateReqByTeids reqs =
@@ -523,118 +524,118 @@ void AsyncPipelinedClient::add_gy_final_action_flow(
     }
   };
 
-  for (auto& activate_pair : reqs) {
+  for (auto &activate_pair : reqs) {
     activate_flows_rpc(activate_pair.second, cb);
   }
 }
 
 // RPC definition to Send Set Session request to UPF
 void AsyncPipelinedClient::set_upf_session_rpc(
-    const SessionSet& request,
+    const SessionSet &request,
     std::function<void(Status, UPFSessionContextState)> callback) {
   auto local_resp = new AsyncLocalResponse<UPFSessionContextState>(
       std::move(callback), RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(
       stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::setup_default_controllers_rpc(
-    const SetupDefaultRequest& request,
+    const SetupDefaultRequest &request,
     std::function<void(Status, SetupFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(stub_->AsyncSetupDefaultControllers(
       local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::setup_policy_rpc(
-    const SetupPolicyRequest& request,
+    const SetupPolicyRequest &request,
     std::function<void(Status, SetupFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(stub_->AsyncSetupPolicyFlows(
       local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::setup_ue_mac_rpc(
-    const SetupUEMacRequest& request,
+    const SetupUEMacRequest &request,
     std::function<void(Status, SetupFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<SetupFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(
       stub_->AsyncSetupUEMacFlows(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::deactivate_flows_rpc(
-    const DeactivateFlowsRequest& request,
+    const DeactivateFlowsRequest &request,
     std::function<void(Status, DeactivateFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<DeactivateFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(
       stub_->AsyncDeactivateFlows(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::activate_flows_rpc(
-    const ActivateFlowsRequest& request,
+    const ActivateFlowsRequest &request,
     std::function<void(Status, ActivateFlowsResult)> callback) {
   auto local_resp = new AsyncLocalResponse<ActivateFlowsResult>(
       std::move(callback), RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(
       stub_->AsyncActivateFlows(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::add_ue_mac_flow_rpc(
-    const UEMacFlowRequest& request,
+    const UEMacFlowRequest &request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(std::move(callback),
                                                          RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(
       stub_->AsyncAddUEMacFlow(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::update_ipfix_flow_rpc(
-    const UEMacFlowRequest& request,
+    const UEMacFlowRequest &request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(std::move(callback),
                                                          RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(
       stub_->AsyncUpdateIPFIXFlow(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::delete_ue_mac_flow_rpc(
-    const UEMacFlowRequest& request,
+    const UEMacFlowRequest &request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(std::move(callback),
                                                          RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(
       stub_->AsyncDeleteUEMacFlow(local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
-    const UpdateSubscriberQuotaStateRequest& request,
+    const UpdateSubscriberQuotaStateRequest &request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(std::move(callback),
                                                          RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(stub_->AsyncUpdateSubscriberQuotaState(
       local_resp->get_context(), request, &queue_));
 }
 
 void AsyncPipelinedClient::poll_stats_rpc(
-    const magma::GetStatsRequest& request,
+    const magma::GetStatsRequest &request,
     std::function<void(Status, RuleRecordTable)> callback) {
   auto local_resp = new AsyncLocalResponse<RuleRecordTable>(std::move(callback),
                                                             RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request));
   local_resp->set_response_reader(
       stub_->AsyncGetStats(local_resp->get_context(), request, &queue_));
 }
@@ -652,4 +653,4 @@ uint32_t AsyncPipelinedClient::get_current_teid() {
   return teid;
 }
 
-}  // namespace magma
+} // namespace magma

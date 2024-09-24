@@ -31,13 +31,13 @@ MemoryStoreClient::MemoryStoreClient(
     std::shared_ptr<StaticRuleStore> rule_store)
     : session_map_({}), rule_store_(rule_store) {}
 
-SessionMap MemoryStoreClient::read_sessions(
-    std::set<std::string> subscriber_ids) {
+SessionMap
+MemoryStoreClient::read_sessions(std::set<std::string> subscriber_ids) {
   auto session_map = SessionMap{};
-  for (const auto& subscriber_id : subscriber_ids) {
+  for (const auto &subscriber_id : subscriber_ids) {
     auto sessions = SessionVector{};
     if (session_map_.find(subscriber_id) != session_map_.end()) {
-      for (auto& stored_session : session_map_[subscriber_id]) {
+      for (auto &stored_session : session_map_[subscriber_id]) {
         auto session = SessionState::unmarshal(stored_session, *rule_store_);
         sessions.push_back(std::move(session));
       }
@@ -49,9 +49,9 @@ SessionMap MemoryStoreClient::read_sessions(
 
 SessionMap MemoryStoreClient::read_all_sessions() {
   auto session_map = SessionMap{};
-  for (auto& it : session_map_) {
+  for (auto &it : session_map_) {
     auto sessions = SessionVector{};
-    for (auto& stored_session : it.second) {
+    for (auto &stored_session : it.second) {
       auto session = SessionState::unmarshal(stored_session, *rule_store_);
       sessions.push_back(std::move(session));
     }
@@ -61,9 +61,9 @@ SessionMap MemoryStoreClient::read_all_sessions() {
 }
 
 bool MemoryStoreClient::write_sessions(SessionMap session_map) {
-  for (auto& it : session_map) {
+  for (auto &it : session_map) {
     auto sessions = std::vector<StoredSessionState>{};
-    for (auto const& session : it.second) {
+    for (auto const &session : it.second) {
       auto stored_session = session->marshal();
       sessions.push_back(stored_session);
     }
@@ -77,5 +77,5 @@ bool MemoryStoreClient::write_sessions(SessionMap session_map) {
   return true;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

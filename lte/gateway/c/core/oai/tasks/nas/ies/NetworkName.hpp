@@ -37,10 +37,10 @@ typedef struct NetworkName_tag {
   bstring textstring;
 } NetworkName;
 
-int encode_network_name(NetworkName* networkname, uint8_t iei, uint8_t* buffer,
+int encode_network_name(NetworkName *networkname, uint8_t iei, uint8_t *buffer,
                         uint32_t len);
 
-int decode_network_name(NetworkName* networkname, uint8_t iei, uint8_t* buffer,
+int decode_network_name(NetworkName *networkname, uint8_t iei, uint8_t *buffer,
                         uint32_t len);
 
-void dump_network_name_xml(NetworkName* networkname, uint8_t iei);
+void dump_network_name_xml(NetworkName *networkname, uint8_t iei);

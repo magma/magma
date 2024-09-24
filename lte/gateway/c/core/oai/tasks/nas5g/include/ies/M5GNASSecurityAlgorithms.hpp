@@ -10,12 +10,12 @@
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 class NASSecurityAlgorithmsMsg {
- public:
+public:
   uint8_t tca;
   uint8_t tia;
 #define NAS_SECURITY_ALGORITHMS_MINIMUM_LENGTH 1
@@ -45,10 +45,10 @@ class NASSecurityAlgorithmsMsg {
   NASSecurityAlgorithmsMsg();
   ~NASSecurityAlgorithmsMsg();
   int EncodeNASSecurityAlgorithmsMsg(
-      NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      NASSecurityAlgorithmsMsg *nas_sec_algorithms, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
   int DecodeNASSecurityAlgorithmsMsg(
-      NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      NASSecurityAlgorithmsMsg *nas_sec_algorithms, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

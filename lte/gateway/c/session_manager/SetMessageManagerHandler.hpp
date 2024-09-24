@@ -18,12 +18,12 @@
   Description 	Defines Access and Mobility Management Messages
 *****************************************************************************/
 #pragma once
+#include <functional>
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <memory>
 #include <orc8r/protos/common.pb.h>
 #include <stdint.h>
-#include <functional>
-#include <memory>
 #include <string>
 
 #include "lte/gateway/c/session_manager/SessionID.hpp"
@@ -36,7 +36,7 @@
 namespace grpc {
 class ServerContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 class SessionReporter;
 class SessionStateEnforcer;
@@ -47,8 +47,8 @@ class SessionStore;
 class SetSMSessionContext;
 class SetSmNotificationContext;
 class SmContextVoid;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -62,7 +62,7 @@ using namespace orc8r;
 
 /* This the landing object of 5G gRPC call by set message*/
 class SetMessageManager {
- public:
+public:
   virtual ~SetMessageManager() {}
 
   /* RPC call from AMF "rpc SetAmfSessionContext (SetSMSessionContext) returns
@@ -70,45 +70,45 @@ class SetMessageManager {
    * response is void and gRPC will take care on acknowledgement
    */
   virtual void SetSmfNotification(
-      ServerContext* context, const SetSmNotificationContext* notif,
+      ServerContext *context, const SetSmNotificationContext *notif,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
 
   virtual void SetAmfSessionContext(
-      ServerContext* context, const SetSMSessionContext* request,
+      ServerContext *context, const SetSMSessionContext *request,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
-};  // end of abstract class
+}; // end of abstract class
 
 class SetMessageManagerHandler : public SetMessageManager {
- public:
+public:
   SetMessageManagerHandler(std::shared_ptr<SessionStateEnforcer> m5genforcer,
-                           SessionStore& session_store,
-                           SessionReporter* reporter,
+                           SessionStore &session_store,
+                           SessionReporter *reporter,
                            std::shared_ptr<EventsReporter> events_reporter);
   ~SetMessageManagerHandler() {}
 
   /* Paging, idle state change notifcation receiving */
   virtual void SetSmfNotification(
-      ServerContext* context, const SetSmNotificationContext* notif,
+      ServerContext *context, const SetSmNotificationContext *notif,
       std::function<void(Status, SmContextVoid)> response_callback);
 
   virtual void SetAmfSessionContext(
-      ServerContext* context, const SetSMSessionContext* request,
+      ServerContext *context, const SetSMSessionContext *request,
       std::function<void(Status, SmContextVoid)> response_callback);
 
   /* When any specific IMIS/PDU id session is in-active */
   void pdu_session_inactive(
-      const SetSmNotificationContext& notif,
+      const SetSmNotificationContext &notif,
       std::function<void(Status, SmContextVoid)> response_callback);
 
   /* When any IMSI is moved to inactive state */
   void idle_mode_change_sessions_handle(
-      const SetSmNotificationContext& notif,
+      const SetSmNotificationContext &notif,
       std::function<void(Status, SmContextVoid)> response_callback);
 
   /* Handle service request received from AMF after paging request is sent
    */
   void service_handle_request_on_paging(
-      const SetSmNotificationContext& notif,
+      const SetSmNotificationContext &notif,
       std::function<void(Status, SmContextVoid)> response_callback);
 
   /*
@@ -118,30 +118,30 @@ class SetMessageManagerHandler : public SetMessageManager {
    * It uses SessionStateEnforcer object to create new session state.
    */
   void send_create_session(
-      SessionMap& session_map, const std::string& imsi, SessionConfig& cfg,
-      uint32_t& pdu_id,
+      SessionMap &session_map, const std::string &imsi, SessionConfig &cfg,
+      uint32_t &pdu_id,
       std::function<void(Status, SmContextVoid)> response_callback);
   /*initialize the session message from proto message*/
-  SessionConfig m5g_build_session_config(const SetSMSessionContext& request);
+  SessionConfig m5g_build_session_config(const SetSMSessionContext &request);
 
   /*Release request message handling*/
-  void initiate_release_session(SessionMap& session_map, const uint32_t& pdu_id,
-                                const std::string& imsi);
+  void initiate_release_session(SessionMap &session_map, const uint32_t &pdu_id,
+                                const std::string &imsi);
 
   void request_modification_session(
-      SessionMap& session_map, const std::string& imsi, SessionConfig& new_cfg,
-      uint32_t& pdu_id,
+      SessionMap &session_map, const std::string &imsi, SessionConfig &new_cfg,
+      uint32_t &pdu_id,
       std::function<void(Status, SmContextVoid)> response_callback);
 
- private:
-  SessionStore& session_store_;
+private:
+  SessionStore &session_store_;
   std::shared_ptr<SessionStateEnforcer> m5g_enforcer_;
-  SessionReporter* reporter_;
+  SessionReporter *reporter_;
   std::shared_ptr<EventsReporter> events_reporter_;
   SessionIDGenerator id_gen_;
 
   bool validate_session_request(const SessionConfig cfg);
 
-};  // end of class SetMessageManagerHandlerImpl
+}; // end of class SetMessageManagerHandlerImpl
 
-}  // end namespace magma
+} // end namespace magma

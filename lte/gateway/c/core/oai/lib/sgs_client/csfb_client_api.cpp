@@ -19,21 +19,21 @@
 #include <iostream>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/sgs_client/csfb_client_api.hpp"
 #include "lte/gateway/c/core/oai/lib/sgs_client/CSFBClient.hpp"
+#include "lte/gateway/c/core/oai/lib/sgs_client/csfb_client_api.hpp"
 #include "orc8r/protos/common.pb.h"
 
 void empty_callback(grpc::Status status, magma::Void void_response) { return; }
 
-void send_alert_ack(const itti_sgsap_alert_ack_t* msg) {
+void send_alert_ack(const itti_sgsap_alert_ack_t *msg) {
   magma::CSFBClient::alert_ack(msg, empty_callback);
 }
 
-void send_alert_reject(const itti_sgsap_alert_reject_t* msg) {
+void send_alert_reject(const itti_sgsap_alert_reject_t *msg) {
   magma::CSFBClient::alert_reject(msg, empty_callback);
 }
 
-void send_location_update_request(const itti_sgsap_location_update_req_t* msg) {
+void send_location_update_request(const itti_sgsap_location_update_req_t *msg) {
   std::cout << "[DEBUG] Sending LOCATION_UDPATE_REQUEST with IMSI: "
             << std::string(msg->imsi) << std::endl;
   magma::CSFBClient::location_update_request(
@@ -53,7 +53,7 @@ void send_location_update_request(const itti_sgsap_location_update_req_t* msg) {
 }
 
 void send_tmsi_reallocation_complete(
-    const itti_sgsap_tmsi_reallocation_comp_t* msg) {
+    const itti_sgsap_tmsi_reallocation_comp_t *msg) {
   std::cout << "[DEBUG] Sending TMSI_REALLOCATION_COMPLETE with IMSI: "
             << std::string(msg->imsi) << std::endl;
   magma::CSFBClient::tmsi_reallocation_complete(
@@ -73,32 +73,32 @@ void send_tmsi_reallocation_complete(
       });
 }
 
-void send_eps_detach_indication(const itti_sgsap_eps_detach_ind_t* msg) {
+void send_eps_detach_indication(const itti_sgsap_eps_detach_ind_t *msg) {
   magma::CSFBClient::eps_detach_indication(msg, empty_callback);
 }
 
-void send_imsi_detach_indication(const itti_sgsap_imsi_detach_ind_t* msg) {
+void send_imsi_detach_indication(const itti_sgsap_imsi_detach_ind_t *msg) {
   magma::CSFBClient::imsi_detach_indication(msg, empty_callback);
 }
 
-void send_paging_reject(const itti_sgsap_paging_reject_t* msg) {
+void send_paging_reject(const itti_sgsap_paging_reject_t *msg) {
   magma::CSFBClient::paging_reject(msg, empty_callback);
 }
 
-void send_service_request(const itti_sgsap_service_request_t* msg) {
+void send_service_request(const itti_sgsap_service_request_t *msg) {
   std::cout << "[DEBUG] Sending SERVICE REQUEST with IMSI: "
             << std::string(msg->imsi) << std::endl;
   magma::CSFBClient::service_request(msg, empty_callback);
 }
 
-void send_ue_activity_indication(const itti_sgsap_ue_activity_ind_t* msg) {
+void send_ue_activity_indication(const itti_sgsap_ue_activity_ind_t *msg) {
   magma::CSFBClient::ue_activity_indication(msg, empty_callback);
 }
 
-void send_ue_unreachable(const itti_sgsap_ue_unreachable_t* msg) {
+void send_ue_unreachable(const itti_sgsap_ue_unreachable_t *msg) {
   magma::CSFBClient::ue_unreachable(msg, empty_callback);
 }
 
-void send_uplink_unitdata(const itti_sgsap_uplink_unitdata_t* msg) {
+void send_uplink_unitdata(const itti_sgsap_uplink_unitdata_t *msg) {
   magma::CSFBClient::send_uplink_unitdata(msg, empty_callback);
 }

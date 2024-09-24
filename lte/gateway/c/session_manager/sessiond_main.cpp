@@ -11,28 +11,28 @@
  * limitations under the License.
  */
 
-#include <systemd/sd-daemon.h>
+#include <chrono>
 #include <cpp_redis/core/client.hpp>
+#include <cstdlib>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <future>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/completion_queue.h>
+#include <iostream>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
+#include <memory>
 #include <orc8r/protos/common.pb.h>
 #include <stdint.h>
-#include <time.h>
-#include <yaml-cpp/yaml.h>
-#include <chrono>
-#include <cstdlib>
-#include <future>
-#include <iostream>
-#include <memory>
 #include <string>
+#include <systemd/sd-daemon.h>
 #include <thread>
+#include <time.h>
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#include <yaml-cpp/yaml.h>
 
 #include "lte/gateway/c/session_manager/AAAClient.hpp"
 #include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
@@ -71,7 +71,7 @@
 
 namespace grpc {
 class Channel;
-}  // namespace grpc
+} // namespace grpc
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -80,7 +80,7 @@ class Channel;
 #define MIN_USAGE_REPORTING_THRESHOLD 0.4
 #define MAX_USAGE_REPORTING_THRESHOLD 1.0
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
-#define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000  // 30sec
+#define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000 // 30sec
 #define DEFAULT_SESSION_MAX_RTX_COUNT 3
 #define DEFAULT_POLL_INTERVAL_TIME 5
 
@@ -106,8 +106,9 @@ static magma::mconfig::SessionD load_mconfig() {
   return mconfig;
 }
 
-static const std::shared_ptr<grpc::Channel> get_controller_channel(
-    const YAML::Node& config, const bool gx_gy_relay_enabled) {
+static const std::shared_ptr<grpc::Channel>
+get_controller_channel(const YAML::Node &config,
+                       const bool gx_gy_relay_enabled) {
   if (gx_gy_relay_enabled) {
     MLOG(MINFO) << "Using proxied SessionD controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
@@ -119,7 +120,7 @@ static const std::shared_ptr<grpc::Channel> get_controller_channel(
   }
 }
 
-static uint32_t get_log_verbosity(const YAML::Node& config,
+static uint32_t get_log_verbosity(const YAML::Node &config,
                                   magma::mconfig::SessionD mconfig) {
   if (!config["log_level"].IsDefined()) {
     return magma::get_log_verbosity_from_mconfig(mconfig.log_level());
@@ -142,7 +143,7 @@ static uint32_t get_log_verbosity(const YAML::Node& config,
   }
 }
 
-void set_consts(const YAML::Node& config) {
+void set_consts(const YAML::Node &config) {
   auto reporting_threshold = config["usage_reporting_threshold"].as<float>();
   if (reporting_threshold <= MIN_USAGE_REPORTING_THRESHOLD ||
       reporting_threshold >= MAX_USAGE_REPORTING_THRESHOLD) {
@@ -191,8 +192,8 @@ void set_consts(const YAML::Node& config) {
   MLOG(MINFO) << "==== Constants/Configs loaded from sessiond.yml ====";
 }
 
-magma::SessionStore* create_session_store(
-    const YAML::Node& config,
+magma::SessionStore *create_session_store(
+    const YAML::Node &config,
     std::shared_ptr<magma::StaticRuleStore> rule_store,
     std::shared_ptr<magma::MeteringReporter> metering_reporter) {
   bool is_stateless = config["support_stateless"].IsDefined() &&
@@ -215,7 +216,7 @@ magma::SessionStore* create_session_store(
   }
 }
 
-long get_quota_exhaust_termination_time(const YAML::Node& config) {
+long get_quota_exhaust_termination_time(const YAML::Node &config) {
   long quota_exhaust_termination_on_init_ms;
   if (config["cwf_quota_exhaustion_termination_on_init_ms"].IsDefined()) {
     quota_exhaust_termination_on_init_ms =
@@ -227,7 +228,7 @@ long get_quota_exhaust_termination_time(const YAML::Node& config) {
   return quota_exhaust_termination_on_init_ms;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 #ifdef DEBUG
   __gcov_flush();
 #endif
@@ -265,7 +266,7 @@ int main(int argc, char* argv[]) {
     session_max_rtx_count = DEFAULT_SESSION_MAX_RTX_COUNT;
   }
   MLOG(MINFO) << "Starting Session Manager";
-  folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
+  folly::EventBase *evb = folly::EventBaseManager::get()->getEventBase();
 
   // Start off a thread to periodically load policy definitions from Redis into
   // RuleStore
@@ -292,7 +293,7 @@ int main(int argc, char* argv[]) {
     directoryd_client->rpc_response_loop();
   });
 
-  auto& eventd_client = magma::AsyncEventdClient::getInstance();
+  auto &eventd_client = magma::AsyncEventdClient::getInstance();
   auto events_reporter =
       std::make_shared<magma::lte::EventsReporterImpl>(eventd_client);
   std::thread eventd_response_handling_thread([&]() {
@@ -347,7 +348,7 @@ int main(int argc, char* argv[]) {
 
   // Case on stateless config, setup the appropriate store client
   auto metering_reporter = std::make_shared<magma::MeteringReporter>();
-  magma::SessionStore* session_store =
+  magma::SessionStore *session_store =
       create_session_store(config, rule_store, metering_reporter);
   // service restart clears the UE metering metrics, so we need to offset
   // metering_reporter with existing usage
@@ -418,8 +419,8 @@ int main(int argc, char* argv[]) {
     return future.get();
   });
 
-  magma::AmfPduSessionSmContextAsyncService* conv_set_message_service = nullptr;
-  magma::SetInterfaceForUserPlaneAsyncService* conv_upf_message_service =
+  magma::AmfPduSessionSmContextAsyncService *conv_set_message_service = nullptr;
+  magma::SetInterfaceForUserPlaneAsyncService *conv_upf_message_service =
       nullptr;
   std::shared_ptr<magma::SessionProxyResponderHandlerImpl> proxy_handler;
   if (enable_5g_features) {
@@ -470,7 +471,7 @@ int main(int argc, char* argv[]) {
   server.AddServiceToServer(&proxy_service);
   MLOG(MINFO) << "Added SessionProxyResponderAsyncService to service's server";
   // For FWA always handle abort session
-  magma::AbortSessionResponderAsyncService* abort_session_service = nullptr;
+  magma::AbortSessionResponderAsyncService *abort_session_service = nullptr;
   if (!config["support_carrier_wifi"].as<bool>()) {
     abort_session_service = new magma::AbortSessionResponderAsyncService(
         server.GetNewCompletionQueue(), proxy_handler);
@@ -485,29 +486,29 @@ int main(int argc, char* argv[]) {
     if (enable_5g_features) {
       MLOG(MDEBUG) << "Started access message thread";
       conv_set_message_service
-          ->wait_for_requests();         // block here instead of on server
-      conv_set_message_service->stop();  // stop queue after server shutsdown
+          ->wait_for_requests();        // block here instead of on server
+      conv_set_message_service->stop(); // stop queue after server shutsdown
     }
   });
   std::thread conv_upf_message_thread([&]() {
     if (enable_5g_features) {
       MLOG(MINFO) << "Started upf message thread";
       conv_upf_message_service
-          ->wait_for_requests();         // block here instead of on server
-      conv_upf_message_service->stop();  // stop queue after server shutsdown
+          ->wait_for_requests();        // block here instead of on server
+      conv_upf_message_service->stop(); // stop queue after server shutsdown
     }
   });
   // session_enforcer->sync_sessions_on_restart(time(NULL));//not part of drop-1
   // MVC
   std::thread local_thread([&]() {
     MLOG(MINFO) << "Started local service thread";
-    local_service.wait_for_requests();  // block here instead of on server
-    local_service.stop();               // stop queue after server shuts down
+    local_service.wait_for_requests(); // block here instead of on server
+    local_service.stop();              // stop queue after server shuts down
   });
   std::thread proxy_thread([&]() {
     MLOG(MINFO) << "Started proxy service thread";
-    proxy_service.wait_for_requests();  // block here instead of on server
-    proxy_service.stop();               // stop queue after server shuts down
+    proxy_service.wait_for_requests(); // block here instead of on server
+    proxy_service.stop();              // stop queue after server shuts down
   });
 
   // Only start abort session handler for non-CWF deployments
@@ -517,7 +518,7 @@ int main(int argc, char* argv[]) {
       MLOG(MINFO) << "Started abort session service thread";
       // block here instead of on server
       abort_session_service->wait_for_requests();
-      abort_session_service->stop();  // stop queue after server shuts down
+      abort_session_service->stop(); // stop queue after server shuts down
     });
   }
 

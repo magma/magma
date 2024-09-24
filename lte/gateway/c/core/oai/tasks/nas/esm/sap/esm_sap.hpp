@@ -56,4 +56,4 @@ Description Defines the ESM Service Access Points at which the EPS
 
 void esm_sap_initialize(void);
 
-status_code_e esm_sap_send(esm_sap_t* msg);
+status_code_e esm_sap_send(esm_sap_t *msg);

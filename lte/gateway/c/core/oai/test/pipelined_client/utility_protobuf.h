@@ -13,22 +13,22 @@
 
 #pragma once
 
-#include <thread>
-#include <gtest/gtest.h>
 #include <arpa/inet.h>
+#include <gtest/gtest.h>
 #include <stdio.h>
+#include <thread>
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.hpp"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.hpp"
+#include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 #include "lte/protos/pipelined.pb.h"
-#include "lte/protos/mobilityd.pb.h"
-#include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.hpp"
 
 namespace magma {
 namespace lte {
 
 class UpdateRequestV4 {
- private:
+private:
   std::string enb_v4;
   std::string ue_v4;
   uint32_t in_teid;
@@ -36,7 +36,7 @@ class UpdateRequestV4 {
   uint32_t vlan;
   uint32_t ue_state;
 
- public:
+public:
   UESessionSet update_request;
 
   UpdateRequestV4(uint32_t set_ue_state,
@@ -44,18 +44,14 @@ class UpdateRequestV4 {
                   const std::string ue_str = "192.168.128.11",
                   uint32_t incoming_teid = 100, uint32_t outgoing_teid = 200,
                   uint32_t out_vlan = 0)
-      : enb_v4(enb_str),
-        ue_v4(ue_str),
-        in_teid(incoming_teid),
-        out_teid(outgoing_teid),
-        vlan(out_vlan),
-        ue_state(set_ue_state) {}
+      : enb_v4(enb_str), ue_v4(ue_str), in_teid(incoming_teid),
+        out_teid(outgoing_teid), vlan(out_vlan), ue_state(set_ue_state) {}
 
-  void get_enb_v4_addr(struct in_addr* enb_ipv4_addr) {
+  void get_enb_v4_addr(struct in_addr *enb_ipv4_addr) {
     inet_pton(AF_INET, enb_v4.c_str(), enb_ipv4_addr);
   }
 
-  void get_ue_v4_addr(struct in_addr* ue_ipv4_addr) {
+  void get_ue_v4_addr(struct in_addr *ue_ipv4_addr) {
     inet_pton(AF_INET, ue_v4.c_str(), ue_ipv4_addr);
   }
 
@@ -140,17 +136,12 @@ class UpdateRequestV4 {
 };
 
 class FlowDLOps {
- public:
+public:
   // Constructor definition
   FlowDLOps()
-      : set_params_((DST_IPV4 | SRC_IPV4)),
-        tcp_dst_port_(5002),
-        tcp_src_port_(60),
-        udp_dst_port_(0),
-        udp_src_port_(0),
-        ip_proto_(6),
-        dst_v4_("192.168.60.141"),
-        src_v4_("192.168.128.11") {}
+      : set_params_((DST_IPV4 | SRC_IPV4)), tcp_dst_port_(5002),
+        tcp_src_port_(60), udp_dst_port_(0), udp_src_port_(0), ip_proto_(6),
+        dst_v4_("192.168.60.141"), src_v4_("192.168.128.11") {}
 
   struct ip_flow_dl get_flow_dl() {
     return flow_dl_;
@@ -168,9 +159,9 @@ class FlowDLOps {
   }
 
   bool validate_flow_dl(IPFlowDL req_flow_dl) {
-    IPAddress* dst_ip_addr;
+    IPAddress *dst_ip_addr;
     char flow_dl_dst_addr[INET_ADDRSTRLEN];
-    IPAddress* src_ip_addr;
+    IPAddress *src_ip_addr;
     char flow_dl_src_addr[INET_ADDRSTRLEN];
 
     dst_ip_addr = req_flow_dl.mutable_dest_ip();
@@ -216,7 +207,7 @@ class FlowDLOps {
     return true;
   }
 
- private:
+private:
   uint32_t set_params_;
   uint16_t tcp_dst_port_;
   uint16_t tcp_src_port_;
@@ -228,5 +219,5 @@ class FlowDLOps {
   struct ip_flow_dl flow_dl_;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

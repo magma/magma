@@ -46,7 +46,6 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
@@ -67,19 +66,20 @@ extern "C" {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring* nas_msg);
+status_code_e lowerlayer_success(mme_ue_s1ap_id_t ue_id, bstring *nas_msg);
 status_code_e lowerlayer_failure(mme_ue_s1ap_id_t ueid,
-                                 STOLEN_REF bstring* nas_msg);
+                                 STOLEN_REF bstring *nas_msg);
 status_code_e lowerlayer_non_delivery_indication(mme_ue_s1ap_id_t ue_id,
-                                                 STOLEN_REF bstring* nas_msg);
+                                                 STOLEN_REF bstring *nas_msg);
 status_code_e lowerlayer_establish(void);
 status_code_e lowerlayer_release(mme_ue_s1ap_id_t ue_id, int cause);
 
 status_code_e lowerlayer_data_ind(mme_ue_s1ap_id_t ueid, const_bstring data);
 status_code_e lowerlayer_data_req(mme_ue_s1ap_id_t ueid, bstring data);
-status_code_e lowerlayer_activate_bearer_req(
-    const mme_ue_s1ap_id_t ue_id, const ebi_t ebi, const bitrate_t mbr_dl,
-    const bitrate_t mbr_ul, const bitrate_t gbr_dl, const bitrate_t gbr_ul,
-    bstring data);
+status_code_e
+lowerlayer_activate_bearer_req(const mme_ue_s1ap_id_t ue_id, const ebi_t ebi,
+                               const bitrate_t mbr_dl, const bitrate_t mbr_ul,
+                               const bitrate_t gbr_dl, const bitrate_t gbr_ul,
+                               bstring data);
 status_code_e lowerlayer_deactivate_bearer_req(const mme_ue_s1ap_id_t ue_id,
                                                const ebi_t ebi, bstring data);

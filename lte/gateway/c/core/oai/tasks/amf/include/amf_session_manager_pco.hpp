@@ -27,15 +27,15 @@ namespace magma5g {
 #define SM_PCO_IPCP_HDR_LENGTH 7
 
 void sm_clear_protocol_configuration_options(
-    protocol_configuration_options_t* const pco);
+    protocol_configuration_options_t *const pco);
 
 void sm_free_protocol_configuration_options(
-    protocol_configuration_options_t** const protocol_configuration_options);
+    protocol_configuration_options_t **const protocol_configuration_options);
 
 void sm_copy_protocol_configuration_options(
-    protocol_configuration_options_t* const pco_dst,
-    const protocol_configuration_options_t* const pco_src);
+    protocol_configuration_options_t *const pco_dst,
+    const protocol_configuration_options_t *const pco_src);
 
-uint16_t sm_process_pco_request(protocol_configuration_options_t* pco_req,
-                                protocol_configuration_options_t* pco_resp);
-}  // namespace magma5g
+uint16_t sm_process_pco_request(protocol_configuration_options_t *pco_req,
+                                protocol_configuration_options_t *pco_resp);
+} // namespace magma5g

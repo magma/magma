@@ -10,22 +10,22 @@ limitations under the License.
 */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 #define AMF_CAUSE_LENGTH 1
 // M5GMMCause IE Class
 class M5GMMCauseMsg {
- public:
+public:
   uint8_t iei;
   uint8_t m5gmm_cause;
 
   M5GMMCauseMsg();
   ~M5GMMCauseMsg();
-  int EncodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,
-                          uint8_t* buffer, uint32_t len);
-  int DecodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,
-                          uint8_t* buffer, uint32_t len);
+  int EncodeM5GMMCauseMsg(M5GMMCauseMsg *m5gmm_cause, uint8_t iei,
+                          uint8_t *buffer, uint32_t len);
+  int DecodeM5GMMCauseMsg(M5GMMCauseMsg *m5gmm_cause, uint8_t iei,
+                          uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

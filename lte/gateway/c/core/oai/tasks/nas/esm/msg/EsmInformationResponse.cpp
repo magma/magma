@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/EsmInformationResponse.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,7 +32,7 @@ extern "C" {
 #endif
 
 int decode_esm_information_response(
-    esm_information_response_msg* esm_information_response, uint8_t* buffer,
+    esm_information_response_msg *esm_information_response, uint8_t *buffer,
     uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   uint32_t decoded = 0;
@@ -55,40 +55,41 @@ int decode_esm_information_response(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_IEI:
-        if ((decoded_result = decode_access_point_name_ie(
-                 &esm_information_response->accesspointname, true,
-                 buffer + decoded, len - decoded)) <= 0)
-          OAILOG_FUNC_RETURN(LOG_NAS_ESM, decoded_result);
+    case ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_IEI:
+      if ((decoded_result = decode_access_point_name_ie(
+               &esm_information_response->accesspointname, true,
+               buffer + decoded, len - decoded)) <= 0)
+        OAILOG_FUNC_RETURN(LOG_NAS_ESM, decoded_result);
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        esm_information_response->presencemask |=
-            ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      esm_information_response->presencemask |=
+          ESM_INFORMATION_RESPONSE_ACCESS_POINT_NAME_PRESENT;
+      break;
 
-      case ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
-        if ((decoded_result = decode_protocol_configuration_options_ie(
-                 &esm_information_response->protocolconfigurationoptions, true,
-                 buffer + decoded, len - decoded)) <= 0)
-          OAILOG_FUNC_RETURN(LOG_NAS_ESM, decoded_result);
+    case ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
+      if ((decoded_result = decode_protocol_configuration_options_ie(
+               &esm_information_response->protocolconfigurationoptions, true,
+               buffer + decoded, len - decoded)) <= 0)
+        OAILOG_FUNC_RETURN(LOG_NAS_ESM, decoded_result);
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        esm_information_response->presencemask |=
-            ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      esm_information_response->presencemask |=
+          ESM_INFORMATION_RESPONSE_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        OAILOG_FUNC_RETURN(LOG_NAS_ESM, TLV_UNEXPECTED_IEI);
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, TLV_UNEXPECTED_IEI);
     }
   }
 
@@ -96,7 +97,7 @@ int decode_esm_information_response(
 }
 
 int encode_esm_information_response(
-    esm_information_response_msg* esm_information_response, uint8_t* buffer,
+    esm_information_response_msg *esm_information_response, uint8_t *buffer,
     uint32_t len) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int encoded = 0;

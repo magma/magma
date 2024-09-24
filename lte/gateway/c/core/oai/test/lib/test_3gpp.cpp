@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include <cstring>
+#include <gtest/gtest.h>
 
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -31,7 +31,7 @@ class m3GppTest : public ::testing::Test {
 
   virtual void TearDown() {}
 
- protected:
+protected:
   void initialize_imei() {
     imei.typeofidentity = MOBILE_IDENTITY_IMEI;
     imei.oddeven = MOBILE_IDENTITY_EVEN;
@@ -52,8 +52,8 @@ class m3GppTest : public ::testing::Test {
     imei.snr6 = 9;
   }
 
-  void cmp_imei(const imei_mobile_identity_t* imei1,
-                const imei_mobile_identity_t* imei2) {
+  void cmp_imei(const imei_mobile_identity_t *imei1,
+                const imei_mobile_identity_t *imei2) {
     EXPECT_EQ(imei1->typeofidentity, imei2->typeofidentity);
     EXPECT_EQ(imei1->oddeven, imei2->oddeven);
     EXPECT_EQ(imei1->tac1, imei2->tac1);
@@ -89,8 +89,8 @@ class m3GppTest : public ::testing::Test {
     tmgi.mbmssessionid = 12;
   }
 
-  void cmp_tmgi(const tmgi_mobile_identity_t* tmgi1,
-                const tmgi_mobile_identity_t* tmgi2) {
+  void cmp_tmgi(const tmgi_mobile_identity_t *tmgi1,
+                const tmgi_mobile_identity_t *tmgi2) {
     EXPECT_EQ(tmgi1->typeofidentity, tmgi2->typeofidentity);
     EXPECT_EQ(tmgi1->spare, tmgi2->spare);
     EXPECT_EQ(tmgi1->mbmssessionidindication, tmgi2->mbmssessionidindication);
@@ -126,8 +126,8 @@ class m3GppTest : public ::testing::Test {
     imsi.oddeven = MOBILE_IDENTITY_ODD;
   }
 
-  void cmp_imsi(const imsi_mobile_identity_t* imsi1,
-                const imsi_mobile_identity_t* imsi2) {
+  void cmp_imsi(const imsi_mobile_identity_t *imsi1,
+                const imsi_mobile_identity_t *imsi2) {
     EXPECT_EQ(imsi1->typeofidentity, imsi2->typeofidentity);
     EXPECT_EQ(imsi1->digit1, imsi2->digit1);
     EXPECT_EQ(imsi1->digit2, imsi2->digit2);
@@ -275,7 +275,7 @@ TEST_F(m3GppTest, TestMobileStationClassmark2) {
                                                      true, buffer, encoded);
   EXPECT_EQ(encoded, decoded);
   EXPECT_TRUE(
-      !(memcmp((const void*)&msclassmark2, (const void*)&msclassmark2_decoded,
+      !(memcmp((const void *)&msclassmark2, (const void *)&msclassmark2_decoded,
                sizeof(mobile_station_classmark2_t))));
   // Without iei present
   encoded = encode_mobile_station_classmark_2_ie(&msclassmark2, false, buffer,
@@ -284,7 +284,7 @@ TEST_F(m3GppTest, TestMobileStationClassmark2) {
                                                  buffer, encoded);
   EXPECT_EQ(encoded, decoded);
   EXPECT_TRUE(
-      !(memcmp((const void*)&msclassmark2, (const void*)&msclassmark2_decoded,
+      !(memcmp((const void *)&msclassmark2, (const void *)&msclassmark2_decoded,
                sizeof(mobile_station_classmark2_t))));
 }
 
@@ -308,8 +308,8 @@ TEST_F(m3GppTest, TestPlmnList) {
 
   EXPECT_EQ(encoded, decoded);
   EXPECT_EQ(plmn_list.num_plmn, plmn_list_decoded.num_plmn);
-  EXPECT_TRUE(!(memcmp((const void*)&plmn_list, (const void*)&plmn_list_decoded,
-                       sizeof(plmn_list_t))));
+  EXPECT_TRUE(!(memcmp((const void *)&plmn_list,
+                       (const void *)&plmn_list_decoded, sizeof(plmn_list_t))));
 
   // Without iei present
   encoded = encode_plmn_list_ie(&plmn_list, false, buffer, BUFFER_LEN);
@@ -317,16 +317,16 @@ TEST_F(m3GppTest, TestPlmnList) {
 
   EXPECT_EQ(encoded, decoded);
   EXPECT_EQ(plmn_list.num_plmn, plmn_list_decoded.num_plmn);
-  EXPECT_TRUE(!(memcmp((const void*)&plmn_list, (const void*)&plmn_list_decoded,
-                       sizeof(plmn_list_t))));
+  EXPECT_TRUE(!(memcmp((const void *)&plmn_list,
+                       (const void *)&plmn_list_decoded, sizeof(plmn_list_t))));
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 // Note: This is necessary for setting up a log thread (Might be addressed by
 // #11736)
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
   OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
   return RUN_ALL_TESTS();

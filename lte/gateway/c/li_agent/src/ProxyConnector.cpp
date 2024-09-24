@@ -19,27 +19,22 @@
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/ssl3.h>
+#include <ostream>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
-#include <ostream>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 namespace lte {
 
-ProxyConnectorImpl::ProxyConnectorImpl(const std::string& proxy_addr,
+ProxyConnectorImpl::ProxyConnectorImpl(const std::string &proxy_addr,
                                        const int proxy_port,
-                                       const std::string& cert_file,
-                                       const std::string& key_file)
-    : proxy_addr_(proxy_addr),
-      proxy_port_(proxy_port),
-      cert_file_(cert_file),
-      key_file_(key_file),
-      ssl_(nullptr),
-      ctx_(nullptr),
-      proxy_(-1) {}
+                                       const std::string &cert_file,
+                                       const std::string &key_file)
+    : proxy_addr_(proxy_addr), proxy_port_(proxy_port), cert_file_(cert_file),
+      key_file_(key_file), ssl_(nullptr), ctx_(nullptr), proxy_(-1) {}
 
 int ProxyConnectorImpl::setup_proxy_socket() {
   SSL_library_init();
@@ -69,7 +64,7 @@ int ProxyConnectorImpl::setup_proxy_socket() {
   return 0;
 }
 
-int ProxyConnectorImpl::load_certificates(SSL_CTX* ctx) {
+int ProxyConnectorImpl::load_certificates(SSL_CTX *ctx) {
   if (SSL_CTX_use_certificate_file(ctx, cert_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
     ERR_print_errors_fp(stderr);
@@ -87,8 +82,8 @@ int ProxyConnectorImpl::load_certificates(SSL_CTX* ctx) {
   return 0;
 }
 
-SSL_CTX* ProxyConnectorImpl::init_ctx(void) {
-  SSL_CTX* ctx;
+SSL_CTX *ProxyConnectorImpl::init_ctx(void) {
+  SSL_CTX *ctx;
 
   OpenSSL_add_all_algorithms(); /* Load cryptos, et.al. */
   SSL_load_error_strings();     /* Bring in and register error messages */
@@ -113,7 +108,7 @@ int ProxyConnectorImpl::open_connection() {
     MLOG(MERROR) << "Invalid address/ Address not supported";
     return -1;
   }
-  if (connect(sd, (struct sockaddr*)&serv_addr, sizeof(struct sockaddr_in)) !=
+  if (connect(sd, (struct sockaddr *)&serv_addr, sizeof(struct sockaddr_in)) !=
       0) {
     MLOG(MERROR) << "Can't connect to the proxy, exiting";
     close(sd);
@@ -122,7 +117,7 @@ int ProxyConnectorImpl::open_connection() {
   return sd;
 }
 
-int ProxyConnectorImpl::send_data(void* data, uint32_t size) {
+int ProxyConnectorImpl::send_data(void *data, uint32_t size) {
   return SSL_write(ssl_, data, size);
 }
 
@@ -143,5 +138,5 @@ void ProxyConnectorImpl::cleanup() {
 
 ProxyConnectorImpl::~ProxyConnectorImpl() { cleanup(); }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

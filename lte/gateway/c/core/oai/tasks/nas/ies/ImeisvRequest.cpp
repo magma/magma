@@ -17,21 +17,21 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ImeisvRequest.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
-                          uint8_t* buffer, uint32_t len) {
+int decode_imeisv_request(ImeisvRequest *imeisvrequest, uint8_t iei,
+                          uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IMEISV_REQUEST_MINIMUM_LENGTH,
@@ -49,10 +49,10 @@ int decode_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
   return decoded;
 }
 
-int decode_u8_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
+int decode_u8_imeisv_request(ImeisvRequest *imeisvrequest, uint8_t iei,
                              uint8_t value, uint32_t len) {
   int decoded = 0;
-  uint8_t* buffer = &value;
+  uint8_t *buffer = &value;
 
   *imeisvrequest = *buffer & 0x7;
   decoded++;
@@ -62,8 +62,8 @@ int decode_u8_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
   return decoded;
 }
 
-int encode_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
-                          uint8_t* buffer, uint32_t len) {
+int encode_imeisv_request(ImeisvRequest *imeisvrequest, uint8_t iei,
+                          uint8_t *buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   /*
@@ -79,9 +79,9 @@ int encode_imeisv_request(ImeisvRequest* imeisvrequest, uint8_t iei,
   return encoded;
 }
 
-uint8_t encode_u8_imeisv_request(ImeisvRequest* imeisvrequest) {
+uint8_t encode_u8_imeisv_request(ImeisvRequest *imeisvrequest) {
   uint8_t bufferReturn;
-  uint8_t* buffer = &bufferReturn;
+  uint8_t *buffer = &bufferReturn;
   uint8_t encoded = 0;
   uint8_t iei = 0;
 
@@ -91,7 +91,7 @@ uint8_t encode_u8_imeisv_request(ImeisvRequest* imeisvrequest) {
   return bufferReturn;
 }
 
-void dump_imeisv_request_xml(ImeisvRequest* imeisvrequest, uint8_t iei) {
+void dump_imeisv_request_xml(ImeisvRequest *imeisvrequest, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Imeisv Request>\n");
 
   if (iei > 0)

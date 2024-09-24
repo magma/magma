@@ -18,8 +18,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
@@ -27,8 +27,8 @@ ServiceRequestMsg::ServiceRequestMsg(){};
 ServiceRequestMsg::~ServiceRequestMsg(){};
 
 // Decode ServiceRequest Messsage
-int ServiceRequestMsg::DecodeServiceRequestMsg(ServiceRequestMsg* svc_req,
-                                               uint8_t* buffer, uint32_t len) {
+int ServiceRequestMsg::DecodeServiceRequestMsg(ServiceRequestMsg *svc_req,
+                                               uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -82,35 +82,33 @@ int ServiceRequestMsg::DecodeServiceRequestMsg(ServiceRequestMsg* svc_req,
   while (decoded < len) {
     uint8_t type = *(buffer + decoded);
     switch (type) {
-      case UP_LINK_DATA_STATUS: {
-        if ((decoded_result =
-                 svc_req->uplink_data_status.DecodeUplinkDataStatus(
-                     &svc_req->uplink_data_status, UP_LINK_DATA_STATUS,
-                     buffer + decoded, len - decoded)) < 0)
-          return decoded_result;
-        else
-          decoded += decoded_result;
-      } break;
-      case PDU_SESSION_STATUS: {
-        if ((decoded_result =
-                 svc_req->pdu_session_status.DecodePDUSessionStatus(
-                     &svc_req->pdu_session_status, PDU_SESSION_STATUS,
-                     buffer + decoded, len - decoded)) < 0)
-          return decoded_result;
-        else
-          decoded += decoded_result;
-      } break;
-      case NAS_MESSAGE_CONTAINER: {
-        if ((decoded_result = DecodeServiceRequestMsg(
-                 svc_req, buffer + (decoded + 3), len - (decoded + 3))) < 0) {
-          return decoded_result;
-        } else {
-          decoded += (decoded_result + 3);
-        }
-      } break;
-      default: {
-        return decoded;
+    case UP_LINK_DATA_STATUS: {
+      if ((decoded_result = svc_req->uplink_data_status.DecodeUplinkDataStatus(
+               &svc_req->uplink_data_status, UP_LINK_DATA_STATUS,
+               buffer + decoded, len - decoded)) < 0)
+        return decoded_result;
+      else
+        decoded += decoded_result;
+    } break;
+    case PDU_SESSION_STATUS: {
+      if ((decoded_result = svc_req->pdu_session_status.DecodePDUSessionStatus(
+               &svc_req->pdu_session_status, PDU_SESSION_STATUS,
+               buffer + decoded, len - decoded)) < 0)
+        return decoded_result;
+      else
+        decoded += decoded_result;
+    } break;
+    case NAS_MESSAGE_CONTAINER: {
+      if ((decoded_result = DecodeServiceRequestMsg(
+               svc_req, buffer + (decoded + 3), len - (decoded + 3))) < 0) {
+        return decoded_result;
+      } else {
+        decoded += (decoded_result + 3);
       }
+    } break;
+    default: {
+      return decoded;
+    }
     }
   }
 
@@ -118,9 +116,9 @@ int ServiceRequestMsg::DecodeServiceRequestMsg(ServiceRequestMsg* svc_req,
 };
 
 // Encode ServiceRequest Messsage
-int ServiceRequestMsg::EncodeServiceRequestMsg(ServiceRequestMsg* svc_req,
-                                               uint8_t* buffer, uint32_t len) {
+int ServiceRequestMsg::EncodeServiceRequestMsg(ServiceRequestMsg *svc_req,
+                                               uint8_t *buffer, uint32_t len) {
   /*** Not Implemented, will be supported POST MVC ***/
   return 0;
 };
-}  // namespace magma5g
+} // namespace magma5g

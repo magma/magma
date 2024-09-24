@@ -16,10 +16,10 @@
 namespace magma {
 namespace lte {
 
-void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
-                                     std::unique_lock<std::mutex>& lock,
-                                     mme_app_desc_t* mme_state_p,
-                                     guti_eps_mobile_identity_t* guti) {
+void MmeAppProcedureTest ::attach_ue(std::condition_variable &cv,
+                                     std::unique_lock<std::mutex> &lock,
+                                     mme_app_desc_t *mme_state_p,
+                                     guti_eps_mobile_identity_t *guti) {
   // Constructing and sending Initial Attach Request to mme_app mimicing S1AP
   send_mme_app_initial_ue_msg(nas_msg_imsi_attach_req,
                               sizeof(nas_msg_imsi_attach_req), plmn, *guti, 1);
@@ -53,7 +53,7 @@ void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
   int decoder_rc = 0;
   decoder_rc = nas_message_decode(
       nas_msg->data, &nas_msg_decoded, nas_msg->slen,
-      reinterpret_cast<void*>(&emm_security_context), &decode_status);
+      reinterpret_cast<void *>(&emm_security_context), &decode_status);
   EXPECT_EQ(nas_msg->slen, 67);
   EXPECT_EQ(decoder_rc, nas_msg->slen);
   *guti = nas_msg_decoded.plain.emm.attach_accept.guti.guti;
@@ -93,9 +93,9 @@ void MmeAppProcedureTest ::attach_ue(std::condition_variable& cv,
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 }
 
-void MmeAppProcedureTest ::detach_ue(std::condition_variable& cv,
-                                     std::unique_lock<std::mutex>& lock,
-                                     mme_app_desc_t* mme_state_p,
+void MmeAppProcedureTest ::detach_ue(std::condition_variable &cv,
+                                     std::unique_lock<std::mutex> &lock,
+                                     mme_app_desc_t *mme_state_p,
                                      guti_eps_mobile_identity_t guti,
                                      bool is_initial_ue) {
   // Constructing and sending Detach Request to mme_app
@@ -126,5 +126,5 @@ void MmeAppProcedureTest ::detach_ue(std::condition_variable& cv,
   EXPECT_EQ(mme_state_p->nb_default_eps_bearers, 0);
   EXPECT_EQ(mme_state_p->nb_ue_idle, 0);
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

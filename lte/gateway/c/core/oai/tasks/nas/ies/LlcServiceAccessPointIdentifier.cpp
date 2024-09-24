@@ -17,22 +17,22 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/LlcServiceAccessPointIdentifier.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_llc_service_access_point_identifier(
-    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
-    uint8_t iei, uint8_t* buffer, uint32_t len) {
+    LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
+    uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -50,8 +50,8 @@ int decode_llc_service_access_point_identifier(
 }
 
 int encode_llc_service_access_point_identifier(
-    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
-    uint8_t iei, uint8_t* buffer, uint32_t len) {
+    LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
+    uint8_t iei, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*
@@ -75,7 +75,7 @@ int encode_llc_service_access_point_identifier(
 }
 
 void dump_llc_service_access_point_identifier_xml(
-    LlcServiceAccessPointIdentifier* llcserviceaccesspointidentifier,
+    LlcServiceAccessPointIdentifier *llcserviceaccesspointidentifier,
     uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Llc Service Access Point Identifier>\n");
 

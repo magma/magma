@@ -10,25 +10,25 @@
  */
 
 #pragma once
-#include <sstream>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GDNN.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNSSAI.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.hpp"
+#include <sstream>
 
 namespace magma5g {
 // PDUSessionEstablishmentAccept Message Class
 class PDUSessionEstablishmentAcceptMsg {
- public:
+public:
 #define PDU_SESSION_ESTABLISH_ACPT_MIN_LEN 18
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   PDUSessionIdentityMsg pdu_session_identity;
@@ -52,13 +52,13 @@ class PDUSessionEstablishmentAcceptMsg {
   PDUSessionEstablishmentAcceptMsg();
   ~PDUSessionEstablishmentAcceptMsg();
   int DecodePDUSessionEstablishmentAcceptMsg(
-      PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept,
-      uint8_t* buffer, uint32_t len);
+      PDUSessionEstablishmentAcceptMsg *pdu_session_estab_accept,
+      uint8_t *buffer, uint32_t len);
   int EncodePDUSessionEstablishmentAcceptMsg(
-      PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept,
-      uint8_t* buffer, uint32_t len);
+      PDUSessionEstablishmentAcceptMsg *pdu_session_estab_accept,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    TS-24.501 Table 8.3.2.1.1: PDU SESSION ESTABLISHMENT ACCEPT message content

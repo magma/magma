@@ -10,22 +10,22 @@
 */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationResult.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNSSAI.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer3.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GTAIList.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNSSAI.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNetworkFeatureSupport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GTAIList.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
+#include <sstream>
 
 namespace magma5g {
 class RegistrationAcceptMsg {
- public:
+public:
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SecurityHeaderTypeMsg sec_header_type;
   SpareHalfOctetMsg spare_half_octet;
@@ -41,12 +41,12 @@ class RegistrationAcceptMsg {
 
   RegistrationAcceptMsg();
   ~RegistrationAcceptMsg();
-  int DecodeRegistrationAcceptMsg(RegistrationAcceptMsg* reg_accept,
-                                  uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationAcceptMsg(RegistrationAcceptMsg* reg_accept,
-                                  uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationAcceptMsg(RegistrationAcceptMsg *reg_accept,
+                                  uint8_t *buffer, uint32_t len);
+  int EncodeRegistrationAcceptMsg(RegistrationAcceptMsg *reg_accept,
+                                  uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
          REGISTRATION ACCEPT message content --- TS 24.501 8.2.7.1.1

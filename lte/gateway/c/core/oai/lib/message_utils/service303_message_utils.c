@@ -24,9 +24,9 @@
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
-int send_app_health_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
+int send_app_health_to_service303(task_zmq_ctx_t *task_zmq_ctx_p,
                                   task_id_t origin_id, bool healthy) {
-  MessageDef* message_p;
+  MessageDef *message_p;
   if (healthy) {
     message_p = DEPRECATEDitti_alloc_new_message_fatal(origin_id,
                                                        APPLICATION_HEALTHY_MSG);
@@ -38,9 +38,9 @@ int send_app_health_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
 }
 
 int send_mme_app_stats_to_service303(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id,
-    application_mme_app_stats_msg_t* stats_msg) {
-  MessageDef* message_p =
+    task_zmq_ctx_t *task_zmq_ctx_p, task_id_t origin_id,
+    application_mme_app_stats_msg_t *stats_msg) {
+  MessageDef *message_p =
       itti_alloc_new_message(origin_id, APPLICATION_MME_APP_STATS_MSG);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Unable to allocate memory");
@@ -59,10 +59,10 @@ int send_mme_app_stats_to_service303(
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
 
-int send_s1ap_stats_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
+int send_s1ap_stats_to_service303(task_zmq_ctx_t *task_zmq_ctx_p,
                                   task_id_t origin_id,
-                                  application_s1ap_stats_msg_t* stats_msg) {
-  MessageDef* message_p =
+                                  application_s1ap_stats_msg_t *stats_msg) {
+  MessageDef *message_p =
       itti_alloc_new_message(origin_id, APPLICATION_S1AP_STATS_MSG);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Unable to allocate memory");
@@ -76,9 +76,9 @@ int send_s1ap_stats_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
 }
 
 int send_amf_app_stats_to_service303(
-    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id,
-    application_amf_app_stats_msg_t* stats_msg) {
-  MessageDef* message_p =
+    task_zmq_ctx_t *task_zmq_ctx_p, task_id_t origin_id,
+    application_amf_app_stats_msg_t *stats_msg) {
+  MessageDef *message_p =
       itti_alloc_new_message(origin_id, APPLICATION_AMF_APP_STATS_MSG);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "Unable to allocate memory");
@@ -95,10 +95,10 @@ int send_amf_app_stats_to_service303(
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
 
-int send_ngap_stats_to_service303(task_zmq_ctx_t* task_zmq_ctx_p,
+int send_ngap_stats_to_service303(task_zmq_ctx_t *task_zmq_ctx_p,
                                   task_id_t origin_id,
-                                  application_ngap_stats_msg_t* stats_msg) {
-  MessageDef* message_p =
+                                  application_ngap_stats_msg_t *stats_msg) {
+  MessageDef *message_p =
       itti_alloc_new_message(origin_id, APPLICATION_NGAP_STATS_MSG);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_NGAP, "Unable to allocate memory");

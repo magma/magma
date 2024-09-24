@@ -32,8 +32,8 @@ Description Defines identifiers of the EPS Session Management messages
 *****************************************************************************/
 #pragma once
 
-#include <asm/byteorder.h>
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include <asm/byteorder.h>
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
 /****************************************************************************/

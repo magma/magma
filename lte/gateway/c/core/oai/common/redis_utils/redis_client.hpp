@@ -29,7 +29,7 @@ namespace magma {
 namespace lte {
 
 class RedisClient {
- public:
+public:
   explicit RedisClient(bool init_connection);
   ~RedisClient() = default;
 
@@ -44,7 +44,7 @@ class RedisClient {
    * @param key
    * @return string repr of value
    */
-  std::string read(const std::string& key);
+  std::string read(const std::string &key);
 
   /**
    * Writes a str value to redis mapped to str key
@@ -52,7 +52,7 @@ class RedisClient {
    * @param value
    * @return response code of operation
    */
-  status_code_e write(const std::string& key, const std::string& value);
+  status_code_e write(const std::string &key, const std::string &value);
 
   /**
    * Writes a protobuf object to redis
@@ -61,8 +61,8 @@ class RedisClient {
    * @param version
    * @return response code of operation
    */
-  status_code_e write_proto_str(const std::string& key,
-                                const std::string& proto_msg, uint64_t version);
+  status_code_e write_proto_str(const std::string &key,
+                                const std::string &proto_msg, uint64_t version);
 
   /**
    * Converts protobuf Message and parses it to string
@@ -70,26 +70,26 @@ class RedisClient {
    * @param str_to_serialize
    * @return response code of operation
    */
-  static status_code_e serialize(const google::protobuf::Message& proto_msg,
-                                 std::string& str_to_serialize);
+  static status_code_e serialize(const google::protobuf::Message &proto_msg,
+                                 std::string &str_to_serialize);
 
   /**
    * Reads value from redis mapped to key and returns proto object
    * @param key
    * @return response code of operation
    */
-  status_code_e read_proto(const std::string& key,
-                           google::protobuf::Message& proto_msg);
+  status_code_e read_proto(const std::string &key,
+                           google::protobuf::Message &proto_msg);
 
-  int read_version(const std::string& key);
+  int read_version(const std::string &key);
 
-  status_code_e clear_keys(const std::vector<std::string>& keys_to_clear);
+  status_code_e clear_keys(const std::vector<std::string> &keys_to_clear);
 
-  std::vector<std::string> get_keys(const std::string& pattern);
+  std::vector<std::string> get_keys(const std::string &pattern);
 
   bool is_connected() const { return is_connected_; }
 
- private:
+private:
   std::unique_ptr<cpp_redis::client> db_client_;
   bool is_connected_;
 
@@ -99,8 +99,8 @@ class RedisClient {
    * @param state_out
    * @return response code of operation
    */
-  status_code_e read_redis_state(const std::string& key,
-                                 orc8r::RedisState& state_out);
+  status_code_e read_redis_state(const std::string &key,
+                                 orc8r::RedisState &state_out);
 
   /**
    * Takes a string and parses it to protobuf Message
@@ -108,9 +108,9 @@ class RedisClient {
    * @param str_to_deserialize
    * @return response code of operation
    */
-  static status_code_e deserialize(google::protobuf::Message& proto_msg,
-                                   const std::string& str_to_deserialize);
+  static status_code_e deserialize(google::protobuf::Message &proto_msg,
+                                   const std::string &str_to_deserialize);
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

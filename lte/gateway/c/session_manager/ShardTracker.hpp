@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 #pragma once
-#include <stdint.h>
 #include <set>
+#include <stdint.h>
 #include <string>
 #include <vector>
 
@@ -21,7 +21,7 @@ namespace magma {
 /* Shards represent groups of UEs placed into buckets of
 a certain size, to make polling more manageable*/
 class ShardTracker {
- public:
+public:
   ShardTracker();
   /**
    * Add UE to shards based on availability, if the UE already has an
@@ -38,7 +38,7 @@ class ShardTracker {
    */
   bool remove_ue(const std::string imsi, const uint16_t shard_id);
 
- private:
+private:
   /*
    * a vector of quantities, where the indices represent
    * the shard id and the values are the UEs(IMSIs) assigned
@@ -51,4 +51,4 @@ class ShardTracker {
   const uint16_t max_shard_size_ = 100;
 };
 
-}  // namespace magma
+} // namespace magma

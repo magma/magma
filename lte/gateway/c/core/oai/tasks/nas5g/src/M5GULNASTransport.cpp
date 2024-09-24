@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,8 +18,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.hpp"
 
 namespace magma5g {
 ULNASTransportMsg::ULNASTransportMsg(){};
@@ -27,7 +27,7 @@ ULNASTransportMsg::~ULNASTransportMsg(){};
 
 // Decode ULNASTransport Message and its IEs
 int ULNASTransportMsg::DecodeULNASTransportMsg(
-    ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len) {
+    ULNASTransportMsg *ul_nas_transport, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   uint8_t type_len = 0;
@@ -92,57 +92,56 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
     decoded_result = 0;
 
     switch (static_cast<M5GIei>(type)) {
-      case M5GIei::REQUEST_TYPE: {
-        if ((decoded_result = ul_nas_transport->request_type.DecodeRequestType(
-                 &ul_nas_transport->request_type,
-                 static_cast<uint8_t>(M5GIei::REQUEST_TYPE), buffer + decoded,
-                 len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
+    case M5GIei::REQUEST_TYPE: {
+      if ((decoded_result = ul_nas_transport->request_type.DecodeRequestType(
+               &ul_nas_transport->request_type,
+               static_cast<uint8_t>(M5GIei::REQUEST_TYPE), buffer + decoded,
+               len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
       }
-      case M5GIei::PDU_SESSION_IDENTITY_2:
-      case M5GIei::OLD_PDU_SESSION_IDENTITY_2:
-        decoded_result += 2;
+      break;
+    }
+    case M5GIei::PDU_SESSION_IDENTITY_2:
+    case M5GIei::OLD_PDU_SESSION_IDENTITY_2:
+      decoded_result += 2;
+      decoded += decoded_result;
+      break;
+    case M5GIei::MA_PDU_SESSION_INFORMATION:
+    case M5GIei::RELEASE_ASSISTANCE_INDICATION:
+      decoded_result += 1;
+      decoded += decoded_result;
+      break;
+    case M5GIei::DNN:
+      if ((decoded_result = ul_nas_transport->dnn.DecodeDNNMsg(
+               &ul_nas_transport->dnn, static_cast<uint8_t>(M5GIei::DNN),
+               buffer + decoded, len - decoded)) < 0) {
+        return decoded_result;
+      } else {
         decoded += decoded_result;
-        break;
-      case M5GIei::MA_PDU_SESSION_INFORMATION:
-      case M5GIei::RELEASE_ASSISTANCE_INDICATION:
-        decoded_result += 1;
+      }
+      break;
+    case M5GIei::S_NSSAI:
+      if ((decoded_result = ul_nas_transport->nssai.DecodeNSSAIMsg(
+               &ul_nas_transport->nssai, static_cast<uint8_t>(M5GIei::S_NSSAI),
+               buffer + decoded, len - decoded)) < 0) {
+        return decoded_result;
+      } else {
         decoded += decoded_result;
-        break;
-      case M5GIei::DNN:
-        if ((decoded_result = ul_nas_transport->dnn.DecodeDNNMsg(
-                 &ul_nas_transport->dnn, static_cast<uint8_t>(M5GIei::DNN),
-                 buffer + decoded, len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
-      case M5GIei::S_NSSAI:
-        if ((decoded_result = ul_nas_transport->nssai.DecodeNSSAIMsg(
-                 &ul_nas_transport->nssai,
-                 static_cast<uint8_t>(M5GIei::S_NSSAI), buffer + decoded,
-                 len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
-      case M5GIei::ADDITIONAL_INFORMATION:
-        // TLV Types. 1 byte for Type and 1 Byte for size
-        type_len = sizeof(uint8_t);
-        length_len = sizeof(uint8_t);
-        DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
+      }
+      break;
+    case M5GIei::ADDITIONAL_INFORMATION:
+      // TLV Types. 1 byte for Type and 1 Byte for size
+      type_len = sizeof(uint8_t);
+      length_len = sizeof(uint8_t);
+      DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
 
-        decoded += (length_len + decoded_result);
-        break;
-      default:
-        decoded_result = -1;
-        break;
+      decoded += (length_len + decoded_result);
+      break;
+    default:
+      decoded_result = -1;
+      break;
     }
     if (decoded_result < 0) {
       OAILOG_ERROR(LOG_NAS5G, "ULNASTransportMsg Decoding FAILED");
@@ -155,7 +154,7 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
 
 // Encode DL NAS Transport Message and its IEs
 int ULNASTransportMsg::EncodeULNASTransportMsg(
-    ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len) {
+    ULNASTransportMsg *ul_nas_transport, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   int encoded_result = 0;
@@ -247,4 +246,4 @@ int ULNASTransportMsg::EncodeULNASTransportMsg(
   }
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

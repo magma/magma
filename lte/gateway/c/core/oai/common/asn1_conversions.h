@@ -48,7 +48,7 @@
  * \param[in] pointer to the BIT_STRING_t object.
  * \return the extracted value.
  */
-static inline uint8_t BIT_STRING_to_uint8(BIT_STRING_t* asn) {
+static inline uint8_t BIT_STRING_to_uint8(BIT_STRING_t *asn) {
   DevCheck((asn->size == 1), asn->size, 0, 0);
 
   return asn->buf[0] >> asn->bits_unused;
@@ -60,22 +60,22 @@ static inline uint8_t BIT_STRING_to_uint8(BIT_STRING_t* asn) {
  * \param[in] pointer to the BIT_STRING_t object.
  * \return the extracted value.
  */
-static inline uint16_t BIT_STRING_to_uint16(BIT_STRING_t* asn) {
+static inline uint16_t BIT_STRING_to_uint16(BIT_STRING_t *asn) {
   uint16_t result = 0;
   int index = 0;
 
   DevCheck((asn->size > 0) && (asn->size <= 2), asn->size, 0, 0);
 
   switch (asn->size) {
-    case 2:
-      result |= asn->buf[index++] << (8 - asn->bits_unused);
+  case 2:
+    result |= asn->buf[index++] << (8 - asn->bits_unused);
 
-    case 1:
-      result |= asn->buf[index] >> asn->bits_unused;
-      break;
+  case 1:
+    result |= asn->buf[index] >> asn->bits_unused;
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 
   return result;
@@ -87,7 +87,7 @@ static inline uint16_t BIT_STRING_to_uint16(BIT_STRING_t* asn) {
  * \param[in] pointer to the BIT_STRING_t object.
  * \return the extracted value.
  */
-static inline uint32_t BIT_STRING_to_uint32(BIT_STRING_t* asn) {
+static inline uint32_t BIT_STRING_to_uint32(BIT_STRING_t *asn) {
   uint32_t result = 0;
   int index;
   int shift;
@@ -111,7 +111,7 @@ static inline uint32_t BIT_STRING_to_uint32(BIT_STRING_t* asn) {
  * \param[in] pointer to the BIT_STRING_t object.
  * \return the extracted value.
  */
-static inline uint64_t BIT_STRING_to_uint64(BIT_STRING_t* asn) {
+static inline uint64_t BIT_STRING_to_uint64(BIT_STRING_t *asn) {
   uint64_t result = 0;
   int index;
   int shift;

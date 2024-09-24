@@ -37,11 +37,11 @@
 #ifndef INTERTASK_INTERFACE_H_
 #define INTERTASK_INTERFACE_H_
 
+#include <czmq.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <sys/types.h>
-#include <czmq.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/intertask_interface_conf.h"
@@ -50,17 +50,17 @@
 
 #define ITTI_MSG_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.messageId)
 #define ITTI_MSG_ORIGIN_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.originTaskId)
-#define ITTI_MSG_DESTINATION_ID(mSGpTR) \
+#define ITTI_MSG_DESTINATION_ID(mSGpTR)                                        \
   ((mSGpTR)->ittiMsgHeader.destinationTaskId)
 #define ITTI_MSG_INSTANCE(mSGpTR) ((mSGpTR)->ittiMsgHeader.instance)
 #define ITTI_MSG_NAME(mSGpTR) itti_get_message_name(ITTI_MSG_ID(mSGpTR))
-#define ITTI_MSG_ORIGIN_NAME(mSGpTR) \
+#define ITTI_MSG_ORIGIN_NAME(mSGpTR)                                           \
   itti_get_task_name(ITTI_MSG_ORIGIN_ID(mSGpTR))
-#define ITTI_MSG_DESTINATION_NAME(mSGpTR) \
+#define ITTI_MSG_DESTINATION_NAME(mSGpTR)                                      \
   itti_get_task_name(ITTI_MSG_DESTINATION_ID(mSGpTR))
-#define ITTI_MSG_LATENCY(mSGpTR) \
+#define ITTI_MSG_LATENCY(mSGpTR)                                               \
   itti_get_message_latency((mSGpTR)->ittiMsgHeader.timestamp)
-#define ITTI_MSG_LASTHOP_LATENCY(mSGpTR) \
+#define ITTI_MSG_LASTHOP_LATENCY(mSGpTR)                                       \
   ((mSGpTR)->ittiMsgHeader.last_hop_latency)
 
 /* Make the message number platform specific */
@@ -69,9 +69,9 @@ typedef unsigned long message_number_t;
 
 typedef struct task_zmq_ctx_s {
   task_id_t task_id;
-  zloop_t* event_loop;
-  zsock_t* pull_sock;
-  zsock_t* push_socks[TASK_MAX];
+  zloop_t *event_loop;
+  zsock_t *pull_sock;
+  zsock_t *push_socks[TASK_MAX];
   pthread_mutex_t send_mutex;
   bool ready;
 } task_zmq_ctx_t;
@@ -81,15 +81,15 @@ typedef struct message_info_s {
   /* Message payload size */
   MessageHeaderSize size;
   /* Printable name */
-  const char* const name;
+  const char *const name;
 } message_info_t;
 
 typedef struct task_info_s {
   thread_id_t thread;
   /* Printable name */
-  const char* const name;
+  const char *const name;
   /* Socket endpoint */
-  const char* const uri;
+  const char *const uri;
 } task_info_t;
 
 typedef enum timer_repeat_s {
@@ -103,15 +103,15 @@ typedef enum timer_repeat_s {
  \param message Pointer to the message to send
  @returns status_code_e
  **/
-status_code_e send_msg_to_task(task_zmq_ctx_t* task_zmq_ctx_p,
+status_code_e send_msg_to_task(task_zmq_ctx_t *task_zmq_ctx_p,
                                task_id_t destination_task_id,
-                               MessageDef* message);
+                               MessageDef *message);
 
 /** \brief Receive a message from zsock
  \param reader Pointer to ZMQ socket
  @returns Pointer to the message read (caller to free)
  **/
-MessageDef* receive_msg(zsock_t* reader);
+MessageDef *receive_msg(zsock_t *reader);
 
 /** \brief Start timer on the ZMQ loop
  \param task_zmq_ctx_p Pointer to task ZMQ context
@@ -121,14 +121,14 @@ MessageDef* receive_msg(zsock_t* reader);
  \param arg Data to pass to handler
  @returns -1 on failure, timer ID otherwise
  **/
-int start_timer(task_zmq_ctx_t* task_zmq_ctx_p, size_t msec,
-                timer_repeat_t repeat, zloop_timer_fn handler, void* arg);
+int start_timer(task_zmq_ctx_t *task_zmq_ctx_p, size_t msec,
+                timer_repeat_t repeat, zloop_timer_fn handler, void *arg);
 
 /** \brief Stop timer on the ZMQ loop
  \param task_zmq_ctx_p Pointer to task ZMQ context
  \param timer_id Timer ID
  **/
-void stop_timer(task_zmq_ctx_t* task_zmq_ctx_p, int timer_id);
+void stop_timer(task_zmq_ctx_t *task_zmq_ctx_p, int timer_id);
 
 /** \brief Initialize task ZMQ context
  \param task_id Task ID
@@ -137,20 +137,20 @@ void stop_timer(task_zmq_ctx_t* task_zmq_ctx_p, int timer_id);
  \param msg_handler message handler for pull socket
  \param task_zmq_ctx_p Pointer to task ZMQ context
  **/
-void init_task_context(task_id_t task_id, const task_id_t* remote_task_ids,
+void init_task_context(task_id_t task_id, const task_id_t *remote_task_ids,
                        uint8_t remote_tasks_count, zloop_reader_fn msg_handler,
-                       task_zmq_ctx_t* task_zmq_ctx_p);
+                       task_zmq_ctx_t *task_zmq_ctx_p);
 
 /** \brief Destroy task ZMQ context
  \param task_zmq_ctx_p Pointer to task ZMQ context
  **/
-void destroy_task_context(task_zmq_ctx_t* task_zmq_ctx_p);
+void destroy_task_context(task_zmq_ctx_t *task_zmq_ctx_p);
 
 /** \brief Send broadcast message to all push sockets part of context
  * \param task_zmq_ctx_p Pointer to task ZMQ context
  * \param message Pointer to message
  **/
-void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message);
+void send_broadcast_msg(task_zmq_ctx_t *task_zmq_ctx_p, MessageDef *message);
 
 /** \brief Start thread associated to the task
  * \param task_id task to start
@@ -159,8 +159,8 @@ void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message);
  * @returns status_code_e
  * @note Asserts that task is created
  **/
-status_code_e itti_create_task(task_id_t task_id, void* (*start_routine)(void*),
-                               void* args_p);
+status_code_e itti_create_task(task_id_t task_id,
+                               void *(*start_routine)(void *), void *args_p);
 
 /** \brief Mark the task as in ready state
  * \param task_id task to mark as ready
@@ -174,19 +174,19 @@ void itti_exit_task(void);
 /** \brief Return the printable string associated with the message
  * \param message_id Id of the message
  **/
-const char* itti_get_message_name(MessagesIds message_id);
+const char *itti_get_message_name(MessagesIds message_id);
 
 /** \brief Return the printable string associated with a task id
  * \param thread_id Id of the task
  **/
-const char* itti_get_task_name(task_id_t task_id);
+const char *itti_get_task_name(task_id_t task_id);
 
 /** \brief Alloc and memset(0) a new itti message.
  * \param origin_task_id Task ID of the sending task
  * \param message_id Message ID
  * @returns NULL in case of failure or newly allocated mesage ref
  **/
-MessageDef* itti_alloc_new_message(task_id_t origin_task_id,
+MessageDef *itti_alloc_new_message(task_id_t origin_task_id,
                                    MessagesIds message_id);
 
 /** \brief Alloc and memset(0) a new itti message.
@@ -196,7 +196,7 @@ MessageDef* itti_alloc_new_message(task_id_t origin_task_id,
  * @returns newly allocated mesage ref
  * @note Asserts that newly allocated message ref is non-NULL
  **/
-MessageDef* DEPRECATEDitti_alloc_new_message_fatal(task_id_t origin_task_id,
+MessageDef *DEPRECATEDitti_alloc_new_message_fatal(task_id_t origin_task_id,
                                                    MessagesIds message_id);
 
 /**
@@ -204,13 +204,13 @@ MessageDef* DEPRECATEDitti_alloc_new_message_fatal(task_id_t origin_task_id,
  * @param msg MessageDef struct
  * @return uint64 IMSI
  */
-imsi64_t itti_get_associated_imsi(MessageDef* msg);
+imsi64_t itti_get_associated_imsi(MessageDef *msg);
 
 /** \brief handle signals and wait for all threads to join when the process
  *complete. This function should be called from the main thread after having
  *created all ITTI tasks.
  **/
-void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx);
+void itti_wait_tasks_end(task_zmq_ctx_t *task_ctx);
 
 /** \brief frees "itti_desc.threads". Added for unit test support.
  **/
@@ -220,7 +220,7 @@ void itti_free_desc_threads(void);
  * \param task_id task that is broadcasting the message.
  * @note Asserts that newly allocated message ref is non-NULL
  **/
-void send_terminate_message_fatal(task_zmq_ctx_t* task_zmq_ctx);
+void send_terminate_message_fatal(task_zmq_ctx_t *task_zmq_ctx);
 
 /**
  * \brief Returns the latency of the message

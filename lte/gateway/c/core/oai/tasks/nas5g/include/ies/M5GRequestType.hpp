@@ -13,22 +13,22 @@
 namespace magma5g {
 // RequestType Class
 class RequestType {
- public:
+public:
   uint8_t iei : 4;
   uint32_t type_val : 3;
 
   RequestType();
   ~RequestType();
-  int EncodeRequestType(RequestType* reqest_type, uint8_t iei, uint8_t* buffer,
+  int EncodeRequestType(RequestType *reqest_type, uint8_t iei, uint8_t *buffer,
                         uint32_t len);
-  int DecodeRequestType(RequestType* reqest_type, uint8_t iei, uint8_t* buffer,
+  int DecodeRequestType(RequestType *reqest_type, uint8_t iei, uint8_t *buffer,
                         uint32_t len);
-  void copy(const RequestType& p) {
+  void copy(const RequestType &p) {
     iei = p.iei;
     type_val = p.type_val;
   }
-  bool isEqual(const RequestType& p) {
+  bool isEqual(const RequestType &p) {
     return ((iei == p.iei) && (type_val == p.type_val));
   }
 };
-}  // namespace magma5g
+} // namespace magma5g

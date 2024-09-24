@@ -57,4 +57,4 @@ Description Defines the EMMESM Service Access Point that provides
 
 void emm_esm_initialize(void);
 
-status_code_e emm_esm_send(const emm_esm_t* msg);
+status_code_e emm_esm_send(const emm_esm_t *msg);

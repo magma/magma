@@ -17,8 +17,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentAccept.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
@@ -27,7 +27,7 @@ PDUSessionEstablishmentAcceptMsg::~PDUSessionEstablishmentAcceptMsg(){};
 
 // Decode PDUSessionEstablishmentAccept Message and its IEs
 int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
-    PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept, uint8_t* buffer,
+    PDUSessionEstablishmentAcceptMsg *pdu_session_estab_accept, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -117,64 +117,63 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
     decoded_result = 0;
 
     switch (static_cast<M5GIei>(type)) {
-      case M5GIei::PDU_ADDRESS:
-        if ((decoded_result =
-                 pdu_session_estab_accept->pdu_address.DecodePDUAddressMsg(
-                     &pdu_session_estab_accept->pdu_address,
-                     static_cast<uint8_t>(M5GIei::PDU_ADDRESS),
-                     buffer + decoded, len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
+    case M5GIei::PDU_ADDRESS:
+      if ((decoded_result =
+               pdu_session_estab_accept->pdu_address.DecodePDUAddressMsg(
+                   &pdu_session_estab_accept->pdu_address,
+                   static_cast<uint8_t>(M5GIei::PDU_ADDRESS), buffer + decoded,
+                   len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
+      }
+      break;
 
-      case M5GIei::S_NSSAI:
-        if ((decoded_result = pdu_session_estab_accept->nssai.DecodeNSSAIMsg(
-                 &pdu_session_estab_accept->nssai,
-                 static_cast<uint8_t>(M5GIei::S_NSSAI), buffer + decoded,
-                 len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
-      case M5GIei::QOS_FLOW_DESCRIPTIONS:
-        // TLV Types.
-        type_len = sizeof(uint16_t);
-        length_len = sizeof(uint16_t);
-        DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
+    case M5GIei::S_NSSAI:
+      if ((decoded_result = pdu_session_estab_accept->nssai.DecodeNSSAIMsg(
+               &pdu_session_estab_accept->nssai,
+               static_cast<uint8_t>(M5GIei::S_NSSAI), buffer + decoded,
+               len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
+      }
+      break;
+    case M5GIei::QOS_FLOW_DESCRIPTIONS:
+      // TLV Types.
+      type_len = sizeof(uint16_t);
+      length_len = sizeof(uint16_t);
+      DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
 
-        decoded += (length_len + decoded_result);
-        break;
-      case M5GIei::DNN:
-        if ((decoded_result = pdu_session_estab_accept->dnn.DecodeDNNMsg(
-                 &pdu_session_estab_accept->dnn,
-                 static_cast<uint8_t>(M5GIei::DNN), buffer + decoded,
-                 len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
-      case M5GIei::EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS:
-        if ((decoded_result =
-                 pdu_session_estab_accept->protocolconfigurationoptions
-                     .DecodeProtocolConfigurationOptions(
-                         &pdu_session_estab_accept
-                              ->protocolconfigurationoptions,
-                         static_cast<uint8_t>(
-                             M5GIei::EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS),
-                         buffer + decoded, len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
+      decoded += (length_len + decoded_result);
+      break;
+    case M5GIei::DNN:
+      if ((decoded_result = pdu_session_estab_accept->dnn.DecodeDNNMsg(
+               &pdu_session_estab_accept->dnn,
+               static_cast<uint8_t>(M5GIei::DNN), buffer + decoded,
+               len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
+      }
+      break;
+    case M5GIei::EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS:
+      if ((decoded_result =
+               pdu_session_estab_accept->protocolconfigurationoptions
+                   .DecodeProtocolConfigurationOptions(
+                       &pdu_session_estab_accept->protocolconfigurationoptions,
+                       static_cast<uint8_t>(
+                           M5GIei::EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS),
+                       buffer + decoded, len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
+      }
+      break;
 
-      default:
-        decoded_result = -1;
-        break;
+    default:
+      decoded_result = -1;
+      break;
     }
     if (decoded_result < 0) {
       return decoded_result;
@@ -185,7 +184,7 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
 
 // Encode PDUSessionEstablishmentAccept Message and its IEs
 int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
-    PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept, uint8_t* buffer,
+    PDUSessionEstablishmentAcceptMsg *pdu_session_estab_accept, uint8_t *buffer,
     uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
@@ -321,4 +320,4 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
 
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

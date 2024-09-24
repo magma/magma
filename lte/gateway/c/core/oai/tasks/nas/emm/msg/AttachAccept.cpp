@@ -32,7 +32,7 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/emm_cause.hpp"
 
-int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
+int decode_attach_accept(attach_accept_msg *attach_accept, uint8_t *buffer,
                          uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -80,151 +80,152 @@ int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case ATTACH_ACCEPT_GUTI_IEI:
-        if ((decoded_result = decode_eps_mobile_identity(
-                 &attach_accept->guti, ATTACH_ACCEPT_GUTI_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_GUTI_IEI:
+      if ((decoded_result = decode_eps_mobile_identity(
+               &attach_accept->guti, ATTACH_ACCEPT_GUTI_IEI, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |= ATTACH_ACCEPT_GUTI_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |= ATTACH_ACCEPT_GUTI_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI:
-        if ((decoded_result = decode_location_area_identification_ie(
-                 &attach_accept->locationareaidentification,
-                 ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI != 0,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI:
+      if ((decoded_result = decode_location_area_identification_ie(
+               &attach_accept->locationareaidentification,
+               ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_IEI != 0,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |=
-            ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |=
+          ATTACH_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_MS_IDENTITY_IEI:
-        if ((decoded_result = decode_mobile_identity_ie(
-                 &attach_accept->msidentity, ATTACH_ACCEPT_MS_IDENTITY_IEI != 0,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_MS_IDENTITY_IEI:
+      if ((decoded_result = decode_mobile_identity_ie(
+               &attach_accept->msidentity, ATTACH_ACCEPT_MS_IDENTITY_IEI != 0,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |= ATTACH_ACCEPT_MS_IDENTITY_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |= ATTACH_ACCEPT_MS_IDENTITY_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_EMM_CAUSE_IEI:
-        if ((decoded_result = decode_emm_cause(
-                 &attach_accept->emmcause, ATTACH_ACCEPT_EMM_CAUSE_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_EMM_CAUSE_IEI:
+      if ((decoded_result = decode_emm_cause(
+               &attach_accept->emmcause, ATTACH_ACCEPT_EMM_CAUSE_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |= ATTACH_ACCEPT_EMM_CAUSE_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_T3402_VALUE_IEI:
-        if ((decoded_result = decode_gprs_timer_ie(
-                 &attach_accept->t3402value, ATTACH_ACCEPT_T3402_VALUE_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_T3402_VALUE_IEI:
+      if ((decoded_result = decode_gprs_timer_ie(
+               &attach_accept->t3402value, ATTACH_ACCEPT_T3402_VALUE_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |= ATTACH_ACCEPT_T3402_VALUE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |= ATTACH_ACCEPT_T3402_VALUE_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_T3423_VALUE_IEI:
-        if ((decoded_result = decode_gprs_timer_ie(
-                 &attach_accept->t3423value, ATTACH_ACCEPT_T3423_VALUE_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_T3423_VALUE_IEI:
+      if ((decoded_result = decode_gprs_timer_ie(
+               &attach_accept->t3423value, ATTACH_ACCEPT_T3423_VALUE_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |= ATTACH_ACCEPT_T3423_VALUE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |= ATTACH_ACCEPT_T3423_VALUE_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI:
-        if ((decoded_result =
-                 decode_plmn_list_ie(&attach_accept->equivalentplmns,
-                                     ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI != 0,
-                                     buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI:
+      if ((decoded_result =
+               decode_plmn_list_ie(&attach_accept->equivalentplmns,
+                                   ATTACH_ACCEPT_EQUIVALENT_PLMNS_IEI != 0,
+                                   buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |= ATTACH_ACCEPT_EQUIVALENT_PLMNS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |= ATTACH_ACCEPT_EQUIVALENT_PLMNS_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI:
-        if ((decoded_result = decode_emergency_number_list_ie(
-                 &attach_accept->emergencynumberlist,
-                 ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI != 0, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI:
+      if ((decoded_result = decode_emergency_number_list_ie(
+               &attach_accept->emergencynumberlist,
+               ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_IEI != 0, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |=
-            ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |=
+          ATTACH_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI:
-        if ((decoded_result = decode_eps_network_feature_support(
-                 &attach_accept->epsnetworkfeaturesupport,
-                 ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI:
+      if ((decoded_result = decode_eps_network_feature_support(
+               &attach_accept->epsnetworkfeaturesupport,
+               ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |=
-            ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |=
+          ATTACH_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
+      break;
 
-      case ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI:
-        if ((decoded_result = decode_additional_update_result(
-                 &attach_accept->additionalupdateresult,
-                 ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI:
+      if ((decoded_result = decode_additional_update_result(
+               &attach_accept->additionalupdateresult,
+               ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        attach_accept->presencemask |=
-            ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      attach_accept->presencemask |=
+          ATTACH_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -232,7 +233,7 @@ int decode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
 }
 
 //------------------------------------------------------------------------------
-int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
+int encode_attach_accept(attach_accept_msg *attach_accept, uint8_t *buffer,
                          uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -249,7 +250,7 @@ int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
 
   if ((encode_result = encode_gprs_timer_ie(&attach_accept->t3412value, 0,
                                             buffer + encoded, len - encoded)) <
-      0) {  // Return in case of error
+      0) { // Return in case of error
     OAILOG_ERROR(LOG_NAS_EMM, "Failed encode_gprs_timer_ie\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);
   } else
@@ -257,7 +258,7 @@ int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
 
   if ((encode_result = encode_tracking_area_identity_list(
            &attach_accept->tailist, 0, buffer + encoded, len - encoded)) <
-      0) {  // Return in case of error
+      0) { // Return in case of error
     OAILOG_ERROR(LOG_NAS_EMM, "Failed encode_tracking_area_identity_list\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);
   } else
@@ -265,7 +266,7 @@ int encode_attach_accept(attach_accept_msg* attach_accept, uint8_t* buffer,
 
   if ((encode_result = encode_esm_message_container(
            attach_accept->esmmessagecontainer, 0, buffer + encoded,
-           len - encoded)) < 0) {  // Return in case of error
+           len - encoded)) < 0) { // Return in case of error
     OAILOG_ERROR(LOG_NAS_EMM, "Failed encode_esm_message_container\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, encode_result);
   } else

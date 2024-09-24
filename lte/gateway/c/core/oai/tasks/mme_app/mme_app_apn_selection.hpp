@@ -40,8 +40,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
 #endif
@@ -49,10 +49,10 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_proc.hpp"
 
-struct apn_configuration_s* mme_app_get_apn_config(
-    ue_mm_context_t* const ue_context,
-    const context_identifier_t context_identifier);
+struct apn_configuration_s *
+mme_app_get_apn_config(ue_mm_context_t *const ue_context,
+                       const context_identifier_t context_identifier);
 
-struct apn_configuration_s* mme_app_select_apn(
-    ue_mm_context_t* const ue_context, int* esm_cause);
-bstring mme_app_process_apn_correction(imsi_t* imsi, bstring accesspointname);
+struct apn_configuration_s *
+mme_app_select_apn(ue_mm_context_t *const ue_context, int *esm_cause);
+bstring mme_app_process_apn_correction(imsi_t *imsi, bstring accesspointname);

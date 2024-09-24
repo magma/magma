@@ -36,18 +36,18 @@ namespace magma {
 namespace lte {
 
 class StateUtility {
- public:
+public:
   std::string get_imsi_str(imsi64_t imsi64) {
     AssertFatal(
         is_initialized,
         "StateUtility init() function should be called to initialize state");
 
     char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-    IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
+    IMSI64_TO_STRING(imsi64, (char *)imsi_str, IMSI_BCD_DIGITS_MAX);
     return imsi_str;
   }
 
-  void clear_ue_state_db(const std::string& imsi_str) {
+  void clear_ue_state_db(const std::string &imsi_str) {
     AssertFatal(
         is_initialized,
         "StateUtility init() function should be called to initialize state");
@@ -65,16 +65,13 @@ class StateUtility {
 
   bool is_persist_state_enabled() const { return persist_state_enabled; }
 
- protected:
+protected:
   StateUtility()
-      : redis_client(nullptr),
-        is_initialized(false),
-        state_dirty(false),
-        persist_state_enabled(false),
-        log_task(LOG_UTIL) {}
+      : redis_client(nullptr), is_initialized(false), state_dirty(false),
+        persist_state_enabled(false), log_task(LOG_UTIL) {}
   virtual ~StateUtility() = default;
 
-  imsi64_t get_imsi_from_key(const std::string& key) const {
+  imsi64_t get_imsi_from_key(const std::string &key) const {
     imsi64_t imsi64;
     std::string imsi_str_prefix = key.substr(0, key.find(':'));
     std::string imsi_str = imsi_str_prefix.substr(4, imsi_str_prefix.length());
@@ -95,5 +92,5 @@ class StateUtility {
   log_proto_t log_task;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

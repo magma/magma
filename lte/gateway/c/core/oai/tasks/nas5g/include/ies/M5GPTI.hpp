@@ -10,23 +10,24 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // PTI IE Class
 class PTIMsg {
- public:
+public:
   uint8_t pti;
 
   PTIMsg();
   ~PTIMsg();
-  int EncodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer, uint32_t len);
-  void copy(const PTIMsg& p) { pti = p.pti; }
-  bool isEqual(const PTIMsg& p) {
-    if (pti == p.pti) return true;
+  int EncodePTIMsg(PTIMsg *pti, uint8_t iei, uint8_t *buffer, uint32_t len);
+  int DecodePTIMsg(PTIMsg *pti, uint8_t iei, uint8_t *buffer, uint32_t len);
+  void copy(const PTIMsg &p) { pti = p.pti; }
+  bool isEqual(const PTIMsg &p) {
+    if (pti == p.pti)
+      return true;
     return false;
   }
 };
-}  // namespace magma5g
+} // namespace magma5g

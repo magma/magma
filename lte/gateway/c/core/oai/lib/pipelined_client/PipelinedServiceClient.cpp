@@ -13,16 +13,16 @@
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.hpp"
 
-#include <utility>
 #include <cassert>
+#include <cstring>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
-#include <netinet/in.h>
-#include <cstring>
 #include <iostream>
 #include <memory>
+#include <netinet/in.h>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include <grpcpp/impl/codegen/async_unary_call.h>
 
@@ -39,7 +39,7 @@ namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::Channel;
 using grpc::ChannelCredentials;
@@ -50,7 +50,7 @@ using grpc::Status;
 namespace magma {
 namespace lte {
 
-PipelinedServiceClient& PipelinedServiceClient::get_instance() {
+PipelinedServiceClient &PipelinedServiceClient::get_instance() {
   static PipelinedServiceClient client_instance;
   return client_instance;
 }
@@ -68,9 +68,9 @@ PipelinedServiceClient::PipelinedServiceClient() {
 //                    ADD : v4
 //--------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSet(
-    const struct in_addr& ue_ipv4_addr, int vlan, struct in_addr& enb_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const std::string& imsi,
-    uint32_t flow_precedence, const std::string& apn, uint32_t ue_state,
+    const struct in_addr &ue_ipv4_addr, int vlan, struct in_addr &enb_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const std::string &imsi,
+    uint32_t flow_precedence, const std::string &apn, uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_add_update_request_ipv4(
       ue_ipv4_addr, vlan, enb_ipv4_addr, in_teid, out_teid, imsi,
@@ -78,7 +78,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -93,10 +93,10 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
 //                    ADD : v4 with flow_dl
 //--------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
-    const struct in_addr& ue_ipv4_addr, int vlan, struct in_addr& enb_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const std::string& imsi,
-    const struct ip_flow_dl& flow_dl, uint32_t flow_precedence,
-    const std::string& apn, uint32_t ue_state,
+    const struct in_addr &ue_ipv4_addr, int vlan, struct in_addr &enb_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const std::string &imsi,
+    const struct ip_flow_dl &flow_dl, uint32_t flow_precedence,
+    const std::string &apn, uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_add_update_request_ipv4_flow_dl(
       ue_ipv4_addr, vlan, enb_ipv4_addr, in_teid, out_teid, imsi, flow_dl,
@@ -104,7 +104,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -119,9 +119,9 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
 //                    ADD : v4v6
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr, int vlan,
-    struct in_addr& enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
-    const std::string& imsi, uint32_t flow_precedence, const std::string& apn,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr, int vlan,
+    struct in_addr &enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
+    const std::string &imsi, uint32_t flow_precedence, const std::string &apn,
     uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_add_update_request_ipv4v6(
@@ -130,7 +130,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -144,10 +144,10 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
 //                    ADD : v4v6 with flow dl
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr, int vlan,
-    struct in_addr& enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
-    const std::string& imsi, const struct ip_flow_dl& flow_dl,
-    uint32_t flow_precedence, const std::string& apn, uint32_t ue_state,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr, int vlan,
+    struct in_addr &enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
+    const std::string &imsi, const struct ip_flow_dl &flow_dl,
+    uint32_t flow_precedence, const std::string &apn, uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_add_update_request_ipv4v6_flow_dl(
       ue_ipv4_addr, ue_ipv6_addr, vlan, enb_ipv4_addr, in_teid, out_teid, imsi,
@@ -155,7 +155,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -166,14 +166,14 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
   local_response->set_response_reader(std::move(response_reader));
 
   return RETURNok;
-}  // namespace lte
+} // namespace lte
 
 //------------------- TUNNEL DEL -------------------
 
 //                    DEL : v4
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSet(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
     uint32_t in_teid, uint32_t out_teid, uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_del_update_request_ipv4(
@@ -181,7 +181,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -192,13 +192,13 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
   local_response->set_response_reader(std::move(response_reader));
 
   return RETURNok;
-}  // namespace magma
+} // namespace magma
 
 //                    DEL : v4 with flow_dl
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl& flow_dl,
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl &flow_dl,
     uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_del_update_request_ipv4_flow_dl(
@@ -206,7 +206,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -221,8 +221,8 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
 //                    DEL : v4v6
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    struct in6_addr& ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    struct in6_addr &ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
     uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_del_update_request_ipv4v6(
@@ -230,7 +230,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -245,9 +245,9 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
 //                    DEL : v4v6 with flow_dl
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    struct in6_addr& ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t ue_state,
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    struct in6_addr &ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_del_update_request_ipv4v6_flow_dl(
       enb_ipv4_addr, ue_ipv4_addr, ue_ipv6_addr, in_teid, out_teid, flow_dl,
@@ -255,7 +255,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -271,14 +271,14 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
 //                    DISCARD : v4
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSet(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid, uint32_t ue_state,
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid, uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
   UESessionSet request =
       create_discard_data_update_request_ipv4(ue_ipv4_addr, in_teid, ue_state);
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -293,15 +293,15 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
 //                    DISCARD : v4 with flow_dl
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t ue_state,
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_discard_data_update_request_ipv4_flow_dl(
       ue_ipv4_addr, in_teid, flow_dl, ue_state);
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -317,7 +317,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
 //                    DISCARD : v4v6
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
     uint32_t in_teid, uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_discard_data_update_request_ipv4v6(
@@ -325,7 +325,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -340,15 +340,15 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
 //                    DISCARD : v4v6 with flow_dl
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-    uint32_t in_teid, const struct ip_flow_dl& flow_dl, uint32_t ue_state,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+    uint32_t in_teid, const struct ip_flow_dl &flow_dl, uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_discard_data_update_request_ipv4v6_flow_dl(
       ue_ipv4_addr, ue_ipv6_addr, in_teid, flow_dl, ue_state);
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -365,7 +365,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
 //                    FORWARD : v4
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSet(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
     uint32_t flow_precedence, uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_forwarding_data_update_request_ipv4(
@@ -373,7 +373,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -388,8 +388,8 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
 //                    FORWARD : v4 with flow_dl
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t flow_precedence,
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t flow_precedence,
     uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_forwarding_data_update_request_ipv4_flow_dl(
@@ -397,7 +397,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -412,7 +412,7 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSetWithFlowdl(
 //                    FORWARD : v4v6
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
     uint32_t in_teid, uint32_t flow_precedence, uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_forwarding_data_update_request_ipv4v6(
@@ -420,7 +420,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -435,8 +435,8 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSet(
 //                    FORWARD : v4v6 with flow_dl
 //-------------------------------------------------------------------------
 int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-    uint32_t in_teid, const struct ip_flow_dl& flow_dl,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+    uint32_t in_teid, const struct ip_flow_dl &flow_dl,
     uint32_t flow_precedence, uint32_t ue_state,
     std::function<void(Status, UESessionContextResponse)> callback) {
   UESessionSet request = create_forwarding_data_update_request_ipv4v6_flow_dl(
@@ -444,7 +444,7 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -458,14 +458,14 @@ int PipelinedServiceClient::UpdateUEIPv4v6SessionSetWithFlowdl(
 
 //------------------- PAGING DATA on TUNNEL -------------------
 int PipelinedServiceClient::UpdateUEIPv4SessionSet(
-    const struct in_addr& ue_ipv4_addr, uint32_t ue_state,
+    const struct in_addr &ue_ipv4_addr, uint32_t ue_state,
     std::function<void(grpc::Status, UESessionContextResponse)> callback) {
   UESessionSet request =
       create_paging_update_request_ipv4(ue_ipv4_addr, ue_state);
 
   UESessionContextResponse response;
 
-  PipelinedServiceClient& client = get_instance();
+  PipelinedServiceClient &client = get_instance();
 
   auto local_response = new AsyncLocalResponse<UESessionContextResponse>(
       std::move(callback), RESPONSE_TIMEOUT);
@@ -477,5 +477,5 @@ int PipelinedServiceClient::UpdateUEIPv4SessionSet(
   return RETURNok;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

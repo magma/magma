@@ -31,7 +31,7 @@ namespace {
 constexpr char NGAP_GNB_COLL[] = "ngap_gNB_coll";
 constexpr char NGAP_AMF_ID2ASSOC_ID_COLL[] = "ngap_amf_id2assoc_id_coll";
 constexpr char NGAP_IMSI_MAP_TABLE_NAME[] = "ngap_imsi_map";
-}  // namespace
+} // namespace
 
 using magma::lte::oai::Ngap_UeDescription;
 using magma::lte::oai::NgapImsiMap;
@@ -43,7 +43,7 @@ NgapStateManager::NgapStateManager() : max_ues_(0), max_gnbs_(0) {}
 
 NgapStateManager::~NgapStateManager() { free_state(); }
 
-NgapStateManager& NgapStateManager::getInstance() {
+NgapStateManager &NgapStateManager::getInstance() {
   static NgapStateManager instance;
   return instance;
 }
@@ -70,12 +70,12 @@ void NgapStateManager::init(uint32_t max_ues, uint32_t max_gnbs,
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
-ngap_state_t* create_ngap_state(uint32_t max_gnbs, uint32_t max_ues) {
+ngap_state_t *create_ngap_state(uint32_t max_gnbs, uint32_t max_ues) {
   bstring ht_name;
 
   OAILOG_FUNC_IN(LOG_NGAP);
-  ngap_state_t* state_cache_p =
-      static_cast<ngap_state_t*>(calloc(1, sizeof(ngap_state_t)));
+  ngap_state_t *state_cache_p =
+      static_cast<ngap_state_t *>(calloc(1, sizeof(ngap_state_t)));
 
   ht_name = bfromcstr(NGAP_GNB_COLL);
   hashtable_ts_init(&state_cache_p->gnbs, max_gnbs, nullptr, free_wrapper,
@@ -160,12 +160,12 @@ void NgapStateManager::write_state_to_db() {
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
-void free_ngap_state(ngap_state_t* state_cache_p) {
+void free_ngap_state(ngap_state_t *state_cache_p) {
   int i;
   hashtable_rc_t ht_rc;
-  hashtable_key_array_t* keys;
+  hashtable_key_array_t *keys;
   sctp_assoc_id_t assoc_id;
-  gnb_description_t* gnb;
+  gnb_description_t *gnb;
 
   keys = hashtable_ts_get_keys(&state_cache_p->gnbs);
 
@@ -176,7 +176,7 @@ void free_ngap_state(ngap_state_t* state_cache_p) {
     for (i = 0; i < keys->num_keys; i++) {
       assoc_id = (sctp_assoc_id_t)keys->keys[i];
       ht_rc = hashtable_ts_get(&state_cache_p->gnbs, (hash_key_t)assoc_id,
-                               (void**)&gnb);
+                               (void **)&gnb);
       if (ht_rc != HASH_TABLE_OK) {
         OAILOG_ERROR(LOG_NGAP, "gNB entry not found in gNB NGP state");
       } else {
@@ -229,10 +229,10 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
   /* Data store is Redis db. In this case actual call is made to Redis db */
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
 
-  for (const auto& key : keys) {
+  for (const auto &key : keys) {
     Ngap_UeDescription ue_proto = Ngap_UeDescription();
-    m5g_ue_description_t* ue_context =
-        (m5g_ue_description_t*)calloc(1, sizeof(m5g_ue_description_t));
+    m5g_ue_description_t *ue_context =
+        (m5g_ue_description_t *)calloc(1, sizeof(m5g_ue_description_t));
     if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
     }
@@ -240,17 +240,17 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
     NgapStateConverter::proto_to_ue(ue_proto, ue_context);
 
     hashtable_ts_insert(state_ue_ht, ue_context->comp_ngap_id,
-                        (void*)ue_context);
+                        (void *)ue_context);
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
   }
 #else
   /* Data store is a map defined in NGAPClientServicer. In this case call is NOT
    * made to Redis db */
-  for (const auto& kv :
+  for (const auto &kv :
        NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.umap) {
     Ngap_UeDescription ue_proto = Ngap_UeDescription();
     std::string ue_proto_str;
-    m5g_ue_description_t* ue_context = reinterpret_cast<m5g_ue_description_t*>(
+    m5g_ue_description_t *ue_context = reinterpret_cast<m5g_ue_description_t *>(
         calloc(1, sizeof(m5g_ue_description_t)));
     // Reads from the map_ngap_uestate_proto_str Map
     if (NGAPClientServicer::getInstance().map_ngap_uestate_proto_str.get(
@@ -268,7 +268,7 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
     NgapStateConverter::proto_to_ue(ue_proto, ue_context);
 
     hashtable_ts_insert(state_ue_ht, ue_context->comp_ngap_id,
-                        reinterpret_cast<void*>(ue_context));
+                        reinterpret_cast<void *>(ue_context));
     OAILOG_DEBUG(log_task, "Reading UE state from db");
   }
 #endif
@@ -276,7 +276,7 @@ status_code_e NgapStateManager::read_ue_state_from_db() {
 }
 
 void NgapStateManager::write_ue_state_to_db(
-    const m5g_ue_description_t* ue_context, const std::string& imsi_str) {
+    const m5g_ue_description_t *ue_context, const std::string &imsi_str) {
 #if !MME_UNIT_TEST
   /* Data store is Redis db. In this case actual call is made to Redis db */
   StateManager::write_ue_state_to_db(ue_context, imsi_str);
@@ -310,7 +310,7 @@ void NgapStateManager::write_ue_state_to_db(
 }
 
 void NgapStateManager::create_ngap_imsi_map() {
-  ngap_imsi_map_ = (ngap_imsi_map_t*)calloc(1, sizeof(ngap_imsi_map_t));
+  ngap_imsi_map_ = (ngap_imsi_map_t *)calloc(1, sizeof(ngap_imsi_map_t));
 
   OAILOG_FUNC_IN(LOG_NGAP);
   ngap_imsi_map_->amf_ue_id_imsi_htbl =
@@ -350,11 +350,11 @@ void NgapStateManager::clear_ngap_imsi_map() {
   }
   hashtable_uint64_ts_destroy(ngap_imsi_map_->amf_ue_id_imsi_htbl);
 
-  free_wrapper((void**)&ngap_imsi_map_);
+  free_wrapper((void **)&ngap_imsi_map_);
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
-ngap_imsi_map_t* NgapStateManager::get_ngap_imsi_map() {
+ngap_imsi_map_t *NgapStateManager::get_ngap_imsi_map() {
   return ngap_imsi_map_;
 }
 
@@ -387,4 +387,4 @@ void NgapStateManager::put_ngap_imsi_map() {
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

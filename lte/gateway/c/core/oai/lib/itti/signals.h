@@ -33,6 +33,6 @@
 
 int signal_mask(void);
 
-int signal_handle(int* end, task_zmq_ctx_t* task_ctx);
+int signal_handle(int *end, task_zmq_ctx_t *task_ctx);
 
 #endif /* SIGNALS_H_ */

@@ -18,33 +18,32 @@ extern "C" {
 #define CHECK_PROTOTYPE_ONLY
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
 
-#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
-#include <gtest/gtest.h>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
-#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
-#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowParam.hpp"
+#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
+#include <gtest/gtest.h>
 
 using ::testing::Test;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
@@ -151,7 +150,7 @@ uint8_t mac_tag[] = {0xe3, 0x1d, 0xf9, 0xb8, 0x55, 0x99, 0x12, 0x48, 0x0};
 ImsiM5GSMobileIdentity plmn;
 
 class AmfNas5GTest : public ::testing::Test {
- protected:
+protected:
   NAS5GPktSnapShot nas5g_pkt_snap;
   RegistrationRequestMsg reg_request = {};
   bool decode_res;
@@ -296,7 +295,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type1_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
   bool decode_res = false;
-  protocol_configuration_options_t* pco;
+  protocol_configuration_options_t *pco;
 
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type1_len();
 
@@ -335,12 +334,12 @@ TEST(test_amf_nas5g_pkt_gen, test_amf_pdu_sess_accept_pco_msg) {
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type1, len);
   EXPECT_EQ(decode_res, true);
 
-  protocol_configuration_options_t* pco_req =
+  protocol_configuration_options_t *pco_req =
       &(pdu_sess_est_req.payload_container.smf_msg.msg.pdu_session_estab_request
             .protocolconfigurationoptions.pco);
 
   ProtocolConfigurationOptions protocolconfigruartionoption;
-  protocol_configuration_options_t* pco_resp =
+  protocol_configuration_options_t *pco_resp =
       &(protocolconfigruartionoption.pco);
 
   uint8_t ipcp_pattern_match[] = {0x7b, 0x0,  0x14, 0x80, 0x80, 0x21, 0x10, 0x3,
@@ -369,7 +368,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
   bool decode_res = false;
-  protocol_configuration_options_t* pco_req;
+  protocol_configuration_options_t *pco_req;
   uint8_t buffer[1024] = {};
   uint16_t buf_len = 1024;
   int cmp_res = 0;
@@ -381,7 +380,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
   ProtocolConfigurationOptions protocolconfigruartionoption;
   memset(&protocolconfigruartionoption, 0,
          sizeof(ProtocolConfigurationOptions));
-  protocol_configuration_options_t* pco_resp =
+  protocol_configuration_options_t *pco_resp =
       &(protocolconfigruartionoption.pco);
 
   /* Initialize primary and secondary dns */
@@ -423,7 +422,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
 TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type3_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   ULNASTransportMsg pdu_sess_est_req;
-  PDUSessionEstablishmentRequestMsg* pduSessEstReq = nullptr;
+  PDUSessionEstablishmentRequestMsg *pduSessEstReq = nullptr;
   bool decode_res = false;
   uint8_t buffer[1024] = {};
   uint16_t buf_len = 1024;
@@ -561,8 +560,8 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_accept) {
 }
 
 class AmfUeContextTest : public ::testing::Test {
- protected:
-  ue_m5gmm_context_s* ue_context;
+protected:
+  ue_m5gmm_context_s *ue_context;
 
   virtual void SetUp() { ue_context = amf_create_new_ue_context(); }
   virtual void TearDown() { delete ue_context; }
@@ -593,9 +592,9 @@ TEST_F(AmfUeContextTest, test_amf_plmn) {
   supi_as_imsi_t supi_imsi;
   amf_copy_plmn_to_supi(plmn, supi_imsi);
   amf_copy_plmn_to_context(plmn, ue_context);
-  EXPECT_EQ(memcmp(reinterpret_cast<const void*>(
+  EXPECT_EQ(memcmp(reinterpret_cast<const void *>(
                        &ue_context->amf_context.m5_guti.guamfi.plmn),
-                   reinterpret_cast<const void*>(&supi_imsi.plmn),
+                   reinterpret_cast<const void *>(&supi_imsi.plmn),
                    sizeof(ue_context->amf_context.m5_guti.guamfi.plmn)),
             0);
 }
@@ -689,8 +688,8 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
 }
 
 TEST(test_dlnastransport, test_dlnastransport) {
-  DLNASTransportMsg* dlmsg = nullptr;
-  SmfMsg* smf_msg = nullptr;
+  DLNASTransportMsg *dlmsg = nullptr;
+  SmfMsg *smf_msg = nullptr;
   uint32_t bytes = 0;
   uint32_t container_len = 0;
   bstring buffer;
@@ -715,7 +714,7 @@ TEST(test_dlnastransport, test_dlnastransport) {
   EXPECT_EQ(decode_res, true);
   /* build uplinknastransport */
 
-  ULNASTransportMsg* ulmsg = &pdu_sess_est_req;
+  ULNASTransportMsg *ulmsg = &pdu_sess_est_req;
 
   // Message construction for PDU Establishment Reject
   // NAS-5GS (NAS) PDU
@@ -762,7 +761,7 @@ TEST(test_dlnastransport, test_dlnastransport) {
   // Payload container IE from ulmsg
   dlmsg->payload_container.copy(ulmsg->payload_container);
 
-  len += 2;  // 2 bytes for container.len
+  len += 2; // 2 bytes for container.len
   len += dlmsg->payload_container.len;
 
   /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
@@ -830,10 +829,10 @@ TEST(test_dl_msg, test_amf_pdu_session_establish_reject_message_data) {
   status = nas5g_message_decode(buffer->data, &decode_msg, bytes, nullptr,
                                 &decode_status);
 
-  DLNASTransportMsg* dlmsg = &decode_msg.plain.amf.msg.downlinknas5gtransport;
+  DLNASTransportMsg *dlmsg = &decode_msg.plain.amf.msg.downlinknas5gtransport;
 
   EXPECT_EQ(dlmsg->pdu_session_identity.pdu_session_id, session_id);
-  SmfMsg& pdu_sess_est_reject = dlmsg->payload_container.smf_msg;
+  SmfMsg &pdu_sess_est_reject = dlmsg->payload_container.smf_msg;
 
   EXPECT_EQ(pdu_sess_est_reject.header.pdu_session_id, session_id);
   EXPECT_EQ(pdu_sess_est_reject.header.procedure_transaction_id, pti);
@@ -846,9 +845,9 @@ TEST(test_dl_msg, test_amf_pdu_session_establish_reject_message_data) {
 }
 /* Test for delete_wrapper */
 TEST(test_delete_wrapper, test_delete_wrapper) {
-  amf_registration_request_ies_t* req_ies =
+  amf_registration_request_ies_t *req_ies =
       new (amf_registration_request_ies_t)();
-  uint32_t* generic_type = new uint32_t;
+  uint32_t *generic_type = new uint32_t;
 
   delete_wrapper(&req_ies);
   EXPECT_EQ(req_ies, nullptr);
@@ -858,33 +857,33 @@ TEST(test_delete_wrapper, test_delete_wrapper) {
 }
 /*Test for delete specific procedure : Registration Procedure*/
 TEST(test_delete_registration_proc, test_delete_registration_proc) {
-  ue_m5gmm_context_s* ue_ctxt = amf_create_new_ue_context();
+  ue_m5gmm_context_s *ue_ctxt = amf_create_new_ue_context();
   EXPECT_TRUE(ue_ctxt != nullptr);
 
   // Specific procedure: Registration Procedure
-  nas_amf_registration_proc_t* reg_proc =
+  nas_amf_registration_proc_t *reg_proc =
       nas_new_registration_procedure(ue_ctxt);
   EXPECT_TRUE(reg_proc != NULL);
 
   // Child procedures: Authentication Procedure
-  nas5g_amf_auth_proc_t* auth_proc =
+  nas5g_amf_auth_proc_t *auth_proc =
       nas5g_new_authentication_procedure(&ue_ctxt->amf_context);
   EXPECT_TRUE(auth_proc != NULL);
-  (reinterpret_cast<nas5g_base_proc_t*>(auth_proc))->parent =
-      reinterpret_cast<nas5g_base_proc_t*>(reg_proc);
+  (reinterpret_cast<nas5g_base_proc_t *>(auth_proc))->parent =
+      reinterpret_cast<nas5g_base_proc_t *>(reg_proc);
 
   // Child procedures: Identity Procedure
-  nas_amf_ident_proc_t* ident_proc =
+  nas_amf_ident_proc_t *ident_proc =
       nas5g_new_identification_procedure(&ue_ctxt->amf_context);
   EXPECT_TRUE(ident_proc != NULL);
-  (reinterpret_cast<nas5g_base_proc_t*>(ident_proc))->parent =
-      reinterpret_cast<nas5g_base_proc_t*>(reg_proc);
+  (reinterpret_cast<nas5g_base_proc_t *>(ident_proc))->parent =
+      reinterpret_cast<nas5g_base_proc_t *>(reg_proc);
 
   // Child procedures: SMC Procedure
-  nas_amf_smc_proc_t* smc_proc = nas5g_new_smc_procedure(&ue_ctxt->amf_context);
+  nas_amf_smc_proc_t *smc_proc = nas5g_new_smc_procedure(&ue_ctxt->amf_context);
   EXPECT_TRUE(smc_proc != NULL);
-  (reinterpret_cast<nas5g_base_proc_t*>(smc_proc))->parent =
-      reinterpret_cast<nas5g_base_proc_t*>(reg_proc);
+  (reinterpret_cast<nas5g_base_proc_t *>(smc_proc))->parent =
+      reinterpret_cast<nas5g_base_proc_t *>(reg_proc);
 
   amf_delete_registration_proc(&ue_ctxt->amf_context);
   EXPECT_EQ(get_nas_specific_procedure_registration(&ue_ctxt->amf_context),
@@ -1009,7 +1008,7 @@ TEST(test_dnn, test_amf_validate_dnn) {
   ULNASTransportMsg msg;
   bool decode_res = false;
   memset(&msg, 0, sizeof(ULNASTransportMsg));
-  std::string dnn_string(reinterpret_cast<char*>(msg.dnn.dnn), msg.dnn.len);
+  std::string dnn_string(reinterpret_cast<char *>(msg.dnn.dnn), msg.dnn.len);
   int idx = 0;
   bool ue_sent_dnn = true;
   // decoding uplink uplink nas transport(pdu session request)
@@ -1032,7 +1031,7 @@ TEST(test_dnn, test_amf_validate_dnn) {
 }
 
 class AmfUeContextTestServiceRequestProc : public ::testing::Test {
- protected:
+protected:
 #define MCC_DIGIT1 2
 #define MCC_DIGIT2 2
 #define MCC_DIGIT3 2
@@ -1047,8 +1046,8 @@ class AmfUeContextTestServiceRequestProc : public ::testing::Test {
 #define AMF_REGION_ID 1
 #define AMF_TAC 0x03
 
-  ue_m5gmm_context_s* ue_context;
-  amf_app_desc_t* amf_app_desc_p;
+  ue_m5gmm_context_s *ue_context;
+  amf_app_desc_t *amf_app_desc_p;
   guti_m5_t guti;
   tai_t tai;
   const amf_ue_ngap_id_t AMF_UE_NGAP_ID = 0x05;
@@ -1164,8 +1163,8 @@ TEST_F(AmfUeContextTestServiceRequestProc,
   ServiceRequestMsg service_request;
   bool decode_res = 0;
   amf_nas_message_decode_status_t decode_status = {0};
-  MessageDef* message_p = NULL;
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  MessageDef *message_p = NULL;
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
 
   uint32_t len = nas5g_pkt_snap.get_service_request_signaling_len();
 
@@ -1265,8 +1264,8 @@ TEST_F(AmfUeContextTestServiceRequestProc,
   memset(&service_request, 0, sizeof(service_request));
   bool decode_res = 0;
   amf_nas_message_decode_status_t decode_status = {0};
-  MessageDef* message_p = NULL;
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  MessageDef *message_p = NULL;
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
 
   uint32_t len = nas5g_pkt_snap.get_service_request_signaling_len();
@@ -1322,8 +1321,8 @@ TEST_F(AmfUeContextTestServiceRequestProc,
   ServiceRequestMsg service_request;
   bool decode_res = 0;
   amf_nas_message_decode_status_t decode_status = {0};
-  MessageDef* message_p = NULL;
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  MessageDef *message_p = NULL;
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
 
   uint32_t len = nas5g_pkt_snap.get_service_request_signaling_len();
 
@@ -1360,8 +1359,8 @@ TEST_F(AmfUeContextTestServiceRequestProc,
   memset(&service_request, 0, sizeof(service_request));
   bool decode_res = 0;
   amf_nas_message_decode_status_t decode_status = {0};
-  MessageDef* message_p = NULL;
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  MessageDef *message_p = NULL;
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
 
   uint32_t len =
@@ -1494,8 +1493,8 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   uint32_t container_len = 0;
   bstring buffer;
   amf_nas_message_t msg = {};
-  protocol_configuration_options_t* msg_accept_pco = nullptr;
-  protocol_configuration_options_t* decode_msg_accept_pco = nullptr;
+  protocol_configuration_options_t *msg_accept_pco = nullptr;
+  protocol_configuration_options_t *decode_msg_accept_pco = nullptr;
 
   // build downlinknastransport
   // downlink nas transport(pdu session accept)
@@ -1514,7 +1513,7 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
   DLNASTransportMsg pdu_sess_accept;
   int decode_res = 0;
   memset(&pdu_sess_accept, 0, sizeof(DLNASTransportMsg));
-  SmfMsg* smf_msg = &pdu_sess_accept.payload_container.smf_msg;
+  SmfMsg *smf_msg = &pdu_sess_accept.payload_container.smf_msg;
 
   msg_accept_pco =
       &(smf_msg->msg.pdu_session_estab_accept.protocolconfigurationoptions.pco);
@@ -1581,8 +1580,8 @@ TEST(test_protocol_configuration_options, test_protocol_configuration_options) {
   uint32_t container_len = 0;
   bstring buffer;
   amf_nas_message_t msg = {};
-  protocol_configuration_options_t* msg_accept_pco = nullptr;
-  protocol_configuration_options_t* decode_msg_accept_pco = nullptr;
+  protocol_configuration_options_t *msg_accept_pco = nullptr;
+  protocol_configuration_options_t *decode_msg_accept_pco = nullptr;
 
   // downlink nas transport(pdu session accept)
   uint8_t pdu[82] = {
@@ -1600,7 +1599,7 @@ TEST(test_protocol_configuration_options, test_protocol_configuration_options) {
   DLNASTransportMsg pdu_sess_accept;
   int decode_res = 0;
   memset(&pdu_sess_accept, 0, sizeof(DLNASTransportMsg));
-  SmfMsg* smf_msg = &pdu_sess_accept.payload_container.smf_msg;
+  SmfMsg *smf_msg = &pdu_sess_accept.payload_container.smf_msg;
 
   msg_accept_pco =
       &(smf_msg->msg.pdu_session_estab_accept.protocolconfigurationoptions.pco);
@@ -1617,7 +1616,7 @@ TEST(test_protocol_configuration_options, test_protocol_configuration_options) {
   memset(&decode_pdu_sess_accept, 0, sizeof(DLNASTransportMsg));
   decode_res = decode_pdu_sess_accept.DecodeDLNASTransportMsg(
       &decode_pdu_sess_accept, pdu, len);
-  SmfMsg* decode_smf_msg = &decode_pdu_sess_accept.payload_container.smf_msg;
+  SmfMsg *decode_smf_msg = &decode_pdu_sess_accept.payload_container.smf_msg;
 
   decode_msg_accept_pco = &(decode_smf_msg->msg.pdu_session_estab_accept
                                 .protocolconfigurationoptions.pco);
@@ -1705,7 +1704,7 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
   qosrules.qos_rule[0].qos_rule_precedence = 254;
   qosrules.qos_rule[0].qfi = 3;
 
-  int rule_precedence = 1 + 1;  // precedence + identifier
+  int rule_precedence = 1 + 1; // precedence + identifier
   // Preparing qos rule
   qosrules.qos_rule[0].len = 1 + filter_len + rule_precedence;
   qosrules.qos_rule[0].qos_rule_id = 2;
@@ -1922,7 +1921,7 @@ TEST(test_qos_rules, test_qos_rules) {
   qosrules.qos_rule[0].qos_rule_precedence = 254;
   qosrules.qos_rule[0].qfi = 3;
 
-  int rule_precedence = 1 + 1;  // precedence + identifier
+  int rule_precedence = 1 + 1; // precedence + identifier
   // Preparing qos rule
   qosrules.qos_rule[0].len = 1 + filter_len + rule_precedence;
   qosrules.qos_rule[0].qos_rule_id = 2;
@@ -2004,4 +2003,4 @@ TEST(test_network_feature, test_network_feature) {
   EXPECT_EQ(networkfeature.MCSI, decoded_networkfeature.MCSI);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

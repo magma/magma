@@ -22,15 +22,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 //------------------------------------------------------------------------------
-int decode_nas_security_algorithms(NasSecurityAlgorithms* nassecurityalgorithms,
-                                   uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_nas_security_algorithms(NasSecurityAlgorithms *nassecurityalgorithms,
+                                   uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -46,8 +46,8 @@ int decode_nas_security_algorithms(NasSecurityAlgorithms* nassecurityalgorithms,
 }
 
 //------------------------------------------------------------------------------
-int encode_nas_security_algorithms(NasSecurityAlgorithms* nassecurityalgorithms,
-                                   uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_nas_security_algorithms(NasSecurityAlgorithms *nassecurityalgorithms,
+                                   uint8_t iei, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*

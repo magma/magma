@@ -11,23 +11,23 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationReject.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_asDefs.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationFailure.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDeRegistrationRequestUEInit.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeReject.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceAccept.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GServiceRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GULNASTransport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
 
 class NAS5GPktSnapShot {
- public:
+public:
   static uint8_t reg_req_buffer[42];
   static uint8_t reg_resync_buffer[20];
   static uint8_t guti_based_registration[91];
@@ -98,33 +98,33 @@ class NAS5GPktSnapShot {
 };
 
 //  API for testing decode registration request
-bool decode_registration_request_msg(RegistrationRequestMsg* reg_request,
-                                     const uint8_t* buffer, uint32_t len);
+bool decode_registration_request_msg(RegistrationRequestMsg *reg_request,
+                                     const uint8_t *buffer, uint32_t len);
 
-bool encode_registration_reject_msg(RegistrationRejectMsg* reg_reject,
-                                    const uint8_t* buffer, uint32_t len);
+bool encode_registration_reject_msg(RegistrationRejectMsg *reg_reject,
+                                    const uint8_t *buffer, uint32_t len);
 
-bool decode_registration_reject_msg(RegistrationRejectMsg* reg_reject,
-                                    const uint8_t* buffer, uint32_t len);
+bool decode_registration_reject_msg(RegistrationRejectMsg *reg_reject,
+                                    const uint8_t *buffer, uint32_t len);
 
-bool decode_auth_failure_decode_msg(AuthenticationFailureMsg* auth_failure,
-                                    const uint8_t* buffer, uint32_t len);
+bool decode_auth_failure_decode_msg(AuthenticationFailureMsg *auth_failure,
+                                    const uint8_t *buffer, uint32_t len);
 
-bool decode_ul_nas_transport_msg(ULNASTransportMsg* ul_nas_pdu,
-                                 const uint8_t* buffer, uint32_t len);
+bool decode_ul_nas_transport_msg(ULNASTransportMsg *ul_nas_pdu,
+                                 const uint8_t *buffer, uint32_t len);
 
 bool decode_ul_nas_deregister_request_msg(
-    DeRegistrationRequestUEInitMsg* dereg_req, const uint8_t* buffer,
+    DeRegistrationRequestUEInitMsg *dereg_req, const uint8_t *buffer,
     uint32_t len);
 
-bool decode_service_request_msg(ServiceRequestMsg* sv_request,
-                                const uint8_t* buffer, uint32_t len);
+bool decode_service_request_msg(ServiceRequestMsg *sv_request,
+                                const uint8_t *buffer, uint32_t len);
 
-void gen_ipcp_pco_options(protocol_configuration_options_t* const pco_resp);
+void gen_ipcp_pco_options(protocol_configuration_options_t *const pco_resp);
 
-int gen_dns_pco_options(protocol_configuration_options_t* const pco_resp);
+int gen_dns_pco_options(protocol_configuration_options_t *const pco_resp);
 
-bool decode_security_mode_reject_msg(SecurityModeRejectMsg* sm_reject,
-                                     const uint8_t* buffer, uint32_t len);
+bool decode_security_mode_reject_msg(SecurityModeRejectMsg *sm_reject,
+                                     const uint8_t *buffer, uint32_t len);
 
-}  // namespace magma5g
+} // namespace magma5g

@@ -57,4 +57,4 @@ Description Defines the EMMREG Service Access Point that provides
 
 void emm_reg_initialize(void);
 
-status_code_e emm_reg_send(emm_reg_t* const msg);
+status_code_e emm_reg_send(emm_reg_t *const msg);

@@ -35,8 +35,8 @@ extern "C" {
 #define ESM_INFORMATION_RESPONSE_MINIMUM_LENGTH (0)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ESM_INFORMATION_RESPONSE_MAXIMUM_LENGTH \
-  (ACCESS_POINT_NAME_MAXIMUM_LENGTH +           \
+#define ESM_INFORMATION_RESPONSE_MAXIMUM_LENGTH                                \
+  (ACCESS_POINT_NAME_MAXIMUM_LENGTH +                                          \
    PROTOCOL_CONFIGURATION_OPTIONS_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -71,9 +71,9 @@ typedef struct esm_information_response_msg_tag {
 } esm_information_response_msg;
 
 int decode_esm_information_response(
-    esm_information_response_msg* esminformationresponse, uint8_t* buffer,
+    esm_information_response_msg *esminformationresponse, uint8_t *buffer,
     uint32_t len);
 
 int encode_esm_information_response(
-    esm_information_response_msg* esminformationresponse, uint8_t* buffer,
+    esm_information_response_msg *esminformationresponse, uint8_t *buffer,
     uint32_t len);

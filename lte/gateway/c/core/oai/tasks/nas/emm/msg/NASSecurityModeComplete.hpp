@@ -17,11 +17,11 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define SECURITY_MODE_COMPLETE_MINIMUM_LENGTH (0)
@@ -56,9 +56,9 @@ typedef struct security_mode_complete_msg_tag {
 } security_mode_complete_msg;
 
 int decode_security_mode_complete(
-    security_mode_complete_msg* securitymodecomplete, uint8_t* buffer,
+    security_mode_complete_msg *securitymodecomplete, uint8_t *buffer,
     uint32_t len);
 
 int encode_security_mode_complete(
-    security_mode_complete_msg* securitymodecomplete, uint8_t* buffer,
+    security_mode_complete_msg *securitymodecomplete, uint8_t *buffer,
     uint32_t len);

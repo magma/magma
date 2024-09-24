@@ -18,9 +18,9 @@
 #include "lte/gateway/c/core/oai/include/mme_events.hpp"
 
 #include <cstdlib>
+#include <grpcpp/support/status.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <grpcpp/support/status.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,7 +49,7 @@ constexpr char ATTACH_SUCCESS[] = "attach_success";
 constexpr char DETACH_SUCCESS[] = "detach_success";
 constexpr char S1_SETUP_SUCCESS[] = "s1_setup_success";
 constexpr char ATTACH_REJECT[] = "attach_reject";
-}  // namespace
+} // namespace
 
 void event_client_init(void) { init_eventd_client(); }
 
@@ -61,10 +61,10 @@ void event_client_init(void) { init_eventd_client(); }
  * @param event_tag
  * @return response code
  */
-static int report_event(const nlohmann::json& event_value,
-                        const std::string& event_type,
-                        const std::string& stream_name,
-                        const std::string& event_tag) {
+static int report_event(const nlohmann::json &event_value,
+                        const std::string &event_type,
+                        const std::string &stream_name,
+                        const std::string &event_tag) {
   Event event_request = Event();
   event_request.set_event_type(event_type);
   event_request.set_stream_name(stream_name);
@@ -77,7 +77,7 @@ static int report_event(const nlohmann::json& event_value,
 
 int attach_success_event(imsi64_t imsi64) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-  IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
+  IMSI64_TO_STRING(imsi64, (char *)imsi_str, IMSI_BCD_DIGITS_MAX);
 
   nlohmann::json event_value;
   event_value["imsi"] = imsi_str;
@@ -85,9 +85,9 @@ int attach_success_event(imsi64_t imsi64) {
   return report_event(event_value, ATTACH_SUCCESS, MME_STREAM_NAME, imsi_str);
 }
 
-int detach_success_event(imsi64_t imsi64, const char* action) {
+int detach_success_event(imsi64_t imsi64, const char *action) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-  IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
+  IMSI64_TO_STRING(imsi64, (char *)imsi_str, IMSI_BCD_DIGITS_MAX);
 
   nlohmann::json event_value;
   event_value["imsi"] = imsi_str;
@@ -96,7 +96,7 @@ int detach_success_event(imsi64_t imsi64, const char* action) {
   return report_event(event_value, DETACH_SUCCESS, MME_STREAM_NAME, imsi_str);
 }
 
-int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {
+int s1_setup_success_event(const char *enb_name, uint32_t enb_id) {
   nlohmann::json event_value;
 
   if (enb_name) {
@@ -113,7 +113,7 @@ int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {
 
 int attach_reject_event(imsi64_t imsi64) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-  IMSI64_TO_STRING(imsi64, (char*)imsi_str, IMSI_BCD_DIGITS_MAX);
+  IMSI64_TO_STRING(imsi64, (char *)imsi_str, IMSI_BCD_DIGITS_MAX);
 
   nlohmann::json event_value;
   event_value["imsi"] = imsi_str;

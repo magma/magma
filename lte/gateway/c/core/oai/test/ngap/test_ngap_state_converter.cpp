@@ -15,22 +15,22 @@
 #include <gtest/gtest.h>
 
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "Ngap_NGAP-PDU.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
 }
 
+#include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
-#include "lte/gateway/c/core/oai/include/map.h"
 
 using ::testing::Test;
 
 namespace magma5g {
 
 class NgapStateConverterTest : public testing::Test {
- protected:
+protected:
   void SetUp() {
     itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
               NULL, NULL);
@@ -79,10 +79,10 @@ class NgapStateConverterTest : public testing::Test {
     imsi_map = get_ngap_imsi_map();
   }
 
-  ngap_state_t* state = NULL;
-  ngap_imsi_map_t* imsi_map = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  ngap_state_t *state = NULL;
+  ngap_imsi_map_t *imsi_map = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
   const unsigned int AMF_UE_NGAP_ID = 0x05;
   const unsigned int gNB_UE_NGAP_ID = 0x09;
   bool is_task_state_same = false;
@@ -92,10 +92,10 @@ class NgapStateConverterTest : public testing::Test {
 
 TEST_F(NgapStateConverterTest, NgapStateConversionSuccess) {
   sctp_assoc_id_t assoc_id = 1;
-  ngap_state_t* init_state = create_ngap_state(2, 2);
-  ngap_state_t* final_state = create_ngap_state(2, 2);
+  ngap_state_t *init_state = create_ngap_state(2, 2);
+  ngap_state_t *final_state = create_ngap_state(2, 2);
 
-  gnb_description_t* gnb_association = ngap_new_gnb(init_state);
+  gnb_description_t *gnb_association = ngap_new_gnb(init_state);
   gnb_association->sctp_assoc_id = assoc_id;
   gnb_association->gnb_id = 0xFFFFFFFF;
   gnb_association->ng_state = NGAP_READY;
@@ -106,8 +106,8 @@ TEST_F(NgapStateConverterTest, NgapStateConversionSuccess) {
   gnb_association->default_paging_drx = 100;
   memset(gnb_association->gnb_name, 'A', sizeof(gnb_association->gnb_name));
   uint64_t data = 0;
-  void* associd1 = NULL;
-  void* associd2 = NULL;
+  void *associd1 = NULL;
+  void *associd2 = NULL;
 
   // filling ue_id_coll
   hashtable_uint64_ts_insert(&gnb_association->ue_id_coll, (const hash_key_t)1,
@@ -116,7 +116,7 @@ TEST_F(NgapStateConverterTest, NgapStateConversionSuccess) {
                              25);
 
   // filling supported_tai_items
-  m5g_supported_ta_list_t* gnb_ta_list = &gnb_association->supported_ta_list;
+  m5g_supported_ta_list_t *gnb_ta_list = &gnb_association->supported_ta_list;
   gnb_ta_list->list_count = 1;
   gnb_ta_list->supported_tai_items[0].tac = 1;
   gnb_ta_list->supported_tai_items[0].bplmnlist_count = 1;
@@ -130,23 +130,23 @@ TEST_F(NgapStateConverterTest, NgapStateConversionSuccess) {
   // Inserting 1 enb association
   hashtable_ts_insert(&init_state->gnbs,
                       (const hash_key_t)gnb_association->sctp_assoc_id,
-                      reinterpret_cast<void*>(gnb_association));
+                      reinterpret_cast<void *>(gnb_association));
   init_state->num_gnbs = 1;
 
   hashtable_ts_insert(&init_state->amfid2associd, (const hash_key_t)1,
-                      reinterpret_cast<void**>(&assoc_id));
+                      reinterpret_cast<void **>(&assoc_id));
   oai::NgapState state_proto;
   NgapStateConverter::state_to_proto(init_state, &state_proto);
   NgapStateConverter::proto_to_state(state_proto, final_state);
 
   EXPECT_EQ(init_state->num_gnbs, final_state->num_gnbs);
-  gnb_description_t* gnbd = nullptr;
-  gnb_description_t* gnbd_final = nullptr;
+  gnb_description_t *gnbd = nullptr;
+  gnb_description_t *gnbd_final = nullptr;
   EXPECT_EQ(hashtable_ts_get(&init_state->gnbs, (const hash_key_t)assoc_id,
-                             reinterpret_cast<void**>(&gnbd)),
+                             reinterpret_cast<void **>(&gnbd)),
             HASH_TABLE_OK);
   EXPECT_EQ(hashtable_ts_get(&final_state->gnbs, (const hash_key_t)assoc_id,
-                             reinterpret_cast<void**>(&gnbd_final)),
+                             reinterpret_cast<void **>(&gnbd_final)),
             HASH_TABLE_OK);
 
   EXPECT_EQ(gnbd->sctp_assoc_id, gnbd_final->sctp_assoc_id);
@@ -170,10 +170,10 @@ TEST_F(NgapStateConverterTest, NgapStateConversionSuccess) {
             HASH_TABLE_OK);
   EXPECT_EQ(data, 25);
   EXPECT_EQ(hashtable_ts_get(&init_state->amfid2associd, (const hash_key_t)1,
-                             reinterpret_cast<void**>(&associd1)),
+                             reinterpret_cast<void **>(&associd1)),
             HASH_TABLE_OK);
   EXPECT_EQ(hashtable_ts_get(&final_state->amfid2associd, (const hash_key_t)1,
-                             reinterpret_cast<void**>(&associd2)),
+                             reinterpret_cast<void **>(&associd2)),
             HASH_TABLE_OK);
   EXPECT_EQ(gnbd->supported_ta_list.list_count,
             gnbd_final->supported_ta_list.list_count);
@@ -185,9 +185,9 @@ TEST_F(NgapStateConverterTest, NgapStateConversionSuccess) {
 }
 
 TEST(NgapStateConversionUeContext, NgapStateConversionUeContext) {
-  m5g_ue_description_t* ue = reinterpret_cast<m5g_ue_description_t*>(
+  m5g_ue_description_t *ue = reinterpret_cast<m5g_ue_description_t *>(
       calloc(1, sizeof(m5g_ue_description_t)));
-  m5g_ue_description_t* final_ue = reinterpret_cast<m5g_ue_description_t*>(
+  m5g_ue_description_t *final_ue = reinterpret_cast<m5g_ue_description_t *>(
       calloc(1, sizeof(m5g_ue_description_t)));
 
   // filling with test values
@@ -219,15 +219,15 @@ TEST(NgapStateConversionUeContext, NgapStateConversionUeContext) {
   EXPECT_EQ(ue->ngap_ue_context_rel_timer.msec,
             final_ue->ngap_ue_context_rel_timer.msec);
 
-  free_wrapper(reinterpret_cast<void**>(&ue));
-  free_wrapper(reinterpret_cast<void**>(&final_ue));
+  free_wrapper(reinterpret_cast<void **>(&ue));
+  free_wrapper(reinterpret_cast<void **>(&final_ue));
 }
 
 TEST(NgapStateConversionNgapImsimap, NgapStateConversionNgapImsimap) {
-  ngap_imsi_map_t* ngap_imsi_map =
-      reinterpret_cast<ngap_imsi_map_t*>(calloc(1, sizeof(ngap_imsi_map_t)));
-  ngap_imsi_map_t* final_ngap_imsi_map =
-      reinterpret_cast<ngap_imsi_map_t*>(calloc(1, sizeof(ngap_imsi_map_t)));
+  ngap_imsi_map_t *ngap_imsi_map =
+      reinterpret_cast<ngap_imsi_map_t *>(calloc(1, sizeof(ngap_imsi_map_t)));
+  ngap_imsi_map_t *final_ngap_imsi_map =
+      reinterpret_cast<ngap_imsi_map_t *>(calloc(1, sizeof(ngap_imsi_map_t)));
   amf_ue_ngap_id_t ue_id = 1;
   imsi64_t imsi64 = 1010000000001;
   imsi64_t final_imsi64;
@@ -277,8 +277,8 @@ TEST(NgapStateConversionNgapImsimap, NgapStateConversionNgapImsimap) {
 
   hashtable_uint64_ts_destroy(ngap_imsi_map->amf_ue_id_imsi_htbl);
   hashtable_uint64_ts_destroy(final_ngap_imsi_map->amf_ue_id_imsi_htbl);
-  free_wrapper(reinterpret_cast<void**>(&ngap_imsi_map));
-  free_wrapper(reinterpret_cast<void**>(&final_ngap_imsi_map));
+  free_wrapper(reinterpret_cast<void **>(&ngap_imsi_map));
+  free_wrapper(reinterpret_cast<void **>(&final_ngap_imsi_map));
 }
 
 unsigned char initial_ue_message_hexbuf[] = {
@@ -330,11 +330,11 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
                                     peerInfo.instreams, &decoded_pdu),
             RETURNok);
 
-  Ngap_InitialUEMessage_t* container;
+  Ngap_InitialUEMessage_t *container;
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
-  Ngap_InitialUEMessage_IEs_t* ie = NULL;
+  Ngap_InitialUEMessage_IEs_t *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialUEMessage_IEs_t, ie,
                                       container,
@@ -376,7 +376,7 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
   // Check if UE is pointing to amf_ue_ngap_id
   EXPECT_EQ(ue_ref->amf_ue_ngap_id, 1);
 
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   bstring buffer;
   unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
 
@@ -404,13 +404,13 @@ TEST_F(NgapStateConverterTest, TestAfterSctpAssociation) {
                                     (const hash_key_t)ue_ref->amf_ue_ngap_id,
                                     &imsi64),
             HASH_TABLE_OK);
-  EXPECT_EQ(
-      hashtable_ts_get(&state->gnbs, (const hash_key_t)gNB_ref->sctp_assoc_id,
-                       reinterpret_cast<void**>(gNB_ref)),
-      HASH_TABLE_OK);
-  EXPECT_EQ(hashtable_ts_get(&state->amfid2associd,
-                             (const hash_key_t)ue_ref->amf_ue_ngap_id,
-                             reinterpret_cast<void**>(&gNB_ref->sctp_assoc_id)),
+  EXPECT_EQ(hashtable_ts_get(&state->gnbs,
+                             (const hash_key_t)gNB_ref->sctp_assoc_id,
+                             reinterpret_cast<void **>(gNB_ref)),
+            HASH_TABLE_OK);
+  EXPECT_EQ(hashtable_ts_get(
+                &state->amfid2associd, (const hash_key_t)ue_ref->amf_ue_ngap_id,
+                reinterpret_cast<void **>(&gNB_ref->sctp_assoc_id)),
             HASH_TABLE_OK);
   EXPECT_EQ(hashtable_uint64_ts_get(&gNB_ref->ue_id_coll,
                                     (const hash_key_t)ue_ref->amf_ue_ngap_id,
@@ -501,11 +501,11 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
                                     peerInfo.instreams, &decoded_pdu),
             RETURNok);
 
-  Ngap_InitialUEMessage_t* container;
+  Ngap_InitialUEMessage_t *container;
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
-  Ngap_InitialUEMessage_IEs_t* ie = NULL;
+  Ngap_InitialUEMessage_IEs_t *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialUEMessage_IEs_t, ie,
                                       container,
@@ -547,7 +547,7 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
   // Check if UE is pointing to amf_ue_ngap_id
   EXPECT_EQ(ue_ref->amf_ue_ngap_id, 1);
 
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   bstring buffer;
   unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
 
@@ -575,13 +575,13 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
                                     (const hash_key_t)ue_ref->amf_ue_ngap_id,
                                     &imsi64),
             HASH_TABLE_OK);
-  EXPECT_EQ(
-      hashtable_ts_get(&state->gnbs, (const hash_key_t)gNB_ref->sctp_assoc_id,
-                       reinterpret_cast<void**>(gNB_ref)),
-      HASH_TABLE_OK);
-  EXPECT_EQ(hashtable_ts_get(&state->amfid2associd,
-                             (const hash_key_t)ue_ref->amf_ue_ngap_id,
-                             reinterpret_cast<void**>(&gNB_ref->sctp_assoc_id)),
+  EXPECT_EQ(hashtable_ts_get(&state->gnbs,
+                             (const hash_key_t)gNB_ref->sctp_assoc_id,
+                             reinterpret_cast<void **>(gNB_ref)),
+            HASH_TABLE_OK);
+  EXPECT_EQ(hashtable_ts_get(
+                &state->amfid2associd, (const hash_key_t)ue_ref->amf_ue_ngap_id,
+                reinterpret_cast<void **>(&gNB_ref->sctp_assoc_id)),
             HASH_TABLE_OK);
   EXPECT_EQ(hashtable_uint64_ts_get(&gNB_ref->ue_id_coll,
                                     (const hash_key_t)ue_ref->amf_ue_ngap_id,
@@ -655,4 +655,4 @@ TEST_F(NgapStateConverterTest, TestNgapServiceRestart) {
   bdestroy(buffer);
   bdestroy(ngap_initial_ue_msg);
 }
-}  // namespace magma5g
+} // namespace magma5g

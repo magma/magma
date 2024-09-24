@@ -22,6 +22,9 @@
 
 #include "lte/gateway/c/session_manager/SessionStateEnforcer.hpp"
 
+#include <algorithm>
+#include <cstdint>
+#include <experimental/optional>
 #include <folly/io/async/EventBase.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
@@ -29,9 +32,6 @@
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include <algorithm>
-#include <cstdint>
-#include <experimental/optional>
 #include <memory>
 #include <ostream>
 #include <string>
@@ -74,40 +74,34 @@ void call_back_upf(grpc::Status, magma::UPFSessionContextState response) {
 
 /*constructor*/
 SessionStateEnforcer::SessionStateEnforcer(
-    std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
+    std::shared_ptr<StaticRuleStore> rule_store, SessionStore &session_store,
     std::unordered_multimap<std::string, uint32_t> pdr_map,
     std::shared_ptr<PipelinedClient> pipelined_client,
-    std::shared_ptr<AmfServiceClient> amf_srv_client, SessionReporter* reporter,
+    std::shared_ptr<AmfServiceClient> amf_srv_client, SessionReporter *reporter,
     std::shared_ptr<EventsReporter> events_reporter,
     magma::mconfig::SessionD mconfig, long session_force_termination_timeout_ms,
     uint32_t session_max_rtx_count)
-    : rule_store_(rule_store),
-      session_store_(session_store),
-      pdr_map_(pdr_map),
-      pipelined_client_(pipelined_client),
-      amf_srv_client_(amf_srv_client),
-      reporter_(reporter),
-      events_reporter_(events_reporter),
-      mconfig_(mconfig),
+    : rule_store_(rule_store), session_store_(session_store), pdr_map_(pdr_map),
+      pipelined_client_(pipelined_client), amf_srv_client_(amf_srv_client),
+      reporter_(reporter), events_reporter_(events_reporter), mconfig_(mconfig),
       session_force_termination_timeout_ms_(
           session_force_termination_timeout_ms),
-      session_max_rtx_count_(session_max_rtx_count),
-      retry_timeout_(1) {
+      session_max_rtx_count_(session_max_rtx_count), retry_timeout_(1) {
   default_and_static_rule_init();
   teid_counter_ = M5G_MIN_TEID;
 }
 
-void SessionStateEnforcer::attachEventBase(folly::EventBase* evb) {
+void SessionStateEnforcer::attachEventBase(folly::EventBase *evb) {
   evb_ = evb;
 }
 
 void SessionStateEnforcer::stop() { evb_->terminateLoopSoon(); }
 
-folly::EventBase& SessionStateEnforcer::get_event_base() { return *evb_; }
+folly::EventBase &SessionStateEnforcer::get_event_base() { return *evb_; }
 
 bool SessionStateEnforcer::m5g_init_session_credit(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, const SessionConfig& cfg) {
+    SessionMap &session_map, const std::string &imsi,
+    const std::string &session_id, const SessionConfig &cfg) {
   /* creating SessionState object with state CREATING
    * This calls constructor and allocates memory*/
   // TODO(veshkemburu): Figure out how to handle sharding(object)
@@ -137,9 +131,9 @@ bool SessionStateEnforcer::m5g_init_session_credit(
 }
 
 bool SessionStateEnforcer::m5g_update_session_context(
-    SessionMap& session_map, const std::string& imsi,
-    std::unique_ptr<SessionState>& session_state,
-    SessionUpdate& session_update) {
+    SessionMap &session_map, const std::string &imsi,
+    std::unique_ptr<SessionState> &session_state,
+    SessionUpdate &session_update) {
   uint32_t upf_teid;
   bool get_gnb_teid = true;
   bool get_upf_teid = false;
@@ -150,7 +144,7 @@ bool SessionStateEnforcer::m5g_update_session_context(
    * we get gnodeb TEID, and IP address details here
    */
   auto session_id = session_state->get_session_id();
-  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+  SessionStateUpdateCriteria &session_uc = session_update[imsi][session_id];
   upf_teid = update_session_rules(session_state, get_gnb_teid, get_upf_teid,
                                   &session_uc);
   if (!upf_teid) {
@@ -162,8 +156,8 @@ bool SessionStateEnforcer::m5g_update_session_context(
     MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
                  << " with session_id " << session_id;
   }
-  auto& session = **session_it;
-  const CreateSessionResponse& csr = session->get_create_session_response();
+  auto &session = **session_it;
+  const CreateSessionResponse &csr = session->get_create_session_response();
   uint32_t cur_version = session_state->get_current_version();
   session_state->set_fsm_state(CREATED, &session_uc);
   session_state->set_current_version(++cur_version, &session_uc);
@@ -176,12 +170,12 @@ bool SessionStateEnforcer::m5g_update_session_context(
                                     nullptr, &pending_scheduling, &session_uc);
 
   std::unordered_set<uint32_t> charging_credits_received;
-  for (const auto& credit : csr.credits()) {
+  for (const auto &credit : csr.credits()) {
     if (session->receive_charging_credit(credit, &session_uc)) {
       charging_credits_received.insert(credit.charging_key());
     }
   }
-  for (const auto& monitor : csr.usage_monitors()) {
+  for (const auto &monitor : csr.usage_monitors()) {
     auto uc = get_default_update_criteria();
     session->receive_monitor(monitor, &session_uc);
   }
@@ -197,14 +191,14 @@ bool SessionStateEnforcer::m5g_update_session_context(
 }
 
 uint32_t SessionStateEnforcer::update_session_rules(
-    std::unique_ptr<SessionState>& session, bool get_gnb_teid,
-    bool get_upf_teid, SessionStateUpdateCriteria* session_uc) {
+    std::unique_ptr<SessionState> &session, bool get_gnb_teid,
+    bool get_upf_teid, SessionStateUpdateCriteria *session_uc) {
   uint32_t upf_teid = 0;
   SetGroupPDR rule;
-  const std::string& imsi = session->get_imsi();
+  const std::string &imsi = session->get_imsi();
 
   // Get the latest config
-  const auto& config = session->get_config();
+  const auto &config = session->get_config();
   auto itp = pdr_map_.equal_range(imsi);
   // Lets take local_teid of the session if already exists.
   // Not needed in 2nd AMF request processing though
@@ -216,27 +210,27 @@ uint32_t SessionStateEnforcer::update_session_rules(
     GlobalRuleList.get_rule(itr->second, &rule);
     set_pdr_attributes(imsi, session, &rule);
     switch (rule.pdi().src_interface()) {
-      case ACCESS:
-        // Get new UPF TEID
-        if (get_upf_teid) {
-          upf_teid = insert_pdr_from_access(session, rule, session_uc);
+    case ACCESS:
+      // Get new UPF TEID
+      if (get_upf_teid) {
+        upf_teid = insert_pdr_from_access(session, rule, session_uc);
+      }
+      break;
+    case CORE:
+      if (get_gnb_teid) {
+        if (!insert_pdr_from_core(session, rule, session_uc)) {
+          return 0;
         }
-        break;
-      case CORE:
-        if (get_gnb_teid) {
-          if (!insert_pdr_from_core(session, rule, session_uc)) {
-            return 0;
-          }
-        }
-        break;
+      }
+      break;
     }
   }
   return upf_teid;
 }
 
 bool SessionStateEnforcer::handle_session_init_rule_updates(
-    SessionMap& session_map, const std::string& imsi,
-    std::unique_ptr<SessionState>& session_state) {
+    SessionMap &session_map, const std::string &imsi,
+    std::unique_ptr<SessionState> &session_state) {
   uint32_t upf_teid = 0;
   bool get_gnb_teid = false;
   bool get_upf_teid = true;
@@ -247,7 +241,7 @@ bool SessionStateEnforcer::handle_session_init_rule_updates(
   /* Irrespective of any State of Session, release and terminate*/
   SessionUpdate session_update =
       SessionStore::get_default_session_update(session_map);
-  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+  SessionStateUpdateCriteria &session_uc = session_update[imsi][session_id];
   const std::string upf_ip = get_upf_n3_addr();
 
   /* Attach rules to the session */
@@ -275,10 +269,10 @@ bool SessionStateEnforcer::handle_session_init_rule_updates(
  * Go over SessionState vector and find the respective dnn (apn)
  * start terminating session process
  */
-bool SessionStateEnforcer::m5g_release_session(SessionMap& session_map,
-                                               const std::string& imsi,
-                                               const uint32_t& pdu_id,
-                                               SessionUpdate& session_update) {
+bool SessionStateEnforcer::m5g_release_session(SessionMap &session_map,
+                                               const std::string &imsi,
+                                               const uint32_t &pdu_id,
+                                               SessionUpdate &session_update) {
   /* Search with session search criteria of IMSI and apn/dnn and
    * find  respective sesion to release operation
    * Note: DNN is optiona field, so find session from PDU_session_id
@@ -291,10 +285,10 @@ bool SessionStateEnforcer::m5g_release_session(SessionMap& session_map,
     return false;
   }
   // Found the respective session to be updated
-  auto& session = **session_it;
+  auto &session = **session_it;
   auto session_id = session->get_session_id();
   /*Irrespective of any State of Session, release and terminate*/
-  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+  SessionStateUpdateCriteria &session_uc = session_update[imsi][session_id];
   MLOG(MDEBUG) << "Trying to release " << session_id << " from state "
                << session_fsm_state_to_str(session->get_state());
 
@@ -304,10 +298,10 @@ bool SessionStateEnforcer::m5g_release_session(SessionMap& session_map,
 
 /*Start processing to terminate respective session requested from AMF*/
 void SessionStateEnforcer::m5g_start_session_termination(
-    SessionMap& session_map, const std::unique_ptr<SessionState>& session,
-    const uint32_t& pdu_id, SessionStateUpdateCriteria* session_uc) {
+    SessionMap &session_map, const std::unique_ptr<SessionState> &session,
+    const uint32_t &pdu_id, SessionStateUpdateCriteria *session_uc) {
   const auto session_id = session->get_session_id();
-  const std::string& imsi = session->get_imsi();
+  const std::string &imsi = session->get_imsi();
   const auto previous_state = session->get_state();
 
   /* update respective session's state and return from here before timeout
@@ -354,7 +348,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
  * termination on time out will be executed forcefully
  */
 void SessionStateEnforcer::m5g_handle_termination_on_timeout(
-    const std::string& imsi, const std::string& session_id) {
+    const std::string &imsi, const std::string &session_id) {
   auto session_map = session_store_.read_sessions_for_deletion({imsi});
   auto session_update = SessionStore::get_default_session_update(session_map);
   bool marked_termination =
@@ -391,8 +385,8 @@ void SessionStateEnforcer::m5g_handle_termination_on_timeout(
  * The 2nd one we are not taking care now.
  */
 void SessionStateEnforcer::m5g_complete_termination(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, SessionUpdate& session_update) {
+    SessionMap &session_map, const std::string &imsi,
+    const std::string &session_id, SessionUpdate &session_update) {
   // If the session cannot be found in session_map, or a new session has
   // already begun, do nothing.
   SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
@@ -403,10 +397,10 @@ void SessionStateEnforcer::m5g_complete_termination(
                  << " and session ID " << session_id
                  << ". Skipping termination.";
   }
-  auto& session = **session_it;
-  auto& session_uc = session_update[imsi][session_id];
+  auto &session = **session_it;
+  auto &session_uc = session_update[imsi][session_id];
   if (!session->can_complete_termination(&session_uc)) {
-    return;  // error is logged in SessionState's complete_termination
+    return; // error is logged in SessionState's complete_termination
   }
   auto termination_req = session->make_termination_request(&session_uc);
   auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
@@ -430,8 +424,8 @@ void SessionStateEnforcer::m5g_complete_termination(
 }
 
 void SessionStateEnforcer::m5g_move_to_inactive_state(
-    const std::string& imsi, std::unique_ptr<SessionState>& session,
-    SetSmNotificationContext notif, SessionStateUpdateCriteria* session_uc) {
+    const std::string &imsi, std::unique_ptr<SessionState> &session,
+    SetSmNotificationContext notif, SessionStateUpdateCriteria *session_uc) {
   set_new_fsm_state_and_increment_version(session, INACTIVE, session_uc);
   /* Call for all rules to be de-associated from session
    * and inform to UPF
@@ -440,8 +434,8 @@ void SessionStateEnforcer::m5g_move_to_inactive_state(
 }
 
 void SessionStateEnforcer::m5g_move_to_active_state(
-    std::unique_ptr<SessionState>& session, SetSmNotificationContext notif,
-    SessionStateUpdateCriteria* session_uc) {
+    std::unique_ptr<SessionState> &session, SetSmNotificationContext notif,
+    SessionStateUpdateCriteria *session_uc) {
   /* Reattach or get rules to the session */
   uint32_t upf_teid = update_session_rules(session, false, false, session_uc);
   /* As we got rules again, move the state to creating */
@@ -457,8 +451,8 @@ void SessionStateEnforcer::m5g_move_to_active_state(
 }
 
 void SessionStateEnforcer::set_new_fsm_state_and_increment_version(
-    std::unique_ptr<SessionState>& session, SessionFsmState target_state,
-    SessionStateUpdateCriteria* session_uc) {
+    std::unique_ptr<SessionState> &session, SessionFsmState target_state,
+    SessionStateUpdateCriteria *session_uc) {
   auto stateStr = session_fsm_state_to_str(session->get_state());
   session->set_fsm_state(target_state, session_uc);
   uint32_t cur_version = session->get_current_version();
@@ -471,13 +465,13 @@ void SessionStateEnforcer::set_new_fsm_state_and_increment_version(
 }
 
 void SessionStateEnforcer::m5g_pdr_rules_change_and_update_upf(
-    const std::unique_ptr<SessionState>& session, PdrState pdr_state) {
+    const std::unique_ptr<SessionState> &session, PdrState pdr_state) {
   // update criteria status not needed
   session->set_all_pdrs(pdr_state);
   session->reset_rtx_counter();
   RulesToProcess pending_activation;
   RulesToProcess pending_deactivation;
-  const CreateSessionResponse& csr = session->get_create_session_response();
+  const CreateSessionResponse &csr = session->get_create_session_response();
 
   std::vector<StaticRuleInstall> static_rule_installs =
       to_vec(csr.static_rules());
@@ -492,9 +486,9 @@ void SessionStateEnforcer::m5g_pdr_rules_change_and_update_upf(
 }
 
 void SessionStateEnforcer::m5g_send_session_request_to_upf(
-    const std::unique_ptr<SessionState>& session,
-    const RulesToProcess& pending_activation,
-    const RulesToProcess& pending_deactivation) {
+    const std::unique_ptr<SessionState> &session,
+    const RulesToProcess &pending_activation,
+    const RulesToProcess &pending_deactivation) {
   // Update to UPF
   SessionState::SessionInfo sess_info;
   session->sess_infocopy(&sess_info);
@@ -514,7 +508,7 @@ void SessionStateEnforcer::m5g_send_session_request_to_upf(
  * new_state - state change required w.r.t. UPF message
  */
 void SessionStateEnforcer::m5g_process_response_from_upf(
-    const std::string& imsi, uint32_t teid, uint32_t version) {
+    const std::string &imsi, uint32_t teid, uint32_t version) {
   uint32_t cur_version;
   bool amf_update_pending = false;
   auto session_map = session_store_.read_sessions({imsi});
@@ -528,11 +522,11 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
                  << " with teid " << teid;
     return;
   }
-  auto& session = **session_it;
+  auto &session = **session_it;
   cur_version = session->get_current_version();
   auto session_update = SessionStore::get_default_session_update(session_map);
   auto session_id = session->get_session_id();
-  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+  SessionStateUpdateCriteria &session_uc = session_update[imsi][session_id];
 
   if (version < cur_version) {
     MLOG(MDEBUG) << "UPF verions of session imsi " << imsi << " session id "
@@ -542,7 +536,7 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
     if (inc_rtx_counter(session)) {
       RulesToProcess pending_activation, pending_deactivation;
       RulesToSchedule pending_scheduling;
-      const CreateSessionResponse& csr = session->get_create_session_response();
+      const CreateSessionResponse &csr = session->get_create_session_response();
       std::vector<StaticRuleInstall> static_rule_installs =
           to_vec(csr.static_rules());
       std::vector<DynamicRuleInstall> dynamic_rule_installs =
@@ -557,18 +551,18 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
     return;
   }
   switch (session->get_state()) {
-    case CREATED:
-      session->set_fsm_state(SESSION_ACTIVE, &session_uc);
-      /* As there is no config change, just state change as we
-       * got response from UPF, so we dont bump up the session version
-       * number here
-       */
-      amf_update_pending = true;
-      break;
-    case SESSION_RELEASED:
-      m5g_complete_termination(session_map, imsi, session_id, session_update);
-    default:
-      break;
+  case CREATED:
+    session->set_fsm_state(SESSION_ACTIVE, &session_uc);
+    /* As there is no config change, just state change as we
+     * got response from UPF, so we dont bump up the session version
+     * number here
+     */
+    amf_update_pending = true;
+    break;
+  case SESSION_RELEASED:
+    m5g_complete_termination(session_map, imsi, session_id, session_update);
+  default:
+    break;
   }
   if (amf_update_pending) {
     bool update_success = session_store_.update_sessions(session_update);
@@ -589,13 +583,13 @@ void SessionStateEnforcer::m5g_process_response_from_upf(
 }
 
 void SessionStateEnforcer::set_subscribed_qos(
-    const SessionState& session_state,
-    magma::SetSMSessionContextAccess* response) {
-  const auto& config = session_state.get_config();
-  auto* rsp = response->mutable_rat_specific_context()
+    const SessionState &session_state,
+    magma::SetSMSessionContextAccess *response) {
+  const auto &config = session_state.get_config();
+  auto *rsp = response->mutable_rat_specific_context()
                   ->mutable_m5g_session_context_rsp();
 
-  const auto& subscribed_qos =
+  const auto &subscribed_qos =
       config.rat_specific_context.m5gsm_session_context().subscribed_qos();
   rsp->mutable_subscribed_qos()->set_br_unit(subscribed_qos.br_unit());
   rsp->mutable_subscribed_qos()->set_apn_ambr_ul(subscribed_qos.apn_ambr_ul());
@@ -617,17 +611,17 @@ void SessionStateEnforcer::set_subscribed_qos(
  * move this function to AmfServiceClient object context.
  */
 void SessionStateEnforcer::prepare_response_to_access(
-    SessionState& session_state, const magma::lte::M5GSMCause m5gsm_cause,
+    SessionState &session_state, const magma::lte::M5GSMCause m5gsm_cause,
     std::string upf_ip, uint32_t upf_teid) {
   magma::SetSMSessionContextAccess response;
-  const auto& config = session_state.get_config();
+  const auto &config = session_state.get_config();
   if (!config.rat_specific_context.has_m5gsm_session_context()) {
     MLOG(MWARNING) << "No M5G SM Session Context is specified for session";
     return;
   }
 
   RulesToProcess pending_activation, pending_deactivation;
-  const CreateSessionResponse& csr =
+  const CreateSessionResponse &csr =
       session_state.get_create_session_response();
   std::vector<StaticRuleInstall> static_rule_installs =
       to_vec(csr.static_rules());
@@ -639,9 +633,9 @@ void SessionStateEnforcer::prepare_response_to_access(
       &pending_deactivation);
 
   /* Filing response proto message*/
-  auto* rsp = response.mutable_rat_specific_context()
+  auto *rsp = response.mutable_rat_specific_context()
                   ->mutable_m5g_session_context_rsp();
-  auto* rsp_cmn = response.mutable_common_context();
+  auto *rsp_cmn = response.mutable_common_context();
 
   rsp->set_pdu_session_id(
       config.rat_specific_context.m5gsm_session_context().pdu_session_id());
@@ -663,7 +657,7 @@ void SessionStateEnforcer::prepare_response_to_access(
   /* If there are any static rules configured from Orc8r via NMS it's
    * corresponding qos info will be send to AMF.
    */
-  for (auto& val : pending_activation) {
+  for (auto &val : pending_activation) {
     if (val.rule.has_qos()) {
       MLOG(MDEBUG) << "value set for pending_activation"
                    << val.rule.qos().max_req_bw_ul();
@@ -680,7 +674,7 @@ void SessionStateEnforcer::prepare_response_to_access(
           .has_subscribed_qos()) {
     set_subscribed_qos(session_state, &response);
   } else {
-    for (auto& qos_policy : rsp->qos_policy()) {
+    for (auto &qos_policy : rsp->qos_policy()) {
       magma::FlowQos convg_qos = qos_policy.qos().qos();
       convg_qos.set_qci(FlowQos_Qci_QCI_9);
       convg_qos.mutable_arp()->set_pre_vulnerability(
@@ -700,7 +694,7 @@ void SessionStateEnforcer::prepare_response_to_access(
           .upf_endpoint()
           .end_ipv4_addr());
 
-  rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
+  rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid()); // imsi
   if (!config.common_context.ue_ipv4().empty()) {
     rsp_cmn->set_ue_ipv4(config.common_context.ue_ipv4());
   }
@@ -721,19 +715,19 @@ void SessionStateEnforcer::prepare_response_to_access(
  * move this function to AmfServiceClient object context.
  */
 void SessionStateEnforcer::handle_state_update_to_amf(
-    SessionState& session_state, const magma::lte::M5GSMCause m5gsm_cause,
+    SessionState &session_state, const magma::lte::M5GSMCause m5gsm_cause,
     NotifyUeEvents event) {
   magma::SetSmNotificationContext notif;
-  const auto& config = session_state.get_config();
+  const auto &config = session_state.get_config();
 
   if (!config.rat_specific_context.has_m5gsm_session_context()) {
     MLOG(MWARNING) << "No M5G SM Session Context is specified for session";
     return;
   }
-  auto* req = notif.mutable_rat_specific_notification();
-  auto* req_cmn = notif.mutable_common_context();
+  auto *req = notif.mutable_rat_specific_notification();
+  auto *req_cmn = notif.mutable_common_context();
   // Fill the imsi
-  req_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
+  req_cmn->mutable_sid()->CopyFrom(config.common_context.sid()); // imsi
   req->set_notify_ue_event(event);
   // Fill the cause
   req->set_m5gsm_cause(m5gsm_cause);
@@ -796,8 +790,8 @@ uint32_t SessionStateEnforcer::get_next_teid() {
   return allocated_teid;
 }
 
-bool SessionStateEnforcer::set_upf_node(const std::string& node_id,
-                                        const std::string& addr) {
+bool SessionStateEnforcer::set_upf_node(const std::string &node_id,
+                                        const std::string &addr) {
   upf_node_id_ = node_id;
   upf_node_ip_addr_ = addr;
   MLOG(MDEBUG) << "Set_upf_node_id: " << upf_node_id_;
@@ -806,7 +800,7 @@ bool SessionStateEnforcer::set_upf_node(const std::string& node_id,
 }
 
 bool SessionStateEnforcer::is_incremented_rtx_counter_within_max(
-    const std::unique_ptr<SessionState>& session) {
+    const std::unique_ptr<SessionState> &session) {
   uint32_t rtx_counter = session->get_incremented_rtx_counter();
   return rtx_counter < session_max_rtx_count_;
 }
@@ -822,9 +816,10 @@ std::string SessionStateEnforcer ::get_upf_node_id() const {
 /* Add defualt rules to the passed IMSI
  */
 bool SessionStateEnforcer::add_default_rules(
-    std::unique_ptr<SessionState>& session, const std::string& imsi) {
+    std::unique_ptr<SessionState> &session, const std::string &imsi) {
   // Check 2 default rules are added
-  if (pdr_map_.count(imsi) == DEFAULT_RULE_COUNT) return true;
+  if (pdr_map_.count(imsi) == DEFAULT_RULE_COUNT)
+    return true;
   /*
    * Lets add the default uplink and downlink PDR rule to this
    * imsi
@@ -845,9 +840,9 @@ bool SessionStateEnforcer::add_default_rules(
 }
 
 bool SessionStateEnforcer::insert_pdr_from_core(
-    std::unique_ptr<SessionState>& session, SetGroupPDR& rule,
-    SessionStateUpdateCriteria* session_uc) {
-  const auto& config = session->get_config();
+    std::unique_ptr<SessionState> &session, SetGroupPDR &rule,
+    SessionStateUpdateCriteria *session_uc) {
+  const auto &config = session->get_config();
   uint32_t teid = 0;
   std::string ip_addr;
 
@@ -886,8 +881,8 @@ bool SessionStateEnforcer::insert_pdr_from_core(
 }
 
 uint32_t SessionStateEnforcer::insert_pdr_from_access(
-    std::unique_ptr<SessionState>& session, SetGroupPDR& rule,
-    SessionStateUpdateCriteria* session_uc) {
+    std::unique_ptr<SessionState> &session, SetGroupPDR &rule,
+    SessionStateUpdateCriteria *session_uc) {
   uint32_t upf_teid = get_next_teid();
   MLOG(MDEBUG) << "Acquried Teid: " << upf_teid;
   rule.mutable_pdi()->set_local_f_teid(upf_teid);
@@ -902,15 +897,15 @@ uint32_t SessionStateEnforcer::insert_pdr_from_access(
 uint32_t SessionStateEnforcer::get_current_teid() { return teid_counter_; }
 
 bool SessionStateEnforcer::inc_rtx_counter(
-    const std::unique_ptr<SessionState>& session) {
+    const std::unique_ptr<SessionState> &session) {
   uint32_t rtx_counter = session->get_incremented_rtx_counter();
   return rtx_counter < session_max_rtx_count_;
 }
 
 void SessionStateEnforcer::set_pdr_attributes(
-    const std::string& imsi, std::unique_ptr<SessionState>& session_state,
-    SetGroupPDR* rule) {
-  const auto& config = session_state->get_config();
+    const std::string &imsi, std::unique_ptr<SessionState> &session_state,
+    SetGroupPDR *rule) {
+  const auto &config = session_state->get_config();
   auto ue_ipv4 = config.common_context.ue_ipv4();
   auto ue_ipv6 = config.common_context.ue_ipv6();
   if (config.rat_specific_context.m5gsm_session_context()
@@ -919,16 +914,16 @@ void SessionStateEnforcer::set_pdr_attributes(
                         .subscribed_qos()
                         .br_unit();
     switch (bit_rate) {
-      case M5GQosInformationRequest_BitrateUnitsAMBR_KBPS: {
-        rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_br_unit(
-            AggregatedMaximumBitrate_BitrateUnitsAMBR_KBPS);
-        break;
-      }
-      default: {
-        rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_br_unit(
-            AggregatedMaximumBitrate_BitrateUnitsAMBR_BPS);
-        break;
-      }
+    case M5GQosInformationRequest_BitrateUnitsAMBR_KBPS: {
+      rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_br_unit(
+          AggregatedMaximumBitrate_BitrateUnitsAMBR_KBPS);
+      break;
+    }
+    default: {
+      rule->mutable_activate_flow_req()->mutable_apn_ambr()->set_br_unit(
+          AggregatedMaximumBitrate_BitrateUnitsAMBR_BPS);
+      break;
+    }
     }
   }
   rule->mutable_pdi()->set_ue_ipv4(ue_ipv4);
@@ -954,7 +949,7 @@ void SessionStateEnforcer::set_pdr_attributes(
   /*Set the AMBR QCI Value */
   if (config.rat_specific_context.m5gsm_session_context()
           .has_subscribed_qos()) {
-    const auto& subscribed_qos =
+    const auto &subscribed_qos =
         config.rat_specific_context.m5gsm_session_context().subscribed_qos();
     rule->set_session_qfi(subscribed_qos.qos_class_id());
   }
@@ -964,7 +959,7 @@ std::vector<StaticRuleInstall> SessionStateEnforcer::to_vec(
     const google::protobuf::RepeatedPtrField<magma::lte::StaticRuleInstall>
         static_rule_installs) {
   std::vector<StaticRuleInstall> out;
-  for (const auto& install : static_rule_installs) {
+  for (const auto &install : static_rule_installs) {
     out.push_back(install);
   }
   return out;
@@ -974,16 +969,16 @@ std::vector<DynamicRuleInstall> SessionStateEnforcer::to_vec(
     const google::protobuf::RepeatedPtrField<magma::lte::DynamicRuleInstall>
         dynamic_rule_installs) {
   std::vector<DynamicRuleInstall> out;
-  for (const auto& install : dynamic_rule_installs) {
+  for (const auto &install : dynamic_rule_installs) {
     out.push_back(install);
   }
   return out;
 }
 
 void SessionStateEnforcer::update_session_with_policy(
-    std::unique_ptr<SessionState>& session,
-    const CreateSessionResponse& response,
-    SessionStateUpdateCriteria* session_uc) {
+    std::unique_ptr<SessionState> &session,
+    const CreateSessionResponse &response,
+    SessionStateUpdateCriteria *session_uc) {
   session->set_tgpp_context(response.tgpp_ctx(), session_uc);
   session->set_create_session_response(response, session_uc);
 
@@ -992,12 +987,12 @@ void SessionStateEnforcer::update_session_with_policy(
                              get_upf_n3_addr(), session->get_upf_local_teid());
 }
 
-void SessionStateEnforcer::init_policy_reauth(const std::string& imsi,
-                                              SessionMap& session_map,
+void SessionStateEnforcer::init_policy_reauth(const std::string &imsi,
+                                              SessionMap &session_map,
                                               PolicyReAuthRequest request,
-                                              PolicyReAuthAnswer& answer_out,
-                                              SessionUpdate& session_update) {
-  const std::string& session_id = request.session_id();
+                                              PolicyReAuthAnswer &answer_out,
+                                              SessionUpdate &session_update) {
+  const std::string &session_id = request.session_id();
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
     MLOG(MERROR) << "Could not find subscriber " << imsi
@@ -1009,7 +1004,7 @@ void SessionStateEnforcer::init_policy_reauth(const std::string& imsi,
   // Changes are applied on a best-effort basis, so failures for one session
   // won't stop changes from being applied for subsequent sessions.
   if (session_id == "") {
-    for (const auto& session : it->second) {
+    for (const auto &session : it->second) {
       init_policy_reauth_for_session(imsi, request, session, session_update);
     }
     answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
@@ -1024,7 +1019,7 @@ void SessionStateEnforcer::init_policy_reauth(const std::string& imsi,
     answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
     return;
   }
-  auto& session = **session_it;
+  auto &session = **session_it;
   // Policy ReAuth should happen only when session is ACTIVE state.
   if (session->get_state() == SESSION_ACTIVE) {
     init_policy_reauth_for_session(imsi, request, session, session_update);
@@ -1038,10 +1033,10 @@ void SessionStateEnforcer::init_policy_reauth(const std::string& imsi,
 }
 
 void SessionStateEnforcer::init_policy_reauth_for_session(
-    const std::string& imsi, const PolicyReAuthRequest& request,
-    const std::unique_ptr<SessionState>& session,
-    SessionUpdate& session_update) {
-  SessionStateUpdateCriteria& uc =
+    const std::string &imsi, const PolicyReAuthRequest &request,
+    const std::unique_ptr<SessionState> &session,
+    SessionUpdate &session_update) {
+  SessionStateUpdateCriteria &uc =
       session_update[imsi][session->get_session_id()];
 
   m5g_receive_monitoring_credit_from_rar(request, session, &uc);
@@ -1057,12 +1052,12 @@ void SessionStateEnforcer::init_policy_reauth_for_session(
       &pending_deactivation, &pending_bearer_setup, &pending_scheduling, &uc);
 
   magma::SetSMSessionContextAccess response;
-  const auto& config = session->get_config();
+  const auto &config = session->get_config();
 
   /* Filing response proto message*/
-  auto* rsp = response.mutable_rat_specific_context()
+  auto *rsp = response.mutable_rat_specific_context()
                   ->mutable_m5g_session_context_rsp();
-  auto* rsp_cmn = response.mutable_common_context();
+  auto *rsp_cmn = response.mutable_common_context();
 
   rsp->set_pdu_session_id(
       config.rat_specific_context.m5gsm_session_context().pdu_session_id());
@@ -1094,7 +1089,7 @@ void SessionStateEnforcer::init_policy_reauth_for_session(
           .subscribed_qos()
           .apn_ambr_dl());
 
-  for (auto& val : pending_activation) {
+  for (auto &val : pending_activation) {
     magma::QosPolicy qos_policy;
     qos_policy.set_policy_state(QosPolicy::PENDING);
     qos_policy.set_version(val.version);
@@ -1105,7 +1100,7 @@ void SessionStateEnforcer::init_policy_reauth_for_session(
     rsp->mutable_qos_policy()->Add()->CopyFrom(qos_policy);
   }
 
-  for (auto& val : pending_deactivation) {
+  for (auto &val : pending_deactivation) {
     magma::QosPolicy qos_policy;
     qos_policy.set_policy_state(QosPolicy::PENDING);
     qos_policy.set_version(val.version);
@@ -1126,7 +1121,7 @@ void SessionStateEnforcer::init_policy_reauth_for_session(
           .upf_endpoint()
           .end_ipv4_addr());
 
-  rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid());  // imsi
+  rsp_cmn->mutable_sid()->CopyFrom(config.common_context.sid()); // imsi
   if (!config.common_context.ue_ipv4().empty()) {
     rsp_cmn->set_ue_ipv4(config.common_context.ue_ipv4());
   }
@@ -1142,16 +1137,16 @@ void SessionStateEnforcer::init_policy_reauth_for_session(
 }
 
 void SessionStateEnforcer::m5g_receive_monitoring_credit_from_rar(
-    const PolicyReAuthRequest& request,
-    const std::unique_ptr<SessionState>& session,
-    SessionStateUpdateCriteria* uc) {
+    const PolicyReAuthRequest &request,
+    const std::unique_ptr<SessionState> &session,
+    SessionStateUpdateCriteria *uc) {
   UsageMonitoringUpdateResponse monitoring_credit;
   monitoring_credit.set_session_id(request.session_id());
   monitoring_credit.set_sid(request.session_id());
   monitoring_credit.set_success(true);
-  UsageMonitoringCredit* credit = monitoring_credit.mutable_credit();
+  UsageMonitoringCredit *credit = monitoring_credit.mutable_credit();
 
-  for (const auto& usage_monitoring_credit :
+  for (const auto &usage_monitoring_credit :
        request.usage_monitoring_credits()) {
     credit->CopyFrom(usage_monitoring_credit);
     session->receive_monitor(monitoring_credit, uc);
@@ -1159,14 +1154,14 @@ void SessionStateEnforcer::m5g_receive_monitoring_credit_from_rar(
 }
 
 bool SessionStateEnforcer::m5g_modification_session(
-    SessionMap& session_map, const std::string& imsi,
-    std::unique_ptr<SessionState>& session_state, SessionConfig& new_cfg,
-    SessionUpdate& session_update) {
+    SessionMap &session_map, const std::string &imsi,
+    std::unique_ptr<SessionState> &session_state, SessionConfig &new_cfg,
+    SessionUpdate &session_update) {
   uint32_t upf_teid;
   RulesToProcess pending_activation, pending_deactivation;
 
   auto session_id = session_state->get_session_id();
-  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+  SessionStateUpdateCriteria &session_uc = session_update[imsi][session_id];
   upf_teid = update_session_rules(session_state, true, false, &session_uc);
   if (!upf_teid) {
     return false;
@@ -1177,11 +1172,11 @@ bool SessionStateEnforcer::m5g_modification_session(
     MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
                  << " with session_id " << session_id;
   }
-  auto& session = **session_it;
-  auto& rsp = new_cfg.rat_specific_context.m5gsm_session_context();
+  auto &session = **session_it;
+  auto &rsp = new_cfg.rat_specific_context.m5gsm_session_context();
 
   std::vector<QosPolicy> qospolicy;
-  for (const auto& qos : rsp.qos_policy()) {
+  for (const auto &qos : rsp.qos_policy()) {
     if (qos.policy_state() == QosPolicy::REJECT) {
       MLOG(MERROR) << "UE/gNB rejected session modification for IMSI " << imsi
                    << " with session_id " << session_id;
@@ -1205,4 +1200,4 @@ bool SessionStateEnforcer::m5g_modification_session(
   return true;
 }
 
-}  // end namespace magma
+} // end namespace magma

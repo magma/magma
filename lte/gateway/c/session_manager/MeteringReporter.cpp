@@ -13,8 +13,8 @@
 
 #include "lte/gateway/c/session_manager/MeteringReporter.hpp"
 
-#include <stddef.h>
 #include <cstdint>
+#include <stddef.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -26,30 +26,30 @@
 namespace magma {
 namespace lte {
 
-const char* COUNTER_NAME = "ue_traffic";
-const char* LABEL_IMSI = "IMSI";
-const char* LABEL_SESSION_ID = "session_id";
-const char* LABEL_DIRECTION = "direction";
-const char* DIRECTION_UP = "up";
-const char* DIRECTION_DOWN = "down";
+const char *COUNTER_NAME = "ue_traffic";
+const char *LABEL_IMSI = "IMSI";
+const char *LABEL_SESSION_ID = "session_id";
+const char *LABEL_DIRECTION = "direction";
+const char *DIRECTION_UP = "up";
+const char *DIRECTION_DOWN = "down";
 
 MeteringReporter::MeteringReporter() {}
 
 void MeteringReporter::report_usage(
-    const std::string& imsi, const std::string& session_id,
-    SessionStateUpdateCriteria& update_criteria) {
+    const std::string &imsi, const std::string &session_id,
+    SessionStateUpdateCriteria &update_criteria) {
   double total_tx = 0;
   double total_rx = 0;
 
   // Charging credit
-  for (const auto& it : update_criteria.charging_credit_map) {
+  for (const auto &it : update_criteria.charging_credit_map) {
     auto credit_update = it.second;
     total_tx += (double)credit_update.bucket_deltas[USED_TX];
     total_rx += (double)credit_update.bucket_deltas[USED_RX];
   }
 
   // Monitoring credit
-  for (const auto& it : update_criteria.monitor_credit_map) {
+  for (const auto &it : update_criteria.monitor_credit_map) {
     auto credit_update = it.second;
     total_tx += (double)credit_update.bucket_deltas[USED_TX];
     total_rx += (double)credit_update.bucket_deltas[USED_RX];
@@ -59,8 +59,8 @@ void MeteringReporter::report_usage(
   report_traffic(imsi, session_id, DIRECTION_DOWN, total_rx);
 }
 
-void MeteringReporter::initialize_usage(const std::string& imsi,
-                                        const std::string& session_id,
+void MeteringReporter::initialize_usage(const std::string &imsi,
+                                        const std::string &session_id,
                                         TotalCreditUsage usage) {
   auto tx = usage.monitoring_tx + usage.charging_tx;
   auto rx = usage.monitoring_rx + usage.charging_rx;
@@ -68,14 +68,14 @@ void MeteringReporter::initialize_usage(const std::string& imsi,
   report_traffic(imsi, session_id, DIRECTION_DOWN, rx);
 }
 
-void MeteringReporter::report_traffic(const std::string& imsi,
-                                      const std::string& session_id,
-                                      const std::string& traffic_direction,
+void MeteringReporter::report_traffic(const std::string &imsi,
+                                      const std::string &session_id,
+                                      const std::string &traffic_direction,
                                       double unreported_usage_bytes) {
   increment_counter(COUNTER_NAME, unreported_usage_bytes, size_t(3), LABEL_IMSI,
                     imsi.c_str(), LABEL_SESSION_ID, session_id.c_str(),
                     LABEL_DIRECTION, traffic_direction.c_str());
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

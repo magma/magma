@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
+#include <cstdint>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <cstdint>
 #include <string>
 #include <thread>
 
@@ -32,21 +32,21 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 namespace magma {
 namespace lte {
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // Activate dedicated bearer
@@ -58,12 +58,12 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivation) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivation) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // Activate dedicated bearer
@@ -87,13 +87,13 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivation) {
 
 TEST_F(SPGWAppProcedureTest,
        TestDedicatedBearerDeactivationDeleteDefaultBearer) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
@@ -151,13 +151,13 @@ TEST_F(SPGWAppProcedureTest,
 }
 
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
@@ -233,13 +233,13 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationInvalidImsiLbi) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsiLbi) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
@@ -304,13 +304,13 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerDeactivationInvalidImsiLbi) {
 }
 
 TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationReject) {
-  spgw_state_t* spgw_state = get_spgw_state(false);
+  spgw_state_t *spgw_state = get_spgw_state(false);
   status_code_e return_code = RETURNerror;
 
   // Create session
   teid_t ue_sgw_teid = create_default_session(spgw_state);
 
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   // send network initiated dedicated bearer activation request from Session
@@ -336,7 +336,7 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationReject) {
 
   EXPECT_EQ(return_code, RETURNok);
 
-  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+  magma::lte::oai::SgwEpsBearerContextInfo *sgw_context_p =
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
   EXPECT_EQ(get_num_pending_create_bearer_procedures(
@@ -375,5 +375,5 @@ TEST_F(SPGWAppProcedureTest, TestDedicatedBearerActivationReject) {
   // Sleep to ensure that messages are received and contexts are released
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

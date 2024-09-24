@@ -46,37 +46,37 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/nas/as_message.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
+#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
-#include "lte/gateway/c/core/oai/include/nas/as_message.h"
-#include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
 
-#include "S1ap_Source-ToTarget-TransparentContainer.h"
 #include "S1ap_HandoverType.h"
+#include "S1ap_Source-ToTarget-TransparentContainer.h"
 
-#define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR) \
+#define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
   (mSGpTR)->ittiMsg.mme_app_connection_establishment_cnf
-#define MME_APP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR) \
+#define MME_APP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR)                              \
   (mSGpTR)->ittiMsg.mme_app_initial_context_setup_rsp
-#define MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(mSGpTR) \
+#define MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(mSGpTR)                          \
   (mSGpTR)->ittiMsg.mme_app_initial_context_setup_failure
-#define MME_APP_S1AP_MME_UE_ID_NOTIFICATION(mSGpTR) \
+#define MME_APP_S1AP_MME_UE_ID_NOTIFICATION(mSGpTR)                            \
   (mSGpTR)->ittiMsg.mme_app_s1ap_mme_ue_id_notification
 #define MME_APP_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.mme_app_ul_data_ind
 #define MME_APP_DL_DATA_CNF(mSGpTR) (mSGpTR)->ittiMsg.mme_app_dl_data_cnf
 #define MME_APP_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.mme_app_dl_data_rej
-#define MME_APP_HANDOVER_REQUEST(mSGpTR) \
+#define MME_APP_HANDOVER_REQUEST(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.mme_app_handover_request
-#define MME_APP_HANDOVER_COMMAND(mSGpTR) \
+#define MME_APP_HANDOVER_COMMAND(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.mme_app_handover_command
 
 typedef struct itti_mme_app_connection_establishment_cnf_s {
   mme_ue_s1ap_id_t ue_id;
   ambr_t ue_ambr;
   // E-RAB to Be Setup List
-  uint8_t no_of_e_rabs;  // spec says max 256, actually stay with BEARERS_PER_UE
+  uint8_t no_of_e_rabs; // spec says max 256, actually stay with BEARERS_PER_UE
   //     >>E-RAB ID
   ebi_t e_rab_id[BEARERS_PER_UE];
   //     >>E-RAB Level QoS Parameters

@@ -16,47 +16,47 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileIdentity.hpp"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-static int decode_imsi_mobile_identity(ImsiMobileIdentity_t* imsi,
-                                       uint8_t* buffer);
-static int decode_imei_mobile_identity(ImeiMobileIdentity_t* imei,
-                                       uint8_t* buffer);
-static int decode_imeisv_mobile_identity(ImeisvMobileIdentity_t* imeisv,
-                                         uint8_t* buffer);
-static int decode_tmsi_mobile_identity(TmsiMobileIdentity_t* tmsi,
-                                       uint8_t* buffer);
-static int decode_tmgi_mobile_identity(TmgiMobileIdentity_t* tmgi,
-                                       uint8_t* buffer);
-static int decode_no_mobile_identity(NoMobileIdentity_t* no_id,
-                                     uint8_t* buffer);
+static int decode_imsi_mobile_identity(ImsiMobileIdentity_t *imsi,
+                                       uint8_t *buffer);
+static int decode_imei_mobile_identity(ImeiMobileIdentity_t *imei,
+                                       uint8_t *buffer);
+static int decode_imeisv_mobile_identity(ImeisvMobileIdentity_t *imeisv,
+                                         uint8_t *buffer);
+static int decode_tmsi_mobile_identity(TmsiMobileIdentity_t *tmsi,
+                                       uint8_t *buffer);
+static int decode_tmgi_mobile_identity(TmgiMobileIdentity_t *tmgi,
+                                       uint8_t *buffer);
+static int decode_no_mobile_identity(NoMobileIdentity_t *no_id,
+                                     uint8_t *buffer);
 
-static int encode_imsi_mobile_identity(ImsiMobileIdentity_t* imsi,
-                                       uint8_t* buffer);
-static int encode_imei_mobile_identity(ImeiMobileIdentity_t* imei,
-                                       uint8_t* buffer);
-static int encode_imeisv_mobile_identity(ImeisvMobileIdentity_t* imeisv,
-                                         uint8_t* buffer);
-static int encode_tmsi_mobile_identity(TmsiMobileIdentity_t* tmsi,
-                                       uint8_t* buffer);
-static int encode_tmgi_mobile_identity(TmgiMobileIdentity_t* tmgi,
-                                       uint8_t* buffer);
-static int encode_no_mobile_identity(NoMobileIdentity_t* no_id,
-                                     uint8_t* buffer);
+static int encode_imsi_mobile_identity(ImsiMobileIdentity_t *imsi,
+                                       uint8_t *buffer);
+static int encode_imei_mobile_identity(ImeiMobileIdentity_t *imei,
+                                       uint8_t *buffer);
+static int encode_imeisv_mobile_identity(ImeisvMobileIdentity_t *imeisv,
+                                         uint8_t *buffer);
+static int encode_tmsi_mobile_identity(TmsiMobileIdentity_t *tmsi,
+                                       uint8_t *buffer);
+static int encode_tmgi_mobile_identity(TmgiMobileIdentity_t *tmgi,
+                                       uint8_t *buffer);
+static int encode_no_mobile_identity(NoMobileIdentity_t *no_id,
+                                     uint8_t *buffer);
 
-int decode_mobile_identity(MobileIdentity* mobileidentity, uint8_t iei,
-                           uint8_t* buffer, uint32_t len) {
+int decode_mobile_identity(MobileIdentity *mobileidentity, uint8_t iei,
+                           uint8_t *buffer, uint32_t len) {
   int decoded_rc = TLV_VALUE_DOESNT_MATCH;
   int decoded = 0;
   uint8_t ielen = 0;
@@ -102,9 +102,9 @@ int decode_mobile_identity(MobileIdentity* mobileidentity, uint8_t iei,
   return (decoded + decoded_rc);
 }
 
-int encode_mobile_identity(MobileIdentity* mobileidentity, uint8_t iei,
-                           uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+int encode_mobile_identity(MobileIdentity *mobileidentity, uint8_t iei,
+                           uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   int encoded_rc = TLV_VALUE_DOESNT_MATCH;
   uint32_t encoded = 0;
 
@@ -163,7 +163,7 @@ int encode_mobile_identity(MobileIdentity* mobileidentity, uint8_t iei,
   return (encoded + encoded_rc);
 }
 
-void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei) {
+void dump_mobile_identity_xml(MobileIdentity *mobileidentity, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Mobile Identity>\n");
 
   if (iei > 0)
@@ -173,7 +173,7 @@ void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei) {
     OAILOG_DEBUG(LOG_NAS, "    <IEI>0x%X</IEI>\n", iei);
 
   if (mobileidentity->imsi.typeofidentity == MOBILE_IDENTITY_IMSI) {
-    ImsiMobileIdentity_t* imsi = &mobileidentity->imsi;
+    ImsiMobileIdentity_t *imsi = &mobileidentity->imsi;
 
     OAILOG_DEBUG(LOG_NAS, "    <odd even>%u</odd even>\n", imsi->oddeven);
     OAILOG_DEBUG(LOG_NAS, "    <Type of identity>IMSI</Type of identity>\n");
@@ -193,7 +193,7 @@ void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei) {
     OAILOG_DEBUG(LOG_NAS, "    <digit14>%u</digit14>\n", imsi->digit14);
     OAILOG_DEBUG(LOG_NAS, "    <digit15>%u</digit15>\n", imsi->digit15);
   } else if (mobileidentity->imei.typeofidentity == MOBILE_IDENTITY_IMEI) {
-    ImeiMobileIdentity_t* imei = &mobileidentity->imei;
+    ImeiMobileIdentity_t *imei = &mobileidentity->imei;
 
     OAILOG_DEBUG(LOG_NAS, "    <odd even>%u</odd even>\n", imei->oddeven);
     OAILOG_DEBUG(LOG_NAS, "    <Type of identity>IMEI</Type of identity>\n");
@@ -213,7 +213,7 @@ void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei) {
     OAILOG_DEBUG(LOG_NAS, "    <snr6>%u</snr6>\n", imei->snr6);
     OAILOG_DEBUG(LOG_NAS, "    <cdsd>%u</cdsd>\n", imei->cdsd);
   } else if (mobileidentity->imeisv.typeofidentity == MOBILE_IDENTITY_IMEISV) {
-    ImeisvMobileIdentity_t* imeisv = &mobileidentity->imeisv;
+    ImeisvMobileIdentity_t *imeisv = &mobileidentity->imeisv;
 
     OAILOG_DEBUG(LOG_NAS, "    <odd even>%u</odd even>\n", imeisv->oddeven);
     OAILOG_DEBUG(LOG_NAS, "    <Type of identity>IMEISV</Type of identity>\n");
@@ -234,7 +234,7 @@ void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei) {
     OAILOG_DEBUG(LOG_NAS, "    <svn1>%u</svn1>\n", imeisv->svn1);
     OAILOG_DEBUG(LOG_NAS, "    <svn2>%u</svn2>\n", imeisv->svn2);
   } else if (mobileidentity->tmsi.typeofidentity == MOBILE_IDENTITY_TMSI) {
-    TmsiMobileIdentity_t* tmsi = &mobileidentity->tmsi;
+    TmsiMobileIdentity_t *tmsi = &mobileidentity->tmsi;
 
     OAILOG_DEBUG(LOG_NAS, "    <odd even>%u</odd even>\n", tmsi->oddeven);
     OAILOG_DEBUG(LOG_NAS, "    <Type of identity>TMSI</Type of identity>\n");
@@ -254,7 +254,7 @@ void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei) {
     OAILOG_DEBUG(LOG_NAS, "    <digit14>%u</digit14>\n", tmsi->digit14);
     OAILOG_DEBUG(LOG_NAS, "    <digit15>%u</digit15>\n", tmsi->digit15);
   } else if (mobileidentity->tmgi.typeofidentity == MOBILE_IDENTITY_TMGI) {
-    TmgiMobileIdentity_t* tmgi = &mobileidentity->tmgi;
+    TmgiMobileIdentity_t *tmgi = &mobileidentity->tmgi;
 
     OAILOG_DEBUG(
         LOG_NAS,
@@ -288,8 +288,8 @@ void dump_mobile_identity_xml(MobileIdentity* mobileidentity, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "</Mobile Identity>\n");
 }
 
-static int decode_imsi_mobile_identity(ImsiMobileIdentity_t* imsi,
-                                       uint8_t* buffer) {
+static int decode_imsi_mobile_identity(ImsiMobileIdentity_t *imsi,
+                                       uint8_t *buffer) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -365,8 +365,8 @@ static int decode_imsi_mobile_identity(ImsiMobileIdentity_t* imsi,
   return decoded;
 }
 
-static int decode_imei_mobile_identity(ImeiMobileIdentity_t* imei,
-                                       uint8_t* buffer) {
+static int decode_imei_mobile_identity(ImeiMobileIdentity_t *imei,
+                                       uint8_t *buffer) {
   int decoded = 0;
 
   imei->typeofidentity = *(buffer + decoded) & 0x7;
@@ -412,8 +412,8 @@ static int decode_imei_mobile_identity(ImeiMobileIdentity_t* imei,
   return decoded;
 }
 
-static int decode_imeisv_mobile_identity(ImeisvMobileIdentity_t* imeisv,
-                                         uint8_t* buffer) {
+static int decode_imeisv_mobile_identity(ImeisvMobileIdentity_t *imeisv,
+                                         uint8_t *buffer) {
   int decoded = 0;
 
   imeisv->typeofidentity = *(buffer + decoded) & 0x7;
@@ -462,8 +462,8 @@ static int decode_imeisv_mobile_identity(ImeisvMobileIdentity_t* imeisv,
   return decoded;
 }
 
-static int decode_tmsi_mobile_identity(TmsiMobileIdentity_t* tmsi,
-                                       uint8_t* buffer) {
+static int decode_tmsi_mobile_identity(TmsiMobileIdentity_t *tmsi,
+                                       uint8_t *buffer) {
   int decoded = 0;
 
   tmsi->typeofidentity = *(buffer + decoded) & 0x7;
@@ -499,8 +499,8 @@ static int decode_tmsi_mobile_identity(TmsiMobileIdentity_t* tmsi,
   return decoded;
 }
 
-static int decode_tmgi_mobile_identity(TmgiMobileIdentity_t* tmgi,
-                                       uint8_t* buffer) {
+static int decode_tmgi_mobile_identity(TmgiMobileIdentity_t *tmgi,
+                                       uint8_t *buffer) {
   int decoded = 0;
 
   tmgi->spare = (*(buffer + decoded) >> 6) & 0x2;
@@ -538,8 +538,8 @@ static int decode_tmgi_mobile_identity(TmgiMobileIdentity_t* tmgi,
   return decoded;
 }
 
-static int decode_no_mobile_identity(NoMobileIdentity_t* no_id,
-                                     uint8_t* buffer) {
+static int decode_no_mobile_identity(NoMobileIdentity_t *no_id,
+                                     uint8_t *buffer) {
   int decoded = 0;
 
   no_id->typeofidentity = *(buffer + decoded) & 0x7;
@@ -575,8 +575,8 @@ static int decode_no_mobile_identity(NoMobileIdentity_t* no_id,
   return decoded;
 }
 
-static int encode_imsi_mobile_identity(ImsiMobileIdentity_t* imsi,
-                                       uint8_t* buffer) {
+static int encode_imsi_mobile_identity(ImsiMobileIdentity_t *imsi,
+                                       uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) = 0x00 | (imsi->digit1 << 4) | (imsi->oddeven << 3) |
@@ -605,8 +605,8 @@ static int encode_imsi_mobile_identity(ImsiMobileIdentity_t* imsi,
   return encoded;
 }
 
-static int encode_imei_mobile_identity(ImeiMobileIdentity_t* imei,
-                                       uint8_t* buffer) {
+static int encode_imei_mobile_identity(ImeiMobileIdentity_t *imei,
+                                       uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) =
@@ -635,8 +635,8 @@ static int encode_imei_mobile_identity(ImeiMobileIdentity_t* imei,
   return encoded;
 }
 
-static int encode_imeisv_mobile_identity(ImeisvMobileIdentity_t* imeisv,
-                                         uint8_t* buffer) {
+static int encode_imeisv_mobile_identity(ImeisvMobileIdentity_t *imeisv,
+                                         uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) = 0x00 | (imeisv->tac1 << 4) | (imeisv->oddeven << 3) |
@@ -667,8 +667,8 @@ static int encode_imeisv_mobile_identity(ImeisvMobileIdentity_t* imeisv,
   return encoded;
 }
 
-static int encode_tmsi_mobile_identity(TmsiMobileIdentity_t* tmsi,
-                                       uint8_t* buffer) {
+static int encode_tmsi_mobile_identity(TmsiMobileIdentity_t *tmsi,
+                                       uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) = 0xf0 | (tmsi->oddeven << 3) | (tmsi->typeofidentity);
@@ -691,8 +691,8 @@ static int encode_tmsi_mobile_identity(TmsiMobileIdentity_t* tmsi,
   return encoded;
 }
 
-static int encode_tmgi_mobile_identity(TmgiMobileIdentity_t* tmgi,
-                                       uint8_t* buffer) {
+static int encode_tmgi_mobile_identity(TmgiMobileIdentity_t *tmgi,
+                                       uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) = 0x00 | ((tmgi->mbmssessionidindication & 0x1) << 5) |
@@ -715,8 +715,8 @@ static int encode_tmgi_mobile_identity(TmgiMobileIdentity_t* tmgi,
   return encoded;
 }
 
-static int encode_no_mobile_identity(NoMobileIdentity_t* no_id,
-                                     uint8_t* buffer) {
+static int encode_no_mobile_identity(NoMobileIdentity_t *no_id,
+                                     uint8_t *buffer) {
   uint32_t encoded = 0;
 
   *(buffer + encoded) = no_id->typeofidentity;

@@ -22,8 +22,8 @@
 //   }
 //=====================================================================================================
 
-#include <iostream>
 #include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.hpp"
+#include <iostream>
 
 uint8_t intialUeGuti[157] = {
     0x00, 0x0f, 0x40, 0x80, 0x98, 0x00, 0x00, 0x06, 0x00, 0x55, 0x00, 0x02,
@@ -47,13 +47,13 @@ uint8_t ngapSetupRequestWithSD[] = {
     0x10, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x27, 0xf4, 0x77, 0x00,
     0x00, 0x10, 0x08, 0xd1, 0x43, 0xa5, 0x00, 0x15, 0x40, 0x01, 0x60};
 
-void fill_nR_CGI_cell_identity(Ngap_NRCellIdentity_t& nRCellIdentity) {
+void fill_nR_CGI_cell_identity(Ngap_NRCellIdentity_t &nRCellIdentity) {
   uint64_t nr_cell_id; /* 36 bit */
 
   nr_cell_id = 0x0000000100;
   nRCellIdentity.size = 5;
 
-  nRCellIdentity.buf = (uint8_t*)calloc(nRCellIdentity.size, sizeof(uint8_t));
+  nRCellIdentity.buf = (uint8_t *)calloc(nRCellIdentity.size, sizeof(uint8_t));
   memset(nRCellIdentity.buf, 0, (nRCellIdentity.size * sizeof(uint8_t)));
 
   nRCellIdentity.buf[0] = (nr_cell_id >> 32);
@@ -64,32 +64,33 @@ void fill_nR_CGI_cell_identity(Ngap_NRCellIdentity_t& nRCellIdentity) {
   nRCellIdentity.bits_unused = 4;
 }
 
-void fill_nR_CGI_pLMNIdentity(Ngap_PLMNIdentity_t& pLMNIdentity) {
+void fill_nR_CGI_pLMNIdentity(Ngap_PLMNIdentity_t &pLMNIdentity) {
   pLMNIdentity.size = 3;
-  pLMNIdentity.buf = (uint8_t*)calloc(1, pLMNIdentity.size * sizeof(uint8_t));
+  pLMNIdentity.buf = (uint8_t *)calloc(1, pLMNIdentity.size * sizeof(uint8_t));
   pLMNIdentity.buf[0] = 0x9;
   pLMNIdentity.buf[1] = 0xf1;
   pLMNIdentity.buf[2] = 0x7;
 }
 
-void fill_tAI_pLMNIdentity(Ngap_PLMNIdentity_t& pLMNIdentity) {
+void fill_tAI_pLMNIdentity(Ngap_PLMNIdentity_t &pLMNIdentity) {
   pLMNIdentity.size = 3;
-  pLMNIdentity.buf = (uint8_t*)calloc(1, sizeof(uint8_t*) * pLMNIdentity.size);
+  pLMNIdentity.buf =
+      (uint8_t *)calloc(1, sizeof(uint8_t *) * pLMNIdentity.size);
   pLMNIdentity.buf[0] = 0x9;
   pLMNIdentity.buf[1] = 0xf1;
   pLMNIdentity.buf[2] = 0x7;
 }
 
-void fill_tAI_tAC(Ngap_TAC_t& tAC) {
+void fill_tAI_tAC(Ngap_TAC_t &tAC) {
   tAC.size = 3;
-  tAC.buf = (uint8_t*)calloc(1, sizeof(uint8_t*) * tAC.size);
+  tAC.buf = (uint8_t *)calloc(1, sizeof(uint8_t *) * tAC.size);
   tAC.buf[0] = 0;
   tAC.buf[1] = 0;
   tAC.buf[2] = 0x1;
 }
 
-int encode_initate_ue_message(Ngap_NGAP_PDU_t* pdu, uint8_t** buffer,
-                              uint32_t* len) {
+int encode_initate_ue_message(Ngap_NGAP_PDU_t *pdu, uint8_t **buffer,
+                              uint32_t *len) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
 
   memset(&res, 0, sizeof(res));
@@ -97,7 +98,7 @@ int encode_initate_ue_message(Ngap_NGAP_PDU_t* pdu, uint8_t** buffer,
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
                                  &asn_DEF_Ngap_NGAP_PDU, pdu);
 
-  *buffer = (uint8_t*)res.buffer;
+  *buffer = (uint8_t *)res.buffer;
   *len = res.result.encoded;
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, pdu);
@@ -105,10 +106,10 @@ int encode_initate_ue_message(Ngap_NGAP_PDU_t* pdu, uint8_t** buffer,
 }
 
 bool ng_setup_initiate_ue_message_decode(const_bstring const raw,
-                                         Ngap_NGAP_PDU_t* pdu) {
+                                         Ngap_NGAP_PDU_t *pdu) {
   asn_dec_rval_t dec_ret;
 
-  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void**)&pdu, bdata(raw),
+  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void **)&pdu, bdata(raw),
                         blength(raw), 0, 0);
 
   if (dec_ret.code != RC_OK) {
@@ -119,12 +120,12 @@ bool ng_setup_initiate_ue_message_decode(const_bstring const raw,
   return true;
 }
 
-bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
+bool ngap_initiate_ue_message(bstring &stream_initate_ue) {
   Ngap_NGAP_PDU_t pdu;
-  Ngap_InitialUEMessage_t* out;
-  Ngap_InitialUEMessage_IEs_t* ie;
-  Ngap_UserLocationInformationNR_t* userinfo_nr_p = NULL;
-  uint8_t* buffer = NULL;
+  Ngap_InitialUEMessage_t *out;
+  Ngap_InitialUEMessage_IEs_t *ie;
+  Ngap_UserLocationInformationNR_t *userinfo_nr_p = NULL;
+  uint8_t *buffer = NULL;
   uint32_t length = 0;
   int hexbuf[] = {0x7E, 0x00, 0x41, 0x79, 0x00, 0x0D, 0x01, 0x09, 0xF1, 0x07,
                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x10,
@@ -143,7 +144,7 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   out = &pdu.choice.initiatingMessage.value.choice.InitialUEMessage;
 
   /* mandatory */
-  ie = (Ngap_InitialUEMessage_IEs_t*)calloc(
+  ie = (Ngap_InitialUEMessage_IEs_t *)calloc(
       1, sizeof(Ngap_InitialUEMessage_IEs_t));
   ie->id = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
   ie->criticality = Ngap_Criticality_reject;
@@ -152,7 +153,7 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
-  ie = (Ngap_InitialUEMessage_IEs_t*)calloc(
+  ie = (Ngap_InitialUEMessage_IEs_t *)calloc(
       1, sizeof(Ngap_InitialUEMessage_IEs_t));
   ie->id = Ngap_ProtocolIE_ID_id_NAS_PDU;
   ie->criticality = Ngap_Criticality_reject;
@@ -160,7 +161,7 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
 
   ie->value.choice.NAS_PDU.size = 38;
   ie->value.choice.NAS_PDU.buf =
-      (uint8_t*)calloc(1, ie->value.choice.NAS_PDU.size * sizeof(uint8_t));
+      (uint8_t *)calloc(1, ie->value.choice.NAS_PDU.size * sizeof(uint8_t));
   memset(ie->value.choice.NAS_PDU.buf, 0,
          sizeof(ie->value.choice.NAS_PDU.size * sizeof(uint8_t)));
   for (uint32_t i = 0; i < ie->value.choice.NAS_PDU.size; i++) {
@@ -170,7 +171,7 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
-  ie = (Ngap_InitialUEMessage_IEs_t*)calloc(
+  ie = (Ngap_InitialUEMessage_IEs_t *)calloc(
       1, sizeof(Ngap_InitialUEMessage_IEs_t));
   ie->id = Ngap_ProtocolIE_ID_id_UserLocationInformation;
   ie->criticality = Ngap_Criticality_reject;
@@ -191,10 +192,10 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   fill_tAI_tAC(userinfo_nr_p->tAI.tAC);
 
   userinfo_nr_p->timeStamp =
-      (Ngap_TimeStamp_t*)calloc(1, sizeof(Ngap_TimeStamp_t));
+      (Ngap_TimeStamp_t *)calloc(1, sizeof(Ngap_TimeStamp_t));
   userinfo_nr_p->timeStamp->size = 4;
   userinfo_nr_p->timeStamp->buf =
-      (uint8_t*)calloc(1, sizeof(uint8_t*) * userinfo_nr_p->timeStamp->size);
+      (uint8_t *)calloc(1, sizeof(uint8_t *) * userinfo_nr_p->timeStamp->size);
   userinfo_nr_p->timeStamp->buf[0] = 0xe4;
   userinfo_nr_p->timeStamp->buf[1] = 0x31;
   userinfo_nr_p->timeStamp->buf[2] = 0x20;
@@ -203,7 +204,7 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
-  ie = (Ngap_InitialUEMessage_IEs_t*)calloc(
+  ie = (Ngap_InitialUEMessage_IEs_t *)calloc(
       1, sizeof(Ngap_InitialUEMessage_IEs_t));
   ie->id = Ngap_ProtocolIE_ID_id_RRCEstablishmentCause;
   ie->criticality = Ngap_Criticality_ignore;
@@ -212,7 +213,7 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* optional */
-  ie = (Ngap_InitialUEMessage_IEs_t*)calloc(
+  ie = (Ngap_InitialUEMessage_IEs_t *)calloc(
       1, sizeof(Ngap_InitialUEMessage_IEs_t));
   ie->id = Ngap_ProtocolIE_ID_id_UEContextRequest;
   ie->criticality = Ngap_Criticality_ignore;
@@ -229,11 +230,11 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   return (true);
 }
 
-bool generate_guti_ngap_pdu(Ngap_NGAP_PDU_t* pdu) {
+bool generate_guti_ngap_pdu(Ngap_NGAP_PDU_t *pdu) {
   asn_dec_rval_t dec_ret;
   uint32_t guti_len = 157;
 
-  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void**)&pdu,
+  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void **)&pdu,
                         intialUeGuti, guti_len, 0, 0);
 
   if (dec_ret.code != RC_OK) {
@@ -243,9 +244,9 @@ bool generate_guti_ngap_pdu(Ngap_NGAP_PDU_t* pdu) {
   return true;
 }
 
-bool validate_handle_initial_ue_message(gnb_description_t* gNB_ref,
-                                        m5g_ue_description_t* ue_ref,
-                                        Ngap_NGAP_PDU_t* pdu) {
+bool validate_handle_initial_ue_message(gnb_description_t *gNB_ref,
+                                        m5g_ue_description_t *ue_ref,
+                                        Ngap_NGAP_PDU_t *pdu) {
   tai_t tai = {0};
   guamfi_t guamfi = {{0}, 0, 0};
   s_tmsi_m5_t s_tmsi = {0, 0, INVALID_M_TMSI};
@@ -253,7 +254,7 @@ bool validate_handle_initial_ue_message(gnb_description_t* gNB_ref,
   ecgi_t ecgi = {{0}, {0}};
   csg_id_t csg_id = 0;
 
-  Ngap_InitialUEMessage_t* container;
+  Ngap_InitialUEMessage_t *container;
   Ngap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi, *ie_csg_id = NULL,
                               *ie_guamfi, *ie_cause;
 
@@ -333,7 +334,7 @@ bool validate_handle_initial_ue_message(gnb_description_t* gNB_ref,
       Ngap_InitialUEMessage_IEs_t, ie_cause, container,
       Ngap_ProtocolIE_ID_id_RRCEstablishmentCause);
 
-  Ngap_InitialUEMessage_IEs_t* ie_uecontextrequest = NULL;
+  Ngap_InitialUEMessage_IEs_t *ie_uecontextrequest = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialUEMessage_IEs_t,
                                       ie_uecontextrequest, container,
@@ -347,11 +348,11 @@ bool validate_handle_initial_ue_message(gnb_description_t* gNB_ref,
   return (true);
 }
 
-bool generate_ngap_request_msg(Ngap_NGAP_PDU_t* pdu) {
+bool generate_ngap_request_msg(Ngap_NGAP_PDU_t *pdu) {
   asn_dec_rval_t dec_ret;
   uint32_t pkt_len = sizeof(ngapSetupRequestWithSD) / sizeof(uint8_t);
 
-  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void**)&pdu,
+  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void **)&pdu,
                         ngapSetupRequestWithSD, pkt_len, 0, 0);
 
   if (dec_ret.code != RC_OK) {
@@ -361,25 +362,25 @@ bool generate_ngap_request_msg(Ngap_NGAP_PDU_t* pdu) {
   return true;
 }
 
-bool validate_ngap_setup_request(Ngap_NGAP_PDU_t* pdu) {
-  Ngap_NGSetupRequest_t* container = NULL;
-  Ngap_NGSetupRequestIEs_t* ie = NULL;
-  Ngap_NGSetupRequestIEs_t* ie_gnb_name = NULL;
-  Ngap_NGSetupRequestIEs_t* ie_supported_tas = NULL;
-  Ngap_NGSetupRequestIEs_t* ie_default_paging_drx = NULL;
+bool validate_ngap_setup_request(Ngap_NGAP_PDU_t *pdu) {
+  Ngap_NGSetupRequest_t *container = NULL;
+  Ngap_NGSetupRequestIEs_t *ie = NULL;
+  Ngap_NGSetupRequestIEs_t *ie_gnb_name = NULL;
+  Ngap_NGSetupRequestIEs_t *ie_supported_tas = NULL;
+  Ngap_NGSetupRequestIEs_t *ie_default_paging_drx = NULL;
 
-  gnb_description_t* gnb_association = NULL;
+  gnb_description_t *gnb_association = NULL;
   uint32_t gnb_id = 0;
-  char* gnb_name = NULL;
+  char *gnb_name = NULL;
   int ta_ret = 0;
-  uint8_t bplmn_list_count = 0;  // Broadcast PLMN list count
+  uint8_t bplmn_list_count = 0; // Broadcast PLMN list count
 
   container = &pdu->choice.initiatingMessage.value.choice.NGSetupRequest;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_NGSetupRequestIEs_t, ie_gnb_name, container,
                              Ngap_ProtocolIE_ID_id_RANNodeName, false);
   if (ie_gnb_name) {
-    gnb_name = (char*)ie_gnb_name->value.choice.RANNodeName.buf;
+    gnb_name = (char *)ie_gnb_name->value.choice.RANNodeName.buf;
   }
 
   NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_NGSetupRequestIEs_t, ie, container,
@@ -387,7 +388,7 @@ bool validate_ngap_setup_request(Ngap_NGAP_PDU_t* pdu) {
   if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.present ==
       Ngap_GNB_ID_PR_gNB_ID) {
     // Home gNB ID = 28 bits
-    uint8_t* gnb_id_buf = ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID
+    uint8_t *gnb_id_buf = ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID
                               .gNB_ID.choice.gNB_ID.buf;
 
     if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.choice
@@ -403,20 +404,20 @@ bool validate_ngap_setup_request(Ngap_NGAP_PDU_t* pdu) {
                              container, Ngap_ProtocolIE_ID_id_SupportedTAList,
                              true);
 
-  Ngap_SupportedTAList_t* ta_list =
+  Ngap_SupportedTAList_t *ta_list =
       &ie_supported_tas->value.choice.SupportedTAList;
   m5g_supported_ta_list_t gnb_association_supported_ta_list;
   memset(&gnb_association_supported_ta_list, 0,
          sizeof(m5g_supported_ta_list_t));
 
-  m5g_supported_ta_list_t* supp_ta_list = &gnb_association_supported_ta_list;
+  m5g_supported_ta_list_t *supp_ta_list = &gnb_association_supported_ta_list;
   supp_ta_list->list_count = ta_list->list.count;
 
   /* Storing supported TAI lists received in Ng SETUP REQUEST message */
   for (int tai_idx = 0; tai_idx < supp_ta_list->list_count; tai_idx++) {
-    Ngap_SupportedTAItem_t* tai = NULL;
+    Ngap_SupportedTAItem_t *tai = NULL;
     tai = ta_list->list.array[tai_idx];
-    tai->tAC.size = 2;  // ACL_TAG temp to test remove later
+    tai->tAC.size = 2; // ACL_TAG temp to test remove later
     OCTET_STRING_TO_TAC(&tai->tAC,
                         supp_ta_list->supported_tai_items[tai_idx].tac);
 

@@ -34,19 +34,19 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/util/socket.hpp"
 
-#include <stdlib.h>  // malloc, free, atoi
-#include <string.h>  // memset
-#include <unistd.h>  // close
-#include <errno.h>   // EINTR
+#include <errno.h>      // EINTR
+#include <netdb.h>      // getaddrinfo
+#include <stdbool.h>    // true, false
+#include <stdlib.h>     // malloc, free, atoi
+#include <string.h>     // memset
+#include <sys/socket.h> // socket, setsockopt, connect, bind, recv, send
 #include <sys/types.h>
-#include <sys/socket.h>  // socket, setsockopt, connect, bind, recv, send
-#include <netdb.h>       // getaddrinfo
-#include <stdbool.h>     // true, false
+#include <unistd.h> // close
 
 #include <iostream>
 
-#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
@@ -104,7 +104,7 @@ static int _socket_set_option(int sfd);
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-void* socket_udp_open(int type, const char* host, const char* port) {
+void *socket_udp_open(int type, const char *host, const char *port) {
   struct addrinfo socket_info;       /* endpoint information    */
   struct addrinfo *socket_addr, *sp; /* endpoint address    */
   int sfd;                           /* socket file descriptor  */
@@ -233,7 +233,7 @@ void* socket_udp_open(int type, const char* host, const char* port) {
   /*
    * The connection endpoint has been successfully setup
    */
-  socket_id_t* sid = (socket_id_t*)malloc(sizeof(struct socket_id_s));
+  socket_id_t *sid = (socket_id_t *)malloc(sizeof(struct socket_id_s));
 
   if (sid) {
     sid->type = type;
@@ -261,9 +261,9 @@ void* socket_udp_open(int type, const char* host, const char* port) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-void socket_close(void* id) {
+void socket_close(void *id) {
   if (id) {
-    close(((socket_id_t*)id)->fd);
+    close(((socket_id_t *)id)->fd);
     free(id);
   }
 }
@@ -286,8 +286,8 @@ void socket_close(void* id) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-ssize_t socket_recv(void* id, char* buffer, size_t length) {
-  socket_id_t* sid = (socket_id_t*)(id);
+ssize_t socket_recv(void *id, char *buffer, size_t length) {
+  socket_id_t *sid = (socket_id_t *)(id);
   ssize_t rbytes = -1;
 
   if (sid->type == SOCKET_CLIENT) {
@@ -302,8 +302,8 @@ ssize_t socket_recv(void* id, char* buffer, size_t length) {
     /*
      * Receive data from the socket and retreive the remote host address
      */
-    rbytes =
-        recvfrom(sid->fd, buffer, length, 0, (struct sockaddr*)&addr, &addrlen);
+    rbytes = recvfrom(sid->fd, buffer, length, 0, (struct sockaddr *)&addr,
+                      &addrlen);
     sid->addr = addr;
   }
 
@@ -340,8 +340,8 @@ ssize_t socket_recv(void* id, char* buffer, size_t length) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-ssize_t socket_send(const void* id, const char* buffer, size_t length) {
-  const socket_id_t* sid = (socket_id_t*)(id);
+ssize_t socket_send(const void *id, const char *buffer, size_t length) {
+  const socket_id_t *sid = (socket_id_t *)(id);
   ssize_t sbytes = -1;
 
   if (sid->type == SOCKET_CLIENT) {
@@ -353,7 +353,7 @@ ssize_t socket_send(const void* id, const char* buffer, size_t length) {
     /*
      * Send data to the socket using the remote host address
      */
-    sbytes = sendto(sid->fd, buffer, length, 0, (struct sockaddr*)&sid->addr,
+    sbytes = sendto(sid->fd, buffer, length, 0, (struct sockaddr *)&sid->addr,
                     (socklen_t)sizeof(sid->addr));
   }
 
@@ -388,10 +388,11 @@ ssize_t socket_send(const void* id, const char* buffer, size_t length) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e socket_get_fd(const void* id) {
+status_code_e socket_get_fd(const void *id) {
   if (id) {
     int socket_file_descriptor =
-        const_cast<socket_id_t*>(reinterpret_cast<const socket_id_t*>(id))->fd;
+        const_cast<socket_id_t *>(reinterpret_cast<const socket_id_t *>(id))
+            ->fd;
     return static_cast<status_code_e>(socket_file_descriptor);
   }
 

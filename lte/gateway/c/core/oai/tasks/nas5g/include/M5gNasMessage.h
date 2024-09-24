@@ -93,4 +93,4 @@ namespace magma5g {
 #define SERVICE_REJ_T3346_LEN 1
 #define SERVICE_REJ_T3346_VALUE 60
 
-}  // namespace magma5g
+} // namespace magma5g

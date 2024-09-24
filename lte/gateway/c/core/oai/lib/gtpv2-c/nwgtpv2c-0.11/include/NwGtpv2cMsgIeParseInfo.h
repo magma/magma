@@ -34,8 +34,8 @@
 #ifndef __NW_GTPV2C_MSG_PARSE_INFO_H__
 #define __NW_GTPV2C_MSG_PARSE_INFO_H__
 
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/NwGtpv2c.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
 
 /**
  * @file NwGtpv2cMsgParseInfo.h
@@ -62,7 +62,7 @@ typedef struct nw_gtpv2c_msg_ie_parse_info_s {
   struct {
     uint8_t ieMinLength;
     uint8_t iePresence;
-    nw_gtpv2c_grouped_ie_parse_info_t* pGroupedIeInfo;
+    nw_gtpv2c_grouped_ie_parse_info_t *pGroupedIeInfo;
   } ieParseInfo[NW_GTPV2C_IE_TYPE_MAXIMUM][NW_GTPV2C_IE_INSTANCE_MAXIMUM + 1];
 
 } nw_gtpv2c_msg_ie_parse_info_t;
@@ -71,14 +71,14 @@ typedef struct nw_gtpv2c_msg_ie_parse_info_s {
 extern "C" {
 #endif
 
-nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
-    nw_gtpv2c_stack_handle_t hStack, uint8_t msgType);
+nw_gtpv2c_msg_ie_parse_info_t *
+nwGtpv2cMsgIeParseInfoNew(nw_gtpv2c_stack_handle_t hStack, uint8_t msgType);
 
-nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t* thiz);
+nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t *thiz);
 
-nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
+nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t *thiz,
                            NW_IN nw_gtpv2c_msg_handle_t hMsg,
-                           NW_INOUT nw_gtpv2c_error_t* pError);
+                           NW_INOUT nw_gtpv2c_error_t *pError);
 
 #ifdef __cplusplus
 }

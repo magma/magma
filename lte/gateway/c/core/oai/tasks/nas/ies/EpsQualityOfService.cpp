@@ -23,8 +23,8 @@ extern "C" {
 }
 #endif
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -36,12 +36,12 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 //------------------------------------------------------------------------------
-static int decode_eps_qos_bit_rates(EpsQoSBitRates* epsqosbitrates,
-                                    const uint8_t* buffer) {
+static int decode_eps_qos_bit_rates(EpsQoSBitRates *epsqosbitrates,
+                                    const uint8_t *buffer) {
   int decoded = 0;
 
   epsqosbitrates->maxBitRateForUL = *(buffer + decoded);
@@ -56,8 +56,8 @@ static int decode_eps_qos_bit_rates(EpsQoSBitRates* epsqosbitrates,
 }
 
 //------------------------------------------------------------------------------
-int decode_eps_quality_of_service(EpsQualityOfService* epsqualityofservice,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_eps_quality_of_service(EpsQualityOfService *epsqualityofservice,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -119,8 +119,8 @@ int decode_eps_quality_of_service(EpsQualityOfService* epsqualityofservice,
 }
 
 //------------------------------------------------------------------------------
-static int encode_eps_qos_bit_rates(const EpsQoSBitRates* epsqosbitrates,
-                                    uint8_t* buffer) {
+static int encode_eps_qos_bit_rates(const EpsQoSBitRates *epsqosbitrates,
+                                    uint8_t *buffer) {
   int encoded = 0;
 
   *(buffer + encoded) = epsqosbitrates->maxBitRateForUL;
@@ -135,9 +135,9 @@ static int encode_eps_qos_bit_rates(const EpsQoSBitRates* epsqosbitrates,
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_quality_of_service(EpsQualityOfService* epsqualityofservice,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+int encode_eps_quality_of_service(EpsQualityOfService *epsqualityofservice,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   /*
@@ -175,18 +175,18 @@ int encode_eps_quality_of_service(EpsQualityOfService* epsqualityofservice,
   return encoded;
 }
 
-#define EPS_QOS_BIT_RATE_MAX 10240000  // 10 Gbps
+#define EPS_QOS_BIT_RATE_MAX 10240000 // 10 Gbps
 //------------------------------------------------------------------------------
 status_code_e qos_params_to_eps_qos(const qci_t qci, const bitrate_t mbr_dl,
                                     const bitrate_t mbr_ul,
                                     const bitrate_t gbr_dl,
                                     const bitrate_t gbr_ul,
-                                    EpsQualityOfService* const eps_qos,
+                                    EpsQualityOfService *const eps_qos,
                                     bool is_default_bearer) {
-  uint64_t mbr_dl_kbps = mbr_dl / 1000;  // mbr_dl is expected in bps
-  uint64_t mbr_ul_kbps = mbr_ul / 1000;  // mbr_ul is expected in bps
-  uint64_t gbr_dl_kbps = gbr_dl / 1000;  // mbr_dl is expected in bps
-  uint64_t gbr_ul_kbps = gbr_ul / 1000;  // mbr_ul is expected in bps
+  uint64_t mbr_dl_kbps = mbr_dl / 1000; // mbr_dl is expected in bps
+  uint64_t mbr_ul_kbps = mbr_ul / 1000; // mbr_ul is expected in bps
+  uint64_t gbr_dl_kbps = gbr_dl / 1000; // mbr_dl is expected in bps
+  uint64_t gbr_ul_kbps = gbr_ul / 1000; // mbr_ul is expected in bps
 
   if (eps_qos) {
     memset(eps_qos, 0, sizeof(EpsQualityOfService));

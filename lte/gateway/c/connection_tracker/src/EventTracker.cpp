@@ -15,21 +15,21 @@
 
 #include <arpa/inet.h>
 #include <glog/logging.h>
+#include <iostream>
 #include <libmnl/libmnl.h>
+#include <linux/netfilter/nfnetlink.h>
 #include <linux/netfilter/nfnetlink_compat.h>
+#include <linux/netfilter/nfnetlink_conntrack.h>
 #include <linux/netlink.h>
+#include <memory>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
-#include <linux/netfilter/nfnetlink.h>
-#include <linux/netfilter/nfnetlink_conntrack.h>
-#include <memory>
 
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
-static int data_cb(const struct nlmsghdr* nlh, void* data);
+static int data_cb(const struct nlmsghdr *nlh, void *data);
 
 namespace magma {
 namespace lte {
@@ -38,7 +38,7 @@ EventTracker::EventTracker(std::shared_ptr<PacketGenerator> pkt_gen, int zone)
     : pkt_gen_(pkt_gen), zone_(zone) {}
 
 int EventTracker::init_conntrack_event_loop() {
-  struct mnl_socket* nl;
+  struct mnl_socket *nl;
   char buf[MNL_SOCKET_BUFFER_SIZE];
   int ret;
 
@@ -63,7 +63,7 @@ int EventTracker::init_conntrack_event_loop() {
       perror("mnl_socket_recvfrom");
       exit(EXIT_FAILURE);
     }
-    ret = mnl_cb_run(buf, ret, 0, 0, data_cb, (void*)this);
+    ret = mnl_cb_run(buf, ret, 0, 0, data_cb, (void *)this);
     if (ret == -1) {
       perror("mnl_cb_run");
       exit(EXIT_FAILURE);
@@ -74,75 +74,77 @@ int EventTracker::init_conntrack_event_loop() {
 
   return 0;
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
-static int parse_ip_cb(const struct nlattr* attr, void* data) {
-  const struct nlattr** tb = (const struct nlattr**)data;
+static int parse_ip_cb(const struct nlattr *attr, void *data) {
+  const struct nlattr **tb = (const struct nlattr **)data;
   int type = mnl_attr_get_type(attr);
 
-  if (mnl_attr_type_valid(attr, CTA_IP_MAX) < 0) return MNL_CB_OK;
+  if (mnl_attr_type_valid(attr, CTA_IP_MAX) < 0)
+    return MNL_CB_OK;
 
   switch (type) {
-    case CTA_IP_V4_SRC:
-    case CTA_IP_V4_DST:
-      if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-        perror("mnl_attr_validate");
-        return MNL_CB_ERROR;
-      }
-      break;
+  case CTA_IP_V4_SRC:
+  case CTA_IP_V4_DST:
+    if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
+      perror("mnl_attr_validate");
+      return MNL_CB_ERROR;
+    }
+    break;
   }
   tb[type] = attr;
   return MNL_CB_OK;
 }
 
-static void parse_ip(const struct nlattr* nest, struct flow_information* flow) {
-  struct nlattr* tb[CTA_IP_MAX + 1] = {};
+static void parse_ip(const struct nlattr *nest, struct flow_information *flow) {
+  struct nlattr *tb[CTA_IP_MAX + 1] = {};
 
   mnl_attr_parse_nested(nest, parse_ip_cb, tb);
   if (tb[CTA_IP_V4_SRC]) {
-    struct in_addr* in =
-        (struct in_addr*)mnl_attr_get_payload(tb[CTA_IP_V4_SRC]);
+    struct in_addr *in =
+        (struct in_addr *)mnl_attr_get_payload(tb[CTA_IP_V4_SRC]);
     flow->saddr = in->s_addr;
   }
   if (tb[CTA_IP_V4_DST]) {
-    struct in_addr* in =
-        (struct in_addr*)mnl_attr_get_payload(tb[CTA_IP_V4_DST]);
+    struct in_addr *in =
+        (struct in_addr *)mnl_attr_get_payload(tb[CTA_IP_V4_DST]);
     flow->daddr = in->s_addr;
   }
 }
 
-static int parse_proto_cb(const struct nlattr* attr, void* data) {
-  const struct nlattr** tb = (const struct nlattr**)data;
+static int parse_proto_cb(const struct nlattr *attr, void *data) {
+  const struct nlattr **tb = (const struct nlattr **)data;
   int type = mnl_attr_get_type(attr);
 
-  if (mnl_attr_type_valid(attr, CTA_PROTO_MAX) < 0) return MNL_CB_OK;
+  if (mnl_attr_type_valid(attr, CTA_PROTO_MAX) < 0)
+    return MNL_CB_OK;
 
   switch (type) {
-    case CTA_PROTO_NUM:
-    case CTA_PROTO_ICMP_TYPE:
-    case CTA_PROTO_ICMP_CODE:
-      if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0) {
-        perror("mnl_attr_validate");
-        return MNL_CB_ERROR;
-      }
-      break;
-    case CTA_PROTO_SRC_PORT:
-    case CTA_PROTO_DST_PORT:
-    case CTA_PROTO_ICMP_ID:
-      if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0) {
-        perror("mnl_attr_validate");
-        return MNL_CB_ERROR;
-      }
-      break;
+  case CTA_PROTO_NUM:
+  case CTA_PROTO_ICMP_TYPE:
+  case CTA_PROTO_ICMP_CODE:
+    if (mnl_attr_validate(attr, MNL_TYPE_U8) < 0) {
+      perror("mnl_attr_validate");
+      return MNL_CB_ERROR;
+    }
+    break;
+  case CTA_PROTO_SRC_PORT:
+  case CTA_PROTO_DST_PORT:
+  case CTA_PROTO_ICMP_ID:
+    if (mnl_attr_validate(attr, MNL_TYPE_U16) < 0) {
+      perror("mnl_attr_validate");
+      return MNL_CB_ERROR;
+    }
+    break;
   }
   tb[type] = attr;
   return MNL_CB_OK;
 }
 
-static void parse_proto(const struct nlattr* nest,
-                        struct flow_information* flow) {
-  struct nlattr* tb[CTA_PROTO_MAX + 1] = {};
+static void parse_proto(const struct nlattr *nest,
+                        struct flow_information *flow) {
+  struct nlattr *tb[CTA_PROTO_MAX + 1] = {};
 
   mnl_attr_parse_nested(nest, parse_proto_cb, tb);
   if (tb[CTA_PROTO_NUM]) {
@@ -156,33 +158,34 @@ static void parse_proto(const struct nlattr* nest,
   }
 }
 
-static int parse_tuple_cb(const struct nlattr* attr, void* data) {
-  const struct nlattr** tb = (const struct nlattr**)data;
+static int parse_tuple_cb(const struct nlattr *attr, void *data) {
+  const struct nlattr **tb = (const struct nlattr **)data;
   int type = mnl_attr_get_type(attr);
 
-  if (mnl_attr_type_valid(attr, CTA_TUPLE_MAX) < 0) return MNL_CB_OK;
+  if (mnl_attr_type_valid(attr, CTA_TUPLE_MAX) < 0)
+    return MNL_CB_OK;
 
   switch (type) {
-    case CTA_TUPLE_IP:
-      if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
-        perror("mnl_attr_validate");
-        return MNL_CB_ERROR;
-      }
-      break;
-    case CTA_TUPLE_PROTO:
-      if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
-        perror("mnl_attr_validate");
-        return MNL_CB_ERROR;
-      }
-      break;
+  case CTA_TUPLE_IP:
+    if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
+      perror("mnl_attr_validate");
+      return MNL_CB_ERROR;
+    }
+    break;
+  case CTA_TUPLE_PROTO:
+    if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
+      perror("mnl_attr_validate");
+      return MNL_CB_ERROR;
+    }
+    break;
   }
   tb[type] = attr;
   return MNL_CB_OK;
 }
 
-static void print_tuple(const struct nlattr* nest,
-                        struct flow_information* flow) {
-  struct nlattr* tb[CTA_TUPLE_MAX + 1] = {};
+static void print_tuple(const struct nlattr *nest,
+                        struct flow_information *flow) {
+  struct nlattr *tb[CTA_TUPLE_MAX + 1] = {};
 
   mnl_attr_parse_nested(nest, parse_tuple_cb, tb);
   if (tb[CTA_TUPLE_IP]) {
@@ -193,35 +196,36 @@ static void print_tuple(const struct nlattr* nest,
   }
 }
 
-static int data_attr_cb(const struct nlattr* attr, void* data) {
-  const struct nlattr** tb = (const struct nlattr**)data;
+static int data_attr_cb(const struct nlattr *attr, void *data) {
+  const struct nlattr **tb = (const struct nlattr **)data;
   int type = mnl_attr_get_type(attr);
 
-  if (mnl_attr_type_valid(attr, CTA_MAX) < 0) return MNL_CB_OK;
+  if (mnl_attr_type_valid(attr, CTA_MAX) < 0)
+    return MNL_CB_OK;
 
   switch (type) {
-    case CTA_TUPLE_ORIG:
-      if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
-        perror("mnl_attr_validate");
-        return MNL_CB_ERROR;
-      }
-      break;
-    case CTA_TIMEOUT:
-    case CTA_MARK:
-    case CTA_SECMARK:
-      if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
-        perror("mnl_attr_validate");
-        return MNL_CB_ERROR;
-      }
-      break;
+  case CTA_TUPLE_ORIG:
+    if (mnl_attr_validate(attr, MNL_TYPE_NESTED) < 0) {
+      perror("mnl_attr_validate");
+      return MNL_CB_ERROR;
+    }
+    break;
+  case CTA_TIMEOUT:
+  case CTA_MARK:
+  case CTA_SECMARK:
+    if (mnl_attr_validate(attr, MNL_TYPE_U32) < 0) {
+      perror("mnl_attr_validate");
+      return MNL_CB_ERROR;
+    }
+    break;
   }
   tb[type] = attr;
   return MNL_CB_OK;
 }
 
-static int data_cb(const struct nlmsghdr* nlh, void* data) {
-  struct nlattr* tb[CTA_MAX + 1] = {};
-  struct nfgenmsg* nfg = (struct nfgenmsg*)mnl_nlmsg_get_payload(nlh);
+static int data_cb(const struct nlmsghdr *nlh, void *data) {
+  struct nlattr *tb[CTA_MAX + 1] = {};
+  struct nfgenmsg *nfg = (struct nfgenmsg *)mnl_nlmsg_get_payload(nlh);
   struct flow_information flow;
   struct in_addr src_ip;
   struct in_addr dst_ip;
@@ -233,7 +237,7 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
   mnl_attr_parse(nlh, sizeof(*nfg), data_attr_cb, tb);
 
   // If zone isn't set the event isn't coming from the OVS commited flow
-  if (!tb[CTA_ZONE] || ((magma::lte::EventTracker*)data)->zone_ !=
+  if (!tb[CTA_ZONE] || ((magma::lte::EventTracker *)data)->zone_ !=
                            ntohs(mnl_attr_get_u16(tb[CTA_ZONE]))) {
     return 0;
   }
@@ -246,26 +250,26 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
   dst_ip.s_addr = flow.daddr;
 
   switch (nlh->nlmsg_type & 0xFF) {
-    case IPCTNL_MSG_CT_NEW:
-      if (nlh->nlmsg_flags & (NLM_F_CREATE | NLM_F_EXCL))
-        MLOG(MINFO) << "     [NEW] src=" << inet_ntoa(src_ip) << ":"
-                    << ntohs(flow.sport) << " dst=" << inet_ntoa(dst_ip) << ":"
-                    << ntohs(flow.dport) << " proto=" << flow.l4_proto;
-      else
-        printf("%9s ", "[UPDATE] \n");
-      break;
-    case IPCTNL_MSG_CT_DELETE:
-      MLOG(MINFO) << "[DESTROY] src=" << inet_ntoa(src_ip) << ":"
+  case IPCTNL_MSG_CT_NEW:
+    if (nlh->nlmsg_flags & (NLM_F_CREATE | NLM_F_EXCL))
+      MLOG(MINFO) << "     [NEW] src=" << inet_ntoa(src_ip) << ":"
                   << ntohs(flow.sport) << " dst=" << inet_ntoa(dst_ip) << ":"
                   << ntohs(flow.dport) << " proto=" << flow.l4_proto;
-      break;
+    else
+      printf("%9s ", "[UPDATE] \n");
+    break;
+  case IPCTNL_MSG_CT_DELETE:
+    MLOG(MINFO) << "[DESTROY] src=" << inet_ntoa(src_ip) << ":"
+                << ntohs(flow.sport) << " dst=" << inet_ntoa(dst_ip) << ":"
+                << ntohs(flow.dport) << " proto=" << flow.l4_proto;
+    break;
   }
 
   if (tb[CTA_MARK]) {
     MLOG(MINFO) << "From zone " << mnl_attr_get_u16(tb[CTA_ZONE]);
   }
 
-  ((magma::lte::EventTracker*)data)->pkt_gen_->send_packet(&flow);
+  ((magma::lte::EventTracker *)data)->pkt_gen_->send_packet(&flow);
 
   return MNL_CB_OK;
 }

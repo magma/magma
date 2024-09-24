@@ -10,20 +10,20 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 namespace magma5g {
 class M5GUplinkDataStatus {
- public:
+public:
   uint8_t iei;
   uint8_t len;
   uint16_t uplinkDataStatus;
 
   M5GUplinkDataStatus();
   ~M5GUplinkDataStatus();
-  int EncodeUplinkDataStatus(M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei,
-                             uint8_t* buffer, uint32_t len);
-  int DecodeUplinkDataStatus(M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei,
-                             uint8_t* buffer, uint32_t len);
+  int EncodeUplinkDataStatus(M5GUplinkDataStatus *uplinkDataStatus, uint8_t iei,
+                             uint8_t *buffer, uint32_t len);
+  int DecodeUplinkDataStatus(M5GUplinkDataStatus *uplinkDataStatus, uint8_t iei,
+                             uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

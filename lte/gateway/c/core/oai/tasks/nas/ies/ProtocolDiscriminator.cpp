@@ -17,9 +17,9 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ProtocolDiscriminator.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,14 +31,14 @@ extern "C" {
 }
 #endif
 
-int decode_protocol_discriminator(ProtocolDiscriminator* protocoldiscriminator,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_protocol_discriminator(ProtocolDiscriminator *protocoldiscriminator,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len) {
   Fatal("TODO Implement decode_protocol_discriminator");
   return -1;
 }
 
-int encode_protocol_discriminator(ProtocolDiscriminator* protocoldiscriminator,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len) {
+int encode_protocol_discriminator(ProtocolDiscriminator *protocoldiscriminator,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len) {
   Fatal("TODO Implement encode_protocol_discriminator");
   return -1;
 }

@@ -32,17 +32,17 @@ BPF_TABLE_PINNED("array", u32, struct cfg_array_info, cfg_array, 1,
                  "/sys/fs/bpf/cfg_array");
 
 // Ingress handler for Uplink traffic.
-int gtpu_egress_handler(struct __sk_buff* skb) {
+int gtpu_egress_handler(struct __sk_buff *skb) {
   int ret;
-  struct iphdr* iph;
-  void* data;
-  void* data_end;
+  struct iphdr *iph;
+  void *data;
+  void *data_end;
 
   int ip_hdr = sizeof(struct ethhdr) + sizeof(struct iphdr);
 
   // 1. a. check pkt length
-  data = (void*)(long)skb->data;
-  data_end = (void*)(long)skb->data_end;
+  data = (void *)(long)skb->data;
+  data_end = (void *)(long)skb->data_end;
   int len = data_end - data;
 
   if ((data + ip_hdr) > data_end) {
@@ -54,7 +54,7 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
   // 1. b. check UE map
   iph = data + sizeof(struct ethhdr);
   struct dl_map_key lookup_key = {iph->daddr};
-  struct dl_map_info* fwd = dl_map.lookup(&lookup_key);
+  struct dl_map_info *fwd = dl_map.lookup(&lookup_key);
   if (!fwd) {
     bpf_trace_printk("ERR: UE for IP %x not found\n", iph->daddr);
     return TC_ACT_OK;
@@ -77,7 +77,7 @@ int gtpu_egress_handler(struct __sk_buff* skb) {
                    tun_info.tunnel_id, tun_info.remote_ipv4, ret);
 
   u32 cfg_key = 0;
-  struct cfg_array_info* cfg = cfg_array.lookup(&cfg_key);
+  struct cfg_array_info *cfg = cfg_array.lookup(&cfg_key);
   if (!cfg) {
     bpf_trace_printk("ERR: Config array lookup failed\n");
     return TC_ACT_OK;

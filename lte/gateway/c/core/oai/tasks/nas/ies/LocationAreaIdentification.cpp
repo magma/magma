@@ -17,22 +17,22 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/LocationAreaIdentification.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_location_area_identification(
-    LocationAreaIdentification* locationareaidentification, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    LocationAreaIdentification *locationareaidentification, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -58,8 +58,8 @@ int decode_location_area_identification(
 }
 
 int encode_location_area_identification(
-    LocationAreaIdentification* locationareaidentification, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    LocationAreaIdentification *locationareaidentification, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   /*
@@ -93,7 +93,7 @@ int encode_location_area_identification(
 }
 
 void dump_location_area_identification_xml(
-    LocationAreaIdentification* locationareaidentification, uint8_t iei) {
+    LocationAreaIdentification *locationareaidentification, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Location Area Identification>\n");
 
   if (iei > 0)

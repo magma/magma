@@ -24,8 +24,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.hpp"
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,7 +45,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/s1ap_types.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 
-static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t* const plmn) {
+static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t *const plmn) {
   int i = 0;
   uint16_t mcc = 0;
   uint16_t mnc = 0;
@@ -78,7 +78,7 @@ static int s1ap_mme_compare_plmn(const S1ap_PLMNidentity_t* const plmn) {
 
 /* @brief compare a list of broadcasted plmns against the MME configured.
  */
-static int s1ap_mme_compare_plmns(S1ap_BPLMNs_t* b_plmns) {
+static int s1ap_mme_compare_plmns(S1ap_BPLMNs_t *b_plmns) {
   int i = 0;
   int matching_occurence = 0;
 
@@ -100,7 +100,7 @@ static int s1ap_mme_compare_plmns(S1ap_BPLMNs_t* b_plmns) {
 
 /* @brief compare a TAC
  */
-static int s1ap_mme_compare_tac(const S1ap_TAC_t* const tac) {
+static int s1ap_mme_compare_tac(const S1ap_TAC_t *const tac) {
   int i = 0;
   uint16_t tac_value = 0;
 
@@ -126,7 +126,7 @@ static int s1ap_mme_compare_tac(const S1ap_TAC_t* const tac) {
            - TA_LIST_UNKNOWN_TAC if at least one PLMN match and no TAC match
            - TA_LIST_RET_OK if both tac and plmn match at least one element
 */
-int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
+int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t *ta_list) {
   int i;
   int tac_ret, bplmn_ret;
   int tac_matches = 0, bplmn_matches = 0;
@@ -137,7 +137,7 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
    * Parse every item in the list and try to find matching parameters
    */
   for (i = 0; i < ta_list->list.count; i++) {
-    S1ap_SupportedTAs_Item_t* ta;
+    S1ap_SupportedTAs_Item_t *ta;
 
     ta = ta_list->list.array[i];
     DevAssert(ta != NULL);
@@ -169,8 +169,8 @@ int s1ap_mme_compare_ta_lists(S1ap_SupportedTAs_t* ta_list) {
 /* @brief compare PLMNs
  */
 static int s1ap_paging_compare_plmns(
-    const magma::lte::oai::SupportedTaiItems& enb_tai_item,
-    uint8_t enb_plmn_count, const paging_tai_list_t* p_tai_list) {
+    const magma::lte::oai::SupportedTaiItems &enb_tai_item,
+    uint8_t enb_plmn_count, const paging_tai_list_t *p_tai_list) {
   int plmn_idx, p_plmn_idx;
 
   if (!(enb_tai_item.bplmns_size())) {
@@ -200,7 +200,7 @@ static int s1ap_paging_compare_plmns(
 /* @brief compare a TAC
  */
 static int s1ap_paging_compare_tac(uint8_t enb_tac,
-                                   const paging_tai_list_t* p_tai_list) {
+                                   const paging_tai_list_t *p_tai_list) {
   for (int p_tac_count = 0; p_tac_count < (p_tai_list->numoftac + 1);
        p_tac_count++) {
     if (enb_tac == p_tai_list->tai_list[p_tac_count].tac) {
@@ -216,8 +216,8 @@ static int s1ap_paging_compare_tac(uint8_t enb_tac,
    ENBs
            - tai_matching=1 if both TAC and PLMN matches with list of ENBs
 */
-int s1ap_paging_compare_ta_lists(magma::lte::oai::SupportedTaList& enb_ta_list,
-                                 const paging_tai_list_t* p_tai_list,
+int s1ap_paging_compare_ta_lists(magma::lte::oai::SupportedTaList &enb_ta_list,
+                                 const paging_tai_list_t *p_tai_list,
                                  uint8_t p_tai_list_count) {
   bool tac_ret = false, bplmn_ret = false;
   int enb_tai_count, p_list_count;
@@ -231,7 +231,7 @@ int s1ap_paging_compare_ta_lists(magma::lte::oai::SupportedTaList& enb_ta_list,
     magma::lte::oai::SupportedTaiItems enb_tai_item =
         enb_ta_list.supported_tai_items(enb_tai_count);
     for (p_list_count = 0; p_list_count < p_tai_list_count; p_list_count++) {
-      const paging_tai_list_t* tai = NULL;
+      const paging_tai_list_t *tai = NULL;
       tai = &p_tai_list[p_list_count];
       if (tai == NULL) {
         OAILOG_ERROR(LOG_S1AP, "Paging TAI list not found\n");

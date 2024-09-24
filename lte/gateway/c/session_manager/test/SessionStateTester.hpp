@@ -10,25 +10,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <future>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-#include <future>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "lte/gateway/c/session_manager/SessionState.hpp"
 #include "lte/gateway/c/session_manager/test/Consts.hpp"
 #include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
 #include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
-#include "lte/gateway/c/session_manager/SessionState.hpp"
 
 using ::testing::Test;
 
 namespace magma {
 
 class SessionStateTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     Teids teids;
     cfg.common_context =
@@ -47,60 +47,59 @@ class SessionStateTest : public ::testing::Test {
   }
 
   void insert_static_rule_into_store(uint32_t rating_group,
-                                     const std::string& m_key,
-                                     const std::string& rule_id) {
+                                     const std::string &m_key,
+                                     const std::string &rule_id) {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
   void insert_static_rule_with_qos_into_store(uint32_t rating_group,
-                                              const std::string& m_key,
+                                              const std::string &m_key,
                                               const int qci,
-                                              const std::string& rule_id) {
+                                              const std::string &rule_id) {
     PolicyRule rule =
         create_policy_rule_with_qos(rule_id, m_key, rating_group, qci);
     rule_store->insert_rule(rule);
   }
 
-  uint32_t insert_rule(uint32_t rating_group, const std::string& m_key,
-                       const std::string& rule_id, PolicyType rule_type,
+  uint32_t insert_rule(uint32_t rating_group, const std::string &m_key,
+                       const std::string &rule_id, PolicyType rule_type,
                        std::time_t activation_time,
                        std::time_t deactivation_time) {
     PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
-      case STATIC:
-        // insert into list of existing rules
-        rule_store->insert_rule(rule);
-        // mark the rule as active in session
-        return session_state
-            ->activate_static_rule(rule_id, lifetime, &update_criteria)
-            .version;
-      case DYNAMIC:
-        return session_state
-            ->insert_dynamic_rule(rule, lifetime, &update_criteria)
-            .version;
-        break;
+    case STATIC:
+      // insert into list of existing rules
+      rule_store->insert_rule(rule);
+      // mark the rule as active in session
+      return session_state
+          ->activate_static_rule(rule_id, lifetime, &update_criteria)
+          .version;
+    case DYNAMIC:
+      return session_state
+          ->insert_dynamic_rule(rule, lifetime, &update_criteria)
+          .version;
+      break;
     }
     return 0;
   }
 
-  void schedule_rule(uint32_t rating_group, const std::string& m_key,
-                     const std::string& rule_id, PolicyType rule_type,
+  void schedule_rule(uint32_t rating_group, const std::string &m_key,
+                     const std::string &rule_id, PolicyType rule_type,
                      std::time_t activation_time,
                      std::time_t deactivation_time) {
     PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
-      case STATIC:
-        // insert into list of existing rules
-        rule_store->insert_rule(rule);
-        // mark the rule as scheduled in the session
-        session_state->schedule_static_rule(rule_id, lifetime,
-                                            &update_criteria);
-        break;
-      case DYNAMIC:
-        session_state->schedule_dynamic_rule(rule, lifetime, &update_criteria);
-        break;
+    case STATIC:
+      // insert into list of existing rules
+      rule_store->insert_rule(rule);
+      // mark the rule as scheduled in the session
+      session_state->schedule_static_rule(rule_id, lifetime, &update_criteria);
+      break;
+    case DYNAMIC:
+      session_state->schedule_dynamic_rule(rule, lifetime, &update_criteria);
+      break;
     }
   }
 
@@ -112,35 +111,35 @@ class SessionStateTest : public ::testing::Test {
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
-    const auto& lte_context =
+    const auto &lte_context =
         build_lte_context(IP2, "", "", "", "", BEARER_ID_1, &qos_info);
     cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
     session_state->set_config(cfg, nullptr);
   }
 
   // TODO: make session_manager.proto and policydb.proto to use common field
-  static RedirectInformation_AddressType address_type_converter(
-      RedirectServer_RedirectAddressType address_type) {
+  static RedirectInformation_AddressType
+  address_type_converter(RedirectServer_RedirectAddressType address_type) {
     switch (address_type) {
-      case RedirectServer_RedirectAddressType_IPV4:
-        return RedirectInformation_AddressType_IPv4;
-      case RedirectServer_RedirectAddressType_IPV6:
-        return RedirectInformation_AddressType_IPv6;
-      case RedirectServer_RedirectAddressType_URL:
-        return RedirectInformation_AddressType_URL;
-      case RedirectServer_RedirectAddressType_SIP_URI:
-        return RedirectInformation_AddressType_SIP_URI;
-      default:
-        return RedirectInformation_AddressType_IPv4;
+    case RedirectServer_RedirectAddressType_IPV4:
+      return RedirectInformation_AddressType_IPv4;
+    case RedirectServer_RedirectAddressType_IPV6:
+      return RedirectInformation_AddressType_IPv6;
+    case RedirectServer_RedirectAddressType_URL:
+      return RedirectInformation_AddressType_URL;
+    case RedirectServer_RedirectAddressType_SIP_URI:
+      return RedirectInformation_AddressType_SIP_URI;
+    default:
+      return RedirectInformation_AddressType_IPv4;
     }
   }
 
-  uint32_t insert_gy_redirection_rule(const std::string& rule_id) {
+  uint32_t insert_gy_redirection_rule(const std::string &rule_id) {
     PolicyRule redirect_rule;
     redirect_rule.set_id(rule_id);
     redirect_rule.set_priority(999);
 
-    RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
+    RedirectInformation *redirect_info = redirect_rule.mutable_redirect();
     redirect_info->set_support(RedirectInformation_Support_ENABLED);
 
     RedirectServer redirect_server;
@@ -175,13 +174,13 @@ class SessionStateTest : public ::testing::Test {
     session_state->receive_charging_credit(charge_resp, &update_criteria);
   }
 
-  void receive_credit_from_pcrf(const std::string& mkey, uint64_t volume,
+  void receive_credit_from_pcrf(const std::string &mkey, uint64_t volume,
                                 MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
     receive_credit_from_pcrf(mkey, volume, 0, 0, level);
   }
 
-  void receive_credit_from_pcrf(const std::string& mkey, uint64_t total_volume,
+  void receive_credit_from_pcrf(const std::string &mkey, uint64_t total_volume,
                                 uint64_t tx_volume, uint64_t rx_volume,
                                 MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
@@ -191,35 +190,35 @@ class SessionStateTest : public ::testing::Test {
     session_state->receive_monitor(monitor_resp, &update_criteria);
   }
 
-  uint32_t activate_rule(uint32_t rating_group, const std::string& m_key,
-                         const std::string& rule_id, PolicyType rule_type,
+  uint32_t activate_rule(uint32_t rating_group, const std::string &m_key,
+                         const std::string &rule_id, PolicyType rule_type,
                          std::time_t activation_time,
                          std::time_t deactivation_time) {
     PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
-      case STATIC:
-        rule_store->insert_rule(rule);
-        return session_state
-            ->activate_static_rule(rule_id, lifetime, &update_criteria)
-            .version;
-        break;
-      case DYNAMIC:
-        return session_state
-            ->insert_dynamic_rule(rule, lifetime, &update_criteria)
-            .version;
-        break;
-      default:
-        break;
+    case STATIC:
+      rule_store->insert_rule(rule);
+      return session_state
+          ->activate_static_rule(rule_id, lifetime, &update_criteria)
+          .version;
+      break;
+    case DYNAMIC:
+      return session_state
+          ->insert_dynamic_rule(rule, lifetime, &update_criteria)
+          .version;
+      break;
+    default:
+      break;
     }
     return 0;
   }
 
-  uint32_t get_monitored_rule_count(const std::string& mkey) {
+  uint32_t get_monitored_rule_count(const std::string &mkey) {
     std::vector<PolicyRule> rules;
     EXPECT_TRUE(session_state->get_dynamic_rules().get_rules(rules));
     uint32_t count = 0;
-    for (PolicyRule& rule : rules) {
+    for (PolicyRule &rule : rules) {
       if (rule.monitoring_key() == mkey) {
         count++;
       }
@@ -227,10 +226,10 @@ class SessionStateTest : public ::testing::Test {
     return count;
   }
 
- protected:
+protected:
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<SessionState> session_state;
   SessionStateUpdateCriteria update_criteria;
   SessionConfig cfg;
 };
-};  // namespace magma
+}; // namespace magma

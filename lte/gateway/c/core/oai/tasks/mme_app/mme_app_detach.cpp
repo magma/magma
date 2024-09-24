@@ -28,15 +28,15 @@
 
  *******************************************************************************/
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
@@ -45,19 +45,19 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/common/gcc_diag.h"
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
-#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
@@ -67,9 +67,9 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 void mme_app_send_delete_session_request(
-    struct ue_mm_context_s* const ue_context_p, const ebi_t ebi,
+    struct ue_mm_context_s *const ue_context_p, const ebi_t ebi,
     const pdn_cid_t cid, const bool no_delete_gtpv2c_tunnel) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,
                  "Handle Delete session request for mme_s11_teid :%d\n",
@@ -91,7 +91,7 @@ void mme_app_send_delete_session_request(
   S11_DELETE_SESSION_REQUEST(message_p).teid =
       ue_context_p->pdn_contexts[cid]->s_gw_teid_s11_s4;
   S11_DELETE_SESSION_REQUEST(message_p).noDelete = no_delete_gtpv2c_tunnel;
-  S11_DELETE_SESSION_REQUEST(message_p).lbi = ebi;  // default bearer
+  S11_DELETE_SESSION_REQUEST(message_p).lbi = ebi; // default bearer
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_addr =
       ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   S11_DELETE_SESSION_REQUEST(message_p).edns_peer_ip.addr_v4.sin_family =
@@ -148,7 +148,7 @@ void mme_app_send_delete_session_request(
 
 //------------------------------------------------------------------------------
 void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context_p == NULL) {
@@ -165,7 +165,7 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
      * If UE is already in idle state, skip asking eNB to release UE context and
      * just clean up locally.
      */
-    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     if (!mme_app_desc_p) {
       OAILOG_ERROR(LOG_MME_APP, "Failed to fetch mme_app_desc_p \n");
       OAILOG_FUNC_OUT(LOG_MME_APP);

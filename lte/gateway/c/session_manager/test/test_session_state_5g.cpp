@@ -10,18 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <future>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
-#include <future>
 #include <memory>
 #include <utility>
 
-#include "lte/gateway/c/session_manager/test/Consts.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
-#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
-#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
 #include "lte/gateway/c/session_manager/SessionState.hpp"
+#include "lte/gateway/c/session_manager/test/Consts.hpp"
+#include "lte/gateway/c/session_manager/test/ProtobufCreators.hpp"
 #include "lte/gateway/c/session_manager/test/SessionStateTester5g.hpp"
+#include "lte/gateway/c/session_manager/test/SessiondMocks.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 using ::testing::Test;
 
@@ -259,7 +259,7 @@ TEST_F(SessionStateTest5G, test_remove_all_session_rules) {
   EXPECT_EQ(update_criteria.dynamic_rules_to_uninstall.size(), 0);
 
   std::vector<std::string> rules_out{};
-  std::vector<std::string>& rules_out_ptr = rules_out;
+  std::vector<std::string> &rules_out_ptr = rules_out;
 
   session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
   EXPECT_EQ(rules_out_ptr.size(), 2);
@@ -308,4 +308,4 @@ TEST_F(SessionStateTest5G, test_marshal_unmarshal) {
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(unmarshaled->is_dynamic_rule_installed("rule2"), false);
 }
-}  // namespace magma
+} // namespace magma

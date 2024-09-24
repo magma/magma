@@ -30,10 +30,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
 #endif
@@ -42,81 +42,81 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
 //------------------------------------------------------------------------------
-status_code_e select_pdn_type(struct apn_configuration_s* apn_config,
+status_code_e select_pdn_type(struct apn_configuration_s *apn_config,
                               esm_proc_pdn_type_t ue_selected_pdn_type,
-                              esm_cause_t* esm_cause) {
+                              esm_cause_t *esm_cause) {
   /* Overwrite apn_config->pdn_type based on the PDN type sent by UE and the PDN
    * Type received in subscription profile
    */
   switch (ue_selected_pdn_type) {
-    case ESM_PDN_TYPE_IPV4:
-      if ((apn_config->pdn_type == IPv4_AND_v6) ||
-          (apn_config->pdn_type == IPv4_OR_v6)) {
-        apn_config->pdn_type = IPv4;
-      } else if (apn_config->pdn_type == IPv6) {
-        /* As per 3gpp 23.401-cb0 sec 5.3.1, If the requested PDN type is IPv4
-         * or IPv6, and either the requested PDN type or PDN type IPv4v6 are
-         * subscribed, the MME sets the PDN type as requested. Otherwise the PDN
-         * connection request is rejected
-         */
-        OAILOG_ERROR(LOG_MME_APP,
-                     " Sending PDN Connectivity Reject with cause "
-                     "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
-                     " UE requested PDN Type %d, subscribed PDN Type %d \n",
-                     ue_selected_pdn_type, apn_config->pdn_type);
-
-        *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
-        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-      }
-      break;
-
-    case ESM_PDN_TYPE_IPV6:
-      if ((apn_config->pdn_type == IPv4_AND_v6) ||
-          (apn_config->pdn_type == IPv4_OR_v6)) {
-        apn_config->pdn_type = IPv6;
-      } else if (apn_config->pdn_type == IPv4) {
-        /* As per 3gpp 23.401-cb0 sec 5.3.1, If the requested PDN type is IPv4
-         * or IPv6, and either the requested PDN type or PDN type IPv4v6 are
-         * subscribed, the MME sets the PDN type as requested. Otherwise the PDN
-         * connection request is rejected
-         */
-        OAILOG_ERROR(LOG_MME_APP,
-                     " Sending PDN Connectivity Reject with cause "
-                     "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
-                     " UE requested PDN Type %d, subscribed PDN Type %d \n",
-                     ue_selected_pdn_type, apn_config->pdn_type);
-
-        *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
-        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-      }
-      break;
-
-    case ESM_PDN_TYPE_IPV4V6:
-      if (apn_config->pdn_type == IPv4_OR_v6) {
-        apn_config->pdn_type = IPv4;
-      } else if (apn_config->pdn_type == IPv4) {
-        *esm_cause = ESM_CAUSE_PDN_TYPE_IPV4_ONLY_ALLOWED;
-      } else if (apn_config->pdn_type == IPv6) {
-        *esm_cause = ESM_CAUSE_PDN_TYPE_IPV6_ONLY_ALLOWED;
-      }
-      break;
-
-    default:
+  case ESM_PDN_TYPE_IPV4:
+    if ((apn_config->pdn_type == IPv4_AND_v6) ||
+        (apn_config->pdn_type == IPv4_OR_v6)) {
+      apn_config->pdn_type = IPv4;
+    } else if (apn_config->pdn_type == IPv6) {
+      /* As per 3gpp 23.401-cb0 sec 5.3.1, If the requested PDN type is IPv4
+       * or IPv6, and either the requested PDN type or PDN type IPv4v6 are
+       * subscribed, the MME sets the PDN type as requested. Otherwise the PDN
+       * connection request is rejected
+       */
       OAILOG_ERROR(LOG_MME_APP,
                    " Sending PDN Connectivity Reject with cause "
                    "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
                    " UE requested PDN Type %d, subscribed PDN Type %d \n",
                    ue_selected_pdn_type, apn_config->pdn_type);
 
+      *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-      break;
+    }
+    break;
+
+  case ESM_PDN_TYPE_IPV6:
+    if ((apn_config->pdn_type == IPv4_AND_v6) ||
+        (apn_config->pdn_type == IPv4_OR_v6)) {
+      apn_config->pdn_type = IPv6;
+    } else if (apn_config->pdn_type == IPv4) {
+      /* As per 3gpp 23.401-cb0 sec 5.3.1, If the requested PDN type is IPv4
+       * or IPv6, and either the requested PDN type or PDN type IPv4v6 are
+       * subscribed, the MME sets the PDN type as requested. Otherwise the PDN
+       * connection request is rejected
+       */
+      OAILOG_ERROR(LOG_MME_APP,
+                   " Sending PDN Connectivity Reject with cause "
+                   "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
+                   " UE requested PDN Type %d, subscribed PDN Type %d \n",
+                   ue_selected_pdn_type, apn_config->pdn_type);
+
+      *esm_cause = ESM_CAUSE_UNKNOWN_PDN_TYPE;
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    }
+    break;
+
+  case ESM_PDN_TYPE_IPV4V6:
+    if (apn_config->pdn_type == IPv4_OR_v6) {
+      apn_config->pdn_type = IPv4;
+    } else if (apn_config->pdn_type == IPv4) {
+      *esm_cause = ESM_CAUSE_PDN_TYPE_IPV4_ONLY_ALLOWED;
+    } else if (apn_config->pdn_type == IPv6) {
+      *esm_cause = ESM_CAUSE_PDN_TYPE_IPV6_ONLY_ALLOWED;
+    }
+    break;
+
+  default:
+    OAILOG_ERROR(LOG_MME_APP,
+                 " Sending PDN Connectivity Reject with cause "
+                 "ESM_CAUSE_UNKNOWN_PDN_TYPE,"
+                 " UE requested PDN Type %d, subscribed PDN Type %d \n",
+                 ue_selected_pdn_type, apn_config->pdn_type);
+
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    break;
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 //------------------------------------------------------------------------------
-struct apn_configuration_s* mme_app_select_apn(
-    ue_mm_context_t* const ue_context, int* esm_cause) {
+struct apn_configuration_s *
+mme_app_select_apn(ue_mm_context_t *const ue_context, int *esm_cause) {
   context_identifier_t default_context_identifier =
       ue_context->apn_config_profile.context_identifier;
   int index;
@@ -184,9 +184,9 @@ struct apn_configuration_s* mme_app_select_apn(
 }
 
 //------------------------------------------------------------------------------
-struct apn_configuration_s* mme_app_get_apn_config(
-    ue_mm_context_t* const ue_context,
-    const context_identifier_t context_identifier) {
+struct apn_configuration_s *
+mme_app_get_apn_config(ue_mm_context_t *const ue_context,
+                       const context_identifier_t context_identifier) {
   int index;
 
   for (index = 0; index < ue_context->apn_config_profile.nb_apns; index++) {
@@ -198,14 +198,14 @@ struct apn_configuration_s* mme_app_get_apn_config(
   return NULL;
 }
 
-bstring mme_app_process_apn_correction(imsi_t* imsi, bstring accesspointname) {
+bstring mme_app_process_apn_correction(imsi_t *imsi, bstring accesspointname) {
   int i;
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   apn_map_config_t config = mme_config.nas_config.apn_map_config;
 
   IMSI_TO_STRING(imsi, imsi_str, IMSI_BCD_DIGITS_MAX + 1);
   for (i = 0; i < config.nb; i++) {
-    const char* imsi_prefix = bdata(config.apn_map[i].imsi_prefix);
+    const char *imsi_prefix = bdata(config.apn_map[i].imsi_prefix);
     int imsi_prefix_len = strlen(imsi_prefix);
     if ((imsi_prefix_len <= IMSI_BCD_DIGITS_MAX) &&
         !strncmp(imsi_prefix, imsi_str, imsi_prefix_len)) {

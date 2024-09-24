@@ -38,8 +38,8 @@
 
 #include <stdint.h>
 
-#define CHARS_TO_UINT32(c1, c2, c3, c4)                                      \
-  ((((uint32_t)c4) << 24) | (((uint32_t)c3) << 16) | (((uint32_t)c2) << 8) | \
+#define CHARS_TO_UINT32(c1, c2, c3, c4)                                        \
+  ((((uint32_t)c4) << 24) | (((uint32_t)c3) << 16) | (((uint32_t)c2) << 8) |   \
    ((uint32_t)c1))
 
 #define MESSAGE_NUMBER_CHAR_FORMAT "%11u"

@@ -10,12 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <cstring>
-#include <string>
 #include "lte/protos/session_manager.pb.h"
+#include <cstring>
+#include <gtest/gtest.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string>
 
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -57,64 +57,64 @@ namespace lte {
 
 #define BUFFER_LEN 200
 
-#define FILL_COMMON_MANDATORY_DEFAULTS(msg)                      \
-  do {                                                           \
-    msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE; \
-    msg->epsbeareridentity = 8;                                  \
-    msg->proceduretransactionidentity = 2;                       \
+#define FILL_COMMON_MANDATORY_DEFAULTS(msg)                                    \
+  do {                                                                         \
+    msg->protocoldiscriminator = EPS_SESSION_MANAGEMENT_MESSAGE;               \
+    msg->epsbeareridentity = 8;                                                \
+    msg->proceduretransactionidentity = 2;                                     \
   } while (0)
 
-#define COMPARE_COMMON_MANDATORY_DEFAULTS()                         \
-  do {                                                              \
-    EXPECT_EQ(original_msg->protocoldiscriminator,                  \
-              decoded_msg->protocoldiscriminator);                  \
-    EXPECT_EQ(original_msg->epsbeareridentity,                      \
-              decoded_msg->epsbeareridentity);                      \
-    EXPECT_EQ(original_msg->proceduretransactionidentity,           \
-              decoded_msg->proceduretransactionidentity);           \
-    EXPECT_EQ(original_msg->messagetype, decoded_msg->messagetype); \
+#define COMPARE_COMMON_MANDATORY_DEFAULTS()                                    \
+  do {                                                                         \
+    EXPECT_EQ(original_msg->protocoldiscriminator,                             \
+              decoded_msg->protocoldiscriminator);                             \
+    EXPECT_EQ(original_msg->epsbeareridentity,                                 \
+              decoded_msg->epsbeareridentity);                                 \
+    EXPECT_EQ(original_msg->proceduretransactionidentity,                      \
+              decoded_msg->proceduretransactionidentity);                      \
+    EXPECT_EQ(original_msg->messagetype, decoded_msg->messagetype);            \
   } while (0)
 
-#define DESTROY_PCO()                                            \
-  do {                                                           \
-    bdestroy_wrapper(&original_msg->protocolconfigurationoptions \
-                          .protocol_or_container_ids[0]          \
-                          .contents);                            \
-    bdestroy_wrapper(&original_msg->protocolconfigurationoptions \
-                          .protocol_or_container_ids[1]          \
-                          .contents);                            \
-    bdestroy_wrapper(&decoded_msg->protocolconfigurationoptions  \
-                          .protocol_or_container_ids[0]          \
-                          .contents);                            \
-    bdestroy_wrapper(&decoded_msg->protocolconfigurationoptions  \
-                          .protocol_or_container_ids[1]          \
-                          .contents);                            \
+#define DESTROY_PCO()                                                          \
+  do {                                                                         \
+    bdestroy_wrapper(&original_msg->protocolconfigurationoptions               \
+                          .protocol_or_container_ids[0]                        \
+                          .contents);                                          \
+    bdestroy_wrapper(&original_msg->protocolconfigurationoptions               \
+                          .protocol_or_container_ids[1]                        \
+                          .contents);                                          \
+    bdestroy_wrapper(&decoded_msg->protocolconfigurationoptions                \
+                          .protocol_or_container_ids[0]                        \
+                          .contents);                                          \
+    bdestroy_wrapper(&decoded_msg->protocolconfigurationoptions                \
+                          .protocol_or_container_ids[1]                        \
+                          .contents);                                          \
   } while (0)
 
-#define EXPECT_EQ_PCO()                                                     \
-  do {                                                                      \
-    EXPECT_EQ(                                                              \
-        std::string((const char*)original_msg->protocolconfigurationoptions \
-                        .protocol_or_container_ids[0]                       \
-                        .contents->data),                                   \
-        std::string((const char*)decoded_msg->protocolconfigurationoptions  \
-                        .protocol_or_container_ids[0]                       \
-                        .contents->data));                                  \
-    EXPECT_EQ(                                                              \
-        std::string((const char*)original_msg->protocolconfigurationoptions \
-                        .protocol_or_container_ids[1]                       \
-                        .contents->data),                                   \
-        std::string((const char*)decoded_msg->protocolconfigurationoptions  \
-                        .protocol_or_container_ids[1]                       \
-                        .contents->data));                                  \
+#define EXPECT_EQ_PCO()                                                        \
+  do {                                                                         \
+    EXPECT_EQ(                                                                 \
+        std::string((const char *)original_msg->protocolconfigurationoptions   \
+                        .protocol_or_container_ids[0]                          \
+                        .contents->data),                                      \
+        std::string((const char *)decoded_msg->protocolconfigurationoptions    \
+                        .protocol_or_container_ids[0]                          \
+                        .contents->data));                                     \
+    EXPECT_EQ(                                                                 \
+        std::string((const char *)original_msg->protocolconfigurationoptions   \
+                        .protocol_or_container_ids[1]                          \
+                        .contents->data),                                      \
+        std::string((const char *)decoded_msg->protocolconfigurationoptions    \
+                        .protocol_or_container_ids[1]                          \
+                        .contents->data));                                     \
   } while (0)
 
 class ESMEncodeDecodeTest : public ::testing::Test {
   virtual void SetUp() {}
   virtual void TearDown() {}
 
- protected:
-  void fill_pco(protocol_configuration_options_t* pco) {
+protected:
+  void fill_pco(protocol_configuration_options_t *pco) {
     pco->num_protocol_or_container_id = 2;
     pco->protocol_or_container_ids[0].id = PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST;
     bstring test_string1 = bfromcstr("teststring");
@@ -128,7 +128,7 @@ class ESMEncodeDecodeTest : public ::testing::Test {
     return;
   }
 
-  void fill_epsqos(EpsQualityOfService* epsqos) {
+  void fill_epsqos(EpsQualityOfService *epsqos) {
     epsqos->bitRatesPresent = 1;
     epsqos->bitRatesExtPresent = 1;
     epsqos->bitRatesExt2Present = 1;
@@ -148,7 +148,7 @@ class ESMEncodeDecodeTest : public ::testing::Test {
     return;
   }
 
-  void fill_tft(traffic_flow_template_t* tft) {
+  void fill_tft(traffic_flow_template_t *tft) {
     tft->tftoperationcode = TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT;
     tft->ebit = TRAFFIC_FLOW_TEMPLATE_PARAMETER_LIST_IS_NOT_INCLUDED;
     tft->numberofpacketfilters = 1;
@@ -171,7 +171,7 @@ class ESMEncodeDecodeTest : public ::testing::Test {
     return;
   }
 
-  void fill_negotiated_qos(quality_of_service_t* negotiated_qos) {
+  void fill_negotiated_qos(quality_of_service_t *negotiated_qos) {
     negotiated_qos->delayclass = 1;
     negotiated_qos->reliabilityclass = 2;
     negotiated_qos->peakthroughput = 15;
@@ -194,7 +194,7 @@ class ESMEncodeDecodeTest : public ::testing::Test {
     return;
   }
 
-  void fill_apnambr(ApnAggregateMaximumBitRate* apnambr) {
+  void fill_apnambr(ApnAggregateMaximumBitRate *apnambr) {
     apnambr->apnambrfordownlink = 11;
     apnambr->apnambrforuplink = 11;
     apnambr->apnambrfordownlink_extended = 11;
@@ -210,9 +210,9 @@ class ESMEncodeDecodeTest : public ::testing::Test {
 TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  activate_default_eps_bearer_context_request_msg* original_msg =
+  activate_default_eps_bearer_context_request_msg *original_msg =
       &original_esm_msg.activate_default_eps_bearer_context_request;
-  activate_default_eps_bearer_context_request_msg* decoded_msg =
+  activate_default_eps_bearer_context_request_msg *decoded_msg =
       &decoded_esm_msg.activate_default_eps_bearer_context_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST;
@@ -259,13 +259,13 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
             decoded_msg->pdnaddress.pdntypevalue);
   EXPECT_TRUE(!memcmp(&original_msg->epsqos, &decoded_msg->epsqos,
                       sizeof(original_msg->epsqos)));
-  EXPECT_EQ(std::string((const char*)original_msg->accesspointname->data),
-            std::string((const char*)decoded_msg->accesspointname->data));
+  EXPECT_EQ(std::string((const char *)original_msg->accesspointname->data),
+            std::string((const char *)decoded_msg->accesspointname->data));
   EXPECT_EQ(
       std::string(
-          (const char*)original_msg->pdnaddress.pdnaddressinformation->data),
+          (const char *)original_msg->pdnaddress.pdnaddressinformation->data),
       std::string(
-          (const char*)decoded_msg->pdnaddress.pdnaddressinformation->data));
+          (const char *)decoded_msg->pdnaddress.pdnaddressinformation->data));
   EXPECT_EQ(original_msg->presencemask, decoded_msg->presencemask);
   EXPECT_TRUE(!memcmp(&original_msg->negotiatedqos, &decoded_msg->negotiatedqos,
                       sizeof(original_msg->negotiatedqos)));
@@ -289,9 +289,9 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextRequest) {
 TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextAccept) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  activate_default_eps_bearer_context_accept_msg* original_msg =
+  activate_default_eps_bearer_context_accept_msg *original_msg =
       &original_esm_msg.activate_default_eps_bearer_context_accept;
-  activate_default_eps_bearer_context_accept_msg* decoded_msg =
+  activate_default_eps_bearer_context_accept_msg *decoded_msg =
       &decoded_esm_msg.activate_default_eps_bearer_context_accept;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT;
@@ -317,9 +317,9 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextAccept) {
 TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextReject) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  activate_default_eps_bearer_context_reject_msg* original_msg =
+  activate_default_eps_bearer_context_reject_msg *original_msg =
       &original_esm_msg.activate_default_eps_bearer_context_reject;
-  activate_default_eps_bearer_context_reject_msg* decoded_msg =
+  activate_default_eps_bearer_context_reject_msg *decoded_msg =
       &decoded_esm_msg.activate_default_eps_bearer_context_reject;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT;
@@ -345,9 +345,9 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDefaultEpsBearerContextReject) {
 TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  activate_dedicated_eps_bearer_context_request_msg* original_msg =
+  activate_dedicated_eps_bearer_context_request_msg *original_msg =
       &original_esm_msg.activate_dedicated_eps_bearer_context_request;
-  activate_dedicated_eps_bearer_context_request_msg* decoded_msg =
+  activate_dedicated_eps_bearer_context_request_msg *decoded_msg =
       &decoded_esm_msg.activate_dedicated_eps_bearer_context_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST;
@@ -403,9 +403,9 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextRequest) {
 TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextAccept) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  activate_dedicated_eps_bearer_context_accept_msg* original_msg =
+  activate_dedicated_eps_bearer_context_accept_msg *original_msg =
       &original_esm_msg.activate_dedicated_eps_bearer_context_accept;
-  activate_dedicated_eps_bearer_context_accept_msg* decoded_msg =
+  activate_dedicated_eps_bearer_context_accept_msg *decoded_msg =
       &decoded_esm_msg.activate_dedicated_eps_bearer_context_accept;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_ACCEPT;
@@ -430,9 +430,9 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextAccept) {
 TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextReject) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  activate_dedicated_eps_bearer_context_reject_msg* original_msg =
+  activate_dedicated_eps_bearer_context_reject_msg *original_msg =
       &original_esm_msg.activate_dedicated_eps_bearer_context_reject;
-  activate_dedicated_eps_bearer_context_reject_msg* decoded_msg =
+  activate_dedicated_eps_bearer_context_reject_msg *decoded_msg =
       &decoded_esm_msg.activate_dedicated_eps_bearer_context_reject;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REJECT;
@@ -459,9 +459,9 @@ TEST_F(ESMEncodeDecodeTest, TestActivateDedicatedEpsBearerContextReject) {
 TEST_F(ESMEncodeDecodeTest, TestBearerResourceAllocationRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  bearer_resource_allocation_request_msg* original_msg =
+  bearer_resource_allocation_request_msg *original_msg =
       &original_esm_msg.bearer_resource_allocation_request;
-  bearer_resource_allocation_request_msg* decoded_msg =
+  bearer_resource_allocation_request_msg *decoded_msg =
       &decoded_esm_msg.bearer_resource_allocation_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = BEARER_RESOURCE_ALLOCATION_REQUEST;
@@ -501,9 +501,9 @@ TEST_F(ESMEncodeDecodeTest, TestBearerResourceAllocationRequest) {
 TEST_F(ESMEncodeDecodeTest, TestBearerResourceAllocationReject) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  bearer_resource_allocation_reject_msg* original_msg =
+  bearer_resource_allocation_reject_msg *original_msg =
       &original_esm_msg.bearer_resource_allocation_reject;
-  bearer_resource_allocation_reject_msg* decoded_msg =
+  bearer_resource_allocation_reject_msg *decoded_msg =
       &decoded_esm_msg.bearer_resource_allocation_reject;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = BEARER_RESOURCE_ALLOCATION_REJECT;
@@ -529,9 +529,9 @@ TEST_F(ESMEncodeDecodeTest, TestBearerResourceAllocationReject) {
 TEST_F(ESMEncodeDecodeTest, TestBearerResourceModificationRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  bearer_resource_modification_request_msg* original_msg =
+  bearer_resource_modification_request_msg *original_msg =
       &original_esm_msg.bearer_resource_modification_request;
-  bearer_resource_modification_request_msg* decoded_msg =
+  bearer_resource_modification_request_msg *decoded_msg =
       &decoded_esm_msg.bearer_resource_modification_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = BEARER_RESOURCE_MODIFICATION_REQUEST;
@@ -576,9 +576,9 @@ TEST_F(ESMEncodeDecodeTest, TestBearerResourceModificationRequest) {
 TEST_F(ESMEncodeDecodeTest, TestBearerResourceModificationReject) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  bearer_resource_modification_reject_msg* original_msg =
+  bearer_resource_modification_reject_msg *original_msg =
       &original_esm_msg.bearer_resource_modification_reject;
-  bearer_resource_modification_reject_msg* decoded_msg =
+  bearer_resource_modification_reject_msg *decoded_msg =
       &decoded_esm_msg.bearer_resource_modification_reject;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = BEARER_RESOURCE_MODIFICATION_REJECT;
@@ -607,9 +607,9 @@ TEST_F(ESMEncodeDecodeTest, TestBearerResourceModificationReject) {
 TEST_F(ESMEncodeDecodeTest, TestDeactivateEpsBearerContextRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  deactivate_eps_bearer_context_request_msg* original_msg =
+  deactivate_eps_bearer_context_request_msg *original_msg =
       &original_esm_msg.deactivate_eps_bearer_context_request;
-  deactivate_eps_bearer_context_request_msg* decoded_msg =
+  deactivate_eps_bearer_context_request_msg *decoded_msg =
       &decoded_esm_msg.deactivate_eps_bearer_context_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST;
@@ -640,9 +640,9 @@ TEST_F(ESMEncodeDecodeTest, TestDeactivateEpsBearerContextRequest) {
 TEST_F(ESMEncodeDecodeTest, TestDeactivateEpsBearerContextAccept) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  deactivate_eps_bearer_context_accept_msg* original_msg =
+  deactivate_eps_bearer_context_accept_msg *original_msg =
       &original_esm_msg.deactivate_eps_bearer_context_accept;
-  deactivate_eps_bearer_context_accept_msg* decoded_msg =
+  deactivate_eps_bearer_context_accept_msg *decoded_msg =
       &decoded_esm_msg.deactivate_eps_bearer_context_accept;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = DEACTIVATE_EPS_BEARER_CONTEXT_ACCEPT;
@@ -668,9 +668,9 @@ TEST_F(ESMEncodeDecodeTest, TestDeactivateEpsBearerContextAccept) {
 TEST_F(ESMEncodeDecodeTest, TestEsmInformationRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  esm_information_request_msg* original_msg =
+  esm_information_request_msg *original_msg =
       &original_esm_msg.esm_information_request;
-  esm_information_request_msg* decoded_msg =
+  esm_information_request_msg *decoded_msg =
       &decoded_esm_msg.esm_information_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ESM_INFORMATION_REQUEST;
@@ -687,9 +687,9 @@ TEST_F(ESMEncodeDecodeTest, TestEsmInformationRequest) {
 TEST_F(ESMEncodeDecodeTest, TestEsmInformationResponse) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  esm_information_response_msg* original_msg =
+  esm_information_response_msg *original_msg =
       &original_esm_msg.esm_information_response;
-  esm_information_response_msg* decoded_msg =
+  esm_information_response_msg *decoded_msg =
       &decoded_esm_msg.esm_information_response;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ESM_INFORMATION_RESPONSE;
@@ -710,8 +710,8 @@ TEST_F(ESMEncodeDecodeTest, TestEsmInformationResponse) {
   EXPECT_EQ(encoded, decoded);
   COMPARE_COMMON_MANDATORY_DEFAULTS();
   EXPECT_EQ(original_msg->presencemask, decoded_msg->presencemask);
-  EXPECT_EQ(std::string((const char*)original_msg->accesspointname->data),
-            std::string((const char*)decoded_msg->accesspointname->data));
+  EXPECT_EQ(std::string((const char *)original_msg->accesspointname->data),
+            std::string((const char *)decoded_msg->accesspointname->data));
   EXPECT_EQ_PCO();
 
   DESTROY_PCO();
@@ -722,8 +722,8 @@ TEST_F(ESMEncodeDecodeTest, TestEsmInformationResponse) {
 TEST_F(ESMEncodeDecodeTest, TestEsmStatus) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  esm_status_msg* original_msg = &original_esm_msg.esm_status;
-  esm_status_msg* decoded_msg = &decoded_esm_msg.esm_status;
+  esm_status_msg *original_msg = &original_esm_msg.esm_status;
+  esm_status_msg *decoded_msg = &decoded_esm_msg.esm_status;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = ESM_STATUS;
 
@@ -743,9 +743,9 @@ TEST_F(ESMEncodeDecodeTest, TestEsmStatus) {
 TEST_F(ESMEncodeDecodeTest, TestModifyEpsBearerContextRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  modify_eps_bearer_context_request_msg* original_msg =
+  modify_eps_bearer_context_request_msg *original_msg =
       &original_esm_msg.modify_eps_bearer_context_request;
-  modify_eps_bearer_context_request_msg* decoded_msg =
+  modify_eps_bearer_context_request_msg *decoded_msg =
       &decoded_esm_msg.modify_eps_bearer_context_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = MODIFY_EPS_BEARER_CONTEXT_REQUEST;
@@ -802,9 +802,9 @@ TEST_F(ESMEncodeDecodeTest, TestModifyEpsBearerContextRequest) {
 TEST_F(ESMEncodeDecodeTest, TestModifyEpsBearerContextAccept) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  modify_eps_bearer_context_accept_msg* original_msg =
+  modify_eps_bearer_context_accept_msg *original_msg =
       &original_esm_msg.modify_eps_bearer_context_accept;
-  modify_eps_bearer_context_accept_msg* decoded_msg =
+  modify_eps_bearer_context_accept_msg *decoded_msg =
       &decoded_esm_msg.modify_eps_bearer_context_accept;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = MODIFY_EPS_BEARER_CONTEXT_ACCEPT;
@@ -830,9 +830,9 @@ TEST_F(ESMEncodeDecodeTest, TestModifyEpsBearerContextAccept) {
 TEST_F(ESMEncodeDecodeTest, TestModifyEpsBearerContextReject) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  modify_eps_bearer_context_reject_msg* original_msg =
+  modify_eps_bearer_context_reject_msg *original_msg =
       &original_esm_msg.modify_eps_bearer_context_reject;
-  modify_eps_bearer_context_reject_msg* decoded_msg =
+  modify_eps_bearer_context_reject_msg *decoded_msg =
       &decoded_esm_msg.modify_eps_bearer_context_reject;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = MODIFY_EPS_BEARER_CONTEXT_REJECT;
@@ -861,9 +861,9 @@ TEST_F(ESMEncodeDecodeTest, TestModifyEpsBearerContextReject) {
 TEST_F(ESMEncodeDecodeTest, TestPdnConnectivityRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  pdn_connectivity_request_msg* original_msg =
+  pdn_connectivity_request_msg *original_msg =
       &original_esm_msg.pdn_connectivity_request;
-  pdn_connectivity_request_msg* decoded_msg =
+  pdn_connectivity_request_msg *decoded_msg =
       &decoded_esm_msg.pdn_connectivity_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = PDN_CONNECTIVITY_REQUEST;
@@ -899,9 +899,9 @@ TEST_F(ESMEncodeDecodeTest, TestPdnConnectivityRequest) {
 TEST_F(ESMEncodeDecodeTest, TestPdnConnectivityReject) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  pdn_connectivity_reject_msg* original_msg =
+  pdn_connectivity_reject_msg *original_msg =
       &original_esm_msg.pdn_connectivity_reject;
-  pdn_connectivity_reject_msg* decoded_msg =
+  pdn_connectivity_reject_msg *decoded_msg =
       &decoded_esm_msg.pdn_connectivity_reject;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = PDN_CONNECTIVITY_REJECT;
@@ -930,9 +930,9 @@ TEST_F(ESMEncodeDecodeTest, TestPdnConnectivityReject) {
 TEST_F(ESMEncodeDecodeTest, TestPdnDisconnectRequest) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  pdn_disconnect_request_msg* original_msg =
+  pdn_disconnect_request_msg *original_msg =
       &original_esm_msg.pdn_disconnect_request;
-  pdn_disconnect_request_msg* decoded_msg =
+  pdn_disconnect_request_msg *decoded_msg =
       &decoded_esm_msg.pdn_disconnect_request;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = PDN_DISCONNECT_REQUEST;
@@ -962,9 +962,9 @@ TEST_F(ESMEncodeDecodeTest, TestPdnDisconnectRequest) {
 TEST_F(ESMEncodeDecodeTest, TestPdnDisconnectReject) {
   ESM_msg original_esm_msg = {0};
   ESM_msg decoded_esm_msg = {0};
-  pdn_disconnect_reject_msg* original_msg =
+  pdn_disconnect_reject_msg *original_msg =
       &original_esm_msg.pdn_disconnect_reject;
-  pdn_disconnect_reject_msg* decoded_msg =
+  pdn_disconnect_reject_msg *decoded_msg =
       &decoded_esm_msg.pdn_disconnect_reject;
   FILL_COMMON_MANDATORY_DEFAULTS(original_msg);
   original_msg->messagetype = PDN_DISCONNECT_REJECT;
@@ -990,5 +990,5 @@ TEST_F(ESMEncodeDecodeTest, TestPdnDisconnectReject) {
   DESTROY_PCO();
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

@@ -34,8 +34,8 @@
   \company Eurecom
 */
 
-#include <stdint.h>
 #include <ctype.h>
+#include <stdint.h>
 
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -61,7 +61,7 @@ static const signed char ascii_to_hex_table[0x100] = {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
     -1, -1, -1, -1, -1, -1, -1, -1, -1};
 
-void hexa_to_ascii(uint8_t* from, char* to, size_t length) {
+void hexa_to_ascii(uint8_t *from, char *to, size_t length) {
   size_t i;
 
   for (i = 0; i < length; i++) {
@@ -73,34 +73,40 @@ void hexa_to_ascii(uint8_t* from, char* to, size_t length) {
   }
 }
 
-int ascii_to_hex(uint8_t* dst, const char* h) {
-  const unsigned char* hex = (const unsigned char*)h;
+int ascii_to_hex(uint8_t *dst, const char *h) {
+  const unsigned char *hex = (const unsigned char *)h;
   unsigned i = 0;
 
   for (;;) {
     int high, low;
 
-    while (*hex && isspace(*hex)) hex++;
+    while (*hex && isspace(*hex))
+      hex++;
 
-    if (!*hex) return 1;
+    if (!*hex)
+      return 1;
 
     high = ascii_to_hex_table[*hex++];
 
-    if (high < 0) return 0;
+    if (high < 0)
+      return 0;
 
-    while (*hex && isspace(*hex)) hex++;
+    while (*hex && isspace(*hex))
+      hex++;
 
-    if (!*hex) return 0;
+    if (!*hex)
+      return 0;
 
     low = ascii_to_hex_table[*hex++];
 
-    if (low < 0) return 0;
+    if (low < 0)
+      return 0;
 
     dst[i++] = (high << 4) | low;
   }
 }
 //------------------------------------------------------------------------------
-imsi64_t imsi_to_imsi64(const imsi_t* const imsi) {
+imsi64_t imsi_to_imsi64(const imsi_t *const imsi) {
   imsi64_t imsi64 = INVALID_IMSI64;
   if (imsi) {
     imsi64 = 0;
@@ -124,7 +130,7 @@ imsi64_t imsi_to_imsi64(const imsi_t* const imsi) {
 }
 
 //-----------------------------------------------------------------------------
-void imsi_string_to_3gpp_imsi(const Imsi_t* Imsi, imsi_t* imsi) {
+void imsi_string_to_3gpp_imsi(const Imsi_t *Imsi, imsi_t *imsi) {
   memset(imsi->u.value, 0xff, IMSI_BCD8_SIZE);
   imsi->u.num.digit1 = Imsi->digit[0] - 0x30;
   imsi->u.num.digit2 = Imsi->digit[1] - 0x30;
@@ -163,7 +169,7 @@ void imsi_string_to_3gpp_imsi(const Imsi_t* Imsi, imsi_t* imsi) {
 }
 
 //------------------------------------------------------------------------------
-imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi) {
+imsi64_t amf_imsi_to_imsi64(const imsi_t *const imsi) {
   imsi64_t imsi64 = INVALID_IMSI64;
   bool skip_last_digit = false;
 
@@ -200,21 +206,21 @@ imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi) {
 }
 
 /* Clear GUTI without free it */
-void clear_guti(guti_t* const guti) {
+void clear_guti(guti_t *const guti) {
   memset(guti, 0, sizeof(guti_t));
   guti->m_tmsi = INVALID_TMSI;
 }
 /* Clear IMSI without free it */
-void clear_imsi(imsi_t* const imsi) { memset(imsi, 0, sizeof(imsi_t)); }
+void clear_imsi(imsi_t *const imsi) { memset(imsi, 0, sizeof(imsi_t)); }
 /* Clear IMEI without free it */
-void clear_imei(imei_t* const imei) { memset(imei, 0, sizeof(imei_t)); }
+void clear_imei(imei_t *const imei) { memset(imei, 0, sizeof(imei_t)); }
 /* Clear IMEISV without free it */
-void clear_imeisv(imeisv_t* const imeisv) {
+void clear_imeisv(imeisv_t *const imeisv) {
   memset(imeisv, 0, sizeof(imeisv_t));
 }
 
 //------------------------------------------------------------------------------
-bstring fteid_ip_address_to_bstring(const struct fteid_s* const fteid) {
+bstring fteid_ip_address_to_bstring(const struct fteid_s *const fteid) {
   bstring bstr = NULL;
   if (fteid->ipv4 && fteid->ipv6) {
     bstring ipv6 = NULL;
@@ -233,8 +239,8 @@ bstring fteid_ip_address_to_bstring(const struct fteid_s* const fteid) {
   return bstr;
 }
 
-void get_fteid_ip_address(const struct fteid_s* const fteid,
-                          ip_address_t* const ip_address) {
+void get_fteid_ip_address(const struct fteid_s *const fteid,
+                          ip_address_t *const ip_address) {
   if (fteid->ipv4) {
     ip_address->pdn_type = IPv4;
     memcpy(&ip_address->address.ipv4_address, &fteid->ipv4_address, 4);
@@ -251,116 +257,116 @@ void get_fteid_ip_address(const struct fteid_s* const fteid,
 }
 
 //------------------------------------------------------------------------------
-bstring ip_address_to_bstring(const ip_address_t* ip_address) {
+bstring ip_address_to_bstring(const ip_address_t *ip_address) {
   bstring bstr = NULL;
   switch (ip_address->pdn_type) {
-    case IPv4:
-      bstr = blk2bstr(&ip_address->address.ipv4_address.s_addr, 4);
-      break;
-    case IPv6:
-      bstr = blk2bstr(&ip_address->address.ipv6_address, 16);
-      break;
-    case IPv4_AND_v6:
-      bstr = blk2bstr(&ip_address->address.ipv4_address.s_addr, 4);
-      bcatblk(bstr, &ip_address->address.ipv6_address, 16);
-      break;
-    case IPv4_OR_v6:
-      // do it like that now, TODO
-      bstr = blk2bstr(&ip_address->address.ipv4_address.s_addr, 4);
-      break;
-    default: {
-    }
+  case IPv4:
+    bstr = blk2bstr(&ip_address->address.ipv4_address.s_addr, 4);
+    break;
+  case IPv6:
+    bstr = blk2bstr(&ip_address->address.ipv6_address, 16);
+    break;
+  case IPv4_AND_v6:
+    bstr = blk2bstr(&ip_address->address.ipv4_address.s_addr, 4);
+    bcatblk(bstr, &ip_address->address.ipv6_address, 16);
+    break;
+  case IPv4_OR_v6:
+    // do it like that now, TODO
+    bstr = blk2bstr(&ip_address->address.ipv4_address.s_addr, 4);
+    break;
+  default: {
+  }
   }
   return bstr;
 }
 
 //------------------------------------------------------------------------------
-void bstring_to_ip_address(bstring const bstr, ip_address_t* const ip_address) {
+void bstring_to_ip_address(bstring const bstr, ip_address_t *const ip_address) {
   if (bstr) {
     switch (blength(bstr)) {
-      case 4:
-        ip_address->pdn_type = IPv4;
-        memcpy(&ip_address->address.ipv4_address, bstr->data, blength(bstr));
-        break;
-      case 16:
-        ip_address->pdn_type = IPv6;
-        memcpy(&ip_address->address.ipv6_address, bstr->data, blength(bstr));
-        break;
-        break;
-      case 20:
-        ip_address->pdn_type = IPv4_AND_v6;
-        memcpy(&ip_address->address.ipv4_address, bstr->data, 4);
-        memcpy(&ip_address->address.ipv6_address, &bstr->data[4], 16);
-        break;
-      default: {
-      }
+    case 4:
+      ip_address->pdn_type = IPv4;
+      memcpy(&ip_address->address.ipv4_address, bstr->data, blength(bstr));
+      break;
+    case 16:
+      ip_address->pdn_type = IPv6;
+      memcpy(&ip_address->address.ipv6_address, bstr->data, blength(bstr));
+      break;
+      break;
+    case 20:
+      ip_address->pdn_type = IPv4_AND_v6;
+      memcpy(&ip_address->address.ipv4_address, bstr->data, 4);
+      memcpy(&ip_address->address.ipv6_address, &bstr->data[4], 16);
+      break;
+    default: {
+    }
     }
   }
 }
 
 //------------------------------------------------------------------------------
-void copy_paa(paa_t* paa_dst, paa_t* paa_src) {
+void copy_paa(paa_t *paa_dst, paa_t *paa_src) {
   memcpy(paa_dst, paa_src, sizeof(paa_t));
 }
 
 //------------------------------------------------------------------------------
-bstring paa_to_bstring(const paa_t* paa) {
+bstring paa_to_bstring(const paa_t *paa) {
   bstring bstr = NULL;
   switch (paa->pdn_type) {
-    case IPv4:
-      bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
-      break;
-    case IPv6:
-      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
-        bstr = blk2bstr(&paa->ipv6_address, paa->ipv6_prefix_length / 8);
-      } else {
-        OAILOG_ERROR(LOG_COMMON, "Invalid ipv6_prefix_length : %u\n",
-                     paa->ipv6_prefix_length);
-      }
-      break;
-    case IPv4_AND_v6:
-      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
-        bstr = blk2bstr(&paa->ipv6_address, paa->ipv6_prefix_length / 8);
-        bcatblk(bstr, &paa->ipv4_address, 4);
-      } else {
-        OAILOG_ERROR(LOG_COMMON, "Invalid ipv6_prefix_length : %u\n",
-                     paa->ipv6_prefix_length);
-      }
-      break;
-    case IPv4_OR_v6:
-      // do it like that now, TODO
-      bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
-      break;
-    default: {
+  case IPv4:
+    bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
+    break;
+  case IPv6:
+    if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+      bstr = blk2bstr(&paa->ipv6_address, paa->ipv6_prefix_length / 8);
+    } else {
+      OAILOG_ERROR(LOG_COMMON, "Invalid ipv6_prefix_length : %u\n",
+                   paa->ipv6_prefix_length);
     }
+    break;
+  case IPv4_AND_v6:
+    if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+      bstr = blk2bstr(&paa->ipv6_address, paa->ipv6_prefix_length / 8);
+      bcatblk(bstr, &paa->ipv4_address, 4);
+    } else {
+      OAILOG_ERROR(LOG_COMMON, "Invalid ipv6_prefix_length : %u\n",
+                   paa->ipv6_prefix_length);
+    }
+    break;
+  case IPv4_OR_v6:
+    // do it like that now, TODO
+    bstr = blk2bstr(&paa->ipv4_address.s_addr, 4);
+    break;
+  default: {
+  }
   }
   return bstr;
 }
 
-void bstring_to_paa(const bstring bstr, paa_t* paa) {
+void bstring_to_paa(const bstring bstr, paa_t *paa) {
   if (bstr) {
     switch (blength(bstr)) {
-      case 4:
-        paa->pdn_type = IPv4;
-        memcpy(&paa->ipv4_address, bstr->data, blength(bstr));
-        break;
-      case 8:
-        paa->pdn_type = IPv6;
-        memcpy(&paa->ipv6_address, bstr->data, blength(bstr));
-        break;
-      case 12:
-        paa->pdn_type = IPv4_AND_v6;
-        memcpy(&paa->ipv4_address, bstr->data, 4);
-        memcpy(&paa->ipv6_address, &bstr->data[4], 8);
-        break;
-      default:
-        break;
+    case 4:
+      paa->pdn_type = IPv4;
+      memcpy(&paa->ipv4_address, bstr->data, blength(bstr));
+      break;
+    case 8:
+      paa->pdn_type = IPv6;
+      memcpy(&paa->ipv6_address, bstr->data, blength(bstr));
+      break;
+    case 12:
+      paa->pdn_type = IPv4_AND_v6;
+      memcpy(&paa->ipv4_address, bstr->data, 4);
+      memcpy(&paa->ipv6_address, &bstr->data[4], 8);
+      break;
+    default:
+      break;
     }
   }
 }
 
 // Return the hex representation of a char array
-char* bytes_to_hex(char* byte_array, int length, char* hex_array) {
+char *bytes_to_hex(char *byte_array, int length, char *hex_array) {
   int i;
   for (i = 0; i < length; i++) {
     snprintf(hex_array + i * 3, 3, " %02x", (unsigned char)byte_array[i]);
@@ -368,7 +374,7 @@ char* bytes_to_hex(char* byte_array, int length, char* hex_array) {
   return hex_array;
 }
 
-void convert_guti_to_string(const guti_t* guti_p,
+void convert_guti_to_string(const guti_t *guti_p,
                             char (*guti_str)[GUTI_STRING_LEN]) {
   snprintf(*guti_str, GUTI_STRING_LEN, "%x%x%x%x%x%x%04x%02x%08x",
            guti_p->gummei.plmn.mcc_digit1, guti_p->gummei.plmn.mcc_digit2,

@@ -21,4 +21,4 @@
  * Sends a SGS_DOWNLINK_UNITDATA message to NAS for SMS Orc8r service.
  */
 int handle_sms_orc8r_downlink_unitdata(
-    const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p);
+    const itti_sgsap_downlink_unitdata_t *sgs_dl_unitdata_p);

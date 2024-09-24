@@ -48,23 +48,24 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_procedures.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
 
-void mme_app_itti_ue_context_release(struct ue_mm_context_s* ue_context_p,
+void mme_app_itti_ue_context_release(struct ue_mm_context_s *ue_context_p,
                                      enum s1cause cause);
 int mme_app_notify_s1ap_ue_context_released(const mme_ue_s1ap_id_t ue_idP);
 status_code_e mme_app_send_s11_release_access_bearers_req(
-    struct ue_mm_context_s* const ue_mm_context, imsi64_t imsi_64);
+    struct ue_mm_context_s *const ue_mm_context, imsi64_t imsi_64);
 
-status_code_e mme_app_send_s11_create_session_req(
-    mme_app_desc_t* mme_app_desc_p, struct ue_mm_context_s* const ue_mm_context,
-    const pdn_cid_t pdn_cid);
+status_code_e
+mme_app_send_s11_create_session_req(mme_app_desc_t *mme_app_desc_p,
+                                    struct ue_mm_context_s *const ue_mm_context,
+                                    const pdn_cid_t pdn_cid);
 
-static inline void mme_app_itti_ue_context_mod_for_csfb(
-    struct ue_mm_context_s* ue_context_p) {
-  MessageDef* message_p;
+static inline void
+mme_app_itti_ue_context_mod_for_csfb(struct ue_mm_context_s *ue_context_p) {
+  MessageDef *message_p;
 
   message_p = itti_alloc_new_message(TASK_MME_APP,
                                      S1AP_UE_CONTEXT_MODIFICATION_REQUEST);
-  memset((void*)&message_p->ittiMsg.s1ap_ue_context_mod_request, 0,
+  memset((void *)&message_p->ittiMsg.s1ap_ue_context_mod_request, 0,
          sizeof(itti_s1ap_ue_context_mod_req_t));
   S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).mme_ue_s1ap_id =
       ue_context_p->mme_ue_s1ap_id;
@@ -123,15 +124,15 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
 void mme_app_send_s1ap_e_rab_modification_confirm(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-    const mme_app_s1ap_proc_modify_bearer_ind_t* const proc);
+    const mme_app_s1ap_proc_modify_bearer_ind_t *const proc);
 
 void nas_itti_sgsap_uplink_unitdata(
-    const char* const imsi, uint8_t imsi_len, bstring nas_msg, imeisv_t* imeisv,
-    MobileStationClassmark2* mobilestationclassmark2, tai_t* tai, ecgi_t* ecgi,
+    const char *const imsi, uint8_t imsi_len, bstring nas_msg, imeisv_t *imeisv,
+    MobileStationClassmark2 *mobilestationclassmark2, tai_t *tai, ecgi_t *ecgi,
     bool sms_orc8r_enabled);
 
-void mme_app_itti_sgsap_tmsi_reallocation_comp(const char* imsi,
+void mme_app_itti_sgsap_tmsi_reallocation_comp(const char *imsi,
                                                const unsigned int imsi_len);
 
-void mme_app_itti_sgsap_ue_activity_ind(const char* imsi,
+void mme_app_itti_sgsap_ue_activity_ind(const char *imsi,
                                         const unsigned int imsi_len);

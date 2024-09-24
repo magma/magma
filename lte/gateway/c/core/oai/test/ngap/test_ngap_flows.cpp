@@ -17,8 +17,8 @@
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
 }
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
 
@@ -29,7 +29,7 @@ extern bool hss_associated;
 namespace magma5g {
 
 class NgapFlowTest : public testing::Test {
- protected:
+protected:
   void SetUp() {
     itti_init(TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info,
               NULL, NULL);
@@ -70,7 +70,7 @@ class NgapFlowTest : public testing::Test {
     NGAPClientServicer::getInstance().msgtype_stack.clear();
   }
 
-  ngap_state_t* state = NULL;
+  ngap_state_t *state = NULL;
   bstring ran_cp_ipaddr;
   sctp_new_peer_t peerInfo;
   const unsigned int AMF_UE_NGAP_ID = 0x05;
@@ -103,7 +103,7 @@ TEST_F(NgapFlowTest, test_ngap_setup_request) {
 
   sctp_stream_id_t stream_id = 0;
 
-  gnb_description_t* gnb_association = NULL;
+  gnb_description_t *gnb_association = NULL;
   gnb_association = ngap_state_get_gnb(state, peerInfo.assoc_id);
   gnb_association->ng_state = NGAP_SHUTDOWN;
 
@@ -157,13 +157,13 @@ TEST_F(NgapFlowTest, initial_ue_message_sunny_day) {
                                     peerInfo.instreams, &decoded_pdu),
             RETURNok);
 
-  Ngap_InitialUEMessage_t* container;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_InitialUEMessage_t *container;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
-  Ngap_InitialUEMessage_IEs_t* ie = NULL;
+  Ngap_InitialUEMessage_IEs_t *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialUEMessage_IEs_t, ie,
                                       container,
@@ -192,9 +192,9 @@ TEST_F(NgapFlowTest, initial_ue_message_sunny_day) {
 
 // Uplink Nas Transport With Auth Response
 TEST_F(NgapFlowTest, uplink_nas_transport_sunny_day) {
-  Ngap_UplinkNASTransport_t* container;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_UplinkNASTransport_t *container;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   unsigned char uplink_nas_transport_ue_message_hexbuf[] = {
       0x00, 0x2e, 0x40, 0x40, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x00, 0x04, 0x40,
@@ -222,7 +222,7 @@ TEST_F(NgapFlowTest, uplink_nas_transport_sunny_day) {
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.UplinkNASTransport);
-  Ngap_UplinkNASTransport_IEs* ie = NULL;
+  Ngap_UplinkNASTransport_IEs *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_UplinkNASTransport_IEs, ie,
                                       container,
@@ -251,7 +251,7 @@ TEST_F(NgapFlowTest, uplink_nas_transport_sunny_day) {
   // Check if AMF_UE_NGAP_ID present in Uplink_nas_transport
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // verify uplinkNasTransport handled successfully
@@ -273,8 +273,8 @@ TEST_F(NgapFlowTest, downlink_nas_transport_auth_req_sunny_day) {
       0x51, 0x76, 0xb8, 0xe5, 0x45, 0xe1, 0xdc, 0x03, 0x68, 0x25, 0x9a,
       0x67, 0x6c, 0x20, 0x10, 0xa4, 0x9b, 0x6b, 0x3d, 0x65, 0x6d, 0x80,
       0x00, 0x41, 0xc5, 0x72, 0x9e, 0xd9, 0xe1, 0xf0, 0xd6};
-  MessageDef* message_p = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  MessageDef *message_p = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
   bstring buffer;
   unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
   // verify sctp association is successful
@@ -317,10 +317,10 @@ TEST_F(NgapFlowTest, initial_context_setup_request_sunny_day) {
       0x41, 0x26, 0xca, 0x16, 0x54, 0x07, 0x00, 0x13, 0xf1, 0x84, 0x00,
       0x00, 0x01, 0x15, 0x02, 0x01, 0x01, 0x5e, 0x01, 0x06};
   bstring buffer;
-  m5g_ue_description_t* ue_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
   unsigned int len = sizeof(reg_accept_msg) / sizeof(unsigned char);
-  MessageDef* message_p = nullptr;
-  Ngap_initial_context_setup_request_t* req = nullptr;
+  MessageDef *message_p = nullptr;
+  Ngap_initial_context_setup_request_t *req = nullptr;
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
@@ -343,8 +343,9 @@ TEST_F(NgapFlowTest, initial_context_setup_request_sunny_day) {
   req->nas_pdu = bstrcpy(buffer);
   req->ue_security_capabilities.m5g_encryption_algo = 0xC000;
   req->ue_security_capabilities.m5g_integrity_protection_algo = 0xC000;
-  req->Security_Key = (unsigned char *)
-      "e4298c66a3d368b59db6d6defa1b4ddaf40b9bef7cb398b44f468ea2f531ded3";
+  req->Security_Key =
+      (unsigned char
+           *)"e4298c66a3d368b59db6d6defa1b4ddaf40b9bef7cb398b44f468ea2f531ded3";
   message_p->ittiMsgHeader.imsi = 0x311480000000001;
 
   // Check if new UE is associated with gnb
@@ -372,9 +373,9 @@ TEST_F(NgapFlowTest, initial_context_setup_request_sunny_day) {
 
 // Initial Context Setup Response
 TEST_F(NgapFlowTest, initial_context_setup_response_sunny_day) {
-  Ngap_InitialContextSetupResponse_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_InitialContextSetupResponse_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   unsigned char initial_context_setup_response_message_hexbuf[] = {
       0x20, 0x0e, 0x00, 0x11, 0x00, 0x00, 0x02, 0x00, 0x0a, 0x40, 0x02,
@@ -399,7 +400,7 @@ TEST_F(NgapFlowTest, initial_context_setup_response_sunny_day) {
 
   container = &(decoded_pdu.choice.successfulOutcome.value.choice
                     .InitialContextSetupResponse);
-  Ngap_InitialContextSetupResponseIEs* ie = NULL;
+  Ngap_InitialContextSetupResponseIEs *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialContextSetupResponseIEs, ie,
                                       container,
@@ -428,7 +429,7 @@ TEST_F(NgapFlowTest, initial_context_setup_response_sunny_day) {
   // Check if AMF_UE_NGAP_ID is present in initial_context_setup_rsp
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // Verify initial_context_setup_rsp is encoded correctly
@@ -445,9 +446,9 @@ TEST_F(NgapFlowTest, initial_context_setup_response_sunny_day) {
 
 // Ue Context Release Request
 TEST_F(NgapFlowTest, ue_context_release_request_sunny_day) {
-  Ngap_UEContextReleaseRequest_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_UEContextReleaseRequest_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   unsigned char ue_context_release_req_message_hexbuf[] = {
       0x00, 0x2a, 0x40, 0x17, 0x00, 0x00, 0x03, 0x00, 0x0a,
@@ -472,7 +473,7 @@ TEST_F(NgapFlowTest, ue_context_release_request_sunny_day) {
 
   container = &(decoded_pdu.choice.initiatingMessage.value.choice
                     .UEContextReleaseRequest);
-  Ngap_UEContextReleaseRequest_IEs* ie = NULL;
+  Ngap_UEContextReleaseRequest_IEs *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_UEContextReleaseRequest_IEs, ie,
                                       container,
@@ -501,7 +502,7 @@ TEST_F(NgapFlowTest, ue_context_release_request_sunny_day) {
   // Check if AMF_UE_NGAP_ID ie present in ue_context_release_request
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // check if Ngap_Cause IE present
@@ -523,9 +524,9 @@ TEST_F(NgapFlowTest, ue_context_release_request_sunny_day) {
 
 // Ue Context Release Complete
 TEST_F(NgapFlowTest, ue_context_release_complete_sunny_day) {
-  Ngap_UEContextReleaseComplete_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_UEContextReleaseComplete_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   unsigned char ue_context_release_com_message_hexbuf[] = {
       0x20, 0x29, 0x00, 0x11, 0x00, 0x00, 0x02, 0x00, 0x0a, 0x40, 0x02,
@@ -549,7 +550,7 @@ TEST_F(NgapFlowTest, ue_context_release_complete_sunny_day) {
 
   container = &(decoded_pdu.choice.successfulOutcome.value.choice
                     .UEContextReleaseComplete);
-  Ngap_UEContextReleaseComplete_IEs* ie = NULL;
+  Ngap_UEContextReleaseComplete_IEs *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_UEContextReleaseComplete_IEs, ie,
                                       container,
@@ -578,7 +579,7 @@ TEST_F(NgapFlowTest, ue_context_release_complete_sunny_day) {
   // Check if AMF_UE_NGAP_ID present
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // Verify ue_context_release_complete is handled successfully
@@ -595,8 +596,8 @@ TEST_F(NgapFlowTest, ue_context_release_complete_sunny_day) {
 
 // UE Context Release Command
 TEST_F(NgapFlowTest, ue_context_release_command_sunny_day) {
-  MessageDef* message_p = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  MessageDef *message_p = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
@@ -632,10 +633,10 @@ TEST_F(NgapFlowTest, ue_context_release_command_sunny_day) {
 
 // Pdu Session Resource Setup Request
 TEST_F(NgapFlowTest, pdu_sess_resource_setup_req_sunny_day) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   uint8_t ip_buff[4] = {0xc0, 0xa8, 0x3c, 0x8e};
-  m5g_ue_description_t* ue_ref = NULL;
-  itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
+  m5g_ue_description_t *ue_ref = NULL;
+  itti_ngap_pdusession_resource_setup_req_t *ngap_pdu_ses_setup_req = nullptr;
   pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req =
       {};
 
@@ -714,9 +715,9 @@ TEST_F(NgapFlowTest, pdu_sess_resource_setup_req_sunny_day) {
 
 // Pdu Session Resource Setup Response
 TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_sunny_day) {
-  Ngap_PDUSessionResourceSetupResponse_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_PDUSessionResourceSetupResponse_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
   Ngap_NGAP_PDU_t decoded_pdu = {};
   uint8_t pdu_ss_resource_setup_resp_hex_buff[] = {
       0x20, 0x1d, 0x00, 0x27, 0x00, 0x00, 0x03, 0x00, 0x0a, 0x40, 0x02,
@@ -739,7 +740,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_sunny_day) {
       RETURNok);
   container = &(decoded_pdu.choice.successfulOutcome.value.choice
                     .PDUSessionResourceSetupResponse);
-  Ngap_PDUSessionResourceSetupResponseIEs_t* ie = NULL;
+  Ngap_PDUSessionResourceSetupResponseIEs_t *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_PDUSessionResourceSetupResponseIEs_t,
                                       ie, container,
@@ -768,7 +769,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_sunny_day) {
   // Check if AMF_UE_NGAP_ID present
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
@@ -796,8 +797,8 @@ TEST_F(NgapFlowTest, pdu_sess_resource_rel_cmd_sunny_day) {
       0x51, 0x76, 0xb8, 0xe5, 0x45, 0xe1, 0xdc, 0x03, 0x68, 0x25, 0x9a,
       0x67, 0x6c, 0x20, 0x10, 0xa4, 0x9b, 0x6b, 0x3d, 0x65, 0x6d, 0x80,
       0x00, 0x41, 0xc5, 0x72, 0x9e, 0xd9, 0xe1, 0xf0, 0xd6};
-  MessageDef* message_p = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  MessageDef *message_p = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
   bstring buffer;
   unsigned int len = sizeof(pdu_sess_resource_rel_cmd) / sizeof(unsigned char);
 
@@ -835,9 +836,9 @@ TEST_F(NgapFlowTest, pdu_sess_resource_rel_cmd_sunny_day) {
 
 // Initial Context Setup  failure
 TEST_F(NgapFlowTest, initial_context_setup_failure_rainy_day) {
-  Ngap_InitialContextSetupFailure_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_InitialContextSetupFailure_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   unsigned char initial_context_setup_failure_message_hexbuf[] = {
       0x40, 0x0e, 0x00, 0x21, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x40,
@@ -865,7 +866,7 @@ TEST_F(NgapFlowTest, initial_context_setup_failure_rainy_day) {
 
   container = &(decoded_pdu.choice.unsuccessfulOutcome.value.choice
                     .InitialContextSetupFailure);
-  Ngap_InitialContextSetupFailureIEs* ie = NULL;
+  Ngap_InitialContextSetupFailureIEs *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialContextSetupFailureIEs, ie,
                                       container,
@@ -894,7 +895,7 @@ TEST_F(NgapFlowTest, initial_context_setup_failure_rainy_day) {
   // Check if AMF_UE_NGAP_ID present
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // check if NGAP_Cause IE present
@@ -916,9 +917,9 @@ TEST_F(NgapFlowTest, initial_context_setup_failure_rainy_day) {
 
 // Uplink Nas Transport With Auth Response
 TEST_F(NgapFlowTest, uplink_nas_transport_rainy_day) {
-  Ngap_UplinkNASTransport_t* container;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_UplinkNASTransport_t *container;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   unsigned char uplink_nas_transport_ue_message_hexbuf[] = {
       0x00, 0x2e, 0x40, 0x40, 0x00, 0x00, 0x04, 0x00, 0x0a, 0x00, 0x04, 0x40,
@@ -946,7 +947,7 @@ TEST_F(NgapFlowTest, uplink_nas_transport_rainy_day) {
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.UplinkNASTransport);
-  Ngap_UplinkNASTransport_IEs* ie = NULL;
+  Ngap_UplinkNASTransport_IEs *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_UplinkNASTransport_IEs, ie,
                                       container,
@@ -982,7 +983,7 @@ TEST_F(NgapFlowTest, uplink_nas_transport_rainy_day) {
   // Check if AMF_UE_NGAP_ID present
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = 0xffff;
 
   // verify uplink_nas_transport is not handled as amf_ue_ngap_id present
@@ -1002,8 +1003,8 @@ TEST_F(NgapFlowTest, downlink_nas_transport_auth_rainy_day) {
       0x51, 0x76, 0xb8, 0xe5, 0x45, 0xe1, 0xdc, 0x03, 0x68, 0x25, 0x9a,
       0x67, 0x6c, 0x20, 0x10, 0xa4, 0x9b, 0x6b, 0x3d, 0x65, 0x6d, 0x80,
       0x00, 0x41, 0xc5, 0x72, 0x9e, 0xd9, 0xe1, 0xf0, 0xd6};
-  MessageDef* message_p = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  MessageDef *message_p = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
   bstring buffer;
   unsigned int len = sizeof(dl_nas_auth_req_msg) / sizeof(unsigned char);
 
@@ -1041,9 +1042,9 @@ TEST_F(NgapFlowTest, downlink_nas_transport_auth_rainy_day) {
 
 // Initial Context Setup Request
 TEST_F(NgapFlowTest, initial_context_setup_request_rainy_day) {
-  m5g_ue_description_t* ue_ref = NULL;
-  MessageDef* message_p = nullptr;
-  Ngap_initial_context_setup_request_t* req = nullptr;
+  m5g_ue_description_t *ue_ref = NULL;
+  MessageDef *message_p = nullptr;
+  Ngap_initial_context_setup_request_t *req = nullptr;
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
@@ -1060,8 +1061,8 @@ TEST_F(NgapFlowTest, initial_context_setup_request_rainy_day) {
   req->ue_security_capabilities.m5g_encryption_algo = 0xC000;
   req->ue_security_capabilities.m5g_integrity_protection_algo = 0xC000;
   req->Security_Key =
-      (unsigned char *)
-      "e4298c66a3d368b59db6d6defa1b4ddaf40b9bef7cb398b44f468ea2f531ded3";
+      (unsigned char
+           *)"e4298c66a3d368b59db6d6defa1b4ddaf40b9bef7cb398b44f468ea2f531ded3";
   message_p->ittiMsgHeader.imsi = 0x311480000000001;
 
   // verify new ue is associated with gnb
@@ -1078,9 +1079,9 @@ TEST_F(NgapFlowTest, initial_context_setup_request_rainy_day) {
 
 // Initial Context Setup Response
 TEST_F(NgapFlowTest, initial_context_setup_response_rainy_day) {
-  Ngap_InitialContextSetupResponse_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_InitialContextSetupResponse_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   unsigned char initial_context_setup_response_message_hexbuf[] = {
       0x20, 0x0e, 0x00, 0x11, 0x00, 0x00, 0x02, 0x00, 0x0a, 0x40, 0x02,
@@ -1104,7 +1105,7 @@ TEST_F(NgapFlowTest, initial_context_setup_response_rainy_day) {
 
   container = &(decoded_pdu.choice.successfulOutcome.value.choice
                     .InitialContextSetupResponse);
-  Ngap_InitialContextSetupResponseIEs* ie = NULL;
+  Ngap_InitialContextSetupResponseIEs *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialContextSetupResponseIEs, ie,
                                       container,
@@ -1132,7 +1133,7 @@ TEST_F(NgapFlowTest, initial_context_setup_response_rainy_day) {
   // Check if AMF_UE_NGAP_ID present
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   // verify initial_context_setup_response is not handled as gnb_ue_ngap_id
@@ -1151,9 +1152,9 @@ TEST_F(NgapFlowTest, initial_context_setup_response_rainy_day) {
 
 // Ue Context Release Request
 TEST_F(NgapFlowTest, ue_context_release_request_rainy_day) {
-  Ngap_UEContextReleaseRequest_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_UEContextReleaseRequest_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   unsigned char ue_context_release_req_message_hexbuf[] = {
       0x00, 0x2a, 0x40, 0x17, 0x00, 0x00, 0x03, 0x00, 0x0a,
@@ -1177,7 +1178,7 @@ TEST_F(NgapFlowTest, ue_context_release_request_rainy_day) {
 
   container = &(decoded_pdu.choice.initiatingMessage.value.choice
                     .UEContextReleaseRequest);
-  Ngap_UEContextReleaseRequest_IEs* ie = NULL;
+  Ngap_UEContextReleaseRequest_IEs *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_UEContextReleaseRequest_IEs, ie,
                                       container,
@@ -1205,7 +1206,7 @@ TEST_F(NgapFlowTest, ue_context_release_request_rainy_day) {
   // Check if AMF_UE_NGAP_ID present
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   // verify ue_context_release_request is not handled as gnb_ue_ngap_id
   // present in ue_ref is not equal to  IE RAN_UE_NGAP_ID present
   // in ue_context_release_request
@@ -1226,8 +1227,8 @@ TEST_F(NgapFlowTest, ue_context_release_request_rainy_day) {
 
 // UE Context Release Command
 TEST_F(NgapFlowTest, ue_context_release_command_rainy_day) {
-  MessageDef* message_p = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  MessageDef *message_p = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
@@ -1260,9 +1261,9 @@ TEST_F(NgapFlowTest, ue_context_release_command_rainy_day) {
 }
 // Pdu Session Resource Setup Response
 TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_rainy_day) {
-  Ngap_PDUSessionResourceSetupResponse_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_PDUSessionResourceSetupResponse_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
   Ngap_NGAP_PDU_t decoded_pdu = {};
   uint8_t pdu_ss_resource_setup_resp_hex_buff[] = {
       0x20, 0x1d, 0x00, 0x27, 0x00, 0x00, 0x03, 0x00, 0x0a, 0x40, 0x02,
@@ -1285,7 +1286,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_rainy_day) {
       RETURNok);
   container = &(decoded_pdu.choice.successfulOutcome.value.choice
                     .PDUSessionResourceSetupResponse);
-  Ngap_PDUSessionResourceSetupResponseIEs_t* ie = NULL;
+  Ngap_PDUSessionResourceSetupResponseIEs_t *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_PDUSessionResourceSetupResponseIEs_t,
                                       ie, container,
@@ -1314,7 +1315,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_setup_resp_rainy_day) {
   // Check if AMF_UE_NGAP_ID is present
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = 0xffff;
 
   // verify pdu_session_resource_setup is not handled as amf_ue_ngap_id
@@ -1372,13 +1373,13 @@ TEST_F(NgapFlowTest, test_ue_notifications_from_amf) {
                                     peerInfo.instreams, &decoded_pdu),
             RETURNok);
 
-  Ngap_InitialUEMessage_t* container;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_InitialUEMessage_t *container;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
-  Ngap_InitialUEMessage_IEs_t* ie = NULL;
+  Ngap_InitialUEMessage_IEs_t *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialUEMessage_IEs_t, ie,
                                       container,
@@ -1420,10 +1421,10 @@ TEST_F(NgapFlowTest, test_ue_notifications_from_amf) {
 }
 
 TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
-  MessageDef* amf_message_p = NULL;
-  MessageDef* sctp_message_p = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
-  Ngap_InitialUEMessage_t* container;
+  MessageDef *amf_message_p = NULL;
+  MessageDef *sctp_message_p = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
+  Ngap_InitialUEMessage_t *container;
 
   unsigned char initial_ue_message_hexbuf[] = {
       0x00, 0x0f, 0x40, 0x48, 0x00, 0x00, 0x05, 0x00, 0x55, 0x00, 0x02,
@@ -1443,7 +1444,7 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
   // Verify number of connected gNB's is 1
   EXPECT_EQ(state->gnbs.num_elements, 1);
 
-  gnb_description_t* gnb_association = NULL;
+  gnb_description_t *gnb_association = NULL;
   gnb_association = ngap_state_get_gnb(state, peerInfo.assoc_id);
   ASSERT_TRUE(gnb_association != NULL);
   EXPECT_EQ(gnb_association->ng_state, NGAP_INIT);
@@ -1466,7 +1467,7 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
-  Ngap_InitialUEMessage_IEs_t* ie = NULL;
+  Ngap_InitialUEMessage_IEs_t *ie = NULL;
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialUEMessage_IEs_t, ie,
                                       container,
                                       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
@@ -1496,7 +1497,7 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
                 SCTP_CLOSE_ASSOCIATION(sctp_message_p).reset),
             RETURNok);
 
-  gnb_description_t* gnb_association_sd = NULL;
+  gnb_description_t *gnb_association_sd = NULL;
   gnb_association_sd = ngap_state_get_gnb(state, peerInfo.assoc_id);
   ASSERT_TRUE(gnb_association_sd != NULL);
   EXPECT_EQ(gnb_association_sd->ng_state, NGAP_SHUTDOWN);
@@ -1531,7 +1532,7 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
   EXPECT_EQ(state->num_gnbs, 0);
 
   // Checking that gnb description should be null after ue context release.
-  gnb_description_t* gnb_association_ue = NULL;
+  gnb_description_t *gnb_association_ue = NULL;
   gnb_association_ue = ngap_state_get_gnb(state, peerInfo.assoc_id);
   ASSERT_TRUE(gnb_association_ue == NULL);
 
@@ -1547,10 +1548,10 @@ TEST_F(NgapFlowTest, NgapHandleSctpDisconnection) {
 
 // Pdu Session Resource Modify Request
 TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   uint8_t ip_buff[4] = {0xc0, 0xa8, 0x3c, 0x8e};
-  m5g_ue_description_t* ue_ref = NULL;
-  itti_ngap_pdu_session_resource_modify_request_t* ngap_pdu_ses_modify_req =
+  m5g_ue_description_t *ue_ref = NULL;
+  itti_ngap_pdu_session_resource_modify_request_t *ngap_pdu_ses_modify_req =
       nullptr;
   pdu_session_resource_modify_request_transfer_t
       amf_pdu_ses_modify_transfer_req = {};
@@ -1579,7 +1580,7 @@ TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
   amf_pdu_ses_modify_transfer_req.pdu_sess_aggregate_max_bit_rate.dl = 1024;
   amf_pdu_ses_modify_transfer_req.pdu_sess_aggregate_max_bit_rate.ul = 1024;
   amf_pdu_ses_modify_transfer_req.ul_ng_u_up_tnl_modify_list.numOfItems = 1;
-  up_transport_layer_information_t* ul_ng_u_up_tnl_item =
+  up_transport_layer_information_t *ul_ng_u_up_tnl_item =
       &amf_pdu_ses_modify_transfer_req.ul_ng_u_up_tnl_modify_list
            .ul_ng_u_up_tnl_modfy_item[0];
 
@@ -1591,7 +1592,7 @@ TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
 
   amf_pdu_ses_modify_transfer_req.qos_flow_add_or_mod_request_list
       .maxNumOfQosFlows = 1;
-  qos_flow_request_list_t* qos_flow_request =
+  qos_flow_request_list_t *qos_flow_request =
       &amf_pdu_ses_modify_transfer_req.qos_flow_add_or_mod_request_list.item[0];
   qos_flow_request->qos_flow_req_item.qos_flow_identifier = 5;
   qos_flow_request->qos_flow_req_item.qos_flow_level_qos_param
@@ -1623,9 +1624,9 @@ TEST_F(NgapFlowTest, pdu_sess_resource_modify_req_sunny_day) {
 
 // Pdu Session Resource Modify Response
 TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
-  Ngap_PDUSessionResourceModifyResponse_t* container = NULL;
-  gnb_description_t* gNB_ref = NULL;
-  m5g_ue_description_t* ue_ref = NULL;
+  Ngap_PDUSessionResourceModifyResponse_t *container = NULL;
+  gnb_description_t *gNB_ref = NULL;
+  m5g_ue_description_t *ue_ref = NULL;
   Ngap_NGAP_PDU_t decoded_pdu = {};
   uint8_t pdu_ss_resource_modify_resp_hex_buff[] = {
       0x20, 0x1a, 0x00, 0x1e, 0x00, 0x00, 0x03, 0x00, 0x0a, 0x40, 0x04, 0x40,
@@ -1646,7 +1647,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
             RETURNok);
   container = &(decoded_pdu.choice.successfulOutcome.value.choice
                     .PDUSessionResourceModifyResponse);
-  Ngap_PDUSessionResourceModifyResponseIEs_t* ie = NULL;
+  Ngap_PDUSessionResourceModifyResponseIEs_t *ie = NULL;
 
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
       Ngap_PDUSessionResourceModifyResponseIEs_t, ie, container,
@@ -1675,7 +1676,7 @@ TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
   // Check if AMF_UE_NGAP_ID present
   ASSERT_TRUE(ie != NULL);
   asn_INTEGER2ulong(&ie->value.choice.AMF_UE_NGAP_ID,
-                    reinterpret_cast<uint64_t*>(&amf_ue_ngap_id));
+                    reinterpret_cast<uint64_t *>(&amf_ue_ngap_id));
   ue_ref->amf_ue_ngap_id = amf_ue_ngap_id;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
@@ -1697,8 +1698,8 @@ TEST_F(NgapFlowTest, pdu_session_resource_modify_resp_sunny_day) {
 }
 
 TEST_F(NgapFlowTest, TestNgapReset) {
-  m5g_ue_description_t* ue_ref = NULL;
-  Ngap_InitialUEMessage_t* container;
+  m5g_ue_description_t *ue_ref = NULL;
+  Ngap_InitialUEMessage_t *container;
   unsigned char ngap_setup_req_hexbuf[] = {
       0x00, 0x15, 0x00, 0x42, 0x00, 0x00, 0x04, 0x00, 0x1b, 0x00, 0x09, 0x00,
       0x22, 0x42, 0x65, 0x50, 0x00, 0x00, 0x00, 0x01, 0x00, 0x52, 0x40, 0x18,
@@ -1720,7 +1721,7 @@ TEST_F(NgapFlowTest, TestNgapReset) {
 
   sctp_stream_id_t stream_id = 0;
 
-  gnb_description_t* gnb_association = NULL;
+  gnb_description_t *gnb_association = NULL;
   gnb_association = ngap_state_get_gnb(state, peerInfo.assoc_id);
 
   EXPECT_EQ(ngap_amf_handle_message(state, peerInfo.assoc_id, stream_id,
@@ -1754,7 +1755,7 @@ TEST_F(NgapFlowTest, TestNgapReset) {
 
   container =
       &(decoded_pdu.choice.initiatingMessage.value.choice.InitialUEMessage);
-  Ngap_InitialUEMessage_IEs_t* ie = NULL;
+  Ngap_InitialUEMessage_IEs_t *ie = NULL;
   NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(Ngap_InitialUEMessage_IEs_t, ie,
                                       container,
                                       Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
@@ -1829,4 +1830,4 @@ TEST_F(NgapFlowTest, test_gNB_reset_ack) {
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
   bdestroy(ngap_initial_ue_msg);
 }
-}  // namespace magma5g
+} // namespace magma5g

@@ -33,11 +33,11 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#include <string.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <inttypes.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -67,8 +67,8 @@ static inline hash_size_t def_hashfunc(const uint64_t keyP) {
    values in the returned hash_table_uint64_t pointer should be released with
    hashtable_uint64_destroy().
 */
-hash_table_uint64_t* hashtable_uint64_init(
-    hash_table_uint64_t* const hashtblP, const hash_size_t sizeP,
+hash_table_uint64_t *hashtable_uint64_init(
+    hash_table_uint64_t *const hashtblP, const hash_size_t sizeP,
     hash_size_t (*hashfuncP)(const hash_key_t), bstring display_name_pP) {
   hash_size_t size = sizeP;
   // upper power of two:
@@ -96,8 +96,8 @@ hash_table_uint64_t* hashtable_uint64_init(
   size |= size >> 16;
   size++;
 
-  if (!(hashtblP->nodes = calloc(size, sizeof(hash_node_uint64_t*)))) {
-    free_wrapper((void**)&hashtblP);
+  if (!(hashtblP->nodes = calloc(size, sizeof(hash_node_uint64_t *)))) {
+    free_wrapper((void **)&hashtblP);
     return NULL;
   }
   hashtblP->log_enabled = true;
@@ -129,8 +129,8 @@ hash_table_uint64_t* hashtable_uint64_init(
    returned. All other values in the returned hash_table_uint64_t pointer should
    be released with hashtable_uint64_destroy().
 */
-hash_table_uint64_ts_t* hashtable_uint64_ts_init(
-    hash_table_uint64_ts_t* const hashtblP, const hash_size_t sizeP,
+hash_table_uint64_ts_t *hashtable_uint64_ts_init(
+    hash_table_uint64_ts_t *const hashtblP, const hash_size_t sizeP,
     hash_size_t (*hashfuncP)(const hash_key_t), bstring display_name_pP) {
   hash_size_t size = sizeP;
   // upper power of two:
@@ -160,15 +160,15 @@ hash_table_uint64_ts_t* hashtable_uint64_ts_init(
 
   memset(hashtblP, 0, sizeof(*hashtblP));
 
-  if (!(hashtblP->nodes = calloc(size, sizeof(hash_node_uint64_t*)))) {
-    free_wrapper((void**)&hashtblP);
+  if (!(hashtblP->nodes = calloc(size, sizeof(hash_node_uint64_t *)))) {
+    free_wrapper((void **)&hashtblP);
     return NULL;
   }
 
   if (!(hashtblP->lock_nodes = calloc(size, sizeof(pthread_mutex_t)))) {
-    free_wrapper((void**)&hashtblP->nodes);
-    free_wrapper((void**)&hashtblP->name);
-    free_wrapper((void**)&hashtblP);
+    free_wrapper((void **)&hashtblP->nodes);
+    free_wrapper((void **)&hashtblP->name);
+    free_wrapper((void **)&hashtblP);
     return NULL;
   }
 
@@ -204,10 +204,11 @@ hash_table_uint64_ts_t* hashtable_uint64_ts_init(
    hash_table_uint64_t pointer should be released with
    hashtable_uint64_destroy().
 */
-hash_table_uint64_ts_t* hashtable_uint64_ts_create(
-    const hash_size_t sizeP, hash_size_t (*hashfuncP)(const hash_key_t),
-    bstring display_name_pP) {
-  hash_table_uint64_ts_t* hashtbl = NULL;
+hash_table_uint64_ts_t *
+hashtable_uint64_ts_create(const hash_size_t sizeP,
+                           hash_size_t (*hashfuncP)(const hash_key_t),
+                           bstring display_name_pP) {
+  hash_table_uint64_ts_t *hashtbl = NULL;
 
   if (!(hashtbl = calloc(1, sizeof(hash_table_uint64_ts_t)))) {
     return NULL;
@@ -225,7 +226,7 @@ hash_table_uint64_ts_t* hashtable_uint64_ts_create(
    possible hash value, and releases the elements. It also releases the nodes
    array and the hash_table_uint64_t.
 */
-hashtable_rc_t hashtable_uint64_ts_destroy(hash_table_uint64_ts_t* hashtblP) {
+hashtable_rc_t hashtable_uint64_ts_destroy(hash_table_uint64_ts_t *hashtblP) {
   hash_size_t n = 0;
   hash_node_uint64_t *node = NULL, *oldnode = NULL;
 
@@ -240,27 +241,28 @@ hashtable_rc_t hashtable_uint64_ts_destroy(hash_table_uint64_ts_t* hashtblP) {
     while (node) {
       oldnode = node;
       node = node->next;
-      free_wrapper((void**)&oldnode);
+      free_wrapper((void **)&oldnode);
     }
 
     pthread_mutex_unlock(&hashtblP->lock_nodes[n]);
     pthread_mutex_destroy(&hashtblP->lock_nodes[n]);
   }
 
-  free_wrapper((void**)&hashtblP->nodes);
+  free_wrapper((void **)&hashtblP->nodes);
   bdestroy_wrapper(&hashtblP->name);
-  free_wrapper((void**)&hashtblP->lock_nodes);
+  free_wrapper((void **)&hashtblP->lock_nodes);
   hashtblP->size = 0;
   if (hashtblP->is_allocated_by_malloc) {
-    free_wrapper((void**)&hashtblP);
+    free_wrapper((void **)&hashtblP);
   }
   return HASH_TABLE_OK;
 }
 
 //------------------------------------------------------------------------------
-hashtable_rc_t hashtable_uint64_ts_is_key_exists(
-    const hash_table_uint64_ts_t* const hashtblP, const hash_key_t keyP) {
-  hash_node_uint64_t* node = NULL;
+hashtable_rc_t
+hashtable_uint64_ts_is_key_exists(const hash_table_uint64_ts_t *const hashtblP,
+                                  const hash_key_t keyP) {
+  hash_node_uint64_t *node = NULL;
   hash_size_t hash = 0;
 
   if (!hashtblP) {
@@ -289,11 +291,11 @@ hashtable_rc_t hashtable_uint64_ts_is_key_exists(
 
 //------------------------------------------------------------------------------
 // may cost a lot CPU...
-hashtable_key_array_t* hashtable_uint64_ts_get_keys(
-    hash_table_uint64_ts_t* const hashtblP) {
-  hash_node_uint64_t* node = NULL;
+hashtable_key_array_t *
+hashtable_uint64_ts_get_keys(hash_table_uint64_ts_t *const hashtblP) {
+  hash_node_uint64_t *node = NULL;
   unsigned int i = 0;
-  hashtable_key_array_t* ka = NULL;
+  hashtable_key_array_t *ka = NULL;
 
   if ((!hashtblP) || !(hashtblP->num_elements)) {
     return NULL;
@@ -322,11 +324,11 @@ hashtable_key_array_t* hashtable_uint64_ts_get_keys(
 // criteria different than the single key The compare criteria in implemented in
 // the funct_cb function
 hashtable_rc_t hashtable_uint64_ts_apply_callback_on_elements(
-    hash_table_uint64_ts_t* const hashtblP,
-    bool funct_cb(const hash_key_t keyP, const uint64_t dataP, void* parameterP,
-                  void** resultP),
-    void* parameterP, void** resultP) {
-  hash_node_uint64_t* node = NULL;
+    hash_table_uint64_ts_t *const hashtblP,
+    bool funct_cb(const hash_key_t keyP, const uint64_t dataP, void *parameterP,
+                  void **resultP),
+    void *parameterP, void **resultP) {
+  hash_node_uint64_t *node = NULL;
   unsigned int i = 0;
   unsigned int num_elements = 0;
 
@@ -356,9 +358,10 @@ hashtable_rc_t hashtable_uint64_ts_apply_callback_on_elements(
 }
 
 //------------------------------------------------------------------------------
-hashtable_rc_t hashtable_uint64_ts_dump_content(
-    const hash_table_uint64_ts_t* const hashtblP, bstring str) {
-  hash_node_uint64_t* node = NULL;
+hashtable_rc_t
+hashtable_uint64_ts_dump_content(const hash_table_uint64_ts_t *const hashtblP,
+                                 bstring str) {
+  hash_node_uint64_t *node = NULL;
   unsigned int i = 0;
 
   if (!hashtblP) {
@@ -396,10 +399,10 @@ hashtable_rc_t hashtable_uint64_ts_dump_content(
    To make sure the hash value is not bigger than size, the result of the user
    provided hash function is used modulo size.
 */
-hashtable_rc_t hashtable_uint64_insert(hash_table_uint64_t* const hashtblP,
+hashtable_rc_t hashtable_uint64_insert(hash_table_uint64_t *const hashtblP,
                                        const hash_key_t keyP,
                                        const uint64_t dataP) {
-  hash_node_uint64_t* node = NULL;
+  hash_node_uint64_t *node = NULL;
   hash_size_t hash = 0;
 
   if (!hashtblP) {
@@ -429,7 +432,8 @@ hashtable_rc_t hashtable_uint64_insert(hash_table_uint64_t* const hashtblP,
     node = node->next;
   }
 
-  if (!(node = malloc(sizeof(hash_node_uint64_t)))) return -1;
+  if (!(node = malloc(sizeof(hash_node_uint64_t))))
+    return -1;
 
   node->key = keyP;
   node->data = dataP;
@@ -455,10 +459,10 @@ hashtable_rc_t hashtable_uint64_insert(hash_table_uint64_t* const hashtblP,
    To make sure the hash value is not bigger than size, the result of the user
    provided hash function is used modulo size.
 */
-hashtable_rc_t hashtable_uint64_ts_insert(
-    hash_table_uint64_ts_t* const hashtblP, const hash_key_t keyP,
-    const uint64_t dataP) {
-  hash_node_uint64_t* node = NULL;
+hashtable_rc_t
+hashtable_uint64_ts_insert(hash_table_uint64_ts_t *const hashtblP,
+                           const hash_key_t keyP, const uint64_t dataP) {
+  hash_node_uint64_t *node = NULL;
   hash_size_t hash = 0;
 
   if (!hashtblP) {
@@ -490,7 +494,8 @@ hashtable_rc_t hashtable_uint64_ts_insert(
     node = node->next;
   }
 
-  if (!(node = malloc(sizeof(hash_node_uint64_t)))) return -1;
+  if (!(node = malloc(sizeof(hash_node_uint64_t))))
+    return -1;
 
   node->key = keyP;
   node->data = dataP;
@@ -516,7 +521,7 @@ hashtable_rc_t hashtable_uint64_ts_insert(
    list for that hash value, and remove it if it is found. If it was not found,
    it is an error and -1 is returned.
 */
-hashtable_rc_t hashtable_uint64_remove(hash_table_uint64_t* const hashtblP,
+hashtable_rc_t hashtable_uint64_remove(hash_table_uint64_t *const hashtblP,
                                        const hash_key_t keyP) {
   hash_node_uint64_t *node, *prevnode = NULL;
   hash_size_t hash = 0;
@@ -535,7 +540,7 @@ hashtable_rc_t hashtable_uint64_remove(hash_table_uint64_t* const hashtblP,
       else
         hashtblP->nodes[hash] = node->next;
 
-      free_wrapper((void**)&node);
+      free_wrapper((void **)&node);
       __sync_fetch_and_sub(&hashtblP->num_elements, 1);
       PRINT_HASHTABLE(hashtblP, "%s(%s,key 0x%" PRIx64 ") return OK\n",
                       __FUNCTION__, bdata(hashtblP->name), keyP);
@@ -557,8 +562,9 @@ hashtable_rc_t hashtable_uint64_remove(hash_table_uint64_t* const hashtblP,
    list for that hash value, and remove it if it is found. If it was not found,
    it is an error and -1 is returned.
 */
-hashtable_rc_t hashtable_uint64_ts_remove(
-    hash_table_uint64_ts_t* const hashtblP, const hash_key_t keyP) {
+hashtable_rc_t
+hashtable_uint64_ts_remove(hash_table_uint64_ts_t *const hashtblP,
+                           const hash_key_t keyP) {
   hash_node_uint64_t *node, *prevnode = NULL;
   hash_size_t hash = 0;
 
@@ -577,7 +583,7 @@ hashtable_rc_t hashtable_uint64_ts_remove(
       else
         hashtblP->nodes[hash] = node->next;
 
-      free_wrapper((void**)&node);
+      free_wrapper((void **)&node);
       __sync_fetch_and_sub(&hashtblP->num_elements, 1);
       pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
       PRINT_HASHTABLE(hashtblP, "%s(%s,key 0x%" PRIx64 ") return OK\n",
@@ -600,10 +606,10 @@ hashtable_rc_t hashtable_uint64_ts_remove(
    Searching for an element is easy. We just search through the linked list for
    the corresponding hash value. NULL is returned if we didn't find it.
 */
-hashtable_rc_t hashtable_uint64_ts_get(
-    const hash_table_uint64_ts_t* const hashtblP, const hash_key_t keyP,
-    uint64_t* const dataP) {
-  hash_node_uint64_t* node = NULL;
+hashtable_rc_t
+hashtable_uint64_ts_get(const hash_table_uint64_ts_t *const hashtblP,
+                        const hash_key_t keyP, uint64_t *const dataP) {
+  hash_node_uint64_t *node = NULL;
   hash_size_t hash = 0;
 
   if (!hashtblP) {

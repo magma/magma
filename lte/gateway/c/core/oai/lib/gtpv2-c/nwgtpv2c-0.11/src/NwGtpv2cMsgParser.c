@@ -60,11 +60,11 @@ extern "C" {
 nw_rc_t nwGtpv2cMsgParserNew(
     NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle, NW_IN uint8_t msgType,
     NW_IN nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
-                                    uint8_t ieInstance, uint8_t* ieValue,
-                                    void* ieReadCallbackArg),
-    NW_IN void* ieReadCallbackArg, NW_IN nw_gtpv2c_msg_parser_t** pthiz) {
-  nw_gtpv2c_msg_parser_t* thiz;
-  thiz = (nw_gtpv2c_msg_parser_t*)malloc(sizeof(nw_gtpv2c_msg_parser_t));
+                                    uint8_t ieInstance, uint8_t *ieValue,
+                                    void *ieReadCallbackArg),
+    NW_IN void *ieReadCallbackArg, NW_IN nw_gtpv2c_msg_parser_t **pthiz) {
+  nw_gtpv2c_msg_parser_t *thiz;
+  thiz = (nw_gtpv2c_msg_parser_t *)malloc(sizeof(nw_gtpv2c_msg_parser_t));
 
   if (thiz) {
     memset(thiz, 0, sizeof(nw_gtpv2c_msg_parser_t));
@@ -87,16 +87,16 @@ nw_rc_t nwGtpv2cMsgParserNew(
 */
 
 nw_rc_t nwGtpv2cMsgParserDelete(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-                                NW_IN nw_gtpv2c_msg_parser_t* thiz) {
+                                NW_IN nw_gtpv2c_msg_parser_t *thiz) {
   NW_GTPV2C_FREE(hGtpcStackHandle, thiz);
   return NW_OK;
 }
 
 nw_rc_t nwGtpv2cMsgParserUpdateIeReadCallback(
-    NW_IN nw_gtpv2c_msg_parser_t* thiz,
+    NW_IN nw_gtpv2c_msg_parser_t *thiz,
     NW_IN nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
-                                    uint8_t ieInstance, uint8_t* ieValue,
-                                    void* ieReadCallbackArg)) {
+                                    uint8_t ieInstance, uint8_t *ieValue,
+                                    void *ieReadCallbackArg)) {
   if (thiz) {
     thiz->ieReadCallback = ieReadCallback;
     return NW_OK;
@@ -105,8 +105,9 @@ nw_rc_t nwGtpv2cMsgParserUpdateIeReadCallback(
   return NW_FAILURE;
 }
 
-nw_rc_t nwGtpv2cMsgParserUpdateIeReadCallbackArg(
-    NW_IN nw_gtpv2c_msg_parser_t* thiz, NW_IN void* ieReadCallbackArg) {
+nw_rc_t
+nwGtpv2cMsgParserUpdateIeReadCallbackArg(NW_IN nw_gtpv2c_msg_parser_t *thiz,
+                                         NW_IN void *ieReadCallbackArg) {
   if (thiz) {
     thiz->ieReadCallbackArg = ieReadCallbackArg;
     return NW_OK;
@@ -116,12 +117,12 @@ nw_rc_t nwGtpv2cMsgParserUpdateIeReadCallbackArg(
 }
 
 nw_rc_t nwGtpv2cMsgParserAddIe(
-    NW_IN nw_gtpv2c_msg_parser_t* thiz, NW_IN uint8_t ieType,
+    NW_IN nw_gtpv2c_msg_parser_t *thiz, NW_IN uint8_t ieType,
     NW_IN uint8_t ieInstance, NW_IN uint8_t iePresence,
     NW_IN nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
-                                    uint8_t ieInstance, uint8_t* ieValue,
-                                    void* ieReadCallbackArg),
-    NW_IN void* ieReadCallbackArg) {
+                                    uint8_t ieInstance, uint8_t *ieValue,
+                                    void *ieReadCallbackArg),
+    NW_IN void *ieReadCallbackArg) {
   NW_ASSERT(thiz);
 
   if (thiz->ieParseInfo[ieType][ieInstance].iePresence == 0) {
@@ -145,12 +146,12 @@ nw_rc_t nwGtpv2cMsgParserAddIe(
 }
 
 nw_rc_t nwGtpv2cMsgParserUpdateIe(
-    NW_IN nw_gtpv2c_msg_parser_t* thiz, NW_IN uint8_t ieType,
+    NW_IN nw_gtpv2c_msg_parser_t *thiz, NW_IN uint8_t ieType,
     NW_IN uint8_t ieInstance, NW_IN uint8_t iePresence,
     NW_IN nw_rc_t (*ieReadCallback)(uint8_t ieType, uint16_t ieLength,
-                                    uint8_t ieInstance, uint8_t* ieValue,
-                                    void* ieReadCallbackArg),
-    NW_IN void* ieReadCallbackArg) {
+                                    uint8_t ieInstance, uint8_t *ieValue,
+                                    void *ieReadCallbackArg),
+    NW_IN void *ieReadCallbackArg) {
   NW_ASSERT(thiz);
 
   if (thiz->ieParseInfo[ieType][ieInstance].iePresence) {
@@ -168,33 +169,33 @@ nw_rc_t nwGtpv2cMsgParserUpdateIe(
   return NW_OK;
 }
 
-nw_rc_t nwGtpv2cMsgParserRun(NW_IN nw_gtpv2c_msg_parser_t* thiz,
+nw_rc_t nwGtpv2cMsgParserRun(NW_IN nw_gtpv2c_msg_parser_t *thiz,
                              NW_IN nw_gtpv2c_msg_handle_t hMsg,
-                             NW_OUT uint8_t* pOffendingIeType,
-                             NW_OUT uint8_t* pOffendingIeInstance,
-                             NW_OUT uint16_t* pOffendingIeLength) {
+                             NW_OUT uint8_t *pOffendingIeType,
+                             NW_OUT uint8_t *pOffendingIeInstance,
+                             NW_OUT uint16_t *pOffendingIeLength) {
   nw_rc_t rc = NW_OK;
   uint8_t flags;
   uint16_t mandatoryIeCount = 0;
-  nw_gtpv2c_ie_tlv_t* pIe;
-  uint8_t* pIeStart;
-  uint8_t* pIeEnd;
+  nw_gtpv2c_ie_tlv_t *pIe;
+  uint8_t *pIeStart;
+  uint8_t *pIeEnd;
   uint16_t ieLength;
-  nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*)hMsg;
+  nw_gtpv2c_msg_t *pMsg = (nw_gtpv2c_msg_t *)hMsg;
 
   NW_ASSERT(pMsg);
-  flags = *((uint8_t*)(pMsg->msgBuf));
-  pIeStart = (uint8_t*)(pMsg->msgBuf + (flags & 0x08 ? 12 : 8));
-  pIeEnd = (uint8_t*)(pMsg->msgBuf + pMsg->msgLen);
+  flags = *((uint8_t *)(pMsg->msgBuf));
+  pIeStart = (uint8_t *)(pMsg->msgBuf + (flags & 0x08 ? 12 : 8));
+  pIeEnd = (uint8_t *)(pMsg->msgBuf + pMsg->msgLen);
   memset(thiz->pIe, 0,
-         sizeof(uint8_t*) * (NW_GTPV2C_IE_TYPE_MAXIMUM) *
+         sizeof(uint8_t *) * (NW_GTPV2C_IE_TYPE_MAXIMUM) *
              (NW_GTPV2C_IE_INSTANCE_MAXIMUM));
   memset(pMsg->pIe, 0,
-         sizeof(uint8_t*) * (NW_GTPV2C_IE_TYPE_MAXIMUM) *
+         sizeof(uint8_t *) * (NW_GTPV2C_IE_TYPE_MAXIMUM) *
              (NW_GTPV2C_IE_INSTANCE_MAXIMUM));
 
   while (pIeStart < pIeEnd) {
-    pIe = (nw_gtpv2c_ie_tlv_t*)pIeStart;
+    pIe = (nw_gtpv2c_ie_tlv_t *)pIeStart;
     ieLength = ntohs(pIe->l);
 
     if (pIeStart + 4 + ieLength > pIeEnd) {
@@ -205,8 +206,8 @@ nw_rc_t nwGtpv2cMsgParserRun(NW_IN nw_gtpv2c_msg_parser_t* thiz,
     }
 
     if ((thiz->ieParseInfo[pIe->t][pIe->i].iePresence)) {
-      thiz->pIe[pIe->t][pIe->i] = (uint8_t*)pIeStart;
-      pMsg->pIe[pIe->t][pIe->i] = (uint8_t*)pIeStart;
+      thiz->pIe[pIe->t][pIe->i] = (uint8_t *)pIeStart;
+      pMsg->pIe[pIe->t][pIe->i] = (uint8_t *)pIeStart;
       OAILOG_DEBUG(LOG_GTPV2C, "Received IE %u of length %u!\n", pIe->t,
                    ieLength);
 

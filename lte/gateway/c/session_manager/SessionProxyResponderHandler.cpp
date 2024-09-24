@@ -30,32 +30,31 @@
 namespace google {
 namespace protobuf {
 class Message;
-}  // namespace protobuf
-}  // namespace google
+} // namespace protobuf
+} // namespace google
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::Status;
 
 namespace magma {
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
-    std::shared_ptr<LocalEnforcer> enforcer, SessionStore& session_store)
+    std::shared_ptr<LocalEnforcer> enforcer, SessionStore &session_store)
     : enforcer_(enforcer), session_store_(session_store) {}
 
 SessionProxyResponderHandlerImpl::SessionProxyResponderHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer,
     std::shared_ptr<SessionStateEnforcer> m5genforcer,
-    SessionStore& session_store)
-    : enforcer_(enforcer),
-      m5genforcer_(m5genforcer),
+    SessionStore &session_store)
+    : enforcer_(enforcer), m5genforcer_(m5genforcer),
       session_store_(session_store) {}
 
 void SessionProxyResponderHandlerImpl::ChargingReAuth(
-    ServerContext* context, const ChargingReAuthRequest* request,
+    ServerContext *context, const ChargingReAuthRequest *request,
     std::function<void(Status, ChargingReAuthAnswer)> response_callback) {
-  auto& request_cpy = *request;
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  auto &request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request_cpy));
   MLOG(MDEBUG) << "Received a Gy (Charging) ReAuthRequest for "
                << request->session_id() << " and charging_key "
                << request->charging_key();
@@ -74,7 +73,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
 
     bool update_success = session_store_.update_sessions(update);
     if (update_success) {
-      PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
+      PrintGrpcMessage(static_cast<const google::protobuf::Message &>(ans));
       status = Status::OK;
     } else {
       // Todo If update fails, we should rollback changes from the request
@@ -83,7 +82,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
           Status(grpc::ABORTED,
                  "ChargingReAuth no longer valid due to another update that "
                  "updated the session first.");
-      PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
+      PrintGrpcMessage(static_cast<const google::protobuf::Message &>(ans));
     }
     response_callback(status, ans);
     MLOG(MDEBUG) << "Sent RAA response " << result << " for Gy ReAuth "
@@ -92,38 +91,38 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
 }
 
 void SessionProxyResponderHandlerImpl::PolicyReAuth(
-    ServerContext* context, const PolicyReAuthRequest* request,
+    ServerContext *context, const PolicyReAuthRequest *request,
     std::function<void(Status, PolicyReAuthAnswer)> response_callback) {
-  auto& request_cpy = *request;
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  auto &request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(request_cpy));
   MLOG(MDEBUG) << "Received a Gx (Policy) ReAuthRequest for session_id "
                << request->session_id();
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy,
                                                     response_callback]() {
     PolicyReAuthAnswer ans;
-    const std::string& imsi = request_cpy.imsi();
-    const std::string& session_id = request_cpy.session_id();
+    const std::string &imsi = request_cpy.imsi();
+    const std::string &session_id = request_cpy.session_id();
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_map = session_store_.read_sessions({imsi});
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
       MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
                    << " with session_id " << session_id;
-      PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
+      PrintGrpcMessage(static_cast<const google::protobuf::Message &>(ans));
       ans.set_result(ReAuthResult::SESSION_NOT_FOUND);
       Status status(grpc::NOT_FOUND, "Session not found");
       response_callback(status, ans);
       return;
     }
 
-    auto& session = **session_it;
-    const auto& config = session->get_config();
-    const auto& common_context = config.common_context;
+    auto &session = **session_it;
+    const auto &config = session->get_config();
+    const auto &common_context = config.common_context;
 
     SessionUpdate update =
         SessionStore::get_default_session_update(session_map);
     const auto rat_type = common_context.rat_type();
-    const std::string& interface = (rat_type == TGPP_NR) ? "5G N7" : "4G Gx";
+    const std::string &interface = (rat_type == TGPP_NR) ? "5G N7" : "4G Gx";
     if (rat_type == TGPP_NR) {
       m5genforcer_->init_policy_reauth(imsi, session_map, request_cpy, ans,
                                        update);
@@ -136,7 +135,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
     if (update_success) {
       MLOG(MDEBUG) << "Sending RAA response for " << interface << " ReAuth "
                    << request_cpy.session_id();
-      PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
+      PrintGrpcMessage(static_cast<const google::protobuf::Message &>(ans));
       response_callback(Status::OK, ans);
     } else {
       // Todo If update fails, we should rollback changes from the request
@@ -146,7 +145,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
           Status(grpc::ABORTED,
                  "PolicyReAuth no longer valid due to another update that "
                  "updated the session first.");
-      PrintGrpcMessage(static_cast<const google::protobuf::Message&>(ans));
+      PrintGrpcMessage(static_cast<const google::protobuf::Message &>(ans));
       response_callback(status, ans);
     }
     MLOG(MDEBUG) << "Sent RAA response for " << interface << " ReAuth "
@@ -155,9 +154,9 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
 }
 
 void SessionProxyResponderHandlerImpl::AbortSession(
-    ServerContext* context, const AbortSessionRequest* request,
+    ServerContext *context, const AbortSessionRequest *request,
     std::function<void(Status, AbortSessionResult)> response_callback) {
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(*request));
+  PrintGrpcMessage(static_cast<const google::protobuf::Message &>(*request));
   auto imsi = request->user_name();
   // SessionD currently stores IMSIs with the 'IMSI' prefix so append if it is
   // not there already
@@ -189,10 +188,10 @@ void SessionProxyResponderHandlerImpl::AbortSession(
           Status(grpc::ABORTED, "ASR failed due to internal datastore error");
       answer.set_code(AbortSessionResult_Code_SESSION_NOT_FOUND);
     }
-    PrintGrpcMessage(static_cast<const google::protobuf::Message&>(answer));
+    PrintGrpcMessage(static_cast<const google::protobuf::Message &>(answer));
     response_callback(status, answer);
     MLOG(MINFO) << "Sent ASA for " << session_id << " with code "
                 << asr_result_to_str(answer.code());
   });
 }
-}  // namespace magma
+} // namespace magma

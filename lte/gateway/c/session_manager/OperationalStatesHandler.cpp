@@ -12,23 +12,23 @@
  */
 #include "lte/gateway/c/session_manager/OperationalStatesHandler.hpp"
 
-#include <nlohmann/json.hpp>
+#include <fstream>
 #include <glog/logging.h>
 #include <google/protobuf/stubs/status.h>
 #include <google/protobuf/stubs/stringpiece.h>
 #include <google/protobuf/util/json_util.h>
+#include <list>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
-#include <fstream>
-#include <list>
 #include <map>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <ostream>
+#include <regex>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <regex>
 
 #include "lte/gateway/c/session_manager/EnumToString.hpp"
 #include "lte/gateway/c/session_manager/SessionState.hpp"
@@ -38,16 +38,16 @@
 
 namespace magma {
 
-OpState get_operational_states(magma::lte::SessionStore* session_store) {
+OpState get_operational_states(magma::lte::SessionStore *session_store) {
   std::list<std::map<std::string, std::string>> states;
   auto session_map = session_store->read_all_sessions();
   nlohmann::json subscribers = nlohmann::json::object();
 
-  for (auto& it : session_map) {
+  for (auto &it : session_map) {
     std::map<std::string, std::string> state;
     nlohmann::json sessions_by_apn = nlohmann::json::object();
 
-    for (auto& session : it.second) {
+    for (auto &session : it.second) {
       const auto apn = session->get_config().common_context.apn();
       if (sessions_by_apn[apn].empty()) {
         sessions_by_apn[apn] = nlohmann::json::array();
@@ -66,8 +66,8 @@ OpState get_operational_states(magma::lte::SessionStore* session_store) {
   return states;
 }
 
-nlohmann::json get_dynamic_session_state(
-    const std::unique_ptr<SessionState>& session) {
+nlohmann::json
+get_dynamic_session_state(const std::unique_ptr<SessionState> &session) {
   nlohmann::json state = nlohmann::json::object();
   const auto config = session->get_config().common_context;
   state[SESSION_ID] = session->get_session_id();
@@ -81,14 +81,14 @@ nlohmann::json get_dynamic_session_state(
   return state;
 }
 
-nlohmann::json get_dynamic_active_policies(
-    const std::unique_ptr<SessionState>& session) {
+nlohmann::json
+get_dynamic_active_policies(const std::unique_ptr<SessionState> &session) {
   google::protobuf::util::JsonPrintOptions options;
   options.add_whitespace = false;
 
   nlohmann::json policies = nlohmann::json::array();
   auto active_policies = session->get_all_active_policies();
-  for (auto& policy : active_policies) {
+  for (auto &policy : active_policies) {
     std::string json_policy;
     auto status = google::protobuf::util::MessageToJsonString(
         policy, &json_policy, options);
@@ -108,8 +108,8 @@ std::string get_gateway_hw_id() {
   buffer << input_file.rdbuf();
   std::string hw_id = buffer.str();
   hw_id = std::regex_replace(hw_id, std::regex("\\s+$"),
-                             std::string(""));  // trim right
+                             std::string("")); // trim right
   return hw_id;
 }
 
-}  // namespace magma
+} // namespace magma

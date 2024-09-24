@@ -1,11 +1,11 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <iomanip>
+#include <iostream>
 #include <netinet/in.h>
 #include <sstream>
-#include <iostream>
-#include <iomanip>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,53 +32,57 @@ namespace magma5g {
 #define NAS5G_MESSAGE_SECURITY_HEADER_SIZE 7
 
 /* Functions used to decode layer 3 NAS messages */
-int nas5g_message_header_decode(const unsigned char* const buffer,
-                                amf_msg_header* const header,
+int nas5g_message_header_decode(const unsigned char *const buffer,
+                                amf_msg_header *const header,
                                 const uint32_t length,
-                                amf_nas_message_decode_status_t* const status,
-                                bool* const is_sr);
+                                amf_nas_message_decode_status_t *const status,
+                                bool *const is_sr);
 
-static int _nas5g_message_plain_decode(const unsigned char* buffer,
-                                       const amf_msg_header* header,
-                                       nas_message_plain_t* msg,
+static int _nas5g_message_plain_decode(const unsigned char *buffer,
+                                       const amf_msg_header *header,
+                                       nas_message_plain_t *msg,
                                        uint32_t length);
 
 static int _nas5g_message_protected_decode(
-    unsigned char* const buffer, amf_msg_header* header,
-    nas_message_plain_t* msg, uint32_t length,
-    amf_security_context_t* const amf_security_context,
-    amf_nas_message_decode_status_t* status);
+    unsigned char *const buffer, amf_msg_header *header,
+    nas_message_plain_t *msg, uint32_t length,
+    amf_security_context_t *const amf_security_context,
+    amf_nas_message_decode_status_t *status);
 
 /* Functions used to encode layer 3 NAS messages */
-static int _nas5g_message_header_encode(unsigned char* buffer,
-                                        const amf_msg_header* header,
+static int _nas5g_message_header_encode(unsigned char *buffer,
+                                        const amf_msg_header *header,
                                         uint32_t length);
 
-int _nas5g_message_plain_encode(unsigned char* buffer,
-                                const amf_msg_header* header,
-                                const nas_message_plain_t* msg,
+int _nas5g_message_plain_encode(unsigned char *buffer,
+                                const amf_msg_header *header,
+                                const nas_message_plain_t *msg,
                                 uint32_t length);
 
-static int _nas5g_message_protected_encode(
-    unsigned char* buffer, const nas_message_security_protected_t* msg,
-    uint32_t length, void* security);
+static int
+_nas5g_message_protected_encode(unsigned char *buffer,
+                                const nas_message_security_protected_t *msg,
+                                uint32_t length, void *security);
 
 /* Functions used to decrypt and encrypt layer 3 NAS messages */
-static int _nas5g_message_decrypt(
-    unsigned char* const dest, unsigned char* const src,
-    uint8_t security_header_type, uint32_t code, uint8_t seq, uint32_t length,
-    amf_security_context_t* const amf_security_context,
-    amf_nas_message_decode_status_t* status);
+static int
+_nas5g_message_decrypt(unsigned char *const dest, unsigned char *const src,
+                       uint8_t security_header_type, uint32_t code, uint8_t seq,
+                       uint32_t length,
+                       amf_security_context_t *const amf_security_context,
+                       amf_nas_message_decode_status_t *status);
 
-static int _nas5g_message_encrypt(
-    unsigned char* dest, const unsigned char* src, uint8_t security_header_type,
-    uint32_t code, uint8_t seq, int const direction, uint32_t length,
-    amf_security_context_t* const amf_security_context);
+static int
+_nas5g_message_encrypt(unsigned char *dest, const unsigned char *src,
+                       uint8_t security_header_type, uint32_t code, uint8_t seq,
+                       int const direction, uint32_t length,
+                       amf_security_context_t *const amf_security_context);
 
 /* Functions used for integrity protection of layer 3 NAS messages */
-static uint32_t _nas5g_message_get_mac(
-    const unsigned char* const buffer, uint32_t const length,
-    int const direction, amf_security_context_t* const amf_security_context);
+static uint32_t
+_nas5g_message_get_mac(const unsigned char *const buffer, uint32_t const length,
+                       int const direction,
+                       amf_security_context_t *const amf_security_context);
 
 /****************************************************************************
  *                                                                           *
@@ -100,13 +104,13 @@ static uint32_t _nas5g_message_get_mac(
  *                     established                                           *
  *                                                                           *
  ****************************************************************************/
-int nas5g_message_decode(const unsigned char* const buffer,
-                         amf_nas_message_t* msg, uint32_t length,
-                         void* security,
-                         amf_nas_message_decode_status_t* status) {
+int nas5g_message_decode(const unsigned char *const buffer,
+                         amf_nas_message_t *msg, uint32_t length,
+                         void *security,
+                         amf_nas_message_decode_status_t *status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_security_context_t* amf_security_context =
-      (amf_security_context_t*)security;
+  amf_security_context_t *amf_security_context =
+      (amf_security_context_t *)security;
   int bytes = 0;
   uint32_t mac = 0;
   int size = 0;
@@ -172,7 +176,7 @@ int nas5g_message_decode(const unsigned char* const buffer,
      * Decode security protected NAS message
      */
     bytes = _nas5g_message_protected_decode(
-        (unsigned char* const)(buffer + size), &msg->header, &msg->plain,
+        (unsigned char *const)(buffer + size), &msg->header, &msg->plain,
         length - size, amf_security_context, status);
   } else {
     /*
@@ -222,12 +226,12 @@ int nas5g_message_decode(const unsigned char* const buffer,
  **            Others:  None                                               **
  **                                                                        **
  ***************************************************************************/
-int nas5g_message_encode(unsigned char* buffer,
-                         const amf_nas_message_t* const msg, uint32_t length,
-                         void* security) {
+int nas5g_message_encode(unsigned char *buffer,
+                         const amf_nas_message_t *const msg, uint32_t length,
+                         void *security) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_security_context_t* amf_security_context =
-      (amf_security_context_t*)security;
+  amf_security_context_t *amf_security_context =
+      (amf_security_context_t *)security;
   int bytes;
 
   /*
@@ -266,7 +270,7 @@ int nas5g_message_encode(unsigned char* buffer,
       /*
        * Set the message authentication code of the NAS message
        */
-      *(uint32_t*)(buffer + sizeof(uint16_t)) = htonl(mac);
+      *(uint32_t *)(buffer + sizeof(uint16_t)) = htonl(mac);
 
       if (amf_security_context) {
         /*
@@ -364,11 +368,11 @@ int nas5g_message_encode(unsigned char* buffer,
  **            Others:  None                                               **
  **                                                                        **
  ***************************************************************************/
-int nas5g_message_header_decode(const unsigned char* const buffer,
-                                amf_msg_header* const header,
+int nas5g_message_header_decode(const unsigned char *const buffer,
+                                amf_msg_header *const header,
                                 const uint32_t length,
-                                amf_nas_message_decode_status_t* const status,
-                                bool* const is_sr) {
+                                amf_nas_message_decode_status_t *const status,
+                                bool *const is_sr) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int size = 0;
 
@@ -385,22 +389,22 @@ int nas5g_message_header_decode(const unsigned char* const buffer,
     if (header->security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
       if (status) {
         switch (header->security_header_type) {
-          case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED:
-          case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_NEW:
-            status->integrity_protected_message = 1;
-            break;
-          case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED:
-          case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED_NEW:
-            status->integrity_protected_message = 1;
-            status->ciphered_message = 1;
-            break;
-          case SECURITY_HEADER_TYPE_SERVICE_REQUEST:
-            *is_sr = true;
-            status->integrity_protected_message = 1;
-            OAILOG_FUNC_RETURN(LOG_AMF_APP, size);
-            break;
-          default:
-            OAILOG_WARNING(LOG_AMF_APP, "Unknown security header type");
+        case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED:
+        case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_NEW:
+          status->integrity_protected_message = 1;
+          break;
+        case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED:
+        case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED_NEW:
+          status->integrity_protected_message = 1;
+          status->ciphered_message = 1;
+          break;
+        case SECURITY_HEADER_TYPE_SERVICE_REQUEST:
+          *is_sr = true;
+          status->integrity_protected_message = 1;
+          OAILOG_FUNC_RETURN(LOG_AMF_APP, size);
+          break;
+        default:
+          OAILOG_WARNING(LOG_AMF_APP, "Unknown security header type");
         }
       }
       if (*is_sr == false) {
@@ -450,9 +454,9 @@ int nas5g_message_header_decode(const unsigned char* const buffer,
  **            Others:  None                                               **
  **                                                                        **
  ***************************************************************************/
-static int _nas5g_message_plain_decode(const unsigned char* buffer,
-                                       const amf_msg_header* header,
-                                       nas_message_plain_t* msg,
+static int _nas5g_message_plain_decode(const unsigned char *buffer,
+                                       const amf_msg_header *header,
+                                       nas_message_plain_t *msg,
                                        uint32_t length) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int bytes = TLV_PROTOCOL_NOT_SUPPORTED;
@@ -462,8 +466,8 @@ static int _nas5g_message_plain_decode(const unsigned char* buffer,
     /*
      * Decode Mobility Management L3
      */
-    bytes = amf_msg.M5gNasMessageDecodeMsg((AmfMsg*)&msg->amf, (uint8_t*)buffer,
-                                           length);
+    bytes = amf_msg.M5gNasMessageDecodeMsg((AmfMsg *)&msg->amf,
+                                           (uint8_t *)buffer, length);
   } else {
     /*
      * Discard L3 messages with not supported protocol discriminator
@@ -498,13 +502,13 @@ static int _nas5g_message_plain_decode(const unsigned char* buffer,
  **                                                                        **
  ***************************************************************************/
 static int _nas5g_message_protected_decode(
-    unsigned char* const buffer, amf_msg_header* header,
-    nas_message_plain_t* msg, uint32_t length,
-    amf_security_context_t* const amf_security_context,
-    amf_nas_message_decode_status_t* const status) {
+    unsigned char *const buffer, amf_msg_header *header,
+    nas_message_plain_t *msg, uint32_t length,
+    amf_security_context_t *const amf_security_context,
+    amf_nas_message_decode_status_t *const status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int bytes = TLV_BUFFER_TOO_SHORT;
-  unsigned char* const plain_msg = (unsigned char*)calloc(1, length);
+  unsigned char *const plain_msg = (unsigned char *)calloc(1, length);
 
   if (plain_msg) {
     /*
@@ -549,8 +553,8 @@ static int _nas5g_message_protected_decode(
  **            Others:  None                                               **
  **                                                                        **
  ***************************************************************************/
-static int _nas5g_message_header_encode(unsigned char* buffer,
-                                        const amf_msg_header* header,
+static int _nas5g_message_header_encode(unsigned char *buffer,
+                                        const amf_msg_header *header,
                                         uint32_t length) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int size = 0;
@@ -609,9 +613,9 @@ static int _nas5g_message_header_encode(unsigned char* buffer,
  **            Others:  None                                               **
  **                                                                        **
  ***************************************************************************/
-int _nas5g_message_plain_encode(unsigned char* buffer,
-                                const amf_msg_header* header,
-                                const nas_message_plain_t* msg,
+int _nas5g_message_plain_encode(unsigned char *buffer,
+                                const amf_msg_header *header,
+                                const nas_message_plain_t *msg,
                                 uint32_t length) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int bytes = TLV_PROTOCOL_NOT_SUPPORTED;
@@ -621,8 +625,8 @@ int _nas5g_message_plain_encode(unsigned char* buffer,
     /*
      * Encode Mobility Management L3 message
      */
-    bytes = amf_msg_test.M5gNasMessageEncodeMsg((AmfMsg*)&msg->amf,
-                                                (uint8_t*)buffer, length);
+    bytes = amf_msg_test.M5gNasMessageEncodeMsg((AmfMsg *)&msg->amf,
+                                                (uint8_t *)buffer, length);
 
     if (bytes < 0) {
       OAILOG_WARNING(LOG_AMF_APP, "Encoding Message Failed");
@@ -664,14 +668,15 @@ int _nas5g_message_plain_encode(unsigned char* buffer,
  ** Others:   None                                                         **
  **                                                                        **
  ***************************************************************************/
-static int _nas5g_message_protected_encode(
-    unsigned char* buffer, const nas_message_security_protected_t* msg,
-    uint32_t length, void* security) {
+static int
+_nas5g_message_protected_encode(unsigned char *buffer,
+                                const nas_message_security_protected_t *msg,
+                                uint32_t length, void *security) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  amf_security_context_t* amf_security_context =
-      (amf_security_context_t*)security;
+  amf_security_context_t *amf_security_context =
+      (amf_security_context_t *)security;
   int bytes = TLV_BUFFER_TOO_SHORT;
-  unsigned char* plain_msg = (unsigned char*)calloc(1, length);
+  unsigned char *plain_msg = (unsigned char *)calloc(1, length);
 
   if (plain_msg) {
     /*
@@ -713,90 +718,89 @@ static int _nas5g_message_protected_encode(
  **            Others:  None                                               **
  **                                                                        **
  ***************************************************************************/
-static int _nas5g_message_decrypt(
-    unsigned char* const dest, unsigned char* const src,
-    uint8_t security_header_type, uint32_t code, uint8_t seq, uint32_t length,
-    amf_security_context_t* const amf_security_context,
-    amf_nas_message_decode_status_t* status) {
+static int
+_nas5g_message_decrypt(unsigned char *const dest, unsigned char *const src,
+                       uint8_t security_header_type, uint32_t code, uint8_t seq,
+                       uint32_t length,
+                       amf_security_context_t *const amf_security_context,
+                       amf_nas_message_decode_status_t *status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   uint8_t direction = SECU_DIRECTION_UPLINK;
   int size = 0;
   amf_msg_header header = {0};
   switch (security_header_type) {
-    case SECURITY_HEADER_TYPE_NOT_PROTECTED:
-    case SECURITY_HEADER_TYPE_SERVICE_REQUEST:
-    case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED:
-    case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_NEW:
-      OAILOG_DEBUG(LOG_AMF_APP,
-                   "No decryption of message length %" PRIu32
-                   "according to security header "
-                   "type "
-                   "0x%02x\n",
-                   length, security_header_type);
+  case SECURITY_HEADER_TYPE_NOT_PROTECTED:
+  case SECURITY_HEADER_TYPE_SERVICE_REQUEST:
+  case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED:
+  case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_NEW:
+    OAILOG_DEBUG(LOG_AMF_APP,
+                 "No decryption of message length %" PRIu32
+                 "according to security header "
+                 "type "
+                 "0x%02x\n",
+                 length, security_header_type);
 
+    memset(dest, 0, length);
+    memcpy(dest, src, length);
+
+    DECODE_U8(dest, *(uint8_t *)(&header), size);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, header.extended_protocol_discriminator);
+    break;
+
+  case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED:
+  case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED_NEW:
+    if (amf_security_context) {
+      direction = amf_security_context->direction_decode;
+      switch (amf_security_context->selected_algorithms.encryption) {
+      case M5G_NAS_SECURITY_ALGORITHMS_5G_EA0:
+        OAILOG_DEBUG(
+            LOG_AMF_APP,
+            "M5G_NAS_SECURITY_ALGORITHMS_5G_EA0 dir %d ul_count.seq_num %d "
+            "dl_count.seq_num %d\n",
+            direction, amf_security_context->ul_count.seq_num,
+            amf_security_context->dl_count.seq_num);
+        memset(dest, 0, length);
+        memcpy(dest, src, length);
+        /*
+         * Decode the first octet (security header type or EPS bearer
+         * identity,
+         * * * * and protocol discriminator)
+         */
+        DECODE_U8(dest, *(uint8_t *)(&header), size);
+        OAILOG_FUNC_RETURN(LOG_AMF_APP, header.extended_protocol_discriminator);
+        break;
+
+      default:
+        OAILOG_ERROR(LOG_AMF_APP,
+                     "Unsupported Cyphering protection algorithm %d\n",
+                     amf_security_context->selected_algorithms.encryption);
+
+        memset(dest, 0, length);
+        memcpy(dest, src, length);
+        /*
+         * Decode the first octet (security header type or EPS bearer
+         * identity,
+         * * * * and protocol discriminator)
+         */
+        DECODE_U8(dest, *(uint8_t *)(&header), size);
+        OAILOG_FUNC_RETURN(LOG_AMF_APP, header.extended_protocol_discriminator);
+        break;
+      }
+    } else {
+      OAILOG_ERROR(LOG_AMF_APP, "No security context\n");
       memset(dest, 0, length);
       memcpy(dest, src, length);
 
-      DECODE_U8(dest, *(uint8_t*)(&header), size);
+      DECODE_U8(dest, *(uint8_t *)(&header), size);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, header.extended_protocol_discriminator);
-      break;
+    }
 
-    case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED:
-    case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED_NEW:
-      if (amf_security_context) {
-        direction = amf_security_context->direction_decode;
-        switch (amf_security_context->selected_algorithms.encryption) {
-          case M5G_NAS_SECURITY_ALGORITHMS_5G_EA0:
-            OAILOG_DEBUG(
-                LOG_AMF_APP,
-                "M5G_NAS_SECURITY_ALGORITHMS_5G_EA0 dir %d ul_count.seq_num %d "
-                "dl_count.seq_num %d\n",
-                direction, amf_security_context->ul_count.seq_num,
-                amf_security_context->dl_count.seq_num);
-            memset(dest, 0, length);
-            memcpy(dest, src, length);
-            /*
-             * Decode the first octet (security header type or EPS bearer
-             * identity,
-             * * * * and protocol discriminator)
-             */
-            DECODE_U8(dest, *(uint8_t*)(&header), size);
-            OAILOG_FUNC_RETURN(LOG_AMF_APP,
-                               header.extended_protocol_discriminator);
-            break;
+    break;
 
-          default:
-            OAILOG_ERROR(LOG_AMF_APP,
-                         "Unsupported Cyphering protection algorithm %d\n",
-                         amf_security_context->selected_algorithms.encryption);
-
-            memset(dest, 0, length);
-            memcpy(dest, src, length);
-            /*
-             * Decode the first octet (security header type or EPS bearer
-             * identity,
-             * * * * and protocol discriminator)
-             */
-            DECODE_U8(dest, *(uint8_t*)(&header), size);
-            OAILOG_FUNC_RETURN(LOG_AMF_APP,
-                               header.extended_protocol_discriminator);
-            break;
-        }
-      } else {
-        OAILOG_ERROR(LOG_AMF_APP, "No security context\n");
-        memset(dest, 0, length);
-        memcpy(dest, src, length);
-
-        DECODE_U8(dest, *(uint8_t*)(&header), size);
-        OAILOG_FUNC_RETURN(LOG_AMF_APP, header.extended_protocol_discriminator);
-      }
-
-      break;
-
-    default:
-      OAILOG_ERROR(LOG_AMF_APP, "Unknown security header type %u",
-                   security_header_type);
-      OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
+  default:
+    OAILOG_ERROR(LOG_AMF_APP, "Unknown security header type %u",
+                 security_header_type);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
   };
 }
 
@@ -821,10 +825,11 @@ static int _nas5g_message_decrypt(
  **            Others:  None                                               **
  **                                                                        **
  ***************************************************************************/
-static int _nas5g_message_encrypt(
-    unsigned char* dest, const unsigned char* src, uint8_t security_header_type,
-    uint32_t code, uint8_t seq, int const direction, uint32_t length,
-    amf_security_context_t* const amf_security_context) {
+static int
+_nas5g_message_encrypt(unsigned char *dest, const unsigned char *src,
+                       uint8_t security_header_type, uint32_t code, uint8_t seq,
+                       int const direction, uint32_t length,
+                       amf_security_context_t *const amf_security_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if (!amf_security_context) {
     OAILOG_ERROR(
@@ -834,45 +839,45 @@ static int _nas5g_message_encrypt(
   }
 
   switch (security_header_type) {
-    case SECURITY_HEADER_TYPE_NOT_PROTECTED:
-    case SECURITY_HEADER_TYPE_SERVICE_REQUEST:
-    case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED:
-    case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_NEW:
+  case SECURITY_HEADER_TYPE_NOT_PROTECTED:
+  case SECURITY_HEADER_TYPE_SERVICE_REQUEST:
+  case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED:
+  case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_NEW:
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "No encryption of message according to security header type 0x%02x\n",
+        security_header_type);
+    memcpy(dest, src, length);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, length);
+    break;
+
+  case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED:
+  case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED_NEW:
+    switch (amf_security_context->selected_algorithms.encryption) {
+    case M5G_NAS_SECURITY_ALGORITHMS_5G_EA0:
       OAILOG_DEBUG(
           LOG_AMF_APP,
-          "No encryption of message according to security header type 0x%02x\n",
-          security_header_type);
+          "M5G_NAS_SECURITY_ALGORITHMS_5G_EA0 dir %d ul_count.seq_num %d "
+          "dl_count.seq_num %d\n",
+          direction, amf_security_context->ul_count.seq_num,
+          amf_security_context->dl_count.seq_num);
       memcpy(dest, src, length);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, length);
       break;
 
-    case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED:
-    case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED_NEW:
-      switch (amf_security_context->selected_algorithms.encryption) {
-        case M5G_NAS_SECURITY_ALGORITHMS_5G_EA0:
-          OAILOG_DEBUG(
-              LOG_AMF_APP,
-              "M5G_NAS_SECURITY_ALGORITHMS_5G_EA0 dir %d ul_count.seq_num %d "
-              "dl_count.seq_num %d\n",
-              direction, amf_security_context->ul_count.seq_num,
-              amf_security_context->dl_count.seq_num);
-          memcpy(dest, src, length);
-          OAILOG_FUNC_RETURN(LOG_AMF_APP, length);
-          break;
-
-        default:
-          OAILOG_ERROR(LOG_AMF_APP,
-                       "Unsupported Cyphering protection algorithm %d\n",
-                       amf_security_context->selected_algorithms.encryption);
-          break;
-      }
-
-      break;
-
     default:
-      OAILOG_ERROR(LOG_AMF_APP, "Unknown security header type %u\n",
-                   security_header_type);
-      OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
+      OAILOG_ERROR(LOG_AMF_APP,
+                   "Unsupported Cyphering protection algorithm %d\n",
+                   amf_security_context->selected_algorithms.encryption);
+      break;
+    }
+
+    break;
+
+  default:
+    OAILOG_ERROR(LOG_AMF_APP, "Unknown security header type %u\n",
+                 security_header_type);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
   }
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, length);
@@ -904,9 +909,10 @@ static int _nas5g_message_encrypt(
  **    Others:  None                                                       **
  **                                                                        **
  ***************************************************************************/
-static uint32_t _nas5g_message_get_mac(
-    const unsigned char* const buffer, uint32_t const length,
-    int const direction, amf_security_context_t* const amf_security_context) {
+static uint32_t
+_nas5g_message_get_mac(const unsigned char *const buffer, uint32_t const length,
+                       int const direction,
+                       amf_security_context_t *const amf_security_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   if (!amf_security_context) {
@@ -917,117 +923,115 @@ static uint32_t _nas5g_message_get_mac(
   }
 
   switch (amf_security_context->selected_algorithms.integrity) {
-    case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1: {
-      uint8_t mac[4];
-      nas_stream_cipher_t stream_cipher;
-      uint32_t count;
-      uint32_t* mac32;
+  case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1: {
+    uint8_t mac[4];
+    nas_stream_cipher_t stream_cipher;
+    uint32_t count;
+    uint32_t *mac32;
 
-      if (direction == SECU_DIRECTION_UPLINK) {
-        count = 0x00000000 |
-                ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
-                (amf_security_context->ul_count.seq_num & 0x000000FF);
-      } else {
-        count = 0x00000000 |
-                ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
-                (amf_security_context->dl_count.seq_num & 0x000000FF);
-      }
+    if (direction == SECU_DIRECTION_UPLINK) {
+      count = 0x00000000 |
+              ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
+              (amf_security_context->ul_count.seq_num & 0x000000FF);
+    } else {
+      count = 0x00000000 |
+              ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
+              (amf_security_context->dl_count.seq_num & 0x000000FF);
+    }
 
-      OAILOG_INFO(
-          LOG_AMF_APP,
-          "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 %s count.seq_num %u count "
-          "%u\n",
-          (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
-          (direction == SECU_DIRECTION_UPLINK)
-              ? amf_security_context->ul_count.seq_num
-              : amf_security_context->dl_count.seq_num,
-          count);
-      stream_cipher.key = amf_security_context->knas_int;
-      stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
-      stream_cipher.count = count;
-      stream_cipher.bearer = 0x01;  // 33.401 section 8.1.1
-      stream_cipher.direction = direction;
-      stream_cipher.message = const_cast<uint8_t*>(buffer);
-      /*
-       *        * length in bits
-       *               */
-      stream_cipher.blength = length << 3;
-      nas_stream_encrypt_eia1(&stream_cipher, mac);
-      OAILOG_INFO(
-          LOG_AMF_APP,
-          "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 returned MAC %x.%x.%x.%x(%u) "
-          "for "
-          "length "
-          "%" PRIu32 ", direction %d, count %d\n",
-          mac[0], mac[1], mac[2], mac[3], *(reinterpret_cast<uint32_t*>(&mac)),
-          length, direction, count);
-      mac32 = reinterpret_cast<uint32_t*>(&mac);
-      OAILOG_FUNC_RETURN(LOG_NAS, ntohl(*mac32));
-    } break;
+    OAILOG_INFO(
+        LOG_AMF_APP,
+        "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 %s count.seq_num %u count "
+        "%u\n",
+        (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+        (direction == SECU_DIRECTION_UPLINK)
+            ? amf_security_context->ul_count.seq_num
+            : amf_security_context->dl_count.seq_num,
+        count);
+    stream_cipher.key = amf_security_context->knas_int;
+    stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
+    stream_cipher.count = count;
+    stream_cipher.bearer = 0x01; // 33.401 section 8.1.1
+    stream_cipher.direction = direction;
+    stream_cipher.message = const_cast<uint8_t *>(buffer);
+    /*
+     *        * length in bits
+     *               */
+    stream_cipher.blength = length << 3;
+    nas_stream_encrypt_eia1(&stream_cipher, mac);
+    OAILOG_INFO(
+        LOG_AMF_APP,
+        "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 returned MAC %x.%x.%x.%x(%u) "
+        "for "
+        "length "
+        "%" PRIu32 ", direction %d, count %d\n",
+        mac[0], mac[1], mac[2], mac[3], *(reinterpret_cast<uint32_t *>(&mac)),
+        length, direction, count);
+    mac32 = reinterpret_cast<uint32_t *>(&mac);
+    OAILOG_FUNC_RETURN(LOG_NAS, ntohl(*mac32));
+  } break;
 
-    case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA2: {
-      uint8_t mac[4];
-      nas_stream_cipher_t stream_cipher;
-      uint32_t count;
-      uint32_t* mac32;
+  case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA2: {
+    uint8_t mac[4];
+    nas_stream_cipher_t stream_cipher;
+    uint32_t count;
+    uint32_t *mac32;
 
-      if (direction == SECU_DIRECTION_UPLINK) {
-        count = 0x00000000 |
-                ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
-                (amf_security_context->ul_count.seq_num & 0x000000FF);
-      } else {
-        count = 0x00000000 |
-                ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
-                (amf_security_context->dl_count.seq_num & 0x000000FF);
-      }
+    if (direction == SECU_DIRECTION_UPLINK) {
+      count = 0x00000000 |
+              ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
+              (amf_security_context->ul_count.seq_num & 0x000000FF);
+    } else {
+      count = 0x00000000 |
+              ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
+              (amf_security_context->dl_count.seq_num & 0x000000FF);
+    }
 
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "M5G_NAS_SECURITY_ALGORITHMS_5G_IA2 dir %s count.seq_num %u count "
-          "%u\n",
-          (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
-          (direction == SECU_DIRECTION_UPLINK)
-              ? amf_security_context->ul_count.seq_num
-              : amf_security_context->dl_count.seq_num,
-          count);
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "M5G_NAS_SECURITY_ALGORITHMS_5G_IA2 dir %s count.seq_num %u count "
+        "%u\n",
+        (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+        (direction == SECU_DIRECTION_UPLINK)
+            ? amf_security_context->ul_count.seq_num
+            : amf_security_context->dl_count.seq_num,
+        count);
 
-      stream_cipher.key = amf_security_context->knas_int;
-      stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
-      stream_cipher.count = count;
-      stream_cipher.bearer = 0x01;  // 33.401 section 8.1.1
-      stream_cipher.direction = direction;
-      stream_cipher.message = (uint8_t*)buffer;
-      /*
-       * length in bits
-       */
-      stream_cipher.blength = length << 3;
-      nas_stream_encrypt_eia2(&stream_cipher, mac);
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "M5G_NAS_SECURITY_ALGORITHMS_5G_IA2 returned MAC %x.%x.%x.%x(%u) for "
-          "length "
-          "%" PRIu32 "direction %d, count %d\n",
-          mac[0], mac[1], mac[2], mac[3], *((uint32_t*)&mac), length, direction,
-          count);
-      mac32 = (uint32_t*)&mac;
-      OAILOG_FUNC_RETURN(LOG_AMF_APP, ntohl(*mac32));
-    } break;
-    case M5G_NAS_SECURITY_ALGORITHMS_5G_IA0:
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "M5G_NAS_SECURITY_ALGORITHMS_5G_IA0 dir %s count.seq_num %u\n",
-          (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
-          (direction == SECU_DIRECTION_UPLINK)
-              ? amf_security_context->ul_count.seq_num
-              : amf_security_context->dl_count.seq_num);
-      OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
-      break;
+    stream_cipher.key = amf_security_context->knas_int;
+    stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
+    stream_cipher.count = count;
+    stream_cipher.bearer = 0x01; // 33.401 section 8.1.1
+    stream_cipher.direction = direction;
+    stream_cipher.message = (uint8_t *)buffer;
+    /*
+     * length in bits
+     */
+    stream_cipher.blength = length << 3;
+    nas_stream_encrypt_eia2(&stream_cipher, mac);
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "M5G_NAS_SECURITY_ALGORITHMS_5G_IA2 returned MAC %x.%x.%x.%x(%u) for "
+        "length "
+        "%" PRIu32 "direction %d, count %d\n",
+        mac[0], mac[1], mac[2], mac[3], *((uint32_t *)&mac), length, direction,
+        count);
+    mac32 = (uint32_t *)&mac;
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, ntohl(*mac32));
+  } break;
+  case M5G_NAS_SECURITY_ALGORITHMS_5G_IA0:
+    OAILOG_DEBUG(LOG_AMF_APP,
+                 "M5G_NAS_SECURITY_ALGORITHMS_5G_IA0 dir %s count.seq_num %u\n",
+                 (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+                 (direction == SECU_DIRECTION_UPLINK)
+                     ? amf_security_context->ul_count.seq_num
+                     : amf_security_context->dl_count.seq_num);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
+    break;
 
-    default:
-      OAILOG_ERROR(LOG_AMF_APP,
-                   "Unsupported integrity protection algorithm %d\n",
-                   amf_security_context->selected_algorithms.integrity);
-      break;
+  default:
+    OAILOG_ERROR(LOG_AMF_APP, "Unsupported integrity protection algorithm %d\n",
+                 amf_security_context->selected_algorithms.integrity);
+    break;
   }
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, 0);
@@ -1037,110 +1041,113 @@ std::string get_message_type_str(uint8_t type) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   std::string msgtype_str;
   switch (static_cast<M5GMessageType>(type)) {
-    case M5GMessageType::REG_REQUEST:
-      msgtype_str = "REG_REQUEST";
-      break;
-    case M5GMessageType::REG_ACCEPT:
-      msgtype_str = "REG_ACCEPT";
-      break;
-    case M5GMessageType::REG_COMPLETE:
-      msgtype_str = "REG_COMPLETE";
-      break;
-    case M5GMessageType::M5G_SERVICE_REQUEST:
-      msgtype_str = "M5G_SERVICE_REQUEST";
-      break;
-    case M5GMessageType::M5G_SERVICE_ACCEPT:
-      msgtype_str = "M5G_SERVICE_ACCEPT";
-      break;
-    case M5GMessageType::M5G_SERVICE_REJECT:
-      msgtype_str = "M5G_SERVICE_REJECT";
-      break;
-    case M5GMessageType::M5G_IDENTITY_REQUEST:
-      msgtype_str = "M5G_IDENTITY_REQUEST";
-      break;
-    case M5GMessageType::M5G_IDENTITY_RESPONSE:
-      msgtype_str = "M5G_IDENTITY_RESPONSE";
-      break;
-    case M5GMessageType::AUTH_REQUEST:
-      msgtype_str = "AUTH_REQUEST";
-      break;
-    case M5GMessageType::AUTH_RESPONSE:
-      msgtype_str = "AUTH_RESPONSE";
-      break;
-    case M5GMessageType::AUTH_FAILURE:
-      msgtype_str = "AUTH_FAILURE";
-      break;
-    case M5GMessageType::SEC_MODE_COMMAND:
-      msgtype_str = "SEC_MODE_COMMAND";
-      break;
-    case M5GMessageType::SEC_MODE_COMPLETE:
-      msgtype_str = "SEC_MODE_COMPLETE";
-      break;
-    case M5GMessageType::DE_REG_REQUEST_UE_ORIGIN:
-      msgtype_str = "DE_REG_REQUEST_UE_ORIGIN";
-      break;
-    case M5GMessageType::DE_REG_ACCEPT_UE_ORIGIN:
-      msgtype_str = "DE_REG_ACCEPT_UE_ORIGIN";
-      break;
-    case M5GMessageType::ULNASTRANSPORT:
-      msgtype_str = "ULNASTRANSPORT";
-      break;
-    case M5GMessageType::DLNASTRANSPORT:
-      msgtype_str = "DLNASTRANSPORT";
-      break;
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
-      msgtype_str = "PDU_SESSION_ESTABLISHMENT_REQUEST";
-      break;
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT:
-      msgtype_str = "PDU_SESSION_ESTABLISHMENT_ACCEPT";
-      break;
-    case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REJECT:
-      msgtype_str = "PDU_SESSION_ESTABLISHMENT_REJECT";
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_REQUEST:
-      msgtype_str = "PDU_SESSION_MODIFICATION_REQUEST";
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_REJECT:
-      msgtype_str = "PDU_SESSION_MODIFICATION_REJECT";
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE:
-      msgtype_str = "PDU_SESSION_MODIFICATION_COMPLETE";
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND:
-      msgtype_str = "PDU_SESSION_MODIFICATION_COMMAND";
-      break;
-    case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT:
-      msgtype_str = "PDU_SESSION_MODIFICATION_COMMAND_REJECT";
-      break;
-    case M5GMessageType::PDU_SESSION_RELEASE_REQUEST:
-      msgtype_str = "PDU_SESSION_RELEASE_REQUEST";
-      break;
-    case M5GMessageType::PDU_SESSION_RELEASE_REJECT:
-      msgtype_str = "PDU_SESSION_RELEASE_REJECT";
-      break;
-    case M5GMessageType::PDU_SESSION_RELEASE_COMMAND:
-      msgtype_str = "PDU_SESSION_RELEASE_COMMAND";
-      break;
-    case M5GMessageType::PDU_SESSION_RELEASE_COMPLETE:
-      msgtype_str = "PDU_SESSION_RELEASE_COMPLETE";
-      break;
-    default:
-      msgtype_str = "UNKNOWN";
-      break;
+  case M5GMessageType::REG_REQUEST:
+    msgtype_str = "REG_REQUEST";
+    break;
+  case M5GMessageType::REG_ACCEPT:
+    msgtype_str = "REG_ACCEPT";
+    break;
+  case M5GMessageType::REG_COMPLETE:
+    msgtype_str = "REG_COMPLETE";
+    break;
+  case M5GMessageType::M5G_SERVICE_REQUEST:
+    msgtype_str = "M5G_SERVICE_REQUEST";
+    break;
+  case M5GMessageType::M5G_SERVICE_ACCEPT:
+    msgtype_str = "M5G_SERVICE_ACCEPT";
+    break;
+  case M5GMessageType::M5G_SERVICE_REJECT:
+    msgtype_str = "M5G_SERVICE_REJECT";
+    break;
+  case M5GMessageType::M5G_IDENTITY_REQUEST:
+    msgtype_str = "M5G_IDENTITY_REQUEST";
+    break;
+  case M5GMessageType::M5G_IDENTITY_RESPONSE:
+    msgtype_str = "M5G_IDENTITY_RESPONSE";
+    break;
+  case M5GMessageType::AUTH_REQUEST:
+    msgtype_str = "AUTH_REQUEST";
+    break;
+  case M5GMessageType::AUTH_RESPONSE:
+    msgtype_str = "AUTH_RESPONSE";
+    break;
+  case M5GMessageType::AUTH_FAILURE:
+    msgtype_str = "AUTH_FAILURE";
+    break;
+  case M5GMessageType::SEC_MODE_COMMAND:
+    msgtype_str = "SEC_MODE_COMMAND";
+    break;
+  case M5GMessageType::SEC_MODE_COMPLETE:
+    msgtype_str = "SEC_MODE_COMPLETE";
+    break;
+  case M5GMessageType::DE_REG_REQUEST_UE_ORIGIN:
+    msgtype_str = "DE_REG_REQUEST_UE_ORIGIN";
+    break;
+  case M5GMessageType::DE_REG_ACCEPT_UE_ORIGIN:
+    msgtype_str = "DE_REG_ACCEPT_UE_ORIGIN";
+    break;
+  case M5GMessageType::ULNASTRANSPORT:
+    msgtype_str = "ULNASTRANSPORT";
+    break;
+  case M5GMessageType::DLNASTRANSPORT:
+    msgtype_str = "DLNASTRANSPORT";
+    break;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REQUEST:
+    msgtype_str = "PDU_SESSION_ESTABLISHMENT_REQUEST";
+    break;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_ACCEPT:
+    msgtype_str = "PDU_SESSION_ESTABLISHMENT_ACCEPT";
+    break;
+  case M5GMessageType::PDU_SESSION_ESTABLISHMENT_REJECT:
+    msgtype_str = "PDU_SESSION_ESTABLISHMENT_REJECT";
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_REQUEST:
+    msgtype_str = "PDU_SESSION_MODIFICATION_REQUEST";
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_REJECT:
+    msgtype_str = "PDU_SESSION_MODIFICATION_REJECT";
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_COMPLETE:
+    msgtype_str = "PDU_SESSION_MODIFICATION_COMPLETE";
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND:
+    msgtype_str = "PDU_SESSION_MODIFICATION_COMMAND";
+    break;
+  case M5GMessageType::PDU_SESSION_MODIFICATION_COMMAND_REJECT:
+    msgtype_str = "PDU_SESSION_MODIFICATION_COMMAND_REJECT";
+    break;
+  case M5GMessageType::PDU_SESSION_RELEASE_REQUEST:
+    msgtype_str = "PDU_SESSION_RELEASE_REQUEST";
+    break;
+  case M5GMessageType::PDU_SESSION_RELEASE_REJECT:
+    msgtype_str = "PDU_SESSION_RELEASE_REJECT";
+    break;
+  case M5GMessageType::PDU_SESSION_RELEASE_COMMAND:
+    msgtype_str = "PDU_SESSION_RELEASE_COMMAND";
+    break;
+  case M5GMessageType::PDU_SESSION_RELEASE_COMPLETE:
+    msgtype_str = "PDU_SESSION_RELEASE_COMPLETE";
+    break;
+  default:
+    msgtype_str = "UNKNOWN";
+    break;
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, msgtype_str);
 }
 
-std::string uint8_to_hex_string(const uint8_t* v, const size_t s) {
+std::string uint8_to_hex_string(const uint8_t *v, const size_t s) {
   std::stringstream ss;
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  if (!v || (0 == s)) OAILOG_FUNC_RETURN(LOG_AMF_APP, ss.str());
+  if (!v || (0 == s))
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, ss.str());
   ss << std::hex << std::setfill('0');
   for (unsigned int i = 0; i < s; i++) {
     ss << std::hex << std::setw(2) << static_cast<int>(v[i]) << " ";
-    if ((i + 1) % 8 == 0) ss << " ";
-    if ((i + 1) % 16 == 0) ss << "\n";
+    if ((i + 1) % 8 == 0)
+      ss << " ";
+    if ((i + 1) % 16 == 0)
+      ss << "\n";
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, ss.str());
 }
-}  // namespace magma5g
+} // namespace magma5g

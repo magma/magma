@@ -18,12 +18,12 @@ namespace google {
 namespace protobuf {
 class Message;
 }
-}  // namespace google
+} // namespace google
 
 void set_grpc_logging_level(bool enable);
 
-std::string get_env_var(std::string const& key);
+std::string get_env_var(std::string const &key);
 
-void PrintGrpcMessage(const google::protobuf::Message& message);
+void PrintGrpcMessage(const google::protobuf::Message &message);
 
 std::string indentText(std::string basicString, int indent);

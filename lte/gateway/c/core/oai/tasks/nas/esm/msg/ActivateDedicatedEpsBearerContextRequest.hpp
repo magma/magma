@@ -30,21 +30,21 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/LinkedEpsBearerIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/RadioPriority.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH           \
   (EPS_QUALITY_OF_SERVICE_MINIMUM_LENGTH + TRAFFIC_FLOW_TEMPLATE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_MAXIMUM_LENGTH          \
-  (EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH +                                    \
-   TRAFFIC_FLOW_TEMPLATE_MAXIMUM_LENGTH +                                     \
-   TRANSACTION_IDENTIFIER_MAXIMUM_LENGTH + QUALITY_OF_SERVICE_IE_MAX_LENGTH + \
-   LLC_SERVICE_ACCESS_POINT_IDENTIFIER_IE_MAX_LENGTH +                        \
-   RADIO_PRIORITY_MAXIMUM_LENGTH + PACKET_FLOW_IDENTIFIER_IE_MAX_LENGTH +     \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_MAXIMUM_LENGTH           \
+  (EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH +                                     \
+   TRAFFIC_FLOW_TEMPLATE_MAXIMUM_LENGTH +                                      \
+   TRANSACTION_IDENTIFIER_MAXIMUM_LENGTH + QUALITY_OF_SERVICE_IE_MAX_LENGTH +  \
+   LLC_SERVICE_ACCESS_POINT_IDENTIFIER_IE_MAX_LENGTH +                         \
+   RADIO_PRIORITY_MAXIMUM_LENGTH + PACKET_FLOW_IDENTIFIER_IE_MAX_LENGTH +      \
    PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -52,11 +52,11 @@ extern "C" {
  */
 #define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_PRESENT \
   (1 << 0)
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_PRESENT \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_PRESENT   \
   (1 << 1)
 #define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_PRESENT \
   (1 << 2)
-#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT \
+#define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT   \
   (1 << 3)
 #define ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_PRESENT \
   (1 << 4)
@@ -106,11 +106,11 @@ typedef struct activate_dedicated_eps_bearer_context_request_msg_tag {
 } activate_dedicated_eps_bearer_context_request_msg;
 
 int decode_activate_dedicated_eps_bearer_context_request(
-    activate_dedicated_eps_bearer_context_request_msg*
-        activatededicatedepsbearercontextrequest,
-    uint8_t* buffer, uint32_t len);
+    activate_dedicated_eps_bearer_context_request_msg
+        *activatededicatedepsbearercontextrequest,
+    uint8_t *buffer, uint32_t len);
 
 int encode_activate_dedicated_eps_bearer_context_request(
-    activate_dedicated_eps_bearer_context_request_msg*
-        activatededicatedepsbearercontextrequest,
-    uint8_t* buffer, uint32_t len);
+    activate_dedicated_eps_bearer_context_request_msg
+        *activatededicatedepsbearercontextrequest,
+    uint8_t *buffer, uint32_t len);

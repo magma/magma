@@ -18,9 +18,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_send.hpp"
 
 #include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #ifdef __cplusplus
@@ -101,7 +101,7 @@ extern "C" {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_status(const emm_as_status_t* msg, emm_status_msg* emm_msg) {
+int emm_send_status(const emm_as_status_t *msg, emm_status_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -138,8 +138,8 @@ int emm_send_status(const emm_as_status_t* msg, emm_status_msg* emm_msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_detach_accept(const emm_as_data_t* msg,
-                           detach_accept_msg* emm_msg) {
+int emm_send_detach_accept(const emm_as_data_t *msg,
+                           detach_accept_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -167,8 +167,8 @@ int emm_send_detach_accept(const emm_as_data_t* msg,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int emm_send_nw_detach_request(const emm_as_data_t* msg,
-                               nw_detach_request_msg* emm_msg) {
+int emm_send_nw_detach_request(const emm_as_data_t *msg,
+                               nw_detach_request_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -214,15 +214,15 @@ int emm_send_nw_detach_request(const emm_as_data_t* msg,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_attach_accept(const emm_as_establish_t* msg,
-                           attach_accept_msg* emm_msg) {
+int emm_send_attach_accept(const emm_as_establish_t *msg,
+                           attach_accept_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   // Get the UE context
-  emm_context_t* emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
+  emm_context_t *emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
   DevAssert(emm_ctx);
-  ue_mm_context_t* ue_mm_context_p =
+  ue_mm_context_t *ue_mm_context_p =
       PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
   mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
@@ -250,61 +250,60 @@ int emm_send_attach_accept(const emm_as_establish_t* msg,
                "EMMAS-SAP - EMM Context Attach Type (%d) for (ue_id = %u)\n",
                emm_ctx->attach_type, ue_id);
   switch (emm_ctx->attach_type) {
-    case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
-      OAILOG_DEBUG(LOG_NAS_EMM,
-                   "EMMAS-SAP - Combined EPS/IMSI attach for (ue_id = %u)\n",
-                   ue_id);
-      /* It is observed that UE/Handest (with usage setting = voice centric and
-       * voice domain preference = CS voice only) sends detach after successful
-       * attach .UEs with such settings sends attach type = combined EPS and
-       * IMSI attach as attach_type in attach request message. At present, EPC
-       * does not support interface with MSC /CS domain and it supports only LTE
-       * data service, hence it is supposed to send attach_result as EPS-only
-       * and add emm_cause = "CS domain not available" for such cases. Ideally
-       * in data service only n/w ,UE's usage setting should be set to data
-       * centric mode and should send attach type as EPS attach only. However UE
-       * settings may not be in our control. To take care of this as a
-       * workaround in this patch we modified MME implementation to set EPS
-       * result to Combined attach if attach type is combined attach to prevent
-       * such UEs from sending detach so that such UEs can remain attached in
-       * the n/w and should be able to get data service from the n/w.
-       */
+  case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
+    OAILOG_DEBUG(LOG_NAS_EMM,
+                 "EMMAS-SAP - Combined EPS/IMSI attach for (ue_id = %u)\n",
+                 ue_id);
+    /* It is observed that UE/Handest (with usage setting = voice centric and
+     * voice domain preference = CS voice only) sends detach after successful
+     * attach .UEs with such settings sends attach type = combined EPS and
+     * IMSI attach as attach_type in attach request message. At present, EPC
+     * does not support interface with MSC /CS domain and it supports only LTE
+     * data service, hence it is supposed to send attach_result as EPS-only
+     * and add emm_cause = "CS domain not available" for such cases. Ideally
+     * in data service only n/w ,UE's usage setting should be set to data
+     * centric mode and should send attach type as EPS attach only. However UE
+     * settings may not be in our control. To take care of this as a
+     * workaround in this patch we modified MME implementation to set EPS
+     * result to Combined attach if attach type is combined attach to prevent
+     * such UEs from sending detach so that such UEs can remain attached in
+     * the n/w and should be able to get data service from the n/w.
+     */
 
-      /* Added check for CSFB. If Location Update procedure towards MSC/VLR
-       * fails or Network Access mode received as PACKET_ONLY from HSS in ULS
-       * message send epsattachresult to EPS_ATTACH_RESULT_EPS. If is it
-       * successful set epsattachresult to EPS_ATTACH_RESULT_EPS_IMSI
-       */
-      if (((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
-           (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
-          ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-           is_mme_ue_context_network_access_mode_packet_only(
-               ue_mm_context_p))) {
-        emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
-      } else {
-        emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
-      }
-      break;
-    case EMM_ATTACH_TYPE_RESERVED:
-    default:
-      OAILOG_DEBUG(
-          LOG_NAS_EMM,
-          "EMMAS-SAP - Unused attach type defaults to EPS attach for (ue_id = "
-          "%u)\n",
-          ue_id);
-    case EMM_ATTACH_TYPE_EPS:
+    /* Added check for CSFB. If Location Update procedure towards MSC/VLR
+     * fails or Network Access mode received as PACKET_ONLY from HSS in ULS
+     * message send epsattachresult to EPS_ATTACH_RESULT_EPS. If is it
+     * successful set epsattachresult to EPS_ATTACH_RESULT_EPS_IMSI
+     */
+    if (((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
+         (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
+        ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+         is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
       emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
-      OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - EPS attach for (ue_id = %u)\n",
-                   ue_id);
-      break;
-    case EMM_ATTACH_TYPE_EMERGENCY:  // We should not reach here
-      OAILOG_ERROR(
-          LOG_NAS_EMM,
-          "EMMAS-SAP - EPS emergency attach, currently unsupported for (ue_id "
-          "= " MME_UE_S1AP_ID_FMT ")\n",
-          ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0);  // TODO: fix once supported
-      break;
+    } else {
+      emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
+    }
+    break;
+  case EMM_ATTACH_TYPE_RESERVED:
+  default:
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Unused attach type defaults to EPS attach for (ue_id = "
+        "%u)\n",
+        ue_id);
+  case EMM_ATTACH_TYPE_EPS:
+    emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
+    OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - EPS attach for (ue_id = %u)\n",
+                 ue_id);
+    break;
+  case EMM_ATTACH_TYPE_EMERGENCY: // We should not reach here
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "EMMAS-SAP - EPS emergency attach, currently unsupported for (ue_id "
+        "= " MME_UE_S1AP_ID_FMT ")\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0); // TODO: fix once supported
+    break;
   }
   /*
    * Mandatory - T3412 value
@@ -520,15 +519,15 @@ int emm_send_attach_accept(const emm_as_establish_t* msg,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int emm_send_attach_accept_dl_nas(const emm_as_data_t* msg,
-                                  attach_accept_msg* emm_msg) {
+int emm_send_attach_accept_dl_nas(const emm_as_data_t *msg,
+                                  attach_accept_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
   // Get the UE context
-  emm_context_t* emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
+  emm_context_t *emm_ctx = emm_context_get(&_emm_data, msg->ue_id);
   DevAssert(emm_ctx);
-  ue_mm_context_t* ue_mm_context_p =
+  ue_mm_context_t *ue_mm_context_p =
       PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
   mme_ue_s1ap_id_t ue_id = ue_mm_context_p->mme_ue_s1ap_id;
   DevAssert(msg->ue_id == ue_id);
@@ -549,53 +548,52 @@ int emm_send_attach_accept_dl_nas(const emm_as_data_t* msg,
       "EMMAS-SAP - size += EPS_ATTACH_RESULT_MAXIMUM_LENGTH(%d)  (%d)\n",
       EPS_ATTACH_RESULT_MAXIMUM_LENGTH, size);
   switch (emm_ctx->attach_type) {
-    case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
-      OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Combined EPS/IMSI attach\n");
-      /* It is observed that UE/Handest (with usage setting = voice centric and
-       * voice domain preference = CS voice only) sends detach after successful
-       * attach. UEs with such settings sends attach type = combined EPS and
-       * IMSI attach as attach_type in attach request message. At present, EPC
-       * does not support interface with MSC /CS domain and it supports only LTE
-       * data service, hence it is supposed to send attach_result as EPS-only
-       * and add emm_cause = "CS domain not available" for such cases. Ideally
-       * in data service only n/w ,UE's usage setting should be set to data
-       * centric mode and should send attach type as EPS attach only. However UE
-       * settings may not be in our control. To take care of this as a
-       * workaround in this patch we modified MME implementation to set EPS
-       * result to Combined attach if attach type is combined attach to prevent
-       * such UEs from sending detach so that such UEs can remain attached in
-       * the n/w and should be able to get data service from the n/w.
-       */
+  case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
+    OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - Combined EPS/IMSI attach\n");
+    /* It is observed that UE/Handest (with usage setting = voice centric and
+     * voice domain preference = CS voice only) sends detach after successful
+     * attach. UEs with such settings sends attach type = combined EPS and
+     * IMSI attach as attach_type in attach request message. At present, EPC
+     * does not support interface with MSC /CS domain and it supports only LTE
+     * data service, hence it is supposed to send attach_result as EPS-only
+     * and add emm_cause = "CS domain not available" for such cases. Ideally
+     * in data service only n/w ,UE's usage setting should be set to data
+     * centric mode and should send attach type as EPS attach only. However UE
+     * settings may not be in our control. To take care of this as a
+     * workaround in this patch we modified MME implementation to set EPS
+     * result to Combined attach if attach type is combined attach to prevent
+     * such UEs from sending detach so that such UEs can remain attached in
+     * the n/w and should be able to get data service from the n/w.
+     */
 
-      /* Added check for CSFB. If Location Update procedure towards MSC/VLR
-       * fails or Network Access mode received as PACKET_ONLY from HSS in ULS
-       * message send epsattachresult to EPS_ATTACH_RESULT_EPS. If is it
-       * successful set epsattachresult to EPS_ATTACH_RESULT_EPS_IMSI
-       */
-      if (((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
-           (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
-          ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
-           is_mme_ue_context_network_access_mode_packet_only(
-               ue_mm_context_p))) {
-        emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
-      } else {
-        emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
-      }
-      emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
-      break;
-    case EMM_ATTACH_TYPE_RESERVED:
-    default:
-      OAILOG_DEBUG(LOG_NAS_EMM,
-                   "EMMAS-SAP - Unused attach type defaults to EPS attach\n");
-    case EMM_ATTACH_TYPE_EPS:
+    /* Added check for CSFB. If Location Update procedure towards MSC/VLR
+     * fails or Network Access mode received as PACKET_ONLY from HSS in ULS
+     * message send epsattachresult to EPS_ATTACH_RESULT_EPS. If is it
+     * successful set epsattachresult to EPS_ATTACH_RESULT_EPS_IMSI
+     */
+    if (((_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
+         (_esm_data.conf.features & MME_API_SMS_SUPPORTED)) &&
+        ((emm_ctx->csfbparams.sgs_loc_updt_status == FAILURE) ||
+         is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p))) {
       emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
-      OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - EPS attach\n");
-      break;
-    case EMM_ATTACH_TYPE_EMERGENCY:  // We should not reach here
-      OAILOG_ERROR(LOG_NAS_EMM,
-                   "EMMAS-SAP - EPS emergency attach, currently unsupported\n");
-      OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0);  // TODO: fix once supported
-      break;
+    } else {
+      emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
+    }
+    emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS_IMSI;
+    break;
+  case EMM_ATTACH_TYPE_RESERVED:
+  default:
+    OAILOG_DEBUG(LOG_NAS_EMM,
+                 "EMMAS-SAP - Unused attach type defaults to EPS attach\n");
+  case EMM_ATTACH_TYPE_EPS:
+    emm_msg->epsattachresult = EPS_ATTACH_RESULT_EPS;
+    OAILOG_DEBUG(LOG_NAS_EMM, "EMMAS-SAP - EPS attach\n");
+    break;
+  case EMM_ATTACH_TYPE_EMERGENCY: // We should not reach here
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "EMMAS-SAP - EPS emergency attach, currently unsupported\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0); // TODO: fix once supported
+    break;
   }
   /*
    * Mandatory - T3412 value
@@ -766,8 +764,8 @@ int emm_send_attach_accept_dl_nas(const emm_as_data_t* msg,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_attach_reject(const emm_as_establish_t* msg,
-                           attach_reject_msg* emm_msg) {
+int emm_send_attach_reject(const emm_as_establish_t *msg,
+                           attach_reject_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -790,7 +788,7 @@ int emm_send_attach_reject(const emm_as_establish_t* msg,
   if (msg->nas_msg) {
     size +=
         ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH + blength(msg->nas_msg) +
-        1;  // Adding 1 byte since ESM Container is optional IE in Attach Reject
+        1; // Adding 1 byte since ESM Container is optional IE in Attach Reject
     emm_msg->presencemask |= ATTACH_REJECT_ESM_MESSAGE_CONTAINER_PRESENT;
     emm_msg->esmmessagecontainer = msg->nas_msg;
   }
@@ -820,7 +818,7 @@ int emm_send_attach_reject(const emm_as_establish_t* msg,
  **                                                                        **
  ***************************************************************************/
 int emm_send_tracking_area_update_accept(
-    const emm_as_establish_t* msg, tracking_area_update_accept_msg* emm_msg) {
+    const emm_as_establish_t *msg, tracking_area_update_accept_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1078,7 +1076,7 @@ int emm_send_tracking_area_update_accept(
  ***************************************************************************/
 
 int emm_send_tracking_area_update_accept_dl_nas(
-    const emm_as_data_t* msg, tracking_area_update_accept_msg* emm_msg) {
+    const emm_as_data_t *msg, tracking_area_update_accept_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
   /*
@@ -1227,7 +1225,7 @@ int emm_send_tracking_area_update_accept_dl_nas(
  **                                                                        **
  ***************************************************************************/
 int emm_send_tracking_area_update_reject(
-    const emm_as_establish_t* msg, tracking_area_update_reject_msg* emm_msg) {
+    const emm_as_establish_t *msg, tracking_area_update_reject_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1266,7 +1264,7 @@ int emm_send_tracking_area_update_reject(
  **                                                                        **
  ***************************************************************************/
 int emm_send_service_reject(const uint8_t emm_cause,
-                            service_reject_msg* emm_msg) {
+                            service_reject_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1303,8 +1301,8 @@ int emm_send_service_reject(const uint8_t emm_cause,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_identity_request(const emm_as_security_t* msg,
-                              identity_request_msg* emm_msg) {
+int emm_send_identity_request(const emm_as_security_t *msg,
+                              identity_request_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1356,8 +1354,8 @@ int emm_send_identity_request(const emm_as_security_t* msg,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_authentication_request(const emm_as_security_t* msg,
-                                    authentication_request_msg* emm_msg) {
+int emm_send_authentication_request(const emm_as_security_t *msg,
+                                    authentication_request_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1380,7 +1378,7 @@ int emm_send_authentication_request(const emm_as_security_t* msg,
    */
   size += AUTHENTICATION_PARAMETER_RAND_IE_MAX_LENGTH;
   emm_msg->authenticationparameterrand =
-      blk2bstr((const void*)msg->rand, AUTH_RAND_SIZE);
+      blk2bstr((const void *)msg->rand, AUTH_RAND_SIZE);
   if (!emm_msg->authenticationparameterrand) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
@@ -1389,7 +1387,7 @@ int emm_send_authentication_request(const emm_as_security_t* msg,
    */
   size += AUTHENTICATION_PARAMETER_AUTN_IE_MAX_LENGTH;
   emm_msg->authenticationparameterautn =
-      blk2bstr((const void*)msg->autn, AUTH_AUTN_SIZE);
+      blk2bstr((const void *)msg->autn, AUTH_AUTN_SIZE);
   if (!emm_msg->authenticationparameterautn) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
@@ -1413,7 +1411,7 @@ int emm_send_authentication_request(const emm_as_security_t* msg,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void emm_free_send_authentication_request(authentication_request_msg* emm_msg) {
+void emm_free_send_authentication_request(authentication_request_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -1441,7 +1439,7 @@ void emm_free_send_authentication_request(authentication_request_msg* emm_msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_authentication_reject(authentication_reject_msg* emm_msg) {
+int emm_send_authentication_reject(authentication_reject_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1470,8 +1468,8 @@ int emm_send_authentication_reject(authentication_reject_msg* emm_msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_security_mode_command(const emm_as_security_t* msg,
-                                   security_mode_command_msg* emm_msg) {
+int emm_send_security_mode_command(const emm_as_security_t *msg,
+                                   security_mode_command_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1560,15 +1558,15 @@ int emm_send_security_mode_command(const emm_as_security_t* msg,
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_emm_information(const emm_as_data_t* msg,
-                             emm_information_msg* emm_msg) {
+int emm_send_emm_information(const emm_as_data_t *msg,
+                             emm_information_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   char string[MAX_MINUTE_DIGITS] = {0};
   int size = EMM_HEADER_MAXIMUM_LENGTH;
   int addci = 0;
   int noOfBits = 0;
   time_t t;
-  struct tm* tmp;
+  struct tm *tmp;
   struct tm updateTime;
   uint8_t formatted;
 
@@ -1706,8 +1704,8 @@ int emm_send_emm_information(const emm_as_data_t* msg,
  **                                                                        **
  ***************************************************************************/
 
-int emm_send_dl_nas_transport(const emm_as_data_t* msg,
-                              downlink_nas_transport_msg* emm_msg) {
+int emm_send_dl_nas_transport(const emm_as_data_t *msg,
+                              downlink_nas_transport_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
   /*
@@ -1739,7 +1737,7 @@ int emm_send_dl_nas_transport(const emm_as_data_t* msg,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void emm_free_send_emm_information(emm_information_msg* emm_msg) {
+void emm_free_send_emm_information(emm_information_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_DEBUG(LOG_NAS_EMM,
                "EMMAS-SAP - Freeing send EMM information message\n");
@@ -1762,7 +1760,7 @@ int get_time_zone(void) {
   char timestr[20] = {0};
   char string[MAX_MINUTE_DIGITS] = {0};
   time_t t;
-  struct tm* tmp;
+  struct tm *tmp;
   struct tm updateTime;
   int hour = 0, minute = 0, timezone = 0;
 
@@ -1813,8 +1811,8 @@ int get_time_zone(void) {
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_cs_service_notification(const emm_as_data_t* msg,
-                                     cs_service_notification_msg* emm_msg) {
+int emm_send_cs_service_notification(const emm_as_data_t *msg,
+                                     cs_service_notification_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1855,7 +1853,7 @@ int emm_send_cs_service_notification(const emm_as_data_t* msg,
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void emm_free_send_dl_nas_transport(downlink_nas_transport_msg* emm_msg) {
+void emm_free_send_dl_nas_transport(downlink_nas_transport_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_DEBUG(LOG_NAS_EMM,
                "EMMAS-SAP - Freeing send DL NAS Transport message\n");
@@ -1881,7 +1879,7 @@ void emm_free_send_dl_nas_transport(downlink_nas_transport_msg* emm_msg) {
  **                                                                        **
  ***************************************************************************/
 void emm_free_send_cs_service_notification(
-    cs_service_notification_msg* emm_msg) {
+    cs_service_notification_msg *emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_DEBUG(
       LOG_NAS_EMM,

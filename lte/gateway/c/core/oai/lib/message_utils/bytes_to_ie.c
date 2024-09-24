@@ -30,7 +30,7 @@
 
 #include "lte/gateway/c/core/oai/lib/message_utils/bytes_to_ie.h"
 
-void bytes_to_lai(const char* bytes, lai_t* lai) {
+void bytes_to_lai(const char *bytes, lai_t *lai) {
   /*plmn_t plmn = {
     .mcc_digit2 = bytes[0] >> 4,
     .mcc_digit1 = bytes[0] & 0x0F,
@@ -54,7 +54,7 @@ void bytes_to_lai(const char* bytes, lai_t* lai) {
   return;
 }
 
-void bytes_to_tmsi(const char* bytes, tmsi_t* tmsi) {
+void bytes_to_tmsi(const char *bytes, tmsi_t *tmsi) {
   unsigned char tmsi_1 = bytes[0];
   unsigned char tmsi_2 = bytes[1];
   unsigned char tmsi_3 = bytes[2];
@@ -66,8 +66,8 @@ void bytes_to_tmsi(const char* bytes, tmsi_t* tmsi) {
   return;
 }
 
-void bytes_to_mobile_identity(const char* bytes, uint8_t mobile_identity_len,
-                              bool is_imsi, MobileIdentity_t* mobile_identity) {
+void bytes_to_mobile_identity(const char *bytes, uint8_t mobile_identity_len,
+                              bool is_imsi, MobileIdentity_t *mobile_identity) {
   uint8_t typeofidentity;
 
   if (is_imsi) {

@@ -31,7 +31,7 @@ namespace magma5g {
  * persist state flag is set, load it from the data store.
  * This is only done by the amf_app task.
  */
-int amf_nas_state_init(const amf_config_t* amf_config_p) {
+int amf_nas_state_init(const amf_config_t *amf_config_p) {
   return AmfNasStateManager::getInstance().initialize_state(amf_config_p);
 }
 
@@ -41,7 +41,7 @@ int amf_nas_state_init(const amf_config_t* amf_config_p) {
  * If the read_from_db flag is set to true, the state is loaded from data store
  * before returning the pointer.
  */
-amf_app_desc_t* get_amf_nas_state(bool read_from_redis) {
+amf_app_desc_t *get_amf_nas_state(bool read_from_redis) {
   return AmfNasStateManager::getInstance().get_state(read_from_redis);
 }
 
@@ -65,7 +65,7 @@ void clear_amf_nas_state() {
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-map_uint64_ue_context_t* get_amf_ue_state() {
+map_uint64_ue_context_t *get_amf_ue_state() {
   return AmfNasStateManager::getInstance().get_ue_state_map();
 }
 
@@ -90,7 +90,7 @@ void delete_amf_ue_state(imsi64_t imsi64) {
  * Getter function for singleton instance of the AmfNasStateManager class,
  * guaranteed to be thread-safe and initialized only once
  */
-AmfNasStateManager& AmfNasStateManager::getInstance() {
+AmfNasStateManager &AmfNasStateManager::getInstance() {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   static AmfNasStateManager instance;
   OAILOG_FUNC_RETURN(LOG_AMF_APP, instance);
@@ -105,8 +105,8 @@ AmfNasStateManager::~AmfNasStateManager() { free_state(); }
 
 // Singleton class initializer which calls to create new object of
 // AmfNasStateManager
-status_code_e AmfNasStateManager::initialize_state(
-    const amf_config_t* amf_config_p) {
+status_code_e
+AmfNasStateManager::initialize_state(const amf_config_t *amf_config_p) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   status_code_e rc = RETURNok;
   persist_state_enabled = amf_config_p->use_stateless;
@@ -181,7 +181,7 @@ void AmfNasStateManager::amf_nas_state_init_local_state() {
  * data store when initialize_state is called and get_state just returns the
  * pointer to amf_app_desc_t structure.
  */
-amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
+amf_app_desc_t *AmfNasStateManager::get_state(bool read_from_redis) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   state_dirty = true;
   if (persist_state_enabled && read_from_redis) {
@@ -191,7 +191,7 @@ amf_app_desc_t* AmfNasStateManager::get_state(bool read_from_redis) {
   OAILOG_FUNC_RETURN(LOG_AMF_APP, state_cache_p);
 }
 
-map_uint64_ue_context_t* AmfNasStateManager::get_ue_state_map() {
+map_uint64_ue_context_t *AmfNasStateManager::get_ue_state_map() {
   return &state_ue_map;
 }
 
@@ -209,14 +209,14 @@ void AmfNasStateManager::clear_db_state() {
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-void put_amf_ue_state(amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
+void put_amf_ue_state(amf_app_desc_t *amf_app_desc_p, imsi64_t imsi64,
                       bool force_ue_write) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if ((!AmfNasStateManager::getInstance().is_persist_state_enabled()) ||
       (imsi64 == INVALID_IMSI64)) {
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
-  ue_m5gmm_context_t* ue_context_p = nullptr;
+  ue_m5gmm_context_t *ue_context_p = nullptr;
   amf_ue_ngap_id_t ue_id;
   get_amf_ue_id_from_imsi(&amf_app_desc_p->amf_ue_contexts, imsi64, &ue_id);
   ue_context_p = amf_ue_context_exists_amf_ue_ngap_id((amf_ue_ngap_id_t)ue_id);
@@ -232,7 +232,7 @@ void put_amf_ue_state(amf_app_desc_t* amf_app_desc_p, imsi64_t imsi64,
 }
 
 void AmfNasStateManager::write_ue_state_to_db(
-    const ue_m5gmm_context_t* ue_context, const std::string& imsi_str) {
+    const ue_m5gmm_context_t *ue_context, const std::string &imsi_str) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 #if !MME_UNIT_TEST
   /* Data store is Redis db. In this case actual call is made to Redis db */
@@ -272,7 +272,7 @@ status_code_e AmfNasStateManager::read_ue_state_from_db() {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
-  for (const auto& key : keys) {
+  for (const auto &key : keys) {
     magma::lte::oai::UeContext ue_proto = magma::lte::oai::UeContext();
     if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
       OAILOG_ERROR(log_task, "Failed to read UE state from db for %s",
@@ -282,7 +282,7 @@ status_code_e AmfNasStateManager::read_ue_state_from_db() {
 
     // Update each UE state version from redis
     this->ue_state_version[key] = redis_client->read_version(table_key);
-    ue_m5gmm_context_t* ue_context_p = new ue_m5gmm_context_t();
+    ue_m5gmm_context_t *ue_context_p = new ue_m5gmm_context_t();
     AmfNasStateConverter::proto_to_ue(ue_proto, ue_context_p);
     state_ue_map.insert(ue_context_p->amf_ue_ngap_id, ue_context_p);
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
@@ -294,14 +294,14 @@ status_code_e AmfNasStateManager::read_ue_state_from_db() {
   if (!persist_state_enabled) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
   }
-  for (const auto& kv :
+  for (const auto &kv :
        AMFClientServicer::getInstance().map_imsi_ue_proto_str.umap) {
     magma::lte::oai::UeContext ue_proto = magma::lte::oai::UeContext();
     if (!ue_proto.ParseFromString(kv.second)) {
       OAILOG_ERROR(log_task, "Failed to parse proto from string");
       OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
-    ue_m5gmm_context_t* ue_context_p = new ue_m5gmm_context_t();
+    ue_m5gmm_context_t *ue_context_p = new ue_m5gmm_context_t();
     AmfNasStateConverter::proto_to_ue(ue_proto, ue_context_p);
     state_ue_map.insert(ue_context_p->amf_ue_ngap_id, ue_context_p);
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", kv.first.c_str());
@@ -369,4 +369,4 @@ void AmfNasStateManager::write_state_to_db() {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

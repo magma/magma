@@ -19,21 +19,21 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.301.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/GutiType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/NasKeySetIdentifier.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeAdditionalSecurityCapability.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/UeNetworkCapability.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ATTACH_REQUEST_MINIMUM_LENGTH                                          \
@@ -72,7 +72,7 @@
 #define ATTACH_REQUEST_SUPPORTED_CODECS_PRESENT (1 << 9)
 #define ATTACH_REQUEST_ADDITIONAL_UPDATE_TYPE_PRESENT (1 << 10)
 #define ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT (1 << 11)
-#define ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT \
+#define ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_PRESENT    \
   (1 << 12)
 #define ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT (1 << 13)
 #define ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT (1 << 14)
@@ -142,8 +142,8 @@ typedef struct attach_request_msg_tag {
   ue_additional_security_capability_t ueadditionalsecuritycapability;
 } attach_request_msg;
 
-int decode_attach_request(attach_request_msg* attachrequest, uint8_t* buffer,
+int decode_attach_request(attach_request_msg *attachrequest, uint8_t *buffer,
                           uint32_t len);
 
-int encode_attach_request(attach_request_msg* attachrequest, uint8_t* buffer,
+int encode_attach_request(attach_request_msg *attachrequest, uint8_t *buffer,
                           uint32_t len);

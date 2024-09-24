@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
-#include <grpcpp/security/credentials.h>
 #include <cstdint>
 #include <cstring>
+#include <grpcpp/security/credentials.h>
 #include <string>
 
 #ifdef __cplusplus
@@ -40,15 +40,15 @@ using magma::lte::MobilityServiceClient;
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 static void handle_allocate_ipv4_address_status(
-    const grpc::Status& status, struct in_addr in_ip4_addr, int vlan,
-    const char* imsi, const char* apn, uint32_t pdu_session_id, uint8_t pti,
+    const grpc::Status &status, struct in_addr in_ip4_addr, int vlan,
+    const char *imsi, const char *apn, uint32_t pdu_session_id, uint8_t pti,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
-  MessageDef* message_p;
+    uint8_t *gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+  MessageDef *message_p;
   message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_IP_ALLOCATION_RESPONSE);
 
-  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
+  itti_amf_ip_allocation_response_t *amf_ip_allocation_response_p;
   amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
 
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
@@ -82,15 +82,15 @@ static void handle_allocate_ipv4_address_status(
 }
 
 static void handle_allocate_ipv6_address_status(
-    const grpc::Status& status, struct in6_addr in_ip6_addr, int vlan,
-    const char* imsi, const char* apn, uint32_t pdu_session_id, uint8_t pti,
+    const grpc::Status &status, struct in6_addr in_ip6_addr, int vlan,
+    const char *imsi, const char *apn, uint32_t pdu_session_id, uint8_t pti,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
-  MessageDef* message_p;
+    uint8_t *gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+  MessageDef *message_p;
   message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_IP_ALLOCATION_RESPONSE);
 
-  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
+  itti_amf_ip_allocation_response_t *amf_ip_allocation_response_p;
   amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
 
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
@@ -122,16 +122,16 @@ static void handle_allocate_ipv6_address_status(
 }
 
 static void handle_allocate_ipv4v6_address_status(
-    const grpc::Status& status, struct in_addr in_ip4_addr,
-    struct in6_addr in_ip6_addr, int vlan, const char* imsi, const char* apn,
+    const grpc::Status &status, struct in_addr in_ip4_addr,
+    struct in6_addr in_ip6_addr, int vlan, const char *imsi, const char *apn,
     uint32_t pdu_session_id, uint8_t pti, uint32_t pdu_session_type,
-    uint32_t gnb_gtp_teid, uint8_t* gnb_gtp_teid_ip_addr,
+    uint32_t gnb_gtp_teid, uint8_t *gnb_gtp_teid_ip_addr,
     uint8_t gnb_gtp_teid_ip_addr_len) {
-  MessageDef* message_p;
+  MessageDef *message_p;
   message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_IP_ALLOCATION_RESPONSE);
 
-  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
+  itti_amf_ip_allocation_response_t *amf_ip_allocation_response_p;
   amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
 
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
@@ -164,16 +164,16 @@ static void handle_allocate_ipv4v6_address_status(
 namespace magma5g {
 
 int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
-    const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+    const char *subscriber_id, const char *apn, uint32_t pdu_session_id,
     uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+    uint8_t *gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
   auto subscriber_id_str = std::string(subscriber_id);
   auto apn_str = std::string(apn);
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id_str, apn,
       [subscriber_id_str, apn, pdu_session_id, pti, pdu_session_type,
        gnb_gtp_teid, gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len](
-          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+          const Status &status, const AllocateIPAddressResponse &ip_msg) {
         struct in_addr addr;
         std::string ipv4_addr_str;
 
@@ -192,23 +192,23 @@ int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
 }
 
 int AsyncM5GMobilityServiceClient::release_ipv4_address(
-    const char* subscriber_id, const char* apn, const struct in_addr* addr) {
+    const char *subscriber_id, const char *apn, const struct in_addr *addr) {
   MobilityServiceClient::getInstance().ReleaseIPv4Address(subscriber_id, apn,
                                                           *addr);
   return RETURNok;
 }
 
 int AsyncM5GMobilityServiceClient::allocate_ipv6_address(
-    const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+    const char *subscriber_id, const char *apn, uint32_t pdu_session_id,
     uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+    uint8_t *gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
   auto subscriber_id_str = std::string(subscriber_id);
   auto apn_str = std::string(apn);
   MobilityServiceClient::getInstance().AllocateIPv6AddressAsync(
       subscriber_id_str, apn,
       [subscriber_id_str, apn, pdu_session_id, pti, pdu_session_type,
        gnb_gtp_teid, gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len](
-          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+          const Status &status, const AllocateIPAddressResponse &ip_msg) {
         struct in6_addr ip6_addr;
         std::string ipv6_addr_str;
 
@@ -228,23 +228,23 @@ int AsyncM5GMobilityServiceClient::allocate_ipv6_address(
 }
 
 int AsyncM5GMobilityServiceClient::release_ipv6_address(
-    const char* subscriber_id, const char* apn, const struct in6_addr* addr) {
+    const char *subscriber_id, const char *apn, const struct in6_addr *addr) {
   MobilityServiceClient::getInstance().ReleaseIPv6Address(subscriber_id, apn,
                                                           *addr);
   return RETURNok;
 }
 
 int AsyncM5GMobilityServiceClient::allocate_ipv4v6_address(
-    const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
+    const char *subscriber_id, const char *apn, uint32_t pdu_session_id,
     uint8_t pti, uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+    uint8_t *gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
   auto subscriber_id_str = std::string(subscriber_id);
   auto apn_str = std::string(apn);
   MobilityServiceClient::getInstance().AllocateIPv4v6AddressAsync(
       subscriber_id_str, apn,
       [subscriber_id_str, apn, pdu_session_id, pti, pdu_session_type,
        gnb_gtp_teid, gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len](
-          const Status& status, const AllocateIPAddressResponse& ip_msg) {
+          const Status &status, const AllocateIPAddressResponse &ip_msg) {
         struct in_addr addr;
         std::string ipv4_addr_str;
         struct in6_addr ip6_addr;
@@ -267,8 +267,8 @@ int AsyncM5GMobilityServiceClient::allocate_ipv4v6_address(
 }
 
 int AsyncM5GMobilityServiceClient::release_ipv4v6_address(
-    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
-    const struct in6_addr* ipv6_addr) {
+    const char *subscriber_id, const char *apn, const struct in_addr *ipv4_addr,
+    const struct in6_addr *ipv6_addr) {
   MobilityServiceClient::getInstance().ReleaseIPv4v6Address(
       subscriber_id, apn, *ipv4_addr, *ipv6_addr);
   return RETURNok;
@@ -276,9 +276,9 @@ int AsyncM5GMobilityServiceClient::release_ipv4v6_address(
 
 AsyncM5GMobilityServiceClient::AsyncM5GMobilityServiceClient() {}
 
-AsyncM5GMobilityServiceClient& AsyncM5GMobilityServiceClient::getInstance() {
+AsyncM5GMobilityServiceClient &AsyncM5GMobilityServiceClient::getInstance() {
   static AsyncM5GMobilityServiceClient instance;
   return instance;
 }
 
-}  // namespace magma5g
+} // namespace magma5g

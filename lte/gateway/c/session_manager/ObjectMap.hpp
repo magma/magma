@@ -30,15 +30,14 @@ enum ObjectMapResult {
  * ObjectMap is an abstract class to represent any class that can store key,
  * object pairs
  */
-template <typename ObjectType>
-class ObjectMap {
-  virtual ObjectMapResult set(const std::string& key,
-                              const ObjectType& object) = 0;
+template <typename ObjectType> class ObjectMap {
+  virtual ObjectMapResult set(const std::string &key,
+                              const ObjectType &object) = 0;
 
-  virtual ObjectMapResult get(const std::string& key,
-                              ObjectType& object_out) = 0;
+  virtual ObjectMapResult get(const std::string &key,
+                              ObjectType &object_out) = 0;
 
-  virtual ObjectMapResult getall(std::vector<ObjectType>& values_out) = 0;
+  virtual ObjectMapResult getall(std::vector<ObjectType> &values_out) = 0;
 };
 
-}  // namespace magma
+} // namespace magma

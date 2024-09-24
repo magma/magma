@@ -19,19 +19,19 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ATTACH_REJECT_MINIMUM_LENGTH (EMM_CAUSE_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ATTACH_REJECT_MAXIMUM_LENGTH \
+#define ATTACH_REJECT_MAXIMUM_LENGTH                                           \
   (EMM_CAUSE_MAXIMUM_LENGTH + ESM_MESSAGE_CONTAINER_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -62,8 +62,8 @@ typedef struct attach_reject_msg_tag {
   EsmMessageContainer esmmessagecontainer;
 } attach_reject_msg;
 
-int decode_attach_reject(attach_reject_msg* attachreject, uint8_t* buffer,
+int decode_attach_reject(attach_reject_msg *attachreject, uint8_t *buffer,
                          uint32_t len);
 
-int encode_attach_reject(attach_reject_msg* attachreject, uint8_t* buffer,
+int encode_attach_reject(attach_reject_msg *attachreject, uint8_t *buffer,
                          uint32_t len);

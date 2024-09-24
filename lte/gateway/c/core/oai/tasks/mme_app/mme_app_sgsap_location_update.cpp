@@ -18,17 +18,17 @@
 /*! \file mme_app_sgsap_location_update.cpp
  */
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -69,14 +69,14 @@ extern "C" {
  ** Inputs:              Pointer to UE context                                **
  **                                                                           **
  ********************************************************************************/
-void mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
+void mme_app_update_granted_service_for_ue(ue_mm_context_t *ue_context) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   additional_updt_t additional_update_type =
       (additional_updt_t)ue_context->emm_context.additional_update_type;
   mme_config_read_lock(&mme_config);
 
   if ((additional_update_type != MME_APP_SMS_ONLY) &&
-      !(strcmp((const char*)mme_config.non_eps_service_control->data,
+      !(strcmp((const char *)mme_config.non_eps_service_control->data,
                "CSFB_SMS"))) {
     ue_context->granted_service = GRANTED_SERVICE_CSFB_SMS;
     OAILOG_INFO(LOG_MME_APP, "Granted service is GRANTED_SERVICE_CSFB_SMS\n");
@@ -84,9 +84,9 @@ void mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
     ue_context->granted_service = GRANTED_SERVICE_SMS_ONLY;
     OAILOG_INFO(LOG_MME_APP, "Granted service is GRANTED_SERVICE_SMS_ONLY\n");
   } else if ((additional_update_type != MME_APP_SMS_ONLY) &&
-             (!(strcmp((const char*)mme_config.non_eps_service_control->data,
+             (!(strcmp((const char *)mme_config.non_eps_service_control->data,
                        "SMS")) ||
-              !(strcmp((const char*)mme_config.non_eps_service_control->data,
+              !(strcmp((const char *)mme_config.non_eps_service_control->data,
                        "SMS_ORC8R")))) {
     ue_context->granted_service = GRANTED_SERVICE_SMS_ONLY;
     OAILOG_INFO(LOG_MME_APP, "Granted service is  GRANTED_SERVICE_SMS_ONLY\n");
@@ -116,18 +116,18 @@ uint8_t get_eps_attach_type(uint8_t emm_attach_type) {
   uint8_t eps_attach_type = 0;
 
   switch (emm_attach_type) {
-    case EMM_ATTACH_TYPE_EPS:
-      eps_attach_type = EPS_ATTACH_TYPE_EPS;
-      break;
-    case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
-      eps_attach_type = EPS_ATTACH_TYPE_COMBINED_EPS_IMSI;
-      break;
-    case EMM_ATTACH_TYPE_EMERGENCY:
-      eps_attach_type = EPS_ATTACH_TYPE_EMERGENCY;
-      break;
-    default:
-      OAILOG_WARNING(LOG_MME_APP, " No Matching EPS Atttach type");
-      break;
+  case EMM_ATTACH_TYPE_EPS:
+    eps_attach_type = EPS_ATTACH_TYPE_EPS;
+    break;
+  case EMM_ATTACH_TYPE_COMBINED_EPS_IMSI:
+    eps_attach_type = EPS_ATTACH_TYPE_COMBINED_EPS_IMSI;
+    break;
+  case EMM_ATTACH_TYPE_EMERGENCY:
+    eps_attach_type = EPS_ATTACH_TYPE_EMERGENCY;
+    break;
+  default:
+    OAILOG_WARNING(LOG_MME_APP, " No Matching EPS Atttach type");
+    break;
   }
   return eps_attach_type;
 }
@@ -140,10 +140,10 @@ uint8_t get_eps_attach_type(uint8_t emm_attach_type) {
  ** Inputs:              Mobile Id                                           **
  **                                                                          **
  ******************************************************************************/
-void mme_app_send_itti_sgsap_ue_activity_ind(const char* imsi,
+void mme_app_send_itti_sgsap_ue_activity_ind(const char *imsi,
                                              const unsigned int imsi_len) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
   if (!message_p) {
@@ -184,8 +184,8 @@ void mme_app_send_itti_sgsap_ue_activity_ind(const char* imsi,
  ** Inputs:              Mobile Id **
  ** **
  ***********************************************************************************/
-static int copy_mobile_identity_helper(MobileIdentity_t* mobileid_dest,
-                                       MobileIdentity_t* mobileid_src) {
+static int copy_mobile_identity_helper(MobileIdentity_t *mobileid_dest,
+                                       MobileIdentity_t *mobileid_src) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (mobileid_src->typeofidentity == MOBILE_IDENTITY_IMSI) {
@@ -209,17 +209,17 @@ static int copy_mobile_identity_helper(MobileIdentity_t* mobileid_dest,
  ** **
  ***********************************************************************************/
 
-static int build_sgs_status(char* imsi, uint8_t imsi_length, lai_t laicsfb,
-                            MobileIdentity_t* mobileid, uint8_t msg_id) {
+static int build_sgs_status(char *imsi, uint8_t imsi_length, lai_t laicsfb,
+                            MobileIdentity_t *mobileid, uint8_t msg_id) {
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP, SGSAP_STATUS);
-  itti_sgsap_status_t* sgsap_status = &message_p->ittiMsg.sgsap_status;
-  memset((void*)sgsap_status, 0, sizeof(itti_sgsap_status_t));
+  itti_sgsap_status_t *sgsap_status = &message_p->ittiMsg.sgsap_status;
+  memset((void *)sgsap_status, 0, sizeof(itti_sgsap_status_t));
 
   // Encode IMSI
   sgsap_status->presencemask = SGSAP_IMSI;
@@ -280,11 +280,11 @@ static int build_sgs_status(char* imsi, uint8_t imsi_length, lai_t laicsfb,
  **      Return:    RETURNok, RETURNerror                                      *
  *******************************************************************************/
 static status_code_e handle_cs_domain_loc_updt_acc(
-    itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc,
-    struct ue_mm_context_s* ue_context_p) {
+    itti_sgsap_location_update_acc_t *const itti_sgsap_location_update_acc,
+    struct ue_mm_context_s *ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   status_code_e rc = RETURNok;
-  struct emm_context_s* emm_ctx_p = &ue_context_p->emm_context;
+  struct emm_context_s *emm_ctx_p = &ue_context_p->emm_context;
 
   if (!emm_ctx_p) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid emm context \n");
@@ -315,7 +315,7 @@ static status_code_e handle_cs_domain_loc_updt_acc(
     if (itti_sgsap_location_update_acc->mobileid.typeofidentity ==
         MOBILE_IDENTITY_IMSI) {
       // Convert char* IMSI/TMSI to digit format to be sent in NAS message
-      imsi_mobile_identity_t* imsi_p = &emm_ctx_p->csfbparams.mobileid.imsi;
+      imsi_mobile_identity_t *imsi_p = &emm_ctx_p->csfbparams.mobileid.imsi;
       MOBILE_ID_CHAR_TO_MOBILE_ID_IMSI_NAS(
           itti_sgsap_location_update_acc->mobileid.u.imsi, imsi_p,
           itti_sgsap_location_update_acc->mobileid.length);
@@ -363,8 +363,9 @@ static status_code_e handle_cs_domain_loc_updt_acc(
  **                      Type of message:Attach Request or TAU Request      **
  **                                                                         **
  ******************************************************************************/
-status_code_e mme_app_handle_nas_cs_domain_location_update_req(
-    ue_mm_context_t* ue_context_p, uint8_t msg_type) {
+status_code_e
+mme_app_handle_nas_cs_domain_location_update_req(ue_mm_context_t *ue_context_p,
+                                                 uint8_t msg_type) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(
       LOG_MME_APP,
@@ -426,19 +427,19 @@ status_code_e mme_app_handle_nas_cs_domain_location_update_req(
  ** Inputs: **
  **
  ***********************************************************************************/
-status_code_e send_itti_sgsap_location_update_req(
-    ue_mm_context_t* ue_context_p) {
+status_code_e
+send_itti_sgsap_location_update_req(ue_mm_context_t *ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   status_code_e rc = RETURNok;
   uint8_t tau_updt_type = -1;
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP,
                                                      SGSAP_LOCATION_UPDATE_REQ);
-  itti_sgsap_location_update_req_t* sgsap_location_update_req =
+  itti_sgsap_location_update_req_t *sgsap_location_update_req =
       &message_p->ittiMsg.sgsap_location_update_req;
-  memset((void*)sgsap_location_update_req, 0,
+  memset((void *)sgsap_location_update_req, 0,
          sizeof(itti_sgsap_location_update_req_t));
 
   // IMSI
@@ -478,7 +479,7 @@ status_code_e send_itti_sgsap_location_update_req(
 
   // IMEISV
   sgsap_location_update_req->presencemask |= SGSAP_IMEISV;
-  imeisv_t* imeisv = &ue_context_p->emm_context._imeisv;
+  imeisv_t *imeisv = &ue_context_p->emm_context._imeisv;
   IMEISV_TO_STRING(imeisv, sgsap_location_update_req->imeisv, MAX_IMEISV_SIZE);
 
   // TAI - TAI List currently not available in MME APP UE Context
@@ -554,10 +555,10 @@ status_code_e send_itti_sgsap_location_update_req(
  **
  ******************************************************************************/
 status_code_e mme_app_handle_sgsap_location_update_acc(
-    mme_app_desc_t* mme_app_desc_p,
-    itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc) {
+    mme_app_desc_t *mme_app_desc_p,
+    itti_sgsap_location_update_acc_t *const itti_sgsap_location_update_acc) {
   imsi64_t imsi64 = INVALID_IMSI64;
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
   status_code_e rc = RETURNok;
   sgs_fsm_t sgs_fsm;
 
@@ -581,8 +582,8 @@ status_code_e mme_app_handle_sgsap_location_update_acc(
   sgs_fsm.primitive = _SGS_LOCATION_UPDATE_ACCEPT;
   sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
   sgs_fsm.ctx = ue_context_p->sgs_context;
-  ((sgs_context_t*)sgs_fsm.ctx)->sgsap_msg =
-      (void*)itti_sgsap_location_update_acc;
+  ((sgs_context_t *)sgs_fsm.ctx)->sgsap_msg =
+      (void *)itti_sgsap_location_update_acc;
 
   if (sgs_fsm_process(&sgs_fsm) != RETURNok) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -604,11 +605,11 @@ status_code_e mme_app_handle_sgsap_location_update_acc(
  **
  *******************************************************************************/
 status_code_e mme_app_handle_sgsap_location_update_rej(
-    mme_app_desc_t* mme_app_desc_p,
-    itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej) {
+    mme_app_desc_t *mme_app_desc_p,
+    itti_sgsap_location_update_rej_t *const itti_sgsap_location_update_rej) {
   imsi64_t imsi64 = INVALID_IMSI64;
   status_code_e rc = RETURNok;
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
   sgs_fsm_t sgs_fsm;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -633,9 +634,9 @@ status_code_e mme_app_handle_sgsap_location_update_rej(
   }
   sgs_fsm.primitive = _SGS_LOCATION_UPDATE_REJECT;
   sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
-  sgs_fsm.ctx = (void*)ue_context_p->sgs_context;
-  ((sgs_context_t*)sgs_fsm.ctx)->sgsap_msg =
-      (void*)itti_sgsap_location_update_rej;
+  sgs_fsm.ctx = (void *)ue_context_p->sgs_context;
+  ((sgs_context_t *)sgs_fsm.ctx)->sgsap_msg =
+      (void *)itti_sgsap_location_update_rej;
 
   if (sgs_fsm_process(&sgs_fsm) != RETURNok) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -656,15 +657,15 @@ status_code_e mme_app_handle_sgsap_location_update_rej(
  ** Inputs:              sgs_fsm_t                                           **
  **                                                                          **
  *******************************************************************************/
-status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t *fsm_evt) {
   status_code_e rc = RETURNok;
-  itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p = NULL;
-  MobileIdentity_t* mobileid = NULL;
+  itti_sgsap_location_update_acc_t *itti_sgsap_location_update_acc_p = NULL;
+  MobileIdentity_t *mobileid = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
+  sgs_context_t *sgs_context = (sgs_context_t *)fsm_evt->ctx;
   itti_sgsap_location_update_acc_p =
-      (itti_sgsap_location_update_acc_t*)sgs_context->sgsap_msg;
+      (itti_sgsap_location_update_acc_t *)sgs_context->sgsap_msg;
 
   if (sgs_context == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
@@ -721,12 +722,12 @@ status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** **
  ***********************************************************************************/
-status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t *fsm_evt) {
   status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
+  sgs_context_t *sgs_context = (sgs_context_t *)fsm_evt->ctx;
   if (sgs_context == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT,
                  fsm_evt->ue_id);
@@ -760,11 +761,11 @@ status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t                                           **
  **                                                                          **
  *******************************************************************************/
-status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t *fsm_evt) {
   status_code_e rc = RETURNok;
-  itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p = NULL;
-  struct ue_mm_context_s* ue_context_p = NULL;
-  MobileIdentity_t* mobileid = NULL;
+  itti_sgsap_location_update_acc_t *itti_sgsap_location_update_acc_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
+  MobileIdentity_t *mobileid = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
@@ -773,7 +774,7 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
                  fsm_evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
+  sgs_context_t *sgs_context = (sgs_context_t *)fsm_evt->ctx;
   if (sgs_context == NULL) {
     OAILOG_ERROR(LOG_MME_APP,
                  "SGS context not found for UE ID " MME_UE_S1AP_ID_FMT,
@@ -781,7 +782,7 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   itti_sgsap_location_update_acc_p =
-      (itti_sgsap_location_update_acc_t*)sgs_context->sgsap_msg;
+      (itti_sgsap_location_update_acc_t *)sgs_context->sgsap_msg;
   if (sgs_context->ts6_1_timer.id != MME_APP_TIMER_INACTIVE_ID) {
     /*Update SGS context and set VLR Reliable to true*/
     sgs_context->sgs_state = SGS_ASSOCIATED;
@@ -845,7 +846,7 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** **
  ***********************************************************************************/
-status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t *fsm_evt) {
   status_code_e rc = RETURNok;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(LOG_MME_APP,
@@ -865,22 +866,22 @@ status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** **
  *****************************************************************************************/
-status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t *fsm_evt) {
   status_code_e rc = RETURNok;
-  struct ue_mm_context_s* ue_context_p = NULL;
-  itti_sgsap_location_update_rej_t* itti_sgsap_location_update_rej_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
+  itti_sgsap_location_update_rej_t *itti_sgsap_location_update_rej_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
-  lai_t* lai = NULL;
+  lai_t *lai = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
-  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
+  sgs_context_t *sgs_context = (sgs_context_t *)fsm_evt->ctx;
   itti_sgsap_location_update_rej_p =
-      (itti_sgsap_location_update_rej_t*)sgs_context->sgsap_msg;
+      (itti_sgsap_location_update_rej_t *)sgs_context->sgsap_msg;
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
   if (ue_context_p == NULL) {
-    mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+    mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
     OAILOG_ERROR(LOG_MME_APP, "Unknown UE ID " MME_UE_S1AP_ID_FMT,
                  fsm_evt->ue_id);
     mme_ue_context_dump_coll_keys(&mme_app_desc_p->mme_ue_contexts);
@@ -919,7 +920,7 @@ status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              ue_mm_context_s **
  ** **
  ***********************************************************************************/
-int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
+int mme_app_handle_ts6_1_timer_expiry(zloop_t *loop, int timer_id, void *args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   int rc = 0;
@@ -928,8 +929,8 @@ int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
                    timer_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
-  struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
-      mme_ue_s1ap_id, const_cast<char*>("sgs ts6_1 timer"));
+  struct ue_mm_context_s *ue_context_p = mme_app_get_ue_context_for_timer(
+      mme_ue_s1ap_id, const_cast<char *>("sgs ts6_1 timer"));
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -964,16 +965,16 @@ int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
  ** Inputs:              sgs_fsm_t **
  ** **
  ***********************************************************************************/
-status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t *fsm_evt) {
   status_code_e rc = RETURNok;
-  struct ue_mm_context_s* ue_context_p = NULL;
-  itti_sgsap_location_update_rej_t* itti_sgsap_location_update_rej_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
+  itti_sgsap_location_update_rej_t *itti_sgsap_location_update_rej_p = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  sgs_context_t* sgs_context = (sgs_context_t*)fsm_evt->ctx;
+  sgs_context_t *sgs_context = (sgs_context_t *)fsm_evt->ctx;
   itti_sgsap_location_update_rej_p =
-      (itti_sgsap_location_update_rej_t*)sgs_context->sgsap_msg;
+      (itti_sgsap_location_update_rej_t *)sgs_context->sgsap_msg;
   IMSI_STRING_TO_IMSI64(itti_sgsap_location_update_rej_p->imsi, &imsi64);
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(fsm_evt->ue_id);
   if (ue_context_p == NULL) {
@@ -1004,7 +1005,7 @@ status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  **                      RETURNerror: On failure                              **
  **                                                                           **
  ********************************************************************************/
-status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
+status_code_e mme_app_create_sgs_context(ue_mm_context_t *ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid UE context \n");
@@ -1012,7 +1013,7 @@ status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
   }
 
   ue_context_p->sgs_context =
-      reinterpret_cast<sgs_context_t*>(calloc(1, sizeof(sgs_context_t)));
+      reinterpret_cast<sgs_context_t *>(calloc(1, sizeof(sgs_context_t)));
   if (!ue_context_p->sgs_context) {
     OAILOG_CRITICAL(LOG_MME_APP,
                     "Cannot create SGS Context for UE-ID " MME_UE_S1AP_ID_FMT
@@ -1055,97 +1056,97 @@ status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
 int map_sgs_emm_cause(SgsRejectCause_t sgs_cause) {
   int emm_cause;
   switch (sgs_cause) {
-    case SGS_IMSI_UNKNOWN_IN_HLR: {
-      emm_cause = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS;
-    } break;
-    case SGS_ILLEGAL_MS: {
-      emm_cause = EMM_CAUSE_ILLEGAL_UE;
-    } break;
-    case SGS_IMSI_UNKNOWN_IN_VLR: {
-      emm_cause = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS;
-    } break;
-    case SGS_IMEI_NOT_ACCEPTED: {
-      emm_cause = EMM_CAUSE_IMEI_NOT_ACCEPTED;
-    } break;
-    case SGS_ILLEGAL_UE: {
-      emm_cause = EMM_CAUSE_ILLEGAL_UE;
-    } break;
-    case SGS_PLMN_NOT_ALLOWED: {
-      emm_cause = EMM_CAUSE_PLMN_NOT_ALLOWED;
-    } break;
-    case SGS_LOCATION_AREA_NOT_ALLOWED: {
-      emm_cause = EMM_CAUSE_TA_NOT_ALLOWED;
-    } break;
-    case SGS_ROAMING_NOT_ALLOWED_IN_THIS_LOCATION_AREA: {
-      emm_cause = EMM_CAUSE_ROAMING_NOT_ALLOWED;
-    } break;
-    case SGS_NO_SUITABLE_CELLS_IN_LOCATION_AREA: {
-      emm_cause = EMM_CAUSE_NO_SUITABLE_CELLS;
-    } break;
-    case SGS_NETWORK_FAILURE: {
-      emm_cause = EMM_CAUSE_NETWORK_FAILURE;
-    } break;
-    case SGS_MAC_FAILURE: {
-      emm_cause = EMM_CAUSE_MAC_FAILURE;
-    } break;
-    case SGS_SYNCH_FAILURE: {
-      emm_cause = EMM_CAUSE_SYNCH_FAILURE;
-    } break;
-    case SGS_CONGESTION: {
-      emm_cause = EMM_CAUSE_CONGESTION;
-    } break;
-    case SGS_GSM_AUTHENTICATION_UNACCEPTABLE: {
-      emm_cause = EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE;
-    } break;
-    case SGS_NOT_AUTHORIZED_FOR_THIS_CSG: {
-      emm_cause = EMM_CAUSE_CSG_NOT_AUTHORIZED;
-    } break;
-    case SGS_SERVICE_OPTION_NOT_SUPPORTED: {
-      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
-    } break;
-    case SGS_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED: {
-      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
-    } break;
-    case SGS_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER: {
-      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
-    } break;
-    case SGS_CALL_CANNOT_BE_IDENTIFIED: {
-      emm_cause = EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW;
-    } break;
-    // TODO : Need to map appropriate cause
-    case SGS_RETRY_UPON_ENTRY_INTO_NEW_CELL: {
-      emm_cause = 0;
-    } break;
-    case SGS_SEMANTICALLY_INCORRECT_MESSAGE: {
-      emm_cause = EMM_CAUSE_SEMANTICALLY_INCORRECT;
-    } break;
-    case SGS_INVALID_MANDATORY_INFORMATION: {
-      emm_cause = EMM_CAUSE_INVALID_MANDATORY_INFO;
-    } break;
-    case SGS_MSG_TYPE_NON_EXISTENT_NOT_IMPLEMENTED: {
-      emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED;
-    } break;
-    case SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE: {
-      emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE;
-    } break;
-    case SGS_INFORMATION_ELEMENT_NON_EXISTENT_NOT_IMPLEMENTED: {
-      emm_cause = EMM_CAUSE_IE_NOT_IMPLEMENTED;
-    } break;
-    case SGS_CONDITIONAL_IE_ERROR: {
-      emm_cause = EMM_CAUSE_CONDITIONAL_IE_ERROR;
-    } break;
-    case SGS_MSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE: {
-      emm_cause = EMM_CAUSE_MESSAGE_NOT_COMPATIBLE;
-    } break;
-    case SGS_PROTOCOL_ERROR_UNSPECIFIED: {
-      emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
-    } break;
-    case SGS_MSC_NOT_REACHABLE: {
-      emm_cause = EMM_CAUSE_MSC_NOT_REACHABLE;
-    } break;
-    default:
-      OAILOG_INFO(LOG_MME_APP, "Invalid SGS Reject cause\n");
-      emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
+  case SGS_IMSI_UNKNOWN_IN_HLR: {
+    emm_cause = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS;
+  } break;
+  case SGS_ILLEGAL_MS: {
+    emm_cause = EMM_CAUSE_ILLEGAL_UE;
+  } break;
+  case SGS_IMSI_UNKNOWN_IN_VLR: {
+    emm_cause = EMM_CAUSE_IMSI_UNKNOWN_IN_HSS;
+  } break;
+  case SGS_IMEI_NOT_ACCEPTED: {
+    emm_cause = EMM_CAUSE_IMEI_NOT_ACCEPTED;
+  } break;
+  case SGS_ILLEGAL_UE: {
+    emm_cause = EMM_CAUSE_ILLEGAL_UE;
+  } break;
+  case SGS_PLMN_NOT_ALLOWED: {
+    emm_cause = EMM_CAUSE_PLMN_NOT_ALLOWED;
+  } break;
+  case SGS_LOCATION_AREA_NOT_ALLOWED: {
+    emm_cause = EMM_CAUSE_TA_NOT_ALLOWED;
+  } break;
+  case SGS_ROAMING_NOT_ALLOWED_IN_THIS_LOCATION_AREA: {
+    emm_cause = EMM_CAUSE_ROAMING_NOT_ALLOWED;
+  } break;
+  case SGS_NO_SUITABLE_CELLS_IN_LOCATION_AREA: {
+    emm_cause = EMM_CAUSE_NO_SUITABLE_CELLS;
+  } break;
+  case SGS_NETWORK_FAILURE: {
+    emm_cause = EMM_CAUSE_NETWORK_FAILURE;
+  } break;
+  case SGS_MAC_FAILURE: {
+    emm_cause = EMM_CAUSE_MAC_FAILURE;
+  } break;
+  case SGS_SYNCH_FAILURE: {
+    emm_cause = EMM_CAUSE_SYNCH_FAILURE;
+  } break;
+  case SGS_CONGESTION: {
+    emm_cause = EMM_CAUSE_CONGESTION;
+  } break;
+  case SGS_GSM_AUTHENTICATION_UNACCEPTABLE: {
+    emm_cause = EMM_CAUSE_NON_EPS_AUTH_UNACCEPTABLE;
+  } break;
+  case SGS_NOT_AUTHORIZED_FOR_THIS_CSG: {
+    emm_cause = EMM_CAUSE_CSG_NOT_AUTHORIZED;
+  } break;
+  case SGS_SERVICE_OPTION_NOT_SUPPORTED: {
+    emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
+  } break;
+  case SGS_REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED: {
+    emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
+  } break;
+  case SGS_SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER: {
+    emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
+  } break;
+  case SGS_CALL_CANNOT_BE_IDENTIFIED: {
+    emm_cause = EMM_CAUSE_UE_IDENTITY_CANT_BE_DERIVED_BY_NW;
+  } break;
+  // TODO : Need to map appropriate cause
+  case SGS_RETRY_UPON_ENTRY_INTO_NEW_CELL: {
+    emm_cause = 0;
+  } break;
+  case SGS_SEMANTICALLY_INCORRECT_MESSAGE: {
+    emm_cause = EMM_CAUSE_SEMANTICALLY_INCORRECT;
+  } break;
+  case SGS_INVALID_MANDATORY_INFORMATION: {
+    emm_cause = EMM_CAUSE_INVALID_MANDATORY_INFO;
+  } break;
+  case SGS_MSG_TYPE_NON_EXISTENT_NOT_IMPLEMENTED: {
+    emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED;
+  } break;
+  case SGS_MSG_TYPE_NOT_COMPATIBLE_WITH_PROTOCOL_STATE: {
+    emm_cause = EMM_CAUSE_MESSAGE_TYPE_NOT_COMPATIBLE;
+  } break;
+  case SGS_INFORMATION_ELEMENT_NON_EXISTENT_NOT_IMPLEMENTED: {
+    emm_cause = EMM_CAUSE_IE_NOT_IMPLEMENTED;
+  } break;
+  case SGS_CONDITIONAL_IE_ERROR: {
+    emm_cause = EMM_CAUSE_CONDITIONAL_IE_ERROR;
+  } break;
+  case SGS_MSG_NOT_COMPATIBLE_WITH_PROTOCOL_STATE: {
+    emm_cause = EMM_CAUSE_MESSAGE_NOT_COMPATIBLE;
+  } break;
+  case SGS_PROTOCOL_ERROR_UNSPECIFIED: {
+    emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
+  } break;
+  case SGS_MSC_NOT_REACHABLE: {
+    emm_cause = EMM_CAUSE_MSC_NOT_REACHABLE;
+  } break;
+  default:
+    OAILOG_INFO(LOG_MME_APP, "Invalid SGS Reject cause\n");
+    emm_cause = EMM_CAUSE_CS_DOMAIN_NOT_AVAILABLE;
   }
   return emm_cause;
 }

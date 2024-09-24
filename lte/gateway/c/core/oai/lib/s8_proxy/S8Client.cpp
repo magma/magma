@@ -12,21 +12,21 @@ limitations under the License.
 */
 
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
+#include <thread> // std::thread
 #include <utility>
 
+#include "feg/protos/s8_proxy.pb.h"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.hpp"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "feg/protos/s8_proxy.pb.h"
 #include "orc8r/protos/common.pb.h"
 
 namespace grpc {
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 
-S8Client& S8Client::get_instance() {
+S8Client &S8Client::get_instance() {
   static S8Client client_instance;
   return client_instance;
 }
@@ -42,9 +42,9 @@ S8Client::S8Client() {
 }
 
 void S8Client::s8_create_session_request(
-    const CreateSessionRequestPgw& csr_req,
+    const CreateSessionRequestPgw &csr_req,
     std::function<void(grpc::Status, CreateSessionResponsePgw)> callback) {
-  S8Client& client = get_instance();
+  S8Client &client = get_instance();
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto response = new AsyncLocalResponse<CreateSessionResponsePgw>(
@@ -61,9 +61,9 @@ void S8Client::s8_create_session_request(
 }
 
 void S8Client::s8_delete_session_request(
-    const DeleteSessionRequestPgw& dsr_req,
+    const DeleteSessionRequestPgw &dsr_req,
     std::function<void(grpc::Status, DeleteSessionResponsePgw)> callback) {
-  S8Client& client = get_instance();
+  S8Client &client = get_instance();
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto response = new AsyncLocalResponse<DeleteSessionResponsePgw>(
@@ -80,9 +80,9 @@ void S8Client::s8_delete_session_request(
 }
 
 void S8Client::s8_create_bearer_response(
-    const CreateBearerResponsePgw& cbr_rsp,
+    const CreateBearerResponsePgw &cbr_rsp,
     std::function<void(grpc::Status, magma::orc8r::Void)> callback) {
-  S8Client& client = get_instance();
+  S8Client &client = get_instance();
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto response = new AsyncLocalResponse<magma::orc8r::Void>(
@@ -99,9 +99,9 @@ void S8Client::s8_create_bearer_response(
 }
 
 void S8Client::s8_delete_bearer_response(
-    const DeleteBearerResponsePgw& db_rsp,
+    const DeleteBearerResponsePgw &db_rsp,
     std::function<void(grpc::Status, magma::orc8r::Void)> callback) {
-  S8Client& client = get_instance();
+  S8Client &client = get_instance();
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto response = new AsyncLocalResponse<magma::orc8r::Void>(
@@ -117,4 +117,4 @@ void S8Client::s8_delete_bearer_response(
   response->set_response_reader(std::move(response_reader));
 }
 
-}  // namespace magma
+} // namespace magma

@@ -27,7 +27,7 @@ extern "C" {
 namespace grpc {
 class Channel;
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::Channel;
 using grpc::ServerContext;
@@ -41,9 +41,9 @@ using namespace lte;
 
 S6aServiceImpl::S6aServiceImpl() {}
 
-Status S6aServiceImpl::DeleteSubscriber(ServerContext* context,
-                                        const DeleteSubscriberRequest* request,
-                                        DeleteSubscriberResponse* response) {
+Status S6aServiceImpl::DeleteSubscriber(ServerContext *context,
+                                        const DeleteSubscriberRequest *request,
+                                        DeleteSubscriberResponse *response) {
   auto imsi_size = request->imsi_list_size();
   for (int i = 0; i < imsi_size; i++) {
     auto imsi = request->imsi_list(i);
@@ -54,4 +54,4 @@ Status S6aServiceImpl::DeleteSubscriber(ServerContext* context,
   }
   return Status::OK;
 }
-}  // namespace magma
+} // namespace magma

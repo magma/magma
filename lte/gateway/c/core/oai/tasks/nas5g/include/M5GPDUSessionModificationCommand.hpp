@@ -14,24 +14,24 @@
 #include <vector>
 
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQOSRules.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowDescriptor.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSMCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSessionAMBR.hpp"
 
 namespace magma5g {
 
 // PDUSessionModificationCommand Message Class
 class PDUSessionModificationCommand {
- public:
+public:
 #define PDU_SESSION_MODIFICATION_COMMAND_MIN_LEN 18
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   PDUSessionIdentityMsg pdu_session_identity;
@@ -46,10 +46,10 @@ class PDUSessionModificationCommand {
   ~PDUSessionModificationCommand();
 
   int EncodePDUSessionModificationCommand(
-      PDUSessionModificationCommand* pdu_sess_mod_com, uint8_t* buffer,
+      PDUSessionModificationCommand *pdu_sess_mod_com, uint8_t *buffer,
       uint32_t len);
   int DecodePDUSessionModificationCommand(
-      PDUSessionModificationCommand* pdu_sess_mod_com, uint8_t* buffer,
+      PDUSessionModificationCommand *pdu_sess_mod_com, uint8_t *buffer,
       uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

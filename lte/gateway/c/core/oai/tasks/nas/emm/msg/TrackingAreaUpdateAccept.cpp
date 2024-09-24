@@ -31,8 +31,8 @@ extern "C" {
 #endif
 
 int decode_tracking_area_update_accept(
-    tracking_area_update_accept_msg* tracking_area_update_accept,
-    uint8_t* buffer, uint32_t len) {
+    tracking_area_update_accept_msg *tracking_area_update_accept,
+    uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -60,207 +60,208 @@ int decode_tracking_area_update_accept(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_IEI:
-        if ((decoded_result = decode_gprs_timer_ie(
-                 &tracking_area_update_accept->t3412value,
-                 TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_IEI:
+      if ((decoded_result =
+               decode_gprs_timer_ie(&tracking_area_update_accept->t3412value,
+                                    TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_IEI,
+                                    buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_T3412_VALUE_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI:
-        if ((decoded_result = decode_eps_mobile_identity(
-                 &tracking_area_update_accept->guti,
-                 TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI:
+      if ((decoded_result = decode_eps_mobile_identity(
+               &tracking_area_update_accept->guti,
+               TRACKING_AREA_UPDATE_ACCEPT_GUTI_IEI, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_GUTI_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_GUTI_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_IEI:
-        if ((decoded_result = decode_tracking_area_identity_list(
-                 &tracking_area_update_accept->tailist,
-                 TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_IEI:
+      if ((decoded_result = decode_tracking_area_identity_list(
+               &tracking_area_update_accept->tailist,
+               TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_IEI, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_TAI_LIST_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_IEI:
-        if ((decoded_result = decode_eps_bearer_context_status(
-                 &tracking_area_update_accept->epsbearercontextstatus,
-                 TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_IEI:
+      if ((decoded_result = decode_eps_bearer_context_status(
+               &tracking_area_update_accept->epsbearercontextstatus,
+               TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_EPS_BEARER_CONTEXT_STATUS_PRESENT;
+      break;
 
-      case C_LOCATION_AREA_IDENTIFICATION_IEI:
-        if ((decoded_result = decode_location_area_identification_ie(
-                 &tracking_area_update_accept->locationareaidentification,
-                 C_LOCATION_AREA_IDENTIFICATION_IEI != 0, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case C_LOCATION_AREA_IDENTIFICATION_IEI:
+      if ((decoded_result = decode_location_area_identification_ie(
+               &tracking_area_update_accept->locationareaidentification,
+               C_LOCATION_AREA_IDENTIFICATION_IEI != 0, buffer + decoded,
+               len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_LOCATION_AREA_IDENTIFICATION_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI:
-        if ((decoded_result = decode_mobile_identity_ie(
-                 &tracking_area_update_accept->msidentity,
-                 TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI != 0,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI:
+      if ((decoded_result = decode_mobile_identity_ie(
+               &tracking_area_update_accept->msidentity,
+               TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_IEI != 0,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_MS_IDENTITY_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI:
-        if ((decoded_result =
-                 decode_emm_cause(&tracking_area_update_accept->emmcause,
-                                  TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI,
-                                  buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI:
+      if ((decoded_result =
+               decode_emm_cause(&tracking_area_update_accept->emmcause,
+                                TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_IEI,
+                                buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_EMM_CAUSE_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_IEI:
-        if ((decoded_result = decode_gprs_timer_ie(
-                 &tracking_area_update_accept->t3402value,
-                 TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_IEI:
+      if ((decoded_result =
+               decode_gprs_timer_ie(&tracking_area_update_accept->t3402value,
+                                    TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_IEI,
+                                    buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_T3402_VALUE_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_IEI:
-        if ((decoded_result = decode_gprs_timer_ie(
-                 &tracking_area_update_accept->t3423value,
-                 TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_IEI, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_IEI:
+      if ((decoded_result =
+               decode_gprs_timer_ie(&tracking_area_update_accept->t3423value,
+                                    TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_IEI,
+                                    buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_T3423_VALUE_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI:
-        if ((decoded_result = decode_plmn_list_ie(
-                 &tracking_area_update_accept->equivalentplmns,
-                 TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI != 0,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI:
+      if ((decoded_result = decode_plmn_list_ie(
+               &tracking_area_update_accept->equivalentplmns,
+               TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_IEI != 0,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_EQUIVALENT_PLMNS_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI:
-        if ((decoded_result = decode_emergency_number_list_ie(
-                 &tracking_area_update_accept->emergencynumberlist,
-                 TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI != 0,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI:
+      if ((decoded_result = decode_emergency_number_list_ie(
+               &tracking_area_update_accept->emergencynumberlist,
+               TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_IEI != 0,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_EMERGENCY_NUMBER_LIST_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI:
-        if ((decoded_result = decode_eps_network_feature_support(
-                 &tracking_area_update_accept->epsnetworkfeaturesupport,
-                 TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI:
+      if ((decoded_result = decode_eps_network_feature_support(
+               &tracking_area_update_accept->epsnetworkfeaturesupport,
+               TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_EPS_NETWORK_FEATURE_SUPPORT_PRESENT;
+      break;
 
-      case TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI:
-        if ((decoded_result = decode_additional_update_result(
-                 &tracking_area_update_accept->additionalupdateresult,
-                 TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI:
+      if ((decoded_result = decode_additional_update_result(
+               &tracking_area_update_accept->additionalupdateresult,
+               TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        tracking_area_update_accept->presencemask |=
-            TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      tracking_area_update_accept->presencemask |=
+          TRACKING_AREA_UPDATE_ACCEPT_ADDITIONAL_UPDATE_RESULT_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -268,8 +269,8 @@ int decode_tracking_area_update_accept(
 }
 
 int encode_tracking_area_update_accept(
-    tracking_area_update_accept_msg* tracking_area_update_accept,
-    uint8_t* buffer, uint32_t len) {
+    tracking_area_update_accept_msg *tracking_area_update_accept,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
 

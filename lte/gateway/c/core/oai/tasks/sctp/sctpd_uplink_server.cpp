@@ -19,8 +19,8 @@
 
 extern "C" {
 // #include "assertions.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 
 #include <memory>
@@ -47,21 +47,21 @@ using magma::sctpd::SendUlReq;
 using magma::sctpd::SendUlRes;
 
 class SctpdUplinkImpl final : public SctpdUplink::Service {
- public:
+public:
   SctpdUplinkImpl();
 
-  Status SendUl(ServerContext* context, const SendUlReq* req,
-                SendUlRes* res) override;
-  Status NewAssoc(ServerContext* context, const NewAssocReq* req,
-                  NewAssocRes* res) override;
-  Status CloseAssoc(ServerContext* context, const CloseAssocReq* req,
-                    CloseAssocRes* res) override;
+  Status SendUl(ServerContext *context, const SendUlReq *req,
+                SendUlRes *res) override;
+  Status NewAssoc(ServerContext *context, const NewAssocReq *req,
+                  NewAssocRes *res) override;
+  Status CloseAssoc(ServerContext *context, const CloseAssocReq *req,
+                    CloseAssocRes *res) override;
 };
 
 SctpdUplinkImpl::SctpdUplinkImpl() {}
 
-Status SctpdUplinkImpl::SendUl(ServerContext* context, const SendUlReq* req,
-                               SendUlRes* res) {
+Status SctpdUplinkImpl::SendUl(ServerContext *context, const SendUlReq *req,
+                               SendUlRes *res) {
   bstring payload;
   uint32_t ppid;
   uint32_t assoc_id;
@@ -87,8 +87,8 @@ Status SctpdUplinkImpl::SendUl(ServerContext* context, const SendUlReq* req,
 
 #include <assert.h>
 
-Status SctpdUplinkImpl::NewAssoc(ServerContext* context, const NewAssocReq* req,
-                                 NewAssocRes* res) {
+Status SctpdUplinkImpl::NewAssoc(ServerContext *context, const NewAssocReq *req,
+                                 NewAssocRes *res) {
   uint32_t ppid = req->ppid();
   uint32_t assoc_id = req->assoc_id();
   uint16_t instreams = req->instreams();
@@ -105,9 +105,9 @@ Status SctpdUplinkImpl::NewAssoc(ServerContext* context, const NewAssocReq* req,
   return Status::OK;
 }
 
-Status SctpdUplinkImpl::CloseAssoc(ServerContext* context,
-                                   const CloseAssocReq* req,
-                                   CloseAssocRes* res) {
+Status SctpdUplinkImpl::CloseAssoc(ServerContext *context,
+                                   const CloseAssocReq *req,
+                                   CloseAssocRes *res) {
   uint32_t ppid;
   uint32_t assoc_id;
   bool reset;
@@ -124,8 +124,8 @@ Status SctpdUplinkImpl::CloseAssoc(ServerContext* context,
   return Status::OK;
 }
 
-}  // namespace mme
-}  // namespace magma
+} // namespace mme
+} // namespace magma
 
 using grpc::Server;
 using grpc::ServerBuilder;

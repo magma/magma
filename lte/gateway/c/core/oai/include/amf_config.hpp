@@ -13,18 +13,18 @@
 
 #pragma once
 
-#include <pthread.h>
-#include <stdint.h>
-#include <arpa/inet.h>
-#include <stdlib.h>
 #include "lte/gateway/c/core/oai/common/amf_default_values.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include <arpa/inet.h>
+#include <pthread.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 #define MIN_GUAMI 1
 #define MAX_GUAMI 5
@@ -38,7 +38,7 @@
 #define AMF_CONFIG_STRING_DEFAULT_DNS_IPV4_ADDRESS "DEFAULT_DNS_IPV4_ADDRESS"
 #define AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV4_ADDRESS "P_CSCF_IPV4_ADDRESS"
 #define AMF_CONFIG_STRING_DEFAULT_PCSCF_IPV6_ADDRESS "P_CSCF_IPV6_ADDRESS"
-#define AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS \
+#define AMF_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                         \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
 #define AMF_CONFIG_PLMN_SUPPORT_MCC "mcc"
 #define AMF_CONFIG_PLMN_SUPPORT_MNC "mnc"
@@ -122,11 +122,11 @@ typedef struct guamfi_config_s {
 #define MIN_GUAMFI 1 /*minimum 1 Global Unique AMF Identifier is supported*/
 #define MAX_GUAMFI 5 /*max 5 Global Unique AMF Identifiers are supported*/
 
-#define amf_config_read_lock(aMFcONFIG) \
+#define amf_config_read_lock(aMFcONFIG)                                        \
   pthread_rwlock_rdlock(&(aMFcONFIG)->rw_lock)
-#define amf_config_write_lock(aMFcONFIG) \
+#define amf_config_write_lock(aMFcONFIG)                                       \
   pthread_rwlock_wrlock(&(aMFcONFIG)->rw_lock)
-#define amf_config_unlock(aMFcONFIG) \
+#define amf_config_unlock(aMFcONFIG)                                           \
   pthread_rwlock_unlock(&(aMFcONFIG)->rw_lock)
 
   uint64_t imsi64_t;         /*holds the IMSI value*/
@@ -174,7 +174,7 @@ typedef struct amf_config_s {
   plmn_support_list_t plmn_support_list;
   served_tai_t served_tai;
   uint8_t num_par_lists;
-  partial_list_t* partial_list;
+  partial_list_t *partial_list;
   service303_data_t service303_config;
   ngap_config_t ngap_config;
   m5g_nas_config_t m5g_nas_config;
@@ -196,7 +196,7 @@ typedef struct amf_config_s {
   uint32_t auth_retry_max_count;
 } amf_config_t;
 
-int amf_app_init(amf_config_t*);
+int amf_app_init(amf_config_t *);
 
 extern amf_config_t amf_config; /*global*/
 
@@ -204,20 +204,20 @@ int amf_config_find_mnc_length(const char mcc_digit1P, const char mcc_digit2P,
                                const char mcc_digit3P, const char mnc_digit1P,
                                const char mnc_digit2P, const char mnc_digit3P);
 
-void amf_config_init(amf_config_t*);
-int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* amf_config);
-int amf_config_parse_file(amf_config_t*, const mme_config_t*);
-void amf_config_display(amf_config_t*);
+void amf_config_init(amf_config_t *);
+int amf_config_parse_opt_line(int argc, char *argv[], amf_config_t *amf_config);
+int amf_config_parse_file(amf_config_t *, const mme_config_t *);
+void amf_config_display(amf_config_t *);
 #ifdef __cplusplus
 extern "C" {
 #endif
-void copy_amf_config_from_mme_config(amf_config_t* dest,
-                                     const mme_config_t* src);
-void clear_amf_config(amf_config_t*);
+void copy_amf_config_from_mme_config(amf_config_t *dest,
+                                     const mme_config_t *src);
+void clear_amf_config(amf_config_t *);
 #ifdef __cplusplus
 }
 #endif
-void copy_served_tai_config_list(amf_config_t* dest, const mme_config_t* src);
+void copy_served_tai_config_list(amf_config_t *dest, const mme_config_t *src);
 
 void amf_config_exit(void);
-void amf_config_free(amf_config_t* amf_config);
+void amf_config_free(amf_config_t *amf_config);

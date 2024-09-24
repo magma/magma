@@ -10,16 +10,16 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPTI.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include <sstream>
 
 namespace magma5g {
 // PDUSessionReleaseRequest Message Class
 class PDUSessionReleaseRequestMsg {
- public:
+public:
 #define PDU_SESSION_RELEASE_REQ_MIN_LEN 4
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   PDUSessionIdentityMsg pdu_session_identity;
@@ -29,13 +29,13 @@ class PDUSessionReleaseRequestMsg {
   PDUSessionReleaseRequestMsg();
   ~PDUSessionReleaseRequestMsg();
   int DecodePDUSessionReleaseRequestMsg(
-      PDUSessionReleaseRequestMsg* pdu_session_release_request, uint8_t* buffer,
+      PDUSessionReleaseRequestMsg *pdu_session_release_request, uint8_t *buffer,
       uint32_t len);
   int EncodePDUSessionReleaseRequestMsg(
-      PDUSessionReleaseRequestMsg* pdu_session_release_request, uint8_t* buffer,
+      PDUSessionReleaseRequestMsg *pdu_session_release_request, uint8_t *buffer,
       uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
    TS-24.501 Table 8.3.12.1.1: PDU SESSION RELEASE REQUEST message content

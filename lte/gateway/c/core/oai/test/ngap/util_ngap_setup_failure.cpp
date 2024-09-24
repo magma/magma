@@ -22,17 +22,17 @@
 //   }
 //=====================================================================================================
 
-#include <iostream>
 #include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.hpp"
+#include <iostream>
 
-int encode_setup_failure_pdu(Ngap_NGAP_PDU_t* pdu, uint8_t** buffer,
-                             uint32_t* length) {
+int encode_setup_failure_pdu(Ngap_NGAP_PDU_t *pdu, uint8_t **buffer,
+                             uint32_t *length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
 
   res = asn_encode_to_new_buffer(NULL, ATS_ALIGNED_CANONICAL_PER,
                                  &asn_DEF_Ngap_NGAP_PDU, pdu);
 
-  *buffer = (unsigned char*)res.buffer;
+  *buffer = (unsigned char *)res.buffer;
   *length = res.result.encoded;
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, pdu);
@@ -44,13 +44,13 @@ int encode_setup_failure_pdu(Ngap_NGAP_PDU_t* pdu, uint8_t** buffer,
  * Failure cause and type. Return the NGAPPDU Failure
  */
 int ngap_ng_setup_failure_stream(const Ngap_Cause_PR cause_type,
-                                 const long cause_value, bstring& stream) {
-  uint8_t* buffer_p;
+                                 const long cause_value, bstring &stream) {
+  uint8_t *buffer_p;
   uint32_t length = 0;
   Ngap_NGAP_PDU_t pdu;
-  Ngap_NGSetupFailure_t* out;
-  Ngap_NGSetupFailureIEs_t* ie = NULL;
-  Ngap_Cause_t* cause_p = NULL;
+  Ngap_NGSetupFailure_t *out;
+  Ngap_NGSetupFailureIEs_t *ie = NULL;
+  Ngap_Cause_t *cause_p = NULL;
 
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = Ngap_NGAP_PDU_PR_unsuccessfulOutcome;
@@ -61,7 +61,7 @@ int ngap_ng_setup_failure_stream(const Ngap_Cause_PR cause_type,
 
   out = &pdu.choice.unsuccessfulOutcome.value.choice.NGSetupFailure;
 
-  ie = (Ngap_NGSetupFailureIEs_t*)calloc(1, sizeof(Ngap_NGSetupFailureIEs_t));
+  ie = (Ngap_NGSetupFailureIEs_t *)calloc(1, sizeof(Ngap_NGSetupFailureIEs_t));
   ie->id = Ngap_ProtocolIE_ID_id_Cause;
   ie->criticality = Ngap_Criticality_ignore;
   ie->value.present = Ngap_NGSetupFailureIEs__value_PR_Cause;
@@ -84,10 +84,10 @@ int ngap_ng_setup_failure_stream(const Ngap_Cause_PR cause_type,
 
 int ngap_ng_setup_failure_pdu(const Ngap_Cause_PR cause_type,
                               const long cause_value,
-                              Ngap_NGAP_PDU_t& encode_pdu) {
-  Ngap_NGSetupFailure_t* out;
-  Ngap_NGSetupFailureIEs_t* ie = NULL;
-  Ngap_Cause_t* cause_p = NULL;
+                              Ngap_NGAP_PDU_t &encode_pdu) {
+  Ngap_NGSetupFailure_t *out;
+  Ngap_NGSetupFailureIEs_t *ie = NULL;
+  Ngap_Cause_t *cause_p = NULL;
 
   encode_pdu.present = Ngap_NGAP_PDU_PR_unsuccessfulOutcome;
   encode_pdu.choice.unsuccessfulOutcome.procedureCode =
@@ -98,7 +98,7 @@ int ngap_ng_setup_failure_pdu(const Ngap_Cause_PR cause_type,
 
   out = &encode_pdu.choice.unsuccessfulOutcome.value.choice.NGSetupFailure;
 
-  ie = (Ngap_NGSetupFailureIEs_t*)calloc(1, sizeof(Ngap_NGSetupFailureIEs_t));
+  ie = (Ngap_NGSetupFailureIEs_t *)calloc(1, sizeof(Ngap_NGSetupFailureIEs_t));
   ie->id = Ngap_ProtocolIE_ID_id_Cause;
   ie->criticality = Ngap_Criticality_ignore;
   ie->value.present = Ngap_NGSetupFailureIEs__value_PR_Cause;
@@ -112,12 +112,12 @@ int ngap_ng_setup_failure_pdu(const Ngap_Cause_PR cause_type,
   return (EXIT_SUCCESS);
 }
 
-bool ng_setup_failure_decode(const_bstring const raw, Ngap_NGAP_PDU_t* pdu) {
+bool ng_setup_failure_decode(const_bstring const raw, Ngap_NGAP_PDU_t *pdu) {
   asn_dec_rval_t dec_ret;
 
   memset(pdu, 0, sizeof(Ngap_NGAP_PDU_t));
 
-  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void**)&pdu, bdata(raw),
+  dec_ret = aper_decode(NULL, &asn_DEF_Ngap_NGAP_PDU, (void **)&pdu, bdata(raw),
                         blength(raw), 0, 0);
   if (dec_ret.code != RC_OK) {
     return false;

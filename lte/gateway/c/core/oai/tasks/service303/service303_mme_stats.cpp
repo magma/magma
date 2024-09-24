@@ -31,7 +31,7 @@ extern "C" {
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 void service303_mme_app_statistics_read(
-    application_mme_app_stats_msg_t* stats_msg_p) {
+    application_mme_app_stats_msg_t *stats_msg_p) {
   size_t label = 0;
   set_gauge("ue_registered", stats_msg_p->nb_ue_attached, label);
   set_gauge("ue_connected", stats_msg_p->nb_ue_connected, label);
@@ -42,7 +42,7 @@ void service303_mme_app_statistics_read(
 }
 
 void service303_s1ap_statistics_read(
-    application_s1ap_stats_msg_t* stats_msg_p) {
+    application_s1ap_stats_msg_t *stats_msg_p) {
   size_t label = 0;
   set_gauge("enb_connected", stats_msg_p->nb_enb_connected, label);
   set_gauge("s1ap_last_msg_latency", stats_msg_p->nb_s1ap_last_msg_latency,
@@ -72,7 +72,7 @@ void service303_statistics_display(void) {
 }
 
 void service303_amf_app_statistics_read(
-    application_amf_app_stats_msg_t* stats_msg_p) {
+    application_amf_app_stats_msg_t *stats_msg_p) {
   size_t label = 0;
   // Set the gauges
   set_gauge("ue_connected_5g", stats_msg_p->nb_ue_connected, label);
@@ -82,7 +82,7 @@ void service303_amf_app_statistics_read(
 }
 
 void service303_ngap_statistics_read(
-    application_ngap_stats_msg_t* stats_msg_p) {
+    application_ngap_stats_msg_t *stats_msg_p) {
   size_t label = 0;
   set_gauge("gnb_connected", stats_msg_p->nb_gnb_connected, label);
 }

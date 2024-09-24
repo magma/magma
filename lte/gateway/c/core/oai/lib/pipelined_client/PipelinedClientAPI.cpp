@@ -13,9 +13,9 @@
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.hpp"
 
-#include <grpcpp/security/credentials.h>
 #include <cstdint>
 #include <cstring>
+#include <grpcpp/security/credentials.h>
 #include <string>
 
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -35,14 +35,14 @@ using magma::lte::CauseIE;
 using magma::lte::PipelinedServiceClient;
 using magma::lte::UESessionContextResponse;
 
-void handle_upf_classifier_rpc_call_done(const grpc::Status& status,
+void handle_upf_classifier_rpc_call_done(const grpc::Status &status,
                                          UESessionContextResponse response);
 
-int upf_classifier_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
+int upf_classifier_add_tunnel(struct in_addr ue, struct in6_addr *ue_ipv6,
                               int vlan, struct in_addr enb, uint32_t i_tei,
-                              uint32_t o_tei, const char* imsi,
-                              struct ip_flow_dl* flow_dl,
-                              uint32_t flow_precedence_dl, const char* apn) {
+                              uint32_t o_tei, const char *imsi,
+                              struct ip_flow_dl *flow_dl,
+                              uint32_t flow_precedence_dl, const char *apn) {
   std::string imsi_str = std::string(imsi);
   std::string apn_str = std::string(apn);
 
@@ -74,8 +74,8 @@ int upf_classifier_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
 }
 
 int upf_classifier_del_tunnel(struct in_addr enb, struct in_addr ue,
-                              struct in6_addr* ue_ipv6, uint32_t i_tei,
-                              uint32_t o_tei, struct ip_flow_dl* flow_dl) {
+                              struct in6_addr *ue_ipv6, uint32_t i_tei,
+                              uint32_t o_tei, struct ip_flow_dl *flow_dl) {
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {
       PipelinedServiceClient::UpdateUEIPv4SessionSet(
@@ -102,9 +102,9 @@ int upf_classifier_del_tunnel(struct in_addr enb, struct in_addr ue,
 
 // UE_SESSION_SUSPENDED_DATA_STATE -> DISCARDING
 int upf_classifier_discard_data_on_tunnel(struct in_addr ue,
-                                          struct in6_addr* ue_ipv6,
+                                          struct in6_addr *ue_ipv6,
                                           uint32_t i_tei,
-                                          struct ip_flow_dl* flow_dl) {
+                                          struct ip_flow_dl *flow_dl) {
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {
       PipelinedServiceClient::UpdateUEIPv4SessionSet(
@@ -131,9 +131,9 @@ int upf_classifier_discard_data_on_tunnel(struct in_addr ue,
 
 // No enb + ACTIVATE -> FORWARDING
 int upf_classifier_forward_data_on_tunnel(struct in_addr ue,
-                                          struct in6_addr* ue_ipv6,
+                                          struct in6_addr *ue_ipv6,
                                           uint32_t i_tei,
-                                          struct ip_flow_dl* flow_dl,
+                                          struct ip_flow_dl *flow_dl,
                                           uint32_t flow_precedence_dl) {
   if (ue_ipv6 == nullptr) {
     if (flow_dl == nullptr) {
@@ -173,7 +173,7 @@ int upf_classifier_delete_paging_rule(struct in_addr ue) {
   return RETURNok;
 }
 
-void handle_upf_classifier_rpc_call_done(const grpc::Status& status,
+void handle_upf_classifier_rpc_call_done(const grpc::Status &status,
                                          UESessionContextResponse response) {
   if (!status.ok()) {
     OAILOG_ERROR(LOG_UTIL, "Error Code=%d, Error Message=%s",

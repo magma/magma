@@ -22,15 +22,15 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
-int decode_esm_status(esm_status_msg* esm_status, uint8_t* buffer,
+int decode_esm_status(esm_status_msg *esm_status, uint8_t *buffer,
                       uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -51,7 +51,7 @@ int decode_esm_status(esm_status_msg* esm_status, uint8_t* buffer,
   return decoded;
 }
 
-int encode_esm_status(esm_status_msg* esm_status, uint8_t* buffer,
+int encode_esm_status(esm_status_msg *esm_status, uint8_t *buffer,
                       uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -63,7 +63,7 @@ int encode_esm_status(esm_status_msg* esm_status, uint8_t* buffer,
 
   if ((encode_result = encode_esm_cause(&esm_status->esmcause, 0,
                                         buffer + encoded, len - encoded)) <
-      0)  // Return in case of error
+      0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

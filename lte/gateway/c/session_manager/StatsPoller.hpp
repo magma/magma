@@ -10,9 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>
 #include <atomic>
 #include <memory>
+#include <stdint.h>
 
 #include "lte/gateway/c/session_manager/LocalEnforcer.hpp"
 
@@ -20,7 +20,7 @@ namespace magma {
 class LocalEnforcer;
 
 class StatsPoller {
- public:
+public:
   /**
    * start_loop is the main function to call to initiate a loop. Based
    * on the given loop interval length, this function will poll stats from
@@ -29,4 +29,4 @@ class StatsPoller {
   void start_loop(std::shared_ptr<LocalEnforcer> local_enforcer,
                   uint32_t loop_interval_seconds);
 };
-}  // namespace magma
+} // namespace magma

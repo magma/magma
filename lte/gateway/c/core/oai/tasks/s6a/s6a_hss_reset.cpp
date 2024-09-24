@@ -43,18 +43,18 @@ struct avp;
 struct msg;
 struct session;
 
-int s6a_rsr_cb(struct msg** msg_p, struct avp* paramavp_p,
-               struct session* sess_p, void* opaque_p,
-               enum disp_action* act_p) {
-  struct msg* ans_p = NULL;
-  struct msg* qry_p = NULL;
+int s6a_rsr_cb(struct msg **msg_p, struct avp *paramavp_p,
+               struct session *sess_p, void *opaque_p,
+               enum disp_action *act_p) {
+  struct msg *ans_p = NULL;
+  struct msg *qry_p = NULL;
   struct avp *avp_p, *origin_host_p, *origin_realm_p;
-  struct avp* failed_avp_p = NULL;
-  struct avp_hdr* hdr_p = NULL;
+  struct avp *failed_avp_p = NULL;
+  struct avp_hdr *hdr_p = NULL;
   struct avp_hdr *origin_host_hdr, *origin_realm_hdr;
   int result_code = ER_DIAMETER_SUCCESS;
   int experimental = 0;
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   // s6a_reset_req_t                        *s6a_reset_req_p = NULL;
 
   DevAssert(msg_p);

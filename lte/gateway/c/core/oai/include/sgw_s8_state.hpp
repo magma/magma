@@ -26,13 +26,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 // Initializes SGW state struct when task process starts.
-int sgw_state_init(bool persist_state, const sgw_config_t* config);
+int sgw_state_init(bool persist_state, const sgw_config_t *config);
 
 // Function that frees sgw_state.
 void sgw_state_exit(void);
 
 // Function that returns a pointer to sgw_state.
-sgw_state_t* get_sgw_state(bool read_from_db);
+sgw_state_t *get_sgw_state(bool read_from_db);
 
 // Function that writes the sgw_state struct into db.
 void put_sgw_state(void);
@@ -42,7 +42,7 @@ void put_sgw_state(void);
  * @return map_uint32_sgw_eps_bearer_context_t map with SGW context structs as
  * data
  */
-map_uint32_sgw_eps_bearer_context_t* get_s8_state_teid_map(void);
+map_uint32_sgw_eps_bearer_context_t *get_s8_state_teid_map(void);
 
 /**
  * Populates SGW UE protobuf map from db
@@ -55,7 +55,7 @@ int read_sgw_ue_state_db(void);
  * @param pointer to SGW's state
  * @param imsi64
  */
-void put_sgw_ue_state(sgw_state_t* sgw_state, imsi64_t imsi64);
+void put_sgw_ue_state(sgw_state_t *sgw_state, imsi64_t imsi64);
 
 /**
  * Removes entry for SGW UE state in db
@@ -69,11 +69,11 @@ void delete_sgw_ue_state(imsi64_t imsi64);
  * @param pointer to an object of sgw_eps_bearer_context_information_t
  */
 
-void sgw_free_s11_bearer_context_information(void** ptr);
+void sgw_free_s11_bearer_context_information(void **ptr);
 
 /**
  * Callback function for freeing the ue context while removing an entry from
  * state_ue_map
  * @param pointer to an object of spgw_ue_context_t
  */
-void sgw_free_ue_context(void** ptr);
+void sgw_free_ue_context(void **ptr);

@@ -11,19 +11,19 @@
  * limitations under the License.
  */
 
+#include <experimental/optional>
 #include <gmock/gmock.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <gtest/gtest.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/session_manager.pb.h>
+#include <memory>
 #include <orc8r/protos/common.pb.h>
 #include <stdint.h>
-#include <yaml-cpp/yaml.h>
-#include <experimental/optional>
-#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <yaml-cpp/yaml.h>
 
 #include "lte/gateway/c/session_manager/AmfServiceClient.hpp"
 #include "lte/gateway/c/session_manager/MeteringReporter.hpp"
@@ -46,7 +46,7 @@ using ::testing::Test;
 namespace magma {
 
 class SetUPFNodeState : public ::testing::Test {
- public:
+public:
   virtual void SetUp() {
     rule_store = std::make_shared<StaticRuleStore>();
     reporter = std::make_shared<MockSessionReporter>();
@@ -75,7 +75,7 @@ class SetUPFNodeState : public ::testing::Test {
   }
   virtual void TearDown() {}
 
- public:
+public:
   std::shared_ptr<SessionStore> session_store;
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
@@ -85,7 +85,7 @@ class SetUPFNodeState : public ::testing::Test {
   std::shared_ptr<UPFSessionConfigState> sess_config;
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<MockEventsReporter> events_reporter;
-};  // End of class
+}; // End of class
 
 // Testing the functionality of SetUPFNodeState
 TEST_F(SetUPFNodeState, test_upf_node_state) {
@@ -113,9 +113,9 @@ TEST_F(SetUPFNodeState, test_upf_session_config) {
   ON_CALL(*set_interface_for_up_mock, SetUPFSessionConfig(_, _, _))
       .WillByDefault(Return(Status::OK));
 
-  auto& ses_config = *sess_config;
+  auto &ses_config = *sess_config;
   int32_t count = 0;
-  for (auto& upf_session : ses_config.upf_session_state()) {
+  for (auto &upf_session : ses_config.upf_session_state()) {
     // Deleting the IMSI prefix from imsi
     std::string imsi_upf = upf_session.subscriber_id();
     std::string imsi = imsi_upf.substr(4, imsi_upf.length() - 4);
@@ -133,7 +133,7 @@ TEST_F(SetUPFNodeState, test_upf_session_config) {
       EXPECT_FALSE(session_it);
       continue;
     }
-    auto& session = **session_it;
+    auto &session = **session_it;
     auto cur_version = session->get_current_version();
 
     /* Validating UPF verions of session imsi of teid received version
@@ -152,4 +152,4 @@ TEST_F(SetUPFNodeState, test_upf_session_config) {
   // Validating UPF periodic report config missmatch session
   EXPECT_EQ(ses_config.upf_session_state_size(), count);
 }
-}  // namespace magma
+} // namespace magma

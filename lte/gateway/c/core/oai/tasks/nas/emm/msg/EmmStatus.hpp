@@ -19,12 +19,12 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define EMM_STATUS_MINIMUM_LENGTH (EMM_CAUSE_MINIMUM_LENGTH)
@@ -48,6 +48,6 @@ typedef struct emm_status_msg_tag {
   emm_cause_t emmcause;
 } emm_status_msg;
 
-int decode_emm_status(emm_status_msg* emmstatus, uint8_t* buffer, uint32_t len);
+int decode_emm_status(emm_status_msg *emmstatus, uint8_t *buffer, uint32_t len);
 
-int encode_emm_status(emm_status_msg* emmstatus, uint8_t* buffer, uint32_t len);
+int encode_emm_status(emm_status_msg *emmstatus, uint8_t *buffer, uint32_t len);

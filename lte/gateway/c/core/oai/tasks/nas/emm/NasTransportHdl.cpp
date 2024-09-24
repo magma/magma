@@ -52,13 +52,13 @@ extern "C" {
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/api/mme/mme_api.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/emm_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/DetachRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MobileStationClassmark2.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -107,9 +107,9 @@ extern "C" {
 status_code_e emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id,
                                             bstring nas_msg_pP) {
   status_code_e rc = RETURNok;
-  emm_context_t* emm_ctxt_p = NULL;
-  imeisv_t* p_imeisv = NULL;
-  MobileStationClassmark2* p_mob_st_clsMark2 = NULL;
+  emm_context_t *emm_ctxt_p = NULL;
+  imeisv_t *p_imeisv = NULL;
+  MobileStationClassmark2 *p_mob_st_clsMark2 = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /*
@@ -119,7 +119,7 @@ status_code_e emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id,
   emm_ctxt_p = emm_context_get(&_emm_data, ue_id);
 
   if (emm_ctxt_p != NULL) {
-    ue_mm_context_t* ue_mm_context_p =
+    ue_mm_context_t *ue_mm_context_p =
         PARENT_STRUCT(emm_ctxt_p, struct ue_mm_context_s, emm_context);
     /* check if the non EPS service control is enable and combined attach. If
      * in SMS_ORC8R, we still want to send the uplink message, but we should

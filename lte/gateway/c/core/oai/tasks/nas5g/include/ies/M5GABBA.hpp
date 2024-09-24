@@ -9,20 +9,20 @@
    limitations under the License.
  */
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // ABBA IE Class
 class ABBAMsg {
- public:
+public:
 #define ABBA_MIN_LEN 2
   uint8_t iei;
   uint8_t contents[ABBA_MIN_LEN];
 
   ABBAMsg();
   ~ABBAMsg();
-  int EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeABBAMsg(ABBAMsg *abba, uint8_t iei, uint8_t *buffer, uint32_t len);
+  int DecodeABBAMsg(ABBAMsg *abba, uint8_t iei, uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

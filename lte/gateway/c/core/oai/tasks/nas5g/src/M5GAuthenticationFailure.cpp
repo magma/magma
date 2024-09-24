@@ -26,7 +26,7 @@ AuthenticationFailureMsg::~AuthenticationFailureMsg(){};
 
 // Decoding Authentication Failure Message and its IEs
 int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
-    AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len) {
+    AuthenticationFailureMsg *auth_failure, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
@@ -68,19 +68,19 @@ int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
     uint8_t ieiDecoded = *(buffer + decoded);
 
     switch (ieiDecoded) {
-      case AUTHENTICATION_FAILURE_PARAMETER_IEI_AUTH_CHALLENGE:
-        if ((decoded_result =
-                 auth_failure->auth_failure_ie.DecodeM5GAuthenticationFailureIE(
-                     &auth_failure->auth_failure_ie,
-                     AUTHENTICATION_FAILURE_PARAMETER_IEI_AUTH_CHALLENGE,
-                     buffer + decoded, len - decoded)) < 0)
-          return decoded_result;
+    case AUTHENTICATION_FAILURE_PARAMETER_IEI_AUTH_CHALLENGE:
+      if ((decoded_result =
+               auth_failure->auth_failure_ie.DecodeM5GAuthenticationFailureIE(
+                   &auth_failure->auth_failure_ie,
+                   AUTHENTICATION_FAILURE_PARAMETER_IEI_AUTH_CHALLENGE,
+                   buffer + decoded, len - decoded)) < 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        break;
+      decoded += decoded_result;
+      break;
 
-      default:
-        return TLV_UNEXPECTED_IEI;
+    default:
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -89,7 +89,7 @@ int AuthenticationFailureMsg::DecodeAuthenticationFailureMsg(
 
 // Encoding Authentication Failure Message and its IEs
 int AuthenticationFailureMsg::EncodeAuthenticationFailureMsg(
-    AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len) {
+    AuthenticationFailureMsg *auth_failure, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encodedresult = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
@@ -128,4 +128,4 @@ int AuthenticationFailureMsg::EncodeAuthenticationFailureMsg(
     encoded += encodedresult;
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

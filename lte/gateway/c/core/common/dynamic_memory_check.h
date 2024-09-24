@@ -42,9 +42,9 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
-void free_wrapper(void** ptr) __attribute__((hot));
-void bdestroy_wrapper(bstring* b);
+void free_wrapper(void **ptr) __attribute__((hot));
+void bdestroy_wrapper(bstring *b);
 #ifdef __cplusplus
 }
 #endif
-void free_cpp_wrapper(void** ptr);
+void free_cpp_wrapper(void **ptr);

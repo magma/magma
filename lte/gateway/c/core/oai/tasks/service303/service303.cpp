@@ -14,18 +14,18 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <stdio.h>
 #include <assert.h>
 #include <stdarg.h>
+#include <stdio.h>
 
 #include "lte/gateway/c/core/oai/include/service303.hpp"
-#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 #include "orc8r/protos/service303.pb.h"
 
 using magma::service303::MagmaService;
 
-static MagmaService* magma_service;
+static MagmaService *magma_service;
 
 void start_service303_server(bstring name, bstring version) {
   magma_service = new MagmaService(bdata(name), bdata(version));
@@ -42,22 +42,22 @@ void stop_service303_server(void) {
 void service303_set_application_health(application_health_t health) {
   ServiceInfo::ApplicationHealth appHealthEnum;
   switch (health) {
-    case APP_UNKNOWN: {
-      appHealthEnum = ServiceInfo::APP_UNKNOWN;
-      break;
-    }
-    case APP_HEALTHY: {
-      appHealthEnum = ServiceInfo::APP_HEALTHY;
-      break;
-    }
-    case APP_UNHEALTHY: {
-      appHealthEnum = ServiceInfo::APP_UNHEALTHY;
-      break;
-    }
-    default: {
-      // invalid state
-      assert(false);
-    }
+  case APP_UNKNOWN: {
+    appHealthEnum = ServiceInfo::APP_UNKNOWN;
+    break;
+  }
+  case APP_HEALTHY: {
+    appHealthEnum = ServiceInfo::APP_HEALTHY;
+    break;
+  }
+  case APP_UNHEALTHY: {
+    appHealthEnum = ServiceInfo::APP_UNHEALTHY;
+    break;
+  }
+  default: {
+    // invalid state
+    assert(false);
+  }
   }
   magma_service->setApplicationHealth(appHealthEnum);
 }

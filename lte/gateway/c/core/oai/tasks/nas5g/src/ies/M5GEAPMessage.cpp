@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,16 +19,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GEAPMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GEAPMessage.hpp"
 
 namespace magma5g {
 EAPMessageMsg::EAPMessageMsg(){};
 EAPMessageMsg::~EAPMessageMsg(){};
 
 // Decode EAP Message
-int EAPMessageMsg::DecodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int EAPMessageMsg::DecodeEAPMessageMsg(EAPMessageMsg *eap_message, uint8_t iei,
+                                       uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
@@ -42,8 +42,8 @@ int EAPMessageMsg::DecodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
 };
 
 // Encode EAP Message
-int EAPMessageMsg::EncodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int EAPMessageMsg::EncodeEAPMessageMsg(EAPMessageMsg *eap_message, uint8_t iei,
+                                       uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -61,4 +61,4 @@ int EAPMessageMsg::EncodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,
 
   return encoded;
 };
-}  // namespace magma5g
+} // namespace magma5g

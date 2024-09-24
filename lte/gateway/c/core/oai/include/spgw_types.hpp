@@ -46,19 +46,19 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/proto_map.hpp"
 
 typedef struct s5_create_session_request_s {
-  teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
+  teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
   ebi_t eps_bearer_id;
-  SGIStatus_t status;  ///< Status of  endpoint creation (Failed = 0xFF or ///<
-                       ///< Success = 0x0)
+  SGIStatus_t status; ///< Status of  endpoint creation (Failed = 0xFF or ///<
+                      ///< Success = 0x0)
 } s5_create_session_request_t;
 
 enum s5_failure_cause { S5_OK = 0, PCEF_FAILURE, IP_ALLOCATION_FAILURE };
 
 typedef struct s5_create_session_response_s {
-  teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
+  teid_t context_teid; ///< local SGW S11 Tunnel Endpoint Identifier
   ebi_t eps_bearer_id;
-  SGIStatus_t status;  ///< Status of  endpoint creation (Failed = 0xFF or ///<
-                       ///< Success = 0x0)
+  SGIStatus_t status; ///< Status of  endpoint creation (Failed = 0xFF or ///<
+                      ///< Success = 0x0)
   enum s5_failure_cause failure_cause;
 } s5_create_session_response_t;
 
@@ -66,10 +66,10 @@ typedef struct s5_nw_init_actv_bearer_request_s {
   ebi_t lbi;
   teid_t mme_teid_S11;
   teid_t s_gw_teid_S11_S4;
-  bearer_qos_t eps_bearer_qos;           ///< Bearer QoS
-  traffic_flow_template_t ul_tft;        ///< UL TFT will be sent to UE
-  traffic_flow_template_t dl_tft;        ///< DL TFT will be stored at SPGW
-  protocol_configuration_options_t pco;  ///< PCO protocol_configuration_options
+  bearer_qos_t eps_bearer_qos;          ///< Bearer QoS
+  traffic_flow_template_t ul_tft;       ///< UL TFT will be sent to UE
+  traffic_flow_template_t dl_tft;       ///< DL TFT will be stored at SPGW
+  protocol_configuration_options_t pco; ///< PCO protocol_configuration_options
 } s5_nw_init_actv_bearer_request_t;
 
 // Data entry for SGW UE context
@@ -87,7 +87,7 @@ typedef struct sgw_s11_teid_s {
 // Data: S11BearerContext*
 // TODO (rsarwad): rename S11BearerContext to SpgwSessionContext and also
 // internal structures
-typedef magma::proto_map_s<uint32_t, magma::lte::oai::S11BearerContext*>
+typedef magma::proto_map_s<uint32_t, magma::lte::oai::S11BearerContext *>
     state_teid_map_t;
 
 typedef struct spgw_ue_context_s {
@@ -95,7 +95,7 @@ typedef struct spgw_ue_context_s {
 } spgw_ue_context_t;
 
 // Map- Key:imsi of uint64_t, Data:spgw_ue_context_s*
-typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
+typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s *>
     map_uint64_spgw_ue_context_t;
 
 // Map- Key: eps_bearer_id(uint32), Data: SgwEpsBearerContext
@@ -104,18 +104,18 @@ typedef magma::proto_map_s<uint32_t, magma::lte::oai::SgwEpsBearerContext>
 
 // Data entry for s11teid2mme
 typedef struct mme_sgw_tunnel_s {
-  uint32_t local_teid;   ///< Local tunnel endpoint Identifier
-  uint32_t remote_teid;  ///< Remote tunnel endpoint Identifier
+  uint32_t local_teid;  ///< Local tunnel endpoint Identifier
+  uint32_t remote_teid; ///< Remote tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
 
 // Map with Key: imsi of uint64_t, Data: spgw_ue_context_t*
-typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s*>
+typedef magma::proto_map_s<uint64_t, struct spgw_ue_context_s *>
     map_uint64_sgw_ue_context_t;
 
 // Map with Key: csr_proc_id of uint32_t
 // Data: sgw_eps_bearer_context_information_s*
 typedef magma::proto_map_s<uint32_t,
-                           struct sgw_eps_bearer_context_information_s*>
+                           struct sgw_eps_bearer_context_information_s *>
     map_uint32_sgw_eps_bearer_context_t;
 
 // AGW-wide state for SGW task
@@ -139,6 +139,6 @@ typedef struct spgw_state_s {
 } spgw_state_t;
 
 void handle_s5_create_session_response(
-    spgw_state_t* state,
-    magma::lte::oai::S11BearerContext* new_bearer_ctxt_info_p,
+    spgw_state_t *state,
+    magma::lte::oai::S11BearerContext *new_bearer_ctxt_info_p,
     s5_create_session_response_t session_resp);

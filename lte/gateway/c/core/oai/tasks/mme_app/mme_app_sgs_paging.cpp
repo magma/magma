@@ -23,16 +23,16 @@
    \email:
 */
 
-#include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
@@ -56,33 +56,34 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
-static status_code_e mme_app_send_sgsap_ue_unreachable(
-    struct ue_mm_context_s* ue_context_p, SgsCause_t sgs_cause);
+static status_code_e
+mme_app_send_sgsap_ue_unreachable(struct ue_mm_context_s *ue_context_p,
+                                  SgsCause_t sgs_cause);
 
 static status_code_e sgsap_handle_paging_request_without_lai(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP);
 
-static status_code_e sgs_handle_paging_request_for_mt_call(
-    const sgs_fsm_t* evt);
+static status_code_e
+sgs_handle_paging_request_for_mt_call(const sgs_fsm_t *evt);
 
 static status_code_e sgs_handle_paging_request_for_mt_call_in_connected(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP);
 
 static status_code_e sgs_handle_paging_request_for_mt_call_in_idle(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP);
 
-static status_code_e sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t* evt);
+static status_code_e sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t *evt);
 
 static status_code_e sgs_handle_paging_request_for_mt_sms_in_connected(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP);
 
 static status_code_e sgs_handle_paging_request_for_mt_sms_in_idle(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP);
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP);
 /*****************************************************************************
  **                                                                         **
  ** Name:    sgs_handle_associated_paging_request()                         **
@@ -92,9 +93,9 @@ static status_code_e sgs_handle_paging_request_for_mt_sms_in_idle(
  **          Return:    RETURNok, RETURNerror                               **
  **                                                                         **
  ******************************************************************************/
-status_code_e sgs_handle_associated_paging_request(const sgs_fsm_t* evt) {
+status_code_e sgs_handle_associated_paging_request(const sgs_fsm_t *evt) {
   status_code_e rc = RETURNerror;
-  itti_sgsap_paging_request_t* sgsap_paging_req_pP = NULL;
+  itti_sgsap_paging_request_t *sgsap_paging_req_pP = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (evt == NULL) {
@@ -107,8 +108,8 @@ status_code_e sgs_handle_associated_paging_request(const sgs_fsm_t* evt) {
       "Handle paging request in Associated state for ue-id " MME_UE_S1AP_ID_FMT
       "\n",
       evt->ue_id);
-  sgs_context_t* sgs_context = (sgs_context_t*)evt->ctx;
-  sgsap_paging_req_pP = (itti_sgsap_paging_request_t*)sgs_context->sgsap_msg;
+  sgs_context_t *sgs_context = (sgs_context_t *)evt->ctx;
+  sgsap_paging_req_pP = (itti_sgsap_paging_request_t *)sgs_context->sgsap_msg;
 
 #define SGSAP_SMS_INDICATOR 0x02
   if (sgsap_paging_req_pP->service_indicator == SGSAP_SMS_INDICATOR) {
@@ -129,12 +130,12 @@ status_code_e sgs_handle_associated_paging_request(const sgs_fsm_t* evt) {
  **          Return:    RETURNok, RETURNerror                               **
  **                                                                         **
  ******************************************************************************/
-static status_code_e sgs_handle_paging_request_for_mt_sms(
-    const sgs_fsm_t* evt) {
+static status_code_e
+sgs_handle_paging_request_for_mt_sms(const sgs_fsm_t *evt) {
   status_code_e rc = RETURNerror;
-  ue_mm_context_t* ue_context_p = NULL;
-  sgs_context_t* sgs_context = NULL;
-  itti_sgsap_paging_request_t* sgsap_paging_req_pP = NULL;
+  ue_mm_context_t *ue_context_p = NULL;
+  sgs_context_t *sgs_context = NULL;
+  itti_sgsap_paging_request_t *sgsap_paging_req_pP = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -146,8 +147,8 @@ static status_code_e sgs_handle_paging_request_for_mt_sms(
         evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
-  sgs_context = (sgs_context_t*)evt->ctx;
-  sgsap_paging_req_pP = (itti_sgsap_paging_request_t*)sgs_context->sgsap_msg;
+  sgs_context = (sgs_context_t *)evt->ctx;
+  sgsap_paging_req_pP = (itti_sgsap_paging_request_t *)sgs_context->sgsap_msg;
   if (ue_context_p->granted_service == GRANTED_SERVICE_EPS_ONLY) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -157,7 +158,7 @@ static status_code_e sgs_handle_paging_request_for_mt_sms(
         sgsap_paging_req_pP->service_indicator,
         (uint8_t)ue_context_p->granted_service,
         ue_context_p->emm_context._imsi64);
-    IMSI_STRING_TO_IMSI64((char*)sgsap_paging_req_pP->imsi, &imsi64);
+    IMSI_STRING_TO_IMSI64((char *)sgsap_paging_req_pP->imsi, &imsi64);
     mme_app_send_sgsap_paging_reject(
         ue_context_p, imsi64, sgsap_paging_req_pP->imsi_length,
         SGS_CAUSE_IMSI_IMPLICITLY_DETACHED_FOR_NONEPS_SERVICE);
@@ -195,12 +196,12 @@ static status_code_e sgs_handle_paging_request_for_mt_sms(
  **          Return:    RETURNok, RETURNerror                                **
  **                                                                          **
  *******************************************************************************/
-static status_code_e sgs_handle_paging_request_for_mt_call(
-    const sgs_fsm_t* evt) {
+static status_code_e
+sgs_handle_paging_request_for_mt_call(const sgs_fsm_t *evt) {
   status_code_e rc = RETURNerror;
-  ue_mm_context_t* ue_context_p = NULL;
-  sgs_context_t* sgs_context = NULL;
-  itti_sgsap_paging_request_t* sgsap_paging_req_pP = NULL;
+  ue_mm_context_t *ue_context_p = NULL;
+  sgs_context_t *sgs_context = NULL;
+  itti_sgsap_paging_request_t *sgsap_paging_req_pP = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -212,15 +213,15 @@ static status_code_e sgs_handle_paging_request_for_mt_call(
         evt->ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
-  sgs_context = (sgs_context_t*)evt->ctx;
+  sgs_context = (sgs_context_t *)evt->ctx;
   /* If call_canceled is set to TRUE when a new Paging message
    * is received.Set call_canceled to false
    */
   if (sgs_context->call_canceled == true) {
     sgs_context->call_canceled = false;
   }
-  sgsap_paging_req_pP = (itti_sgsap_paging_request_t*)sgs_context->sgsap_msg;
-  IMSI_STRING_TO_IMSI64((char*)sgsap_paging_req_pP->imsi, &imsi64);
+  sgsap_paging_req_pP = (itti_sgsap_paging_request_t *)sgs_context->sgsap_msg;
+  IMSI_STRING_TO_IMSI64((char *)sgsap_paging_req_pP->imsi, &imsi64);
   if (ue_context_p->granted_service != GRANTED_SERVICE_CSFB_SMS) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -283,8 +284,8 @@ static status_code_e sgs_handle_paging_request_for_mt_call(
  ******************************************************************************/
 
 static status_code_e sgs_handle_paging_request_for_mt_call_in_connected(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP) {
   status_code_e rc = RETURNerror;
   uint8_t paging_id = MME_APP_PAGING_ID_IMSI;
   bstring cli = NULL;
@@ -348,8 +349,8 @@ static status_code_e sgs_handle_paging_request_for_mt_call_in_connected(
  **                                                                         **
  ******************************************************************************/
 static status_code_e sgs_handle_paging_request_for_mt_sms_in_connected(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP) {
   status_code_e rc = RETURNerror;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -398,8 +399,8 @@ static status_code_e sgs_handle_paging_request_for_mt_sms_in_connected(
  ***********************************************************************************/
 
 static status_code_e sgs_handle_paging_request_for_mt_call_in_idle(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP)
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP)
 
 {
   status_code_e rc = RETURNerror;
@@ -482,8 +483,8 @@ static status_code_e sgs_handle_paging_request_for_mt_call_in_idle(
  ***********************************************************************************/
 
 static status_code_e sgs_handle_paging_request_for_mt_sms_in_idle(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP)
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP)
 
 {
   status_code_e rc = RETURNerror;
@@ -566,11 +567,12 @@ static status_code_e sgs_handle_paging_request_for_mt_sms_in_idle(
  ** **
  ***********************************************************************************/
 
-status_code_e mme_app_send_sgsap_service_request(
-    uint8_t service_indicator, struct ue_mm_context_s* ue_context_p) {
+status_code_e
+mme_app_send_sgsap_service_request(uint8_t service_indicator,
+                                   struct ue_mm_context_s *ue_context_p) {
   status_code_e rc = RETURNerror;
-  MessageDef* message_p = NULL;
-  itti_sgsap_service_request_t* sgsap_service_req_pP = NULL;
+  MessageDef *message_p = NULL;
+  itti_sgsap_service_request_t *sgsap_service_req_pP = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -589,7 +591,7 @@ status_code_e mme_app_send_sgsap_service_request(
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgsap_service_req_pP = &message_p->ittiMsg.sgsap_service_request;
-  memset((void*)sgsap_service_req_pP, 0, sizeof(itti_sgsap_service_request_t));
+  memset((void *)sgsap_service_req_pP, 0, sizeof(itti_sgsap_service_request_t));
 
   IMSI64_TO_STRING(ue_context_p->emm_context._imsi64,
                    sgsap_service_req_pP->imsi,
@@ -599,7 +601,7 @@ status_code_e mme_app_send_sgsap_service_request(
   if (IS_EMM_CTXT_PRESENT_IMEISV(&(ue_context_p->emm_context))) {
     sgsap_service_req_pP->presencemask |=
         SERVICE_REQUEST_IMEISV_PARAMETER_PRESENT;
-    hexa_to_ascii((uint8_t*)ue_context_p->emm_context._imeisv.u.value,
+    hexa_to_ascii((uint8_t *)ue_context_p->emm_context._imeisv.u.value,
                   sgsap_service_req_pP->opt_imeisv, 8);
     sgsap_service_req_pP->opt_imeisv[ue_context_p->emm_context._imeisv.length] =
         '\0';
@@ -632,12 +634,13 @@ status_code_e mme_app_send_sgsap_service_request(
  **          Return:    RETURNok, RETURNerror                               **
  **
  ******************************************************************************/
-status_code_e mme_app_send_sgsap_paging_reject(
-    struct ue_mm_context_s* ue_context_p, imsi64_t imsi, uint8_t imsi_len,
-    SgsCause_t sgs_cause) {
+status_code_e
+mme_app_send_sgsap_paging_reject(struct ue_mm_context_s *ue_context_p,
+                                 imsi64_t imsi, uint8_t imsi_len,
+                                 SgsCause_t sgs_cause) {
   status_code_e rc = RETURNerror;
-  MessageDef* message_p = NULL;
-  itti_sgsap_paging_reject_t* sgsap_paging_reject_pP = NULL;
+  MessageDef *message_p = NULL;
+  itti_sgsap_paging_reject_t *sgsap_paging_reject_pP = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (!imsi) {
@@ -655,7 +658,7 @@ status_code_e mme_app_send_sgsap_paging_reject(
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgsap_paging_reject_pP = &message_p->ittiMsg.sgsap_paging_reject;
-  memset((void*)sgsap_paging_reject_pP, 0, sizeof(itti_sgsap_paging_reject_t));
+  memset((void *)sgsap_paging_reject_pP, 0, sizeof(itti_sgsap_paging_reject_t));
 
   IMSI64_TO_STRING(imsi, sgsap_paging_reject_pP->imsi, imsi_len);
   sgsap_paging_reject_pP->imsi_length = imsi_len;
@@ -684,10 +687,10 @@ status_code_e mme_app_send_sgsap_paging_reject(
  **
  ***********************************************************************************/
 
-status_code_e sgs_handle_null_paging_request(const sgs_fsm_t* evt) {
+status_code_e sgs_handle_null_paging_request(const sgs_fsm_t *evt) {
   status_code_e rc = RETURNerror;
-  struct ue_mm_context_s* ue_context_p = NULL;
-  itti_sgsap_paging_request_t* sgsap_paging_req_pP = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
+  itti_sgsap_paging_request_t *sgsap_paging_req_pP = NULL;
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -708,7 +711,7 @@ status_code_e sgs_handle_null_paging_request(const sgs_fsm_t* evt) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgsap_paging_req_pP =
-      (itti_sgsap_paging_request_t*)ue_context_p->sgs_context->sgsap_msg;
+      (itti_sgsap_paging_request_t *)ue_context_p->sgs_context->sgsap_msg;
   IMSI_STRING_TO_IMSI64(sgsap_paging_req_pP->imsi, &imsi64);
   /* Send SGSAP-Paging reject, if SGSAP_paging request recived in NULL state */
   OAILOG_INFO(LOG_MME_APP,
@@ -735,11 +738,12 @@ status_code_e sgs_handle_null_paging_request(const sgs_fsm_t* evt) {
  **
  ***********************************************************************************/
 
-static status_code_e mme_app_send_sgsap_ue_unreachable(
-    struct ue_mm_context_s* ue_context_p, SgsCause_t sgs_cause) {
+static status_code_e
+mme_app_send_sgsap_ue_unreachable(struct ue_mm_context_s *ue_context_p,
+                                  SgsCause_t sgs_cause) {
   status_code_e rc = RETURNerror;
-  MessageDef* message_p = NULL;
-  itti_sgsap_ue_unreachable_t* sgsap_ue_unreachable_pP = NULL;
+  MessageDef *message_p = NULL;
+  itti_sgsap_ue_unreachable_t *sgsap_ue_unreachable_pP = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (!ue_context_p) {
@@ -757,7 +761,7 @@ static status_code_e mme_app_send_sgsap_ue_unreachable(
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgsap_ue_unreachable_pP = &message_p->ittiMsg.sgsap_ue_unreachable;
-  memset((void*)sgsap_ue_unreachable_pP, 0,
+  memset((void *)sgsap_ue_unreachable_pP, 0,
          sizeof(itti_sgsap_ue_unreachable_t));
 
   IMSI64_TO_STRING(ue_context_p->emm_context._imsi64,
@@ -788,8 +792,8 @@ static status_code_e mme_app_send_sgsap_ue_unreachable(
  **
  ***********************************************************************************/
 static status_code_e sgsap_handle_paging_request_without_lai(
-    ue_mm_context_t* ue_context_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
+    ue_mm_context_t *ue_context_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP) {
   status_code_e rc = RETURNok;
   s1ap_cn_domain_t cn_domain = CN_DOMAIN_CS;
   uint8_t paging_id = MME_APP_PAGING_ID_IMSI;
@@ -865,9 +869,9 @@ static status_code_e sgsap_handle_paging_request_without_lai(
  **                                                                        **
  ***************************************************************************/
 status_code_e mme_app_handle_sgsap_paging_request(
-    mme_app_desc_t* mme_app_desc_p,
-    itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
-  struct ue_mm_context_s* ue_context_p = NULL;
+    mme_app_desc_t *mme_app_desc_p,
+    itti_sgsap_paging_request_t *const sgsap_paging_req_pP) {
+  struct ue_mm_context_s *ue_context_p = NULL;
   status_code_e rc = RETURNerror;
   sgs_fsm_t sgs_fsm;
   imsi64_t imsi64 = INVALID_IMSI64;
@@ -904,10 +908,10 @@ status_code_e mme_app_handle_sgsap_paging_request(
                       "SGS context not created");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  ue_context_p->sgs_context->sgsap_msg = (void*)sgsap_paging_req_pP;
+  ue_context_p->sgs_context->sgsap_msg = (void *)sgsap_paging_req_pP;
   sgs_fsm.primitive = _SGS_PAGING_REQUEST;
   sgs_fsm.ue_id = ue_context_p->mme_ue_s1ap_id;
-  sgs_fsm.ctx = (void*)ue_context_p->sgs_context;
+  sgs_fsm.ctx = (void *)ue_context_p->sgs_context;
 
   // Invoke SGS FSM
   rc = sgs_fsm_process(&sgs_fsm);

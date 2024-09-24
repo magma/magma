@@ -31,9 +31,9 @@
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   ----------------------------------------------------------------------------*/
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
@@ -57,7 +57,7 @@ typedef struct NwGtpv2cMsgIeInfo {
   uint8_t ieMinLength;
   uint8_t ieInstance;
   uint8_t iePresence;
-  struct NwGtpv2cMsgIeInfo* pGroupedIeInfo;
+  struct NwGtpv2cMsgIeInfo *pGroupedIeInfo;
 } NwGtpv2cMsgIeInfoT;
 
 static NwGtpv2cMsgIeInfoT createSessionReqBearerCtxtTobeCreatedIeInfoTbl[] = {
@@ -872,16 +872,16 @@ static NwGtpv2cMsgIeInfoT relocationCancelResponseIeInfoTbl[] = {
 /*----------------------------------------------------------------------------*
                        P R I V A T E     F U N C T I O N S
   ----------------------------------------------------------------------------*/
-static nw_rc_t nwGtpv2cMsgIeParseInfoUpdate(nw_gtpv2c_msg_ie_parse_info_t* thiz,
-                                            NwGtpv2cMsgIeInfoT* pMsgIeInfo) {
+static nw_rc_t nwGtpv2cMsgIeParseInfoUpdate(nw_gtpv2c_msg_ie_parse_info_t *thiz,
+                                            NwGtpv2cMsgIeInfoT *pMsgIeInfo) {
   uint32_t i, j;
 
   for (i = 0; pMsgIeInfo[i].ieType; i++) {
     if (pMsgIeInfo[i].pGroupedIeInfo) {
-      nw_gtpv2c_grouped_ie_parse_info_t* pMsgIeParseInfo;
+      nw_gtpv2c_grouped_ie_parse_info_t *pMsgIeParseInfo;
 
       NW_GTPV2C_MALLOC(thiz->hStack, sizeof(nw_gtpv2c_grouped_ie_parse_info_t),
-                       pMsgIeParseInfo, nw_gtpv2c_grouped_ie_parse_info_t*);
+                       pMsgIeParseInfo, nw_gtpv2c_grouped_ie_parse_info_t *);
       pMsgIeParseInfo->groupedIeType = pMsgIeInfo[i].ieType;
       pMsgIeParseInfo->hStack = thiz->hStack;
 
@@ -919,10 +919,10 @@ static nw_rc_t nwGtpv2cMsgIeParseInfoUpdate(nw_gtpv2c_msg_ie_parse_info_t* thiz,
   return NW_OK;
 }
 
-static nw_rc_t nwGtpv2cMsgGroupedIeParse(
-    NW_IN nw_gtpv2c_grouped_ie_parse_info_t* thiz, NW_IN uint8_t ieType,
-    NW_IN uint16_t ieLength, NW_IN uint8_t ieInstance,
-    NW_IN uint8_t* pIeValue) {
+static nw_rc_t
+nwGtpv2cMsgGroupedIeParse(NW_IN nw_gtpv2c_grouped_ie_parse_info_t *thiz,
+                          NW_IN uint8_t ieType, NW_IN uint16_t ieLength,
+                          NW_IN uint8_t ieInstance, NW_IN uint8_t *pIeValue) {
   NW_ASSERT(thiz);
   OAILOG_DEBUG(
       LOG_GTPV2C,
@@ -939,13 +939,13 @@ static nw_rc_t nwGtpv2cMsgGroupedIeParse(
    @return Pointer to the object on success.
 */
 
-nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
-    nw_gtpv2c_stack_handle_t hStack, uint8_t msgType) {
+nw_gtpv2c_msg_ie_parse_info_t *
+nwGtpv2cMsgIeParseInfoNew(nw_gtpv2c_stack_handle_t hStack, uint8_t msgType) {
   nw_rc_t rc;
-  nw_gtpv2c_msg_ie_parse_info_t* thiz = NULL;
+  nw_gtpv2c_msg_ie_parse_info_t *thiz = NULL;
 
   NW_GTPV2C_MALLOC(hStack, sizeof(nw_gtpv2c_msg_ie_parse_info_t), thiz,
-                   nw_gtpv2c_msg_ie_parse_info_t*);
+                   nw_gtpv2c_msg_ie_parse_info_t *);
 
   if (thiz) {
     memset(thiz, 0, sizeof(nw_gtpv2c_msg_ie_parse_info_t));
@@ -953,197 +953,191 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
     thiz->msgType = msgType;
 
     switch (msgType) {
-      case NW_GTP_ECHO_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, echoRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_ECHO_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, echoRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_CREATE_SESSION_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, createSessionReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_CREATE_SESSION_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, createSessionReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_CREATE_SESSION_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, createSessionRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_CREATE_SESSION_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, createSessionRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_DELETE_SESSION_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteSessionReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_DELETE_SESSION_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteSessionReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_DELETE_SESSION_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteSessionRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_DELETE_SESSION_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteSessionRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_REMOTE_UE_REPORT_NOTIFICATION: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
-                                          remoteUeReportNotificationIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_REMOTE_UE_REPORT_NOTIFICATION: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                        remoteUeReportNotificationIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_GTP_REMOTE_UE_REPORT_ACK: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, remoteUeReportAckIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_GTP_REMOTE_UE_REPORT_ACK: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, remoteUeReportAckIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_MODIFY_BEARER_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, modifyBearerReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_MODIFY_BEARER_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, modifyBearerReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_CREATE_BEARER_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, createBearerReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_CREATE_BEARER_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, createBearerReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_CREATE_BEARER_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, createBearerRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_CREATE_BEARER_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, createBearerRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_UPDATE_BEARER_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, updateBearerReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_UPDATE_BEARER_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, updateBearerReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_UPDATE_BEARER_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, updateBearerRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_UPDATE_BEARER_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, updateBearerRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_DELETE_BEARER_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteBearerReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_DELETE_BEARER_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteBearerReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_DELETE_BEARER_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteBearerRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_DELETE_BEARER_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteBearerRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_DELETE_BEARER_CMD: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteBearerCmdIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_DELETE_BEARER_CMD: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteBearerCmdIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_DELETE_BEARER_FAILURE_IND: {
-        rc =
-            nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteBearerFailureIndIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_DELETE_BEARER_FAILURE_IND: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, deleteBearerFailureIndIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_BEARER_RESOURCE_CMD: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, bearerResourceCmdIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_BEARER_RESOURCE_CMD: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, bearerResourceCmdIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_BEARER_RESOURCE_FAILURE_IND: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
-                                          bearerResourceFailureIndIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_BEARER_RESOURCE_FAILURE_IND: {
+      rc =
+          nwGtpv2cMsgIeParseInfoUpdate(thiz, bearerResourceFailureIndIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_MODIFY_BEARER_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, modifyBearerRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_MODIFY_BEARER_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, modifyBearerRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_RELEASE_ACCESS_BEARERS_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
-                                          releaseAccessBearersReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_RELEASE_ACCESS_BEARERS_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, releaseAccessBearersReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_RELEASE_ACCESS_BEARERS_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
-                                          releaseAccessBearersRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_RELEASE_ACCESS_BEARERS_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, releaseAccessBearersRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_FORWARD_RELOCATION_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, forwardRelocationReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_FORWARD_RELOCATION_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, forwardRelocationReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_FORWARD_RELOCATION_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, forwardRelocationRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_FORWARD_RELOCATION_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, forwardRelocationRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_FORWARD_ACCESS_CONTEXT_NTF: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
-                                          forwardAccessContextNtfIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_FORWARD_ACCESS_CONTEXT_NTF: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, forwardAccessContextNtfIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_FORWARD_ACCESS_CONTEXT_ACK: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
-                                          forwardAccessContextAckIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_FORWARD_ACCESS_CONTEXT_ACK: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, forwardAccessContextAckIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_FORWARD_RELOCATION_COMPLETE_NTF: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, forwardRelocationCompleteNtfIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_FORWARD_RELOCATION_COMPLETE_NTF: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                        forwardRelocationCompleteNtfIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_FORWARD_RELOCATION_COMPLETE_ACK: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(
-            thiz, forwardRelocationCompleteAckIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_FORWARD_RELOCATION_COMPLETE_ACK: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
+                                        forwardRelocationCompleteAckIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_CONTEXT_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, contextReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_CONTEXT_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, contextReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_CONTEXT_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, contextRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_CONTEXT_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, contextRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_CONTEXT_ACK: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, contextAckIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_CONTEXT_ACK: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, contextAckIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_RELOCATION_CANCEL_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
-                                          relocationCancelRequestIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_RELOCATION_CANCEL_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, relocationCancelRequestIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_RELOCATION_CANCEL_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz,
-                                          relocationCancelResponseIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_RELOCATION_CANCEL_RSP: {
+      rc =
+          nwGtpv2cMsgIeParseInfoUpdate(thiz, relocationCancelResponseIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_IDENTIFICATION_REQ: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, identificationReqIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_IDENTIFICATION_REQ: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, identificationReqIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      case NW_GTP_IDENTIFICATION_RSP: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, identificationRspIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    case NW_GTP_IDENTIFICATION_RSP: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, identificationRspIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      /** Paging related downlink data notification. */
-      case NW_GTP_DOWNLINK_DATA_NOTIFICATION: {
-        rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, downlinkDataNtfIeInfoTbl);
-        NW_ASSERT(NW_OK == rc);
-      } break;
+    /** Paging related downlink data notification. */
+    case NW_GTP_DOWNLINK_DATA_NOTIFICATION: {
+      rc = nwGtpv2cMsgIeParseInfoUpdate(thiz, downlinkDataNtfIeInfoTbl);
+      NW_ASSERT(NW_OK == rc);
+    } break;
 
-      default: {
-        free_wrapper((void**)&thiz);
-        thiz = NULL;
-      } break;
+    default: {
+      free_wrapper((void **)&thiz);
+      thiz = NULL;
+    } break;
     }
   }
 
@@ -1155,7 +1149,7 @@ nw_gtpv2c_msg_ie_parse_info_t* nwGtpv2cMsgIeParseInfoNew(
    @return NW_OK on success.
 */
 
-nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t* thiz) {
+nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t *thiz) {
   uint16_t ieInstance = 0;
   uint16_t ieType = 0;
 
@@ -1179,22 +1173,22 @@ nw_rc_t nwGtpv2cMsgIeParseInfoDelete(nw_gtpv2c_msg_ie_parse_info_t* thiz) {
    @return NW_OK on success.
 */
 
-nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
+nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t *thiz,
                            NW_IN nw_gtpv2c_msg_handle_t hMsg,
-                           NW_INOUT nw_gtpv2c_error_t* pError) {
+                           NW_INOUT nw_gtpv2c_error_t *pError) {
   nw_rc_t rc = NW_OK;
   uint16_t mandatoryIeCount = 0;
-  uint8_t* pIeBufStart;
-  uint8_t* pIeBufEnd;
+  uint8_t *pIeBufStart;
+  uint8_t *pIeBufEnd;
   uint16_t ieType;
   uint16_t ieLength;
   uint16_t ieInstance;
-  nw_gtpv2c_ie_tlv_t* pIe;
-  nw_gtpv2c_msg_t* pMsg = (nw_gtpv2c_msg_t*)hMsg;
-  uint8_t flags = *((uint8_t*)(pMsg->msgBuf));
+  nw_gtpv2c_ie_tlv_t *pIe;
+  nw_gtpv2c_msg_t *pMsg = (nw_gtpv2c_msg_t *)hMsg;
+  uint8_t flags = *((uint8_t *)(pMsg->msgBuf));
 
-  pIeBufStart = (uint8_t*)(pMsg->msgBuf + (flags & 0x08 ? 12 : 8));
-  pIeBufEnd = (uint8_t*)(pMsg->msgBuf + pMsg->msgLen);
+  pIeBufStart = (uint8_t *)(pMsg->msgBuf + (flags & 0x08 ? 12 : 8));
+  pIeBufEnd = (uint8_t *)(pMsg->msgBuf + pMsg->msgLen);
   // memset(pMsg->pIe, 0, sizeof(uint8_t*) * (NW_GTPV2C_IE_TYPE_MAXIMUM) *
   // (NW_GTPV2C_IE_INSTANCE_MAXIMUM));
   memset(pMsg->isIeValid, (false),
@@ -1202,7 +1196,7 @@ nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
              (NW_GTPV2C_IE_INSTANCE_MAXIMUM));
 
   while (pIeBufStart < pIeBufEnd) {
-    pIe = (nw_gtpv2c_ie_tlv_t*)pIeBufStart;
+    pIe = (nw_gtpv2c_ie_tlv_t *)pIeBufStart;
     ieType = pIe->t;
     ieLength = ntohs(pIe->l);
     ieInstance = pIe->i & 0x0F;
@@ -1255,7 +1249,7 @@ nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
         continue;
       }
 
-      pMsg->pIe[ieType][ieInstance] = (uint8_t*)pIeBufStart;
+      pMsg->pIe[ieType][ieInstance] = (uint8_t *)pIeBufStart;
       pMsg->isIeValid[ieType][ieInstance] = true;
 
       if (thiz->ieParseInfo[ieType][ieInstance].pGroupedIeInfo) {
@@ -1264,7 +1258,7 @@ nw_rc_t nwGtpv2cMsgIeParse(NW_IN nw_gtpv2c_msg_ie_parse_info_t* thiz,
          */
         rc = nwGtpv2cMsgGroupedIeParse(
             thiz->ieParseInfo[ieType][ieInstance].pGroupedIeInfo, ieType,
-            ieLength, ieInstance, ((uint8_t*)pIe) + 4);
+            ieLength, ieInstance, ((uint8_t *)pIe) + 4);
 
         if (rc != NW_OK) {
           pError->cause = NW_GTPV2C_CAUSE_MANDATORY_IE_INCORRECT;

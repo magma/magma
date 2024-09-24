@@ -31,9 +31,9 @@
 #ifndef MAGMACORE_GLOG_LOGGING_H
 #define MAGMACORE_GLOG_LOGGING_H
 
-#include <stdint.h>
-#include <stdbool.h>
 #include <linux/limits.h>
+#include <stdbool.h>
+#include <stdint.h>
 
 #define MAX_FILE_NAME_LENGTH PATH_MAX
 
@@ -41,12 +41,12 @@
 extern "C" {
 #endif
 
-void init_logging(const char* app_name, uint32_t default_verbosity);
-void log_string(int32_t log_level, const char* str);
+void init_logging(const char *app_name, uint32_t default_verbosity);
+void log_string(int32_t log_level, const char *str);
 void flush_log(int32_t log_level);
 
 #ifdef __cplusplus
 };
 #endif
 
-#endif  // MAGMACORE_GLOG_LOGGING_H
+#endif // MAGMACORE_GLOG_LOGGING_H

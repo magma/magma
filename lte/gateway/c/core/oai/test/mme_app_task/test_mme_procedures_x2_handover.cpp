@@ -12,12 +12,12 @@
  * limitations under the License.
  */
 #include <chrono>
-#include <gtest/gtest.h>
-#include <cstdint>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
+#include <cstdint>
+#include <gtest/gtest.h>
+#include <mutex>
 #include <stdio.h>
+#include <thread>
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
@@ -27,7 +27,7 @@ namespace magma {
 namespace lte {
 
 TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -75,7 +75,7 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -121,5 +121,5 @@ TEST_F(MmeAppProcedureTest, TestX2HandoverPathSwitchSuccess) {
   detach_ue(cv, lock, mme_state_p, guti, false);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

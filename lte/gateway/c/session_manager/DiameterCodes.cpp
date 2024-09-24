@@ -37,4 +37,4 @@ bool DiameterCodeHandler::is_transient_failure(const uint32_t code) {
   return 4000 <= code && code < 5000;
 }
 
-}  // namespace magma
+} // namespace magma

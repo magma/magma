@@ -32,8 +32,8 @@ extern "C" {
 
 #include "lte/gateway/c/core/common/common_defs.h"
 //------------------------------------------------------------------------------
-int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
+int decode_esm_message_container(EsmMessageContainer *esmmessagecontainer,
+                                 uint8_t iei, uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   int decode_result;
   uint16_t ielen;
@@ -60,8 +60,8 @@ int decode_esm_message_container(EsmMessageContainer* esmmessagecontainer,
 
 //------------------------------------------------------------------------------
 int encode_esm_message_container(EsmMessageContainer esmmessagecontainer,
-                                 uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint8_t* lenPtr;
+                                 uint8_t iei, uint8_t *buffer, uint32_t len) {
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
   int32_t encode_result;
 

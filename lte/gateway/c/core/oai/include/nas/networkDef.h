@@ -245,7 +245,7 @@ typedef struct {
 typedef struct {
   int n_pkfs;
 #define NET_PACKET_FILTER_MAX 16
-  network_pkf_t* pkf[NET_PACKET_FILTER_MAX];
+  network_pkf_t *pkf[NET_PACKET_FILTER_MAX];
 } network_tft_t;
 
 /*

@@ -19,19 +19,19 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define EMM_INFORMATION_MINIMUM_LENGTH (0)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define EMM_INFORMATION_MAXIMUM_LENGTH                            \
-  (NETWORK_NAME_MAXIMUM_LENGTH + NETWORK_NAME_MAXIMUM_LENGTH +    \
-   TIME_ZONE_MAXIMUM_LENGTH + TIME_ZONE_AND_TIME_MAXIMUM_LENGTH + \
+#define EMM_INFORMATION_MAXIMUM_LENGTH                                         \
+  (NETWORK_NAME_MAXIMUM_LENGTH + NETWORK_NAME_MAXIMUM_LENGTH +                 \
+   TIME_ZONE_MAXIMUM_LENGTH + TIME_ZONE_AND_TIME_MAXIMUM_LENGTH +              \
    DAYLIGHT_SAVING_TIME_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -73,8 +73,8 @@ typedef struct emm_information_msg_tag {
   daylight_saving_time_t networkdaylightsavingtime;
 } emm_information_msg;
 
-int decode_emm_information(emm_information_msg* emminformation, uint8_t* buffer,
+int decode_emm_information(emm_information_msg *emminformation, uint8_t *buffer,
                            uint32_t len);
 
-int encode_emm_information(emm_information_msg* emminformation, uint8_t* buffer,
+int encode_emm_information(emm_information_msg *emminformation, uint8_t *buffer,
                            uint32_t len);

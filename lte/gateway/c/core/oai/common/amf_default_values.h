@@ -26,7 +26,7 @@
 #define AMF_STATISTIC_TIMER_S (60)
 #define NGAP_PORT_NUMBER (38412)
 ///< IANA assigned port number for NGAP payloads on SCTP endpoint
-#define NGAP_SCTP_PPID (60)  ///< NGAP SCTP Payload Protocol Identifier (PPID)
+#define NGAP_SCTP_PPID (60) ///< NGAP SCTP Payload Protocol Identifier (PPID)
 
 /*******************************************************************************
  * SCTP Constants

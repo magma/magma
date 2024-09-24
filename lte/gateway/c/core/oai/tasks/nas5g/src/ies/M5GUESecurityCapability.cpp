@@ -9,11 +9,11 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <iomanip>
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,15 +21,15 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
 
 namespace magma5g {
 UESecurityCapabilityMsg::UESecurityCapabilityMsg(){};
 UESecurityCapabilityMsg::~UESecurityCapabilityMsg(){};
 
 int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
-    UESecurityCapabilityMsg* ue_sec_capability, uint8_t iei, uint8_t* buffer,
+    UESecurityCapabilityMsg *ue_sec_capability, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int decoded = 0;
   uint8_t type_len = sizeof(uint8_t);
@@ -48,7 +48,8 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   ue_sec_capability->length = *(buffer + decoded);
   decoded++;
 
-  if (ue_sec_capability->length <= 0) return (decoded);
+  if (ue_sec_capability->length <= 0)
+    return (decoded);
 
   // 5GS encryption algorithms
   ea = *(buffer + decoded);
@@ -115,7 +116,7 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
 
 // Encode UE Security Capability
 int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
-    UESecurityCapabilityMsg* ue_sec_capability, uint8_t iei, uint8_t* buffer,
+    UESecurityCapabilityMsg *ue_sec_capability, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
 
@@ -180,4 +181,4 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
 
   return encoded;
 };
-}  // namespace magma5g
+} // namespace magma5g

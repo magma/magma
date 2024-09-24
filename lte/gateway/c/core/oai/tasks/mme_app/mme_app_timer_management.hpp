@@ -18,12 +18,12 @@ extern "C" {
 // C++ includes ------------------------------------------------------------
 #include <czmq.h>
 #include <map>
-#include <utility>
 #include <stddef.h>
 #include <stdint.h>
+#include <utility>
 // Other includes ----------------------------------------------------------
-#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_timer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/esm/esm_data.hpp"
 
 namespace magma {
 namespace lte {
@@ -31,21 +31,21 @@ namespace lte {
 typedef timer_arg_t TimerArgType;
 
 class MmeUeContext {
- private:
+private:
   std::map<int, TimerArgType> mme_app_timers;
   MmeUeContext() : mme_app_timers(){};
 
- public:
-  static MmeUeContext& Instance() {
+public:
+  static MmeUeContext &Instance() {
     static MmeUeContext instance;
     return instance;
   }
 
-  MmeUeContext(MmeUeContext const&) = delete;
-  void operator=(MmeUeContext const&) = delete;
+  MmeUeContext(MmeUeContext const &) = delete;
+  void operator=(MmeUeContext const &) = delete;
 
   int StartTimer(size_t msec, timer_repeat_t repeat, zloop_timer_fn handler,
-                 const TimerArgType& arg);
+                 const TimerArgType &arg);
   void StopTimer(int timer_id);
 
   /**
@@ -55,8 +55,8 @@ class MmeUeContext {
    * @param arg Timer arguments to be stored in this parameter
    * @return True if timer_id exists, False otherwise.
    */
-  bool PopTimerById(const int timer_id, TimerArgType* arg);
+  bool PopTimerById(const int timer_id, TimerArgType *arg);
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

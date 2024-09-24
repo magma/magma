@@ -37,7 +37,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/sgs/sgs_messages.hpp"
 
 int sgs_send_uplink_unitdata(
-    itti_sgsap_uplink_unitdata_t* sgs_uplink_unitdata_p) {
+    itti_sgsap_uplink_unitdata_t *sgs_uplink_unitdata_p) {
   DevAssert(sgs_uplink_unitdata_p);
 
   OAILOG_DEBUG(LOG_SGS,

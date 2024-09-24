@@ -11,20 +11,20 @@
  * limitations under the License.
  */
 #include <chrono>
-#include <gtest/gtest.h>
-#include <cstdint>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
+#include <cstdint>
+#include <gtest/gtest.h>
+#include <mutex>
 #include <stdio.h>
+#include <thread>
 
 #include "feg/protos/s6a_proxy.pb.h"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_procedure_test_fixture.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
@@ -33,7 +33,7 @@ namespace magma {
 namespace lte {
 
 TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -64,7 +64,7 @@ TEST_F(MmeAppProcedureTest, TestInitialUeMessageFaultyNasMsg) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -80,7 +80,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyDetach) {
 }
 
 TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -155,7 +155,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachEpsOnlyDetach) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -193,7 +193,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -231,7 +231,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAirTimeout) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAuthMacFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -286,7 +286,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAuthMacFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAuthSynchFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -344,7 +344,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyAuthSynchFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -397,7 +397,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachEpsOnlyUlaFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -438,7 +438,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectAuthRetxFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -483,7 +483,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectSmcRetxFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -563,7 +563,7 @@ TEST_F(MmeAppProcedureTest, TestGutiAttachExpiredIdentity) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -602,7 +602,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachRejectIdentRetxFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
 
   std::condition_variable cv;
@@ -665,7 +665,7 @@ TEST_F(MmeAppProcedureTest, TestIcsRequestTimeout) {
 }
 
 TEST_F(MmeAppProcedureTest, TestImsiAttachIcsFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -726,7 +726,7 @@ TEST_F(MmeAppProcedureTest, TestImsiAttachIcsFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -791,7 +791,7 @@ TEST_F(MmeAppProcedureTest, TestCreateSessionFailure) {
 }
 
 TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -829,7 +829,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleDetach) {
 }
 
 TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -892,7 +892,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleServiceReqDetach) {
 }
 
 TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -968,7 +968,7 @@ TEST_F(MmeAppProcedureTest, TestPagingMaxRetx) {
 
 // Periodic TAU with active flag set to true
 TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1032,7 +1032,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithActiveFlag) {
 
 // Periodic TAU with active flag set to false
 TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1090,7 +1090,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdlePeriodicTauReqWithoutActiveFlag) {
 
 // Normal TAU sent in idle mode with active flag set to true
 TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1154,7 +1154,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithActiveFlag) {
 
 // Normal TAU sent in idle mode with active flag set to false
 TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1211,7 +1211,7 @@ TEST_F(MmeAppProcedureTest, TestAttachIdleNormalTauReqWithoutActiveFlag) {
 
 // Normal TAU sent in connected mode with active flag set to false
 TEST_F(MmeAppProcedureTest, TestAttachNormalTauReqInConnectedState) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1239,7 +1239,7 @@ TEST_F(MmeAppProcedureTest, TestAttachNormalTauReqInConnectedState) {
 
 // TAU reject due to service area restriction
 TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1273,7 +1273,7 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
   EXPECT_EQ(mme_state_p->nb_s1u_bearers, 0);
 
   // Constructing and sending TAU Request with invalid TAC value 2
-  ue_mm_context_t* ue_mm_context =
+  ue_mm_context_t *ue_mm_context =
       mme_ue_context_exists_mme_ue_s1ap_id(msg_nas_dl_data.mme_ue_s1ap_id);
   EXPECT_FALSE(ue_mm_context == nullptr);
   ue_mm_context->num_reg_sub = 1;
@@ -1301,7 +1301,7 @@ TEST_F(MmeAppProcedureTest, TestTauRejDueToInvalidTac) {
 }
 
 TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1370,7 +1370,7 @@ TEST_F(MmeAppProcedureTest, TestFailedPagingForPendingBearers) {
 // default bearer
 TEST_F(MmeAppProcedureTest,
        TestNormalTauReqWithEpsBearerCtxStsInactiveDefBearer) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1474,7 +1474,7 @@ TEST_F(MmeAppProcedureTest,
 // dedicated bearer
 TEST_F(MmeAppProcedureTest,
        TestNormalTauReqWithEpsBearerCtxStsInactiveDedBearer) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1607,7 +1607,7 @@ TEST_F(MmeAppProcedureTest,
 }
 
 TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1670,7 +1670,7 @@ TEST_F(MmeAppProcedureTest, TestS1HandoverSuccess) {
 }
 
 TEST_F(MmeAppProcedureTest, TestDuplicateAttach) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1832,7 +1832,7 @@ TEST_F(MmeAppProcedureTest, TestDuplicateAttach) {
 // Test case validates the handling of cancel location request,
 // which initiates network initiated detach
 TEST_F(MmeAppProcedureTest, TestCLRNwInitiatedDetach) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -1929,7 +1929,7 @@ TEST_F(MmeAppProcedureTest, TestCLRNwInitiatedDetach) {
 // Test case validates the handling of S6a Reset message,
 // which sends update location request
 TEST_F(MmeAppProcedureTest, TestS6aReset) {
-  mme_app_desc_t* mme_state_p =
+  mme_app_desc_t *mme_state_p =
       magma::lte::MmeNasStateManager::getInstance().get_state(false);
   std::condition_variable cv;
   std::mutex mx;
@@ -2004,5 +2004,5 @@ TEST_F(MmeAppProcedureTest, TestS6aReset) {
 
   detach_ue(cv, lock, mme_state_p, guti, false);
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

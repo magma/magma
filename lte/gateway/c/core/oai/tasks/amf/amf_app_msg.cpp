@@ -14,8 +14,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
@@ -33,9 +33,9 @@ extern task_zmq_ctx_t amf_app_task_zmq_ctx;
  ** inputs:  ue_context_p: Pointer to UE context amf_cause: failed cause   **
  **                                                                        **
  ***************************************************************************/
-void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
+void amf_app_itti_ue_context_release(ue_m5gmm_context_s *ue_context_p,
                                      n2cause_e n2_cause) {
-  MessageDef* message_p;
+  MessageDef *message_p;
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   message_p =
@@ -65,4 +65,4 @@ void amf_app_itti_ue_context_release(ue_m5gmm_context_s* ue_context_p,
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
-}  // namespace magma5g
+} // namespace magma5g

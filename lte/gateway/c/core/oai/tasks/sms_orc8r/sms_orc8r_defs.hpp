@@ -24,8 +24,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <netinet/in.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -37,7 +37,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/include/queue.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
-status_code_e sms_orc8r_init(const mme_config_t* mme_config);
+status_code_e sms_orc8r_init(const mme_config_t *mme_config);
 #ifdef __cplusplus
 }
 #endif

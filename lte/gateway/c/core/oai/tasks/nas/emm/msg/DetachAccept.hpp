@@ -19,11 +19,11 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define DETACH_ACCEPT_MINIMUM_LENGTH (0)
@@ -45,8 +45,8 @@ typedef struct detach_accept_msg_tag {
   message_type_t messagetype;
 } detach_accept_msg;
 
-int decode_detach_accept(detach_accept_msg* detachaccept, uint8_t* buffer,
+int decode_detach_accept(detach_accept_msg *detachaccept, uint8_t *buffer,
                          uint32_t len);
 
-int encode_detach_accept(detach_accept_msg* detachaccept, uint8_t* buffer,
+int encode_detach_accept(detach_accept_msg *detachaccept, uint8_t *buffer,
                          uint32_t len);

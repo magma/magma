@@ -14,9 +14,9 @@
 #include "lte/gateway/c/li_agent/src/InterfaceMonitor.hpp"
 
 #include <glog/logging.h>
+#include <ostream>
 #include <sys/types.h>
 #include <unistd.h>
-#include <ostream>
 #include <utility>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
@@ -24,13 +24,13 @@
 namespace magma {
 namespace lte {
 
-InterfaceMonitor::InterfaceMonitor(const std::string& iface_name,
+InterfaceMonitor::InterfaceMonitor(const std::string &iface_name,
                                    std::unique_ptr<PDUGenerator> pkt_gen)
     : pcap_(nullptr), iface_name_(iface_name), pkt_gen_(std::move(pkt_gen)) {}
 
-static void packet_handler(u_char* user, const struct pcap_pkthdr* phdr,
-                           const u_char* pdata) {
-  reinterpret_cast<PDUGenerator*>(user)->process_packet(phdr, pdata);
+static void packet_handler(u_char *user, const struct pcap_pkthdr *phdr,
+                           const u_char *pdata) {
+  reinterpret_cast<PDUGenerator *>(user)->process_packet(phdr, pdata);
 }
 
 int InterfaceMonitor::init_interface_monitor() {
@@ -58,7 +58,7 @@ int InterfaceMonitor::start_capture() {
   int ret;
   while (true) {
     ret = pcap_dispatch(pcap_, -1, packet_handler,
-                        reinterpret_cast<u_char*>(pkt_gen_.get()));
+                        reinterpret_cast<u_char *>(pkt_gen_.get()));
     if (ret == -1) {
       MLOG(MERROR) << "Could not capture packets";
       if (pcap_ != nullptr) {
@@ -74,5 +74,5 @@ int InterfaceMonitor::start_capture() {
   return 0;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

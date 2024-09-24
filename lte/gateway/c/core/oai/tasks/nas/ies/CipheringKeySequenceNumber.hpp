@@ -25,19 +25,19 @@
 typedef uint8_t CipheringKeySequenceNumber;
 
 int encode_ciphering_key_sequence_number(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    CipheringKeySequenceNumber *cipheringkeysequencenumber, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 void dump_ciphering_key_sequence_number_xml(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei);
+    CipheringKeySequenceNumber *cipheringkeysequencenumber, uint8_t iei);
 
 uint8_t encode_u8_ciphering_key_sequence_number(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber);
+    CipheringKeySequenceNumber *cipheringkeysequencenumber);
 
 int decode_ciphering_key_sequence_number(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    CipheringKeySequenceNumber *cipheringkeysequencenumber, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 int decode_u8_ciphering_key_sequence_number(
-    CipheringKeySequenceNumber* cipheringkeysequencenumber, uint8_t iei,
+    CipheringKeySequenceNumber *cipheringkeysequencenumber, uint8_t iei,
     uint8_t value, uint32_t len);

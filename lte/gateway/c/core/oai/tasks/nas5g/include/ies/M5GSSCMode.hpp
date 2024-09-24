@@ -10,28 +10,28 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // SSCMode IE Class
 class SSCModeMsg {
- public:
+public:
   uint8_t iei : 4;
   uint32_t mode_val : 3;
 
   SSCModeMsg();
   ~SSCModeMsg();
-  int EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer,
+  int EncodeSSCModeMsg(SSCModeMsg *ssc_mode, uint8_t iei, uint8_t *buffer,
                        uint32_t len);
-  int DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei, uint8_t* buffer,
+  int DecodeSSCModeMsg(SSCModeMsg *ssc_mode, uint8_t iei, uint8_t *buffer,
                        uint32_t len);
-  void copy(const SSCModeMsg& s) {
+  void copy(const SSCModeMsg &s) {
     iei = s.iei;
     mode_val = s.mode_val;
   }
-  bool isEqual(const SSCModeMsg& s) {
+  bool isEqual(const SSCModeMsg &s) {
     return ((iei == s.iei) && (mode_val == s.mode_val));
   }
 };
-}  // namespace magma5g
+} // namespace magma5g

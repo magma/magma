@@ -10,13 +10,13 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // AuthenticationParameterRANDM IE Class
 class AuthenticationParameterRANDMsg {
- public:
+public:
 #define RAND_MIN_LEN 16
 #define RAND_MAX_LEN 16
   uint8_t iei;
@@ -25,10 +25,10 @@ class AuthenticationParameterRANDMsg {
   AuthenticationParameterRANDMsg();
   ~AuthenticationParameterRANDMsg();
   int EncodeAuthenticationParameterRANDMsg(
-      AuthenticationParameterRANDMsg* auth_parameter_rand, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      AuthenticationParameterRANDMsg *auth_parameter_rand, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
   int DecodeAuthenticationParameterRANDMsg(
-      AuthenticationParameterRANDMsg* auth_parameter_rand, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      AuthenticationParameterRANDMsg *auth_parameter_rand, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

@@ -32,13 +32,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"
 #endif
 
-#include <new>
 #include <exception>
+#include <new>
 
-S6aViface* s6a_interface = nullptr;
+S6aViface *s6a_interface = nullptr;
 
 //------------------------------------------------------------------------------
-bool s6a_viface_open(const s6a_config_t* config) {
+bool s6a_viface_open(const s6a_config_t *config) {
   if (!s6a_interface) {
 #if S6A_OVER_GRPC
     s6a_interface = new S6aGrpcIface();
@@ -58,7 +58,7 @@ void s6a_viface_close() {
 }
 
 //------------------------------------------------------------------------------
-bool s6a_viface_update_location_req(s6a_update_location_req_t* ulr_p) {
+bool s6a_viface_update_location_req(s6a_update_location_req_t *ulr_p) {
   if (s6a_interface) {
     return s6a_interface->update_location_req(ulr_p);
   }
@@ -66,7 +66,7 @@ bool s6a_viface_update_location_req(s6a_update_location_req_t* ulr_p) {
 }
 
 //------------------------------------------------------------------------------
-bool s6a_viface_authentication_info_req(s6a_auth_info_req_t* air_p) {
+bool s6a_viface_authentication_info_req(s6a_auth_info_req_t *air_p) {
   if (s6a_interface) {
     return s6a_interface->authentication_info_req(air_p);
   }
@@ -74,14 +74,14 @@ bool s6a_viface_authentication_info_req(s6a_auth_info_req_t* air_p) {
 }
 
 //------------------------------------------------------------------------------
-bool s6a_viface_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
+bool s6a_viface_send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP) {
   if (s6a_interface) {
     return s6a_interface->send_cancel_location_ans(cla_pP);
   }
   return false;
 }
 //------------------------------------------------------------------------------
-bool s6a_viface_purge_ue(const char* imsi) {
+bool s6a_viface_purge_ue(const char *imsi) {
   if (s6a_interface) {
     return s6a_interface->purge_ue(imsi);
   }

@@ -40,6 +40,6 @@
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
-void itti_free_msg_content(MessageDef* const message_p);
+void itti_free_msg_content(MessageDef *const message_p);
 
 #endif /* FILE_ITTI_FREE_DEFINED_MSG_SEEN */

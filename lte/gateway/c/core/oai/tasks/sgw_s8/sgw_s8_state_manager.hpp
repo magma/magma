@@ -27,7 +27,7 @@ constexpr char SGW_STATE_TABLE_NAME[] = "sgw_state";
 constexpr char SGW_TASK_NAME[] = "SGW";
 constexpr char SGW_S8_CSR_PROC_ID_MAP[] = "sgw_s8_csr_proc_id_map";
 constexpr char SGW_S8_STATE_UE_MAP_NAME[] = "sgw_s8_state_ue_map";
-}  // namespace
+} // namespace
 
 namespace magma {
 namespace lte {
@@ -40,38 +40,38 @@ namespace lte {
 class SgwStateManager
     : public StateManager<sgw_state_t, spgw_ue_context_t, oai::SgwState,
                           oai::SgwUeContext, SgwStateConverter> {
- public:
+public:
   /**
    * Returns an instance of SgwStateManager, guaranteed to be thread safe and
    * initialized only once.
    * @return SgwStateManager instance.
    */
-  static SgwStateManager& getInstance();
+  static SgwStateManager &getInstance();
   /**
    * Initialization function to initialize member variables.
    * @param persist_state should read and write state from db
    * @param config SGW config struct
    */
-  void init(bool persist_state, const sgw_config_t* config);
+  void init(bool persist_state, const sgw_config_t *config);
 
   /**
    * Singleton class, copy constructor and assignment operator are marked
    * as deleted functions.
    */
   // Making them public for better debugging logging.
-  SgwStateManager(SgwStateManager const&) = delete;
-  SgwStateManager& operator=(SgwStateManager const&) = delete;
+  SgwStateManager(SgwStateManager const &) = delete;
+  SgwStateManager &operator=(SgwStateManager const &) = delete;
 
-  sgw_state_t* get_state(bool read_from_db) override;
+  sgw_state_t *get_state(bool read_from_db) override;
   /**
    * Frees all memory allocated on sgw_state_t.
    */
   void free_state() override;
 
   status_code_e read_ue_state_from_db() override;
-  map_uint32_sgw_eps_bearer_context_t* get_s8_state_teid_map();
+  map_uint32_sgw_eps_bearer_context_t *get_s8_state_teid_map();
 
- private:
+private:
   SgwStateManager();
   ~SgwStateManager();
 
@@ -81,9 +81,9 @@ class SgwStateManager
    */
   void create_state() override;
 
-  const sgw_config_t* config_;
+  const sgw_config_t *config_;
   map_uint32_sgw_eps_bearer_context_t s8_state_teid_map;
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

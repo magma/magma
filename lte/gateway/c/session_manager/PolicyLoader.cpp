@@ -12,34 +12,34 @@
  */
 #include "lte/gateway/c/session_manager/PolicyLoader.hpp"
 
+#include <algorithm>
+#include <chrono>
 #include <cpp_redis/core/client.hpp>
 #include <cpp_redis/misc/error.hpp>
 #include <glog/logging.h>
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 #include <lte/protos/policydb.pb.h>
-#include <algorithm>
-#include <chrono>
 #include <memory>
 #include <ostream>
 #include <string>
 #include <thread>
+#include <yaml-cpp/yaml.h> // IWYU pragma: keep
 
-#include "lte/gateway/c/session_manager/ObjectMap.hpp"
 #include "RedisMap.hpp"
+#include "lte/gateway/c/session_manager/ObjectMap.hpp"
 #include "lte/gateway/c/session_manager/Serializers.hpp"
 #include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 
 namespace magma {
 
-bool try_redis_connect(cpp_redis::client& client) {
+bool try_redis_connect(cpp_redis::client &client) {
   ServiceConfigLoader loader;
   auto config = loader.load_service_config("redis");
   auto port = config["port"].as<uint32_t>();
   auto addr = config["bind"].as<std::string>();
   try {
     client.connect(addr, port,
-                   [](const std::string& host, std::size_t port,
+                   [](const std::string &host, std::size_t port,
                       cpp_redis::client::connect_state status) {
                      if (status == cpp_redis::client::connect_state::dropped) {
                        MLOG(MERROR) << "Client disconnected from " << host
@@ -47,14 +47,14 @@ bool try_redis_connect(cpp_redis::client& client) {
                      }
                    });
     return client.is_connected();
-  } catch (const cpp_redis::redis_error& e) {
+  } catch (const cpp_redis::redis_error &e) {
     MLOG(MERROR) << "Could not connect to redis: " << e.what();
     return false;
   }
 }
 
-bool do_loop(cpp_redis::client& client, RedisMap<PolicyRule>& policy_map,
-             const std::function<void(std::vector<PolicyRule>)>& processor) {
+bool do_loop(cpp_redis::client &client, RedisMap<PolicyRule> &policy_map,
+             const std::function<void(std::vector<PolicyRule>)> &processor) {
   if (!client.is_connected()) {
     if (!try_redis_connect(client)) {
       return false;
@@ -87,4 +87,4 @@ void PolicyLoader::start_loop(
 
 void PolicyLoader::stop() { is_running_ = false; }
 
-}  // namespace magma
+} // namespace magma

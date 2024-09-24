@@ -23,11 +23,11 @@
    \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdio.h>
-#include <string.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -65,10 +65,10 @@ extern "C" {
 
 //------------------------------------------------------------------------------
 status_code_e mme_app_send_s6a_update_location_req(
-    struct ue_mm_context_s* const ue_context_p) {
+    struct ue_mm_context_s *const ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef* message_p = NULL;
-  s6a_update_location_req_t* s6a_ulr_p = NULL;
+  MessageDef *message_p = NULL;
+  s6a_update_location_req_t *s6a_ulr_p = NULL;
   status_code_e rc = RETURNok;
 
   OAILOG_INFO(
@@ -82,7 +82,7 @@ status_code_e mme_app_send_s6a_update_location_req(
   }
 
   s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
-  memset((void*)s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
+  memset((void *)s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
   IMSI64_TO_STRING((ue_context_p->emm_context._imsi64), s6a_ulr_p->imsi,
                    ue_context_p->emm_context._imsi.length);
   s6a_ulr_p->imsi_length = strlen(s6a_ulr_p->imsi);
@@ -173,7 +173,7 @@ status_code_e mme_app_send_s6a_update_location_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-status_code_e handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
+status_code_e handle_ula_failure(struct ue_mm_context_s *ue_context_p) {
   status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -199,11 +199,11 @@ status_code_e handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
 
 //------------------------------------------------------------------------------
 status_code_e mme_app_handle_s6a_update_location_ans(
-    mme_app_desc_t* mme_app_desc_p,
-    const s6a_update_location_ans_t* const ula_pP) {
+    mme_app_desc_t *mme_app_desc_p,
+    const s6a_update_location_ans_t *const ula_pP) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint64_t imsi64 = 0;
-  struct ue_mm_context_s* ue_mm_context = NULL;
+  struct ue_mm_context_s *ue_mm_context = NULL;
   status_code_e rc = RETURNok;
 
   if (ula_pP == NULL) {
@@ -212,7 +212,7 @@ status_code_e mme_app_handle_s6a_update_location_ans(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  IMSI_STRING_TO_IMSI64((char*)ula_pP->imsi, &imsi64);
+  IMSI_STRING_TO_IMSI64((char *)ula_pP->imsi, &imsi64);
   OAILOG_DEBUG(LOG_MME_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
 
   if ((ue_mm_context = mme_ue_context_exists_imsi(
@@ -313,11 +313,10 @@ status_code_e mme_app_handle_s6a_update_location_ans(
       // Store the zone codes in ue_mm_context
       ue_mm_context->num_reg_sub = ula_pP->subscription_data.num_zcs;
       for (uint8_t itr = 0; itr < ue_mm_context->num_reg_sub; itr++) {
-        memcpy(
-            ue_mm_context->reg_sub[itr].zone_code,
-            ula_pP->subscription_data.reg_sub[itr].zone_code,
-            strlen(
-                (const char*)ula_pP->subscription_data.reg_sub[itr].zone_code));
+        memcpy(ue_mm_context->reg_sub[itr].zone_code,
+               ula_pP->subscription_data.reg_sub[itr].zone_code,
+               strlen((const char *)ula_pP->subscription_data.reg_sub[itr]
+                          .zone_code));
       }
     }
   }
@@ -396,10 +395,10 @@ status_code_e mme_app_handle_s6a_update_location_ans(
 }
 
 status_code_e mme_app_handle_s6a_cancel_location_req(
-    mme_app_desc_t* mme_app_desc_p,
-    const s6a_cancel_location_req_t* const clr_pP) {
+    mme_app_desc_t *mme_app_desc_p,
+    const s6a_cancel_location_req_t *const clr_pP) {
   uint64_t imsi = 0;
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
   int cla_result = DIAMETER_SUCCESS;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -409,13 +408,13 @@ status_code_e mme_app_handle_s6a_cancel_location_req(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  IMSI_STRING_TO_IMSI64((char*)clr_pP->imsi, &imsi);
+  IMSI_STRING_TO_IMSI64((char *)clr_pP->imsi, &imsi);
   OAILOG_DEBUG(LOG_MME_APP,
                "S6a Cancel Location Request for imsi " IMSI_64_FMT "\n", imsi);
 
-  if ((mme_app_send_s6a_cancel_location_ans(
-          cla_result, clr_pP->imsi, clr_pP->imsi_length, clr_pP->msg_cla_p)) !=
-      RETURNok) {
+  if ((mme_app_send_s6a_cancel_location_ans(cla_result, clr_pP->imsi,
+                                            clr_pP->imsi_length,
+                                            clr_pP->msg_cla_p)) != RETURNok) {
     OAILOG_ERROR(
         LOG_MME_APP,
         "S6a Cancel Location Request: Failed to send Cancel Location Answer "
@@ -489,11 +488,11 @@ status_code_e mme_app_handle_s6a_cancel_location_req(
 }
 
 status_code_e mme_app_send_s6a_cancel_location_ans(int cla_result,
-                                                   const char* imsi,
+                                                   const char *imsi,
                                                    uint8_t imsi_length,
-                                                   void* msg_cla_p) {
-  MessageDef* message_p = NULL;
-  s6a_cancel_location_ans_t* s6a_cla_p = NULL;
+                                                   void *msg_cla_p) {
+  MessageDef *message_p = NULL;
+  s6a_cancel_location_ans_t *s6a_cla_p = NULL;
   status_code_e rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -505,7 +504,7 @@ status_code_e mme_app_send_s6a_cancel_location_ans(int cla_result,
   }
 
   s6a_cla_p = &message_p->ittiMsg.s6a_cancel_location_ans;
-  memset((void*)s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));
+  memset((void *)s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));
 
   /* Using the IMSI details deom CLR */
   memcpy(s6a_cla_p->imsi, imsi, imsi_length);
@@ -518,7 +517,7 @@ status_code_e mme_app_send_s6a_cancel_location_ans(int cla_result,
 }
 
 void mme_app_get_user_location_information(
-    Uli_t* uli_t_p, const ue_mm_context_t* ue_context_p) {
+    Uli_t *uli_t_p, const ue_mm_context_t *ue_context_p) {
   uli_t_p->present = uli_t_p->present | ULI_TAI;
   COPY_TAI(uli_t_p->s.tai, ue_context_p->emm_context.originating_tai);
   uli_t_p->present = uli_t_p->present | ULI_ECGI;

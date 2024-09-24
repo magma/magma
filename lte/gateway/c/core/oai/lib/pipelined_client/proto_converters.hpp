@@ -32,8 +32,8 @@ namespace lte {
  * @return UESessionSet
  */
 
-UESessionSet create_update_request_ipv4(struct in_addr& enb_ipv4_addr,
-                                        const struct in_addr& ue_ipv4_addr,
+UESessionSet create_update_request_ipv4(struct in_addr &enb_ipv4_addr,
+                                        const struct in_addr &ue_ipv4_addr,
                                         uint32_t in_teid, uint32_t out_teid,
                                         int vlan, uint32_t ue_state);
 
@@ -52,9 +52,9 @@ UESessionSet create_update_request_ipv4(struct in_addr& enb_ipv4_addr,
  * @return UESessionSet
  */
 UESessionSet create_add_update_request_ipv4(
-    const struct in_addr& ue_ipv4_addr, int vlan, struct in_addr& enb_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const std::string& imsi,
-    uint32_t flow_precedence, const std::string& apn, uint32_t ue_state);
+    const struct in_addr &ue_ipv4_addr, int vlan, struct in_addr &enb_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const std::string &imsi,
+    uint32_t flow_precedence, const std::string &apn, uint32_t ue_state);
 
 /**
  * @brief
@@ -72,10 +72,10 @@ UESessionSet create_add_update_request_ipv4(
  * @return UESessionSet
  */
 UESessionSet create_add_update_request_ipv4_flow_dl(
-    const struct in_addr& ue_ipv4_addr, int vlan, struct in_addr& enb_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const std::string& imsi,
-    const struct ip_flow_dl& flow_dl, uint32_t flow_precedence,
-    const std::string& apn, uint32_t ue_state);
+    const struct in_addr &ue_ipv4_addr, int vlan, struct in_addr &enb_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const std::string &imsi,
+    const struct ip_flow_dl &flow_dl, uint32_t flow_precedence,
+    const std::string &apn, uint32_t ue_state);
 
 /**
  * @brief
@@ -87,8 +87,8 @@ UESessionSet create_add_update_request_ipv4_flow_dl(
  * @param ue_state
  * @return UESessionSet
  */
-UESessionSet create_del_update_request_ipv4(struct in_addr& enb_ipv4_addr,
-                                            const struct in_addr& ue_ipv4_addr,
+UESessionSet create_del_update_request_ipv4(struct in_addr &enb_ipv4_addr,
+                                            const struct in_addr &ue_ipv4_addr,
                                             uint32_t in_teid, uint32_t out_teid,
                                             uint32_t ue_state);
 
@@ -104,8 +104,8 @@ UESessionSet create_del_update_request_ipv4(struct in_addr& enb_ipv4_addr,
  * @return UESessionSet
  */
 UESessionSet create_del_update_request_ipv4_flow_dl(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl& flow_dl,
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl &flow_dl,
     uint32_t ue_state);
 
 /**
@@ -124,9 +124,9 @@ UESessionSet create_del_update_request_ipv4_flow_dl(
  * @return UESessionSet
  */
 UESessionSet create_add_update_request_ipv4v6(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr, int vlan,
-    struct in_addr& enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
-    const std::string& imsi, uint32_t flow_precedence, const std::string& apn,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr, int vlan,
+    struct in_addr &enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
+    const std::string &imsi, uint32_t flow_precedence, const std::string &apn,
     uint32_t ue_state);
 
 /**
@@ -146,10 +146,10 @@ UESessionSet create_add_update_request_ipv4v6(
  * @return UESessionSet
  */
 UESessionSet create_add_update_request_ipv4v6_flow_dl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr, int vlan,
-    struct in_addr& enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
-    const std::string& imsi, const struct ip_flow_dl& flow_dl,
-    uint32_t flow_precedence, const std::string& apn, uint32_t ue_state);
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr, int vlan,
+    struct in_addr &enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
+    const std::string &imsi, const struct ip_flow_dl &flow_dl,
+    uint32_t flow_precedence, const std::string &apn, uint32_t ue_state);
 
 /**
  * @brief
@@ -163,8 +163,8 @@ UESessionSet create_add_update_request_ipv4v6_flow_dl(
  * @return UESessionSet
  */
 UESessionSet create_del_update_request_ipv4v6(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    struct in6_addr& ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    struct in6_addr &ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
     uint32_t ue_state);
 
 /**
@@ -180,9 +180,9 @@ UESessionSet create_del_update_request_ipv4v6(
  * @return UESessionSet
  */
 UESessionSet create_del_update_request_ipv4v6_flow_dl(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    struct in6_addr& ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t ue_state);
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    struct in6_addr &ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t ue_state);
 
 /**
  * @brief
@@ -192,8 +192,9 @@ UESessionSet create_del_update_request_ipv4v6_flow_dl(
  * @param ue_state
  * @return UESessionSet
  */
-UESessionSet create_discard_data_update_request_ipv4(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid, uint32_t ue_state);
+UESessionSet
+create_discard_data_update_request_ipv4(const struct in_addr &ue_ipv4_addr,
+                                        uint32_t in_teid, uint32_t ue_state);
 
 /**
  * @brief
@@ -205,8 +206,8 @@ UESessionSet create_discard_data_update_request_ipv4(
  * @return UESessionSet
  */
 UESessionSet create_discard_data_update_request_ipv4_flow_dl(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t ue_state);
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t ue_state);
 
 /**
  * @brief
@@ -217,9 +218,10 @@ UESessionSet create_discard_data_update_request_ipv4_flow_dl(
  * @param ue_state
  * @return UESessionSet
  */
-UESessionSet create_discard_data_update_request_ipv4v6(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-    uint32_t in_teid, uint32_t ue_state);
+UESessionSet
+create_discard_data_update_request_ipv4v6(const struct in_addr &ue_ipv4_addr,
+                                          struct in6_addr &ue_ipv6_addr,
+                                          uint32_t in_teid, uint32_t ue_state);
 
 /**
  * @brief
@@ -232,8 +234,8 @@ UESessionSet create_discard_data_update_request_ipv4v6(
  * @return UESessionSet
  */
 UESessionSet create_discard_data_update_request_ipv4v6_flow_dl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-    uint32_t in_teid, const struct ip_flow_dl& flow_dl, uint32_t ue_state);
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+    uint32_t in_teid, const struct ip_flow_dl &flow_dl, uint32_t ue_state);
 
 /**
  * @brief
@@ -245,7 +247,7 @@ UESessionSet create_discard_data_update_request_ipv4v6_flow_dl(
  * @return UESessionSet
  */
 UESessionSet create_forwarding_data_update_request_ipv4(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
     uint32_t flow_precedence, uint32_t ue_state);
 
 /**
@@ -259,8 +261,8 @@ UESessionSet create_forwarding_data_update_request_ipv4(
  * @return UESessionSet
  */
 UESessionSet create_forwarding_data_update_request_ipv4_flow_dl(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t flow_precedence,
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t flow_precedence,
     uint32_t ue_state);
 
 /**
@@ -273,7 +275,7 @@ UESessionSet create_forwarding_data_update_request_ipv4_flow_dl(
  * @return UESessionSet
  */
 UESessionSet create_forwarding_data_update_request_ipv4v6(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
     uint32_t in_teid, uint32_t flow_precedence, uint32_t ue_state);
 
 /**
@@ -287,8 +289,8 @@ UESessionSet create_forwarding_data_update_request_ipv4v6(
  * @return UESessionSet
  */
 UESessionSet create_forwarding_data_update_request_ipv4v6_flow_dl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-    uint32_t in_teid, const struct ip_flow_dl& flow_dl,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+    uint32_t in_teid, const struct ip_flow_dl &flow_dl,
     uint32_t flow_precedence, uint32_t ue_state);
 
 /**
@@ -298,8 +300,9 @@ UESessionSet create_forwarding_data_update_request_ipv4v6_flow_dl(
  * @param ue_state
  * @return UESessionSet
  */
-UESessionSet create_paging_update_request_ipv4(
-    const struct in_addr& ue_ipv4_addr, uint32_t ue_state);
+UESessionSet
+create_paging_update_request_ipv4(const struct in_addr &ue_ipv4_addr,
+                                  uint32_t ue_state);
 
 /**
  * @brief
@@ -309,5 +312,5 @@ UESessionSet create_paging_update_request_ipv4(
  */
 IPFlowDL to_proto_ip_flow_dl(struct ip_flow_dl flow_dl);
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

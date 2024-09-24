@@ -15,13 +15,13 @@
  *      contact@openairinterface.org
  */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 #include <openssl/cmac.h>
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
@@ -35,14 +35,14 @@
    encoding
    @param[out] out For EIA2 the output string is 32 bits long
 */
-int nas_stream_encrypt_eia2(nas_stream_cipher_t* const stream_cipher,
+int nas_stream_encrypt_eia2(nas_stream_cipher_t *const stream_cipher,
                             uint8_t const out[4]) {
-  uint8_t* m = NULL;
+  uint8_t *m = NULL;
   uint32_t local_count = 0;
   size_t size = 4;
   uint8_t data[16] = {0};
-  CMAC_CTX* cmac_ctx = NULL;
-  const EVP_CIPHER* cipher = EVP_aes_128_cbc();
+  CMAC_CTX *cmac_ctx = NULL;
+  const EVP_CIPHER *cipher = EVP_aes_128_cbc();
   uint32_t zero_bit = 0;
   uint32_t m_length;
 
@@ -53,7 +53,8 @@ int nas_stream_encrypt_eia2(nas_stream_cipher_t* const stream_cipher,
   zero_bit = stream_cipher->blength & 0x7;
   m_length = stream_cipher->blength >> 3;
 
-  if (zero_bit > 0) m_length += 1;
+  if (zero_bit > 0)
+    m_length += 1;
 
   local_count = hton_int32(stream_cipher->count);
   m = calloc(1, m_length + 8);
@@ -77,7 +78,7 @@ int nas_stream_encrypt_eia2(nas_stream_cipher_t* const stream_cipher,
   CMAC_Final(cmac_ctx, data, &size);
   CMAC_CTX_free(cmac_ctx);
   OAILOG_STREAM_HEX(OAILOG_LEVEL_TRACE, LOG_NAS, "Out:", data, size);
-  memcpy((void*)out, data, 4);
-  free_wrapper((void**)&m);
+  memcpy((void *)out, data, 4);
+  free_wrapper((void **)&m);
   return 0;
 }

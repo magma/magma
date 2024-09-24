@@ -14,11 +14,11 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 
 #ifdef __cplusplus
@@ -26,9 +26,9 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
@@ -61,36 +61,36 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
 //------------------------------------------------------------------------------
-mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt) {
+mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t *const ctxt) {
   return (mme_ue_s1ap_id_t)((uint)((uintptr_t)ctxt) >> 4);
 }
 
 //------------------------------------------------------------------------------
-void emm_ctx_set_attribute_present(emm_context_t* const ctxt,
+void emm_ctx_set_attribute_present(emm_context_t *const ctxt,
                                    const int attribute_bit_pos) {
   ctxt->member_present_mask |= attribute_bit_pos;
 }
 
-inline void emm_ctx_clear_attribute_present(emm_context_t* const ctxt,
+inline void emm_ctx_clear_attribute_present(emm_context_t *const ctxt,
                                             const int attribute_bit_pos) {
   ctxt->member_present_mask &= ~attribute_bit_pos;
   ctxt->member_valid_mask &= ~attribute_bit_pos;
 }
 
-void emm_ctx_set_attribute_valid(emm_context_t* const ctxt,
+void emm_ctx_set_attribute_valid(emm_context_t *const ctxt,
                                  const int attribute_bit_pos) {
   ctxt->member_present_mask |= attribute_bit_pos;
   ctxt->member_valid_mask |= attribute_bit_pos;
 }
 
-inline void emm_ctx_clear_attribute_valid(emm_context_t* const ctxt,
+inline void emm_ctx_clear_attribute_valid(emm_context_t *const ctxt,
                                           const int attribute_bit_pos) {
   ctxt->member_valid_mask &= ~attribute_bit_pos;
 }
 
 //------------------------------------------------------------------------------
 /* Clear GUTI  */
-void emm_ctx_clear_guti(emm_context_t* const ctxt) {
+void emm_ctx_clear_guti(emm_context_t *const ctxt) {
   clear_guti(&ctxt->_guti);
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_GUTI);
   OAILOG_DEBUG(LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " GUTI cleared\n",
@@ -99,7 +99,7 @@ void emm_ctx_clear_guti(emm_context_t* const ctxt) {
 }
 
 /* Set GUTI */
-void emm_ctx_set_guti(emm_context_t* const ctxt, guti_t* guti) {
+void emm_ctx_set_guti(emm_context_t *const ctxt, guti_t *guti) {
   ctxt->_guti = *guti;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_GUTI);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -110,7 +110,7 @@ void emm_ctx_set_guti(emm_context_t* const ctxt, guti_t* guti) {
 }
 
 /* Set GUTI, mark it as valid */
-inline void emm_ctx_set_valid_guti(emm_context_t* const ctxt, guti_t* guti) {
+inline void emm_ctx_set_valid_guti(emm_context_t *const ctxt, guti_t *guti) {
   ctxt->_guti = *guti;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_GUTI);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -122,7 +122,7 @@ inline void emm_ctx_set_valid_guti(emm_context_t* const ctxt, guti_t* guti) {
 
 //------------------------------------------------------------------------------
 /* Clear old GUTI  */
-void emm_ctx_clear_old_guti(emm_context_t* const ctxt) {
+void emm_ctx_clear_old_guti(emm_context_t *const ctxt) {
   clear_guti(&ctxt->_old_guti);
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_OLD_GUTI);
   OAILOG_DEBUG(LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " old GUTI cleared\n",
@@ -131,7 +131,7 @@ void emm_ctx_clear_old_guti(emm_context_t* const ctxt) {
 }
 
 /* Set GUTI */
-inline void emm_ctx_set_old_guti(emm_context_t* const ctxt, guti_t* guti) {
+inline void emm_ctx_set_old_guti(emm_context_t *const ctxt, guti_t *guti) {
   ctxt->_old_guti = *guti;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_OLD_GUTI);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -143,8 +143,8 @@ inline void emm_ctx_set_old_guti(emm_context_t* const ctxt, guti_t* guti) {
 }
 
 /* Set GUTI, mark it as valid */
-inline void emm_ctx_set_valid_old_guti(emm_context_t* const ctxt,
-                                       guti_t* guti) {
+inline void emm_ctx_set_valid_old_guti(emm_context_t *const ctxt,
+                                       guti_t *guti) {
   ctxt->_old_guti = *guti;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_OLD_GUTI);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -157,7 +157,7 @@ inline void emm_ctx_set_valid_old_guti(emm_context_t* const ctxt,
 
 //------------------------------------------------------------------------------
 /* Clear IMSI */
-void emm_ctx_clear_imsi(emm_context_t* const ctxt) {
+void emm_ctx_clear_imsi(emm_context_t *const ctxt) {
   clear_imsi(&ctxt->_imsi);
   ctxt->_imsi64 = INVALID_IMSI64;
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_IMSI);
@@ -167,7 +167,7 @@ void emm_ctx_clear_imsi(emm_context_t* const ctxt) {
 }
 
 /* Set IMSI */
-inline void emm_ctx_set_imsi(emm_context_t* const ctxt, imsi_t* imsi,
+inline void emm_ctx_set_imsi(emm_context_t *const ctxt, imsi_t *imsi,
                              imsi64_t imsi64) {
   ctxt->_imsi = *imsi;
   ctxt->_imsi64 = imsi64;
@@ -182,7 +182,7 @@ inline void emm_ctx_set_imsi(emm_context_t* const ctxt, imsi_t* imsi,
 }
 
 /* Set IMSI, mark it as valid */
-void emm_ctx_set_valid_imsi(emm_context_t* const ctxt, imsi_t* imsi,
+void emm_ctx_set_valid_imsi(emm_context_t *const ctxt, imsi_t *imsi,
                             imsi64_t imsi64) {
   ctxt->_imsi = *imsi;
   ctxt->_imsi64 = imsi64;
@@ -201,7 +201,7 @@ void emm_ctx_set_valid_imsi(emm_context_t* const ctxt, imsi_t* imsi,
 
 //------------------------------------------------------------------------------
 /* Clear IMEI */
-void emm_ctx_clear_imei(emm_context_t* const ctxt) {
+void emm_ctx_clear_imei(emm_context_t *const ctxt) {
   clear_imei(&ctxt->_imei);
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_IMEI);
   OAILOG_DEBUG(LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " IMEI cleared\n",
@@ -210,7 +210,7 @@ void emm_ctx_clear_imei(emm_context_t* const ctxt) {
 }
 
 /* Set IMEI */
-inline void emm_ctx_set_imei(emm_context_t* const ctxt, imei_t* imei) {
+inline void emm_ctx_set_imei(emm_context_t *const ctxt, imei_t *imei) {
   ctxt->_imei = *imei;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_IMEI);
   char imei_str[16];
@@ -223,7 +223,7 @@ inline void emm_ctx_set_imei(emm_context_t* const ctxt, imei_t* imei) {
 }
 
 /* Set IMEI, mark it as valid */
-void emm_ctx_set_valid_imei(emm_context_t* const ctxt, imei_t* imei) {
+void emm_ctx_set_valid_imei(emm_context_t *const ctxt, imei_t *imei) {
   ctxt->_imei = *imei;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_IMEI);
   char imei_str[16];
@@ -237,7 +237,7 @@ void emm_ctx_set_valid_imei(emm_context_t* const ctxt, imei_t* imei) {
 
 //------------------------------------------------------------------------------
 /* Clear IMEI_SV */
-inline void emm_ctx_clear_imeisv(emm_context_t* const ctxt) {
+inline void emm_ctx_clear_imeisv(emm_context_t *const ctxt) {
   clear_imeisv(&ctxt->_imeisv);
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_IMEI_SV);
   OAILOG_DEBUG(LOG_NAS_EMM, "ue_id=" MME_UE_S1AP_ID_FMT " cleared IMEI_SV \n",
@@ -246,7 +246,7 @@ inline void emm_ctx_clear_imeisv(emm_context_t* const ctxt) {
 }
 
 /* Set IMEI_SV */
-inline void emm_ctx_set_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv) {
+inline void emm_ctx_set_imeisv(emm_context_t *const ctxt, imeisv_t *imeisv) {
   ctxt->_imeisv = *imeisv;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_IMEI_SV);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -256,7 +256,7 @@ inline void emm_ctx_set_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv) {
 }
 
 /* Set IMEI_SV, mark it as valid */
-void emm_ctx_set_valid_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv) {
+void emm_ctx_set_valid_imeisv(emm_context_t *const ctxt, imeisv_t *imeisv) {
   ctxt->_imeisv = *imeisv;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_IMEI_SV);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -267,7 +267,7 @@ void emm_ctx_set_valid_imeisv(emm_context_t* const ctxt, imeisv_t* imeisv) {
 
 //------------------------------------------------------------------------------
 /* Clear last_visited_registered_tai */
-inline void emm_ctx_clear_lvr_tai(emm_context_t* const ctxt) {
+inline void emm_ctx_clear_lvr_tai(emm_context_t *const ctxt) {
   clear_tai(&ctxt->_lvr_tai);
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_LVR_TAI);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -278,7 +278,7 @@ inline void emm_ctx_clear_lvr_tai(emm_context_t* const ctxt) {
 }
 
 /* Set last_visited_registered_tai, mark it as valid */
-void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai) {
+void emm_ctx_set_valid_lvr_tai(emm_context_t *const ctxt, tai_t *lvr_tai) {
   ctxt->_lvr_tai = *lvr_tai;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_LVR_TAI);
   // OAILOG_DEBUG (LOG_NAS_EMM, "ue_id="MME_UE_S1AP_ID_FMT" set last visited
@@ -288,10 +288,10 @@ void emm_ctx_set_valid_lvr_tai(emm_context_t* const ctxt, tai_t* lvr_tai) {
 
 //------------------------------------------------------------------------------
 /* Clear AUTH vectors  */
-void emm_ctx_clear_auth_vectors(emm_context_t* const ctxt) {
+void emm_ctx_clear_auth_vectors(emm_context_t *const ctxt) {
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_AUTH_VECTORS);
   for (int i = 0; i < MAX_EPS_AUTH_VECTORS; i++) {
-    memset((void*)&ctxt->_vector[i], 0, sizeof(ctxt->_vector[i]));
+    memset((void *)&ctxt->_vector[i], 0, sizeof(ctxt->_vector[i]));
     emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_AUTH_VECTOR0 + i);
   }
   emm_ctx_clear_security_vector_index(ctxt);
@@ -302,9 +302,9 @@ void emm_ctx_clear_auth_vectors(emm_context_t* const ctxt) {
 }
 //------------------------------------------------------------------------------
 /* Clear AUTH vector  */
-inline void emm_ctx_clear_auth_vector(emm_context_t* const ctxt, ksi_t eksi) {
+inline void emm_ctx_clear_auth_vector(emm_context_t *const ctxt, ksi_t eksi) {
   AssertFatal(eksi < MAX_EPS_AUTH_VECTORS, "Out of bounds eksi %d", eksi);
-  memset((void*)&ctxt->_vector[eksi % MAX_EPS_AUTH_VECTORS], 0,
+  memset((void *)&ctxt->_vector[eksi % MAX_EPS_AUTH_VECTORS], 0,
          sizeof(ctxt->_vector[eksi % MAX_EPS_AUTH_VECTORS]));
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_AUTH_VECTOR0 + eksi);
   int remaining_vectors = 0;
@@ -330,7 +330,7 @@ inline void emm_ctx_clear_auth_vector(emm_context_t* const ctxt, ksi_t eksi) {
 }
 //------------------------------------------------------------------------------
 /* Clear security  */
-void emm_ctx_clear_security(emm_context_t* const ctxt) {
+void emm_ctx_clear_security(emm_context_t *const ctxt) {
   memset(&ctxt->_security, 0, sizeof(ctxt->_security));
   emm_ctx_set_security_type(ctxt, SECURITY_CTX_TYPE_NOT_AVAILABLE);
   emm_ctx_set_security_eksi(ctxt, KSI_NO_KEY_AVAILABLE);
@@ -346,7 +346,7 @@ void emm_ctx_clear_security(emm_context_t* const ctxt) {
 }
 
 //------------------------------------------------------------------------------
-void emm_ctx_set_security_type(emm_context_t* const ctxt,
+void emm_ctx_set_security_type(emm_context_t *const ctxt,
                                emm_sc_type_t sc_type) {
   ctxt->_security.sc_type = sc_type;
   OAILOG_TRACE(LOG_NAS_EMM,
@@ -358,7 +358,7 @@ void emm_ctx_set_security_type(emm_context_t* const ctxt,
 }
 
 //------------------------------------------------------------------------------
-void emm_ctx_set_security_eksi(emm_context_t* const ctxt, ksi_t eksi) {
+void emm_ctx_set_security_eksi(emm_context_t *const ctxt, ksi_t eksi) {
   ctxt->_security.eksi = eksi;
   OAILOG_TRACE(LOG_NAS_EMM,
                "ue_id=" MME_UE_S1AP_ID_FMT " set security context eksi %d\n",
@@ -368,7 +368,7 @@ void emm_ctx_set_security_eksi(emm_context_t* const ctxt, ksi_t eksi) {
 }
 
 //------------------------------------------------------------------------------
-inline void emm_ctx_clear_security_vector_index(emm_context_t* const ctxt) {
+inline void emm_ctx_clear_security_vector_index(emm_context_t *const ctxt) {
   ctxt->_security.vector_index = EMM_SECURITY_VECTOR_INDEX_INVALID;
   OAILOG_TRACE(LOG_NAS_EMM,
                "ue_id=" MME_UE_S1AP_ID_FMT
@@ -377,7 +377,7 @@ inline void emm_ctx_clear_security_vector_index(emm_context_t* const ctxt) {
                    ->mme_ue_s1ap_id);
 }
 //------------------------------------------------------------------------------
-void emm_ctx_set_security_vector_index(emm_context_t* const ctxt,
+void emm_ctx_set_security_vector_index(emm_context_t *const ctxt,
                                        int vector_index) {
   ctxt->_security.vector_index = vector_index;
   OAILOG_TRACE(LOG_NAS_EMM,
@@ -390,7 +390,7 @@ void emm_ctx_set_security_vector_index(emm_context_t* const ctxt,
 
 //------------------------------------------------------------------------------
 /* Clear non current security  */
-void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
+void emm_ctx_clear_non_current_security(emm_context_t *const ctxt) {
   memset(&ctxt->_non_current_security, 0, sizeof(ctxt->_non_current_security));
   ctxt->_non_current_security.sc_type = SECURITY_CTX_TYPE_NOT_AVAILABLE;
   ctxt->_non_current_security.eksi = KSI_NO_KEY_AVAILABLE;
@@ -411,7 +411,7 @@ void emm_ctx_clear_non_current_security(emm_context_t* const ctxt) {
 //------------------------------------------------------------------------------
 /* Clear UE network capability IE   */
 
-void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
+void emm_ctx_clear_ue_nw_cap(emm_context_t *const ctxt) {
   memset(&ctxt->_ue_network_capability, 0,
          sizeof(ctxt->_ue_network_capability));
   emm_ctx_clear_attribute_present(ctxt,
@@ -424,9 +424,9 @@ void emm_ctx_clear_ue_nw_cap(emm_context_t* const ctxt) {
 }
 
 /* Set UE network capability IE */
-inline void emm_ctx_set_ue_nw_cap(
-    emm_context_t* const ctxt,
-    const ue_network_capability_t* const ue_nw_cap_ie) {
+inline void
+emm_ctx_set_ue_nw_cap(emm_context_t *const ctxt,
+                      const ue_network_capability_t *const ue_nw_cap_ie) {
   ctxt->_ue_network_capability = *ue_nw_cap_ie;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_UE_NETWORK_CAPABILITY_IE);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -438,8 +438,8 @@ inline void emm_ctx_set_ue_nw_cap(
 
 /* Set UE network capability IE, mark it as valid */
 void emm_ctx_set_valid_ue_nw_cap(
-    emm_context_t* const ctxt,
-    const ue_network_capability_t* const ue_nw_cap_ie) {
+    emm_context_t *const ctxt,
+    const ue_network_capability_t *const ue_nw_cap_ie) {
   ctxt->_ue_network_capability = *ue_nw_cap_ie;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_UE_NETWORK_CAPABILITY_IE);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -451,7 +451,7 @@ void emm_ctx_set_valid_ue_nw_cap(
 
 //------------------------------------------------------------------------------
 /* Clear MS network capability IE   */
-void emm_ctx_clear_ms_nw_cap(emm_context_t* const ctxt) {
+void emm_ctx_clear_ms_nw_cap(emm_context_t *const ctxt) {
   memset(&ctxt->_ms_network_capability, 0,
          sizeof(ctxt->_ms_network_capability));
   emm_ctx_clear_attribute_present(ctxt,
@@ -464,8 +464,8 @@ void emm_ctx_clear_ms_nw_cap(emm_context_t* const ctxt) {
 }
 
 /* Set UE network capability IE */
-void emm_ctx_set_ms_nw_cap(emm_context_t* const ctxt,
-                           const ms_network_capability_t* const ms_nw_cap_ie) {
+void emm_ctx_set_ms_nw_cap(emm_context_t *const ctxt,
+                           const ms_network_capability_t *const ms_nw_cap_ie) {
   ctxt->_ms_network_capability = *ms_nw_cap_ie;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -477,8 +477,8 @@ void emm_ctx_set_ms_nw_cap(emm_context_t* const ctxt,
 
 /* Set UE network capability IE, mark it as valid */
 void emm_ctx_set_valid_ms_nw_cap(
-    emm_context_t* const ctxt,
-    const ms_network_capability_t* const ms_nw_cap_ie) {
+    emm_context_t *const ctxt,
+    const ms_network_capability_t *const ms_nw_cap_ie) {
   ctxt->_ms_network_capability = *ms_nw_cap_ie;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -490,7 +490,7 @@ void emm_ctx_set_valid_ms_nw_cap(
 
 //------------------------------------------------------------------------------
 /* Clear current DRX parameter   */
-void emm_ctx_clear_drx_parameter(emm_context_t* const ctxt) {
+void emm_ctx_clear_drx_parameter(emm_context_t *const ctxt) {
   memset(&ctxt->_drx_parameter, 0, sizeof(drx_parameter_t));
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_CURRENT_DRX_PARAMETER);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -500,8 +500,8 @@ void emm_ctx_clear_drx_parameter(emm_context_t* const ctxt) {
 }
 
 /* Set current DRX parameter */
-void emm_ctx_set_drx_parameter(emm_context_t* const ctxt,
-                               drx_parameter_t* drx) {
+void emm_ctx_set_drx_parameter(emm_context_t *const ctxt,
+                               drx_parameter_t *drx) {
   memcpy(&ctxt->_drx_parameter, drx, sizeof(drx_parameter_t));
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_CURRENT_DRX_PARAMETER);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -512,8 +512,8 @@ void emm_ctx_set_drx_parameter(emm_context_t* const ctxt,
 }
 
 /* Set current DRX parameter, mark it as valid */
-void emm_ctx_set_valid_drx_parameter(emm_context_t* const ctxt,
-                                     drx_parameter_t* drx) {
+void emm_ctx_set_valid_drx_parameter(emm_context_t *const ctxt,
+                                     drx_parameter_t *drx) {
   emm_ctx_set_drx_parameter(ctxt, drx);
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_CURRENT_DRX_PARAMETER);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -525,8 +525,8 @@ void emm_ctx_set_valid_drx_parameter(emm_context_t* const ctxt,
 
 //------------------------------------------------------------------------------
 /* Clear UE additional security capability */
-inline void emm_ctx_clear_ue_additional_security_capability(
-    emm_context_t* const ctxt) {
+inline void
+emm_ctx_clear_ue_additional_security_capability(emm_context_t *const ctxt) {
   memset(&ctxt->ue_additional_security_capability, 0,
          sizeof(ue_additional_security_capability_t));
   emm_ctx_clear_attribute_present(
@@ -540,7 +540,7 @@ inline void emm_ctx_clear_ue_additional_security_capability(
 
 /* Set UE additional security capability */
 void emm_ctx_set_ue_additional_security_capability(
-    emm_context_t* const ctxt, ue_additional_security_capability_t* uasc) {
+    emm_context_t *const ctxt, ue_additional_security_capability_t *uasc) {
   memcpy(&ctxt->ue_additional_security_capability, uasc,
          sizeof(ue_additional_security_capability_t));
   emm_ctx_set_attribute_present(
@@ -554,7 +554,7 @@ void emm_ctx_set_ue_additional_security_capability(
 
 //------------------------------------------------------------------------------
 /* Clear EPS bearer context status   */
-inline void emm_ctx_clear_eps_bearer_context_status(emm_context_t* const ctxt) {
+inline void emm_ctx_clear_eps_bearer_context_status(emm_context_t *const ctxt) {
   memset(&ctxt->_eps_bearer_context_status, 0,
          sizeof(ctxt->_eps_bearer_context_status));
   emm_ctx_clear_attribute_present(ctxt,
@@ -567,8 +567,9 @@ inline void emm_ctx_clear_eps_bearer_context_status(emm_context_t* const ctxt) {
 }
 
 /* Set current DRX parameter */
-inline void emm_ctx_set_eps_bearer_context_status(
-    emm_context_t* const ctxt, eps_bearer_context_status_t* status) {
+inline void
+emm_ctx_set_eps_bearer_context_status(emm_context_t *const ctxt,
+                                      eps_bearer_context_status_t *status) {
   ctxt->_eps_bearer_context_status = *status;
   emm_ctx_set_attribute_present(ctxt,
                                 EMM_CTXT_MEMBER_EPS_BEARER_CONTEXT_STATUS);
@@ -581,7 +582,7 @@ inline void emm_ctx_set_eps_bearer_context_status(
 
 /* Set current DRX parameter, mark it as valid */
 inline void emm_ctx_set_valid_eps_bearer_context_status(
-    emm_context_t* const ctxt, eps_bearer_context_status_t* status) {
+    emm_context_t *const ctxt, eps_bearer_context_status_t *status) {
   ctxt->_eps_bearer_context_status = *status;
   emm_ctx_set_attribute_valid(ctxt, EMM_CTXT_MEMBER_EPS_BEARER_CONTEXT_STATUS);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -593,7 +594,7 @@ inline void emm_ctx_set_valid_eps_bearer_context_status(
 
 //------------------------------------------------------------------------------
 /* Clear mobile station class mark2 */
-inline void emm_ctx_clear_mobile_station_clsMark2(emm_context_t* const ctxt) {
+inline void emm_ctx_clear_mobile_station_clsMark2(emm_context_t *const ctxt) {
   memset(&ctxt->_mob_st_clsMark2, 0, sizeof(ctxt->_mob_st_clsMark2));
   emm_ctx_clear_attribute_present(ctxt, EMM_CTXT_MEMBER_MOB_STATION_CLSMARK2);
   OAILOG_DEBUG(LOG_NAS_EMM,
@@ -605,14 +606,14 @@ inline void emm_ctx_clear_mobile_station_clsMark2(emm_context_t* const ctxt) {
 
 /* Set mob_station_clsMark2 */
 void emm_ctx_set_mobile_station_clsMark2(
-    emm_context_t* const ctxt, MobileStationClassmark2* mob_st_clsMark2) {
+    emm_context_t *const ctxt, MobileStationClassmark2 *mob_st_clsMark2) {
   ctxt->_mob_st_clsMark2 = *mob_st_clsMark2;
   emm_ctx_set_attribute_present(ctxt, EMM_CTXT_MEMBER_MOB_STATION_CLSMARK2);
 }
 
 //------------------------------------------------------------------------------
 /* Free dynamically allocated memory */
-void free_emm_ctx_memory(emm_context_t* const ctxt,
+void free_emm_ctx_memory(emm_context_t *const ctxt,
                          const mme_ue_s1ap_id_t ue_id) {
   OAILOG_DEBUG(LOG_NAS_EMM,
                "Freeing up emm_context for ue_id=" MME_UE_S1AP_ID_FMT, ue_id);
@@ -620,20 +621,20 @@ void free_emm_ctx_memory(emm_context_t* const ctxt,
     return;
   }
   if (ctxt->t3422_arg) {
-    free_wrapper((void**)&ctxt->t3422_arg);
+    free_wrapper((void **)&ctxt->t3422_arg);
   }
   nas_delete_all_emm_procedures(ctxt);
   free_esm_context_content(&ctxt->esm_ctx);
 }
 
 //------------------------------------------------------------------------------
-struct emm_context_s* emm_context_get(emm_data_t* emm_data,  // TODO REMOVE
+struct emm_context_s *emm_context_get(emm_data_t *emm_data, // TODO REMOVE
                                       const mme_ue_s1ap_id_t ue_id) {
-  struct emm_context_s* emm_context_p = NULL;
+  struct emm_context_s *emm_context_p = NULL;
 
   DevAssert(emm_data);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
-    ue_mm_context_t* ue_mm_context =
+    ue_mm_context_t *ue_mm_context =
         mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     if (ue_mm_context) {
       emm_context_p = &ue_mm_context->emm_context;
@@ -646,13 +647,13 @@ struct emm_context_s* emm_context_get(emm_data_t* emm_data,  // TODO REMOVE
 }
 
 //------------------------------------------------------------------------------
-struct emm_context_s* emm_context_get_by_imsi(
-    emm_data_t* emm_data,  // TODO REMOVE
-    imsi64_t imsi64) {
-  struct emm_context_s* emm_context_p = NULL;
+struct emm_context_s *
+emm_context_get_by_imsi(emm_data_t *emm_data, // TODO REMOVE
+                        imsi64_t imsi64) {
+  struct emm_context_s *emm_context_p = NULL;
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  ue_mm_context_t* ue_mm_context =
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
+  ue_mm_context_t *ue_mm_context =
       mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
   if (ue_mm_context) {
     emm_context_p = &ue_mm_context->emm_context;
@@ -669,12 +670,12 @@ struct emm_context_s* emm_context_get_by_imsi(
 
 //------------------------------------------------------------------------------
 
-status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
-                                      struct emm_context_s* elm) {
+status_code_e emm_context_upsert_imsi(emm_data_t *emm_data,
+                                      struct emm_context_s *elm) {
   mme_ue_s1ap_id_t ue_id =
       (PARENT_STRUCT(elm, struct ue_mm_context_s, emm_context))->mme_ue_s1ap_id;
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.remove(elm->_imsi64);
   if (INVALID_MME_UE_S1AP_ID != ue_id) {
     if (mme_app_desc_p->mme_ue_contexts.imsi2mme_ueid_map.insert(
@@ -696,11 +697,11 @@ status_code_e emm_context_upsert_imsi(emm_data_t* emm_data,
 }
 
 //------------------------------------------------------------------------------
-void emm_init_context(struct emm_context_s* const emm_ctx,
+void emm_init_context(struct emm_context_s *const emm_ctx,
                       const bool init_esm_ctxt) {
   emm_ctx->_emm_fsm_state = EMM_DEREGISTERED;
 
-  struct ue_mm_context_s* ue_mm_context =
+  struct ue_mm_context_s *ue_mm_context =
       PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context);
   OAILOG_DEBUG(LOG_NAS_EMM, "UE " MME_UE_S1AP_ID_FMT " Init EMM-CTX\n",
                ue_mm_context->mme_ue_s1ap_id);
@@ -742,7 +743,7 @@ void emm_init_context(struct emm_context_s* const emm_ctx,
 
 //------------------------------------------------------------------------------
 void nas_start_T3450(const mme_ue_s1ap_id_t ue_id,
-                     struct nas_timer_s* const T3450, time_out_t time_out_cb) {
+                     struct nas_timer_s *const T3450, time_out_t time_out_cb) {
   if ((T3450) && (T3450->id == NAS_TIMER_INACTIVE_ID)) {
     T3450->id =
         mme_app_start_timer(T3450->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
@@ -757,7 +758,7 @@ void nas_start_T3450(const mme_ue_s1ap_id_t ue_id,
 }
 //------------------------------------------------------------------------------
 void nas_start_T3460(const mme_ue_s1ap_id_t ue_id,
-                     struct nas_timer_s* const T3460, time_out_t time_out_cb) {
+                     struct nas_timer_s *const T3460, time_out_t time_out_cb) {
   if ((T3460) && (T3460->id == NAS_TIMER_INACTIVE_ID)) {
     T3460->id =
         mme_app_start_timer(T3460->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
@@ -772,7 +773,7 @@ void nas_start_T3460(const mme_ue_s1ap_id_t ue_id,
 }
 //------------------------------------------------------------------------------
 void nas_start_T3470(const mme_ue_s1ap_id_t ue_id,
-                     struct nas_timer_s* const T3470, time_out_t time_out_cb) {
+                     struct nas_timer_s *const T3470, time_out_t time_out_cb) {
   if ((T3470) && (T3470->id == NAS_TIMER_INACTIVE_ID)) {
     T3470->id =
         mme_app_start_timer(T3470->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
@@ -787,7 +788,7 @@ void nas_start_T3470(const mme_ue_s1ap_id_t ue_id,
 }
 //------------------------------------------------------------------------------
 void nas_start_T3422(const mme_ue_s1ap_id_t ue_id,
-                     struct nas_timer_s* const T3422, time_out_t time_out_cb) {
+                     struct nas_timer_s *const T3422, time_out_t time_out_cb) {
   if ((T3422) && (T3422->id == NAS_TIMER_INACTIVE_ID)) {
     T3422->id =
         mme_app_start_timer(T3422->msec, TIMER_REPEAT_ONCE, time_out_cb, ue_id);
@@ -802,7 +803,7 @@ void nas_start_T3422(const mme_ue_s1ap_id_t ue_id,
 }
 //------------------------------------------------------------------------------
 void nas_start_Ts6a_auth_info(const mme_ue_s1ap_id_t ue_id,
-                              struct nas_timer_s* const Ts6a_auth_info,
+                              struct nas_timer_s *const Ts6a_auth_info,
                               time_out_t time_out_cb) {
   if ((Ts6a_auth_info) && (Ts6a_auth_info->id == NAS_TIMER_INACTIVE_ID)) {
     Ts6a_auth_info->id = mme_app_start_timer(
@@ -819,7 +820,7 @@ void nas_start_Ts6a_auth_info(const mme_ue_s1ap_id_t ue_id,
 }
 //------------------------------------------------------------------------------
 void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
-                    struct nas_timer_s* const T3450) {
+                    struct nas_timer_s *const T3450) {
   if ((T3450) && (T3450->id != NAS_TIMER_INACTIVE_ID)) {
     mme_app_stop_timer(T3450->id);
     T3450->id = NAS_TIMER_INACTIVE_ID;
@@ -830,7 +831,7 @@ void nas_stop_T3450(const mme_ue_s1ap_id_t ue_id,
 
 //------------------------------------------------------------------------------
 void nas_stop_T3460(const mme_ue_s1ap_id_t ue_id,
-                    struct nas_timer_s* const T3460) {
+                    struct nas_timer_s *const T3460) {
   if ((T3460) && (T3460->id != NAS_TIMER_INACTIVE_ID)) {
     mme_app_stop_timer(T3460->id);
     T3460->id = NAS_TIMER_INACTIVE_ID;
@@ -841,7 +842,7 @@ void nas_stop_T3460(const mme_ue_s1ap_id_t ue_id,
 
 //------------------------------------------------------------------------------
 void nas_stop_T3470(const mme_ue_s1ap_id_t ue_id,
-                    struct nas_timer_s* const T3470) {
+                    struct nas_timer_s *const T3470) {
   if ((T3470) && (T3470->id != NAS_TIMER_INACTIVE_ID)) {
     mme_app_stop_timer(T3470->id);
     T3470->id = NAS_TIMER_INACTIVE_ID;
@@ -851,7 +852,7 @@ void nas_stop_T3470(const mme_ue_s1ap_id_t ue_id,
 }
 
 //------------------------------------------------------------------------------
-void nas_stop_T3422(const imsi64_t imsi64, struct nas_timer_s* const T3422) {
+void nas_stop_T3422(const imsi64_t imsi64, struct nas_timer_s *const T3422) {
   if ((T3422) && (T3422->id != NAS_TIMER_INACTIVE_ID)) {
     mme_app_stop_timer(T3422->id);
     T3422->id = NAS_TIMER_INACTIVE_ID;

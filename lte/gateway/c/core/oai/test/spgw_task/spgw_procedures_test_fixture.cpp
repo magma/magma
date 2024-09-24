@@ -26,23 +26,23 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.401.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 namespace magma {
 namespace lte {
 task_zmq_ctx_t task_zmq_ctx_main_spgw;
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
+  default: {
+  } break;
   }
 
   itti_free_msg_content(received_message_p);
@@ -90,7 +90,7 @@ void SPGWAppProcedureTest::TearDown() {
   std::this_thread::sleep_for(std::chrono::milliseconds(END_OF_TEST_SLEEP_MS));
 }
 
-teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
+teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t *spgw_state) {
   status_code_e return_code = RETURNerror;
   itti_s11_create_session_request_t sample_session_req_p = {};
   fill_create_session_request(&sample_session_req_p, test_imsi_str,
@@ -104,7 +104,7 @@ teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
   EXPECT_EQ(return_code, RETURNok);
 
   // Verify that a UE context exists in SPGW state after CSR is received
-  spgw_ue_context_t* ue_context_p = spgw_get_ue_context(test_imsi64);
+  spgw_ue_context_t *ue_context_p = spgw_get_ue_context(test_imsi64);
   EXPECT_TRUE(ue_context_p != nullptr);
 
   // Verify that teid is created
@@ -113,7 +113,7 @@ teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
       LIST_FIRST(&ue_context_p->sgw_s11_teid_list)->sgw_s11_teid;
 
   // Verify that no IP address is allocated for this UE
-  magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p =
+  magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(ue_sgw_teid);
 
   magma::lte::oai::SgwEpsBearerContext eps_bearer_ctxt;
@@ -179,8 +179,8 @@ teid_t SPGWAppProcedureTest::create_default_session(spgw_state_t* spgw_state) {
 }
 
 ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
-    spgw_state_t* spgw_state,
-    magma::lte::oai::S11BearerContext* spgw_eps_bearer_ctxt_info_p,
+    spgw_state_t *spgw_state,
+    magma::lte::oai::S11BearerContext *spgw_eps_bearer_ctxt_info_p,
     teid_t ue_sgw_teid) {
   status_code_e return_code = RETURNerror;
   // send network initiated dedicated bearer activation request from Session
@@ -206,7 +206,7 @@ ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
 
   EXPECT_EQ(return_code, RETURNok);
 
-  magma::lte::oai::SgwEpsBearerContextInfo* sgw_context_p =
+  magma::lte::oai::SgwEpsBearerContextInfo *sgw_context_p =
       spgw_eps_bearer_ctxt_info_p->mutable_sgw_eps_bearer_context();
   // check number of pending procedures
   EXPECT_EQ(get_num_pending_create_bearer_procedures(sgw_context_p), 1);
@@ -215,14 +215,14 @@ ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
   teid_t ue_ded_bearer_sgw_teid = 0;
   for (int proc_index = 0;
        proc_index < sgw_context_p->pending_procedures_size(); proc_index++) {
-    magma::lte::oai::PgwCbrProcedure* pgw_ni_cbr_proc =
+    magma::lte::oai::PgwCbrProcedure *pgw_ni_cbr_proc =
         sgw_context_p->mutable_pending_procedures(proc_index);
     EXPECT_TRUE(pgw_ni_cbr_proc->type() ==
                 PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST);
     for (uint8_t bearer_index = 0;
          bearer_index < pgw_ni_cbr_proc->pending_eps_bearers_size();
          bearer_index++) {
-      magma::lte::oai::SgwEpsBearerContext* bearer_context_proto =
+      magma::lte::oai::SgwEpsBearerContext *bearer_context_proto =
           pgw_ni_cbr_proc->mutable_pending_eps_bearers(bearer_index);
       ue_ded_bearer_sgw_teid = bearer_context_proto->sgw_teid_s1u_s12_s4_up();
     }
@@ -251,7 +251,7 @@ ebi_t SPGWAppProcedureTest ::activate_dedicated_bearer(
 }
 
 void SPGWAppProcedureTest ::deactivate_dedicated_bearer(
-    spgw_state_t* spgw_state, teid_t ue_sgw_teid, ebi_t ded_eps_bearer_id) {
+    spgw_state_t *spgw_state, teid_t ue_sgw_teid, ebi_t ded_eps_bearer_id) {
   status_code_e return_code = RETURNerror;
   // send deactivate request for dedicated bearer from Session Manager
   itti_gx_nw_init_deactv_bearer_request_t
@@ -282,5 +282,5 @@ void SPGWAppProcedureTest ::deactivate_dedicated_bearer(
   // check that bearer is deleted
   EXPECT_TRUE(is_num_s1_bearers_valid(ue_sgw_teid, 1));
 }
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

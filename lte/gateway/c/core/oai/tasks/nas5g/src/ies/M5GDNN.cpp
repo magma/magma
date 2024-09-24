@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,15 +21,15 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GDNN.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GDNN.hpp"
 
 namespace magma5g {
 DNNMsg::DNNMsg(){};
 DNNMsg::~DNNMsg(){};
 
 // Decode DNN Message
-int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
+int DNNMsg::DecodeDNNMsg(DNNMsg *dnn_message, uint8_t iei, uint8_t *buffer,
                          uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
@@ -72,7 +72,7 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
 }
 
 // Encode DNN Message
-int DNNMsg::EncodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
+int DNNMsg::EncodeDNNMsg(DNNMsg *dnn_message, uint8_t iei, uint8_t *buffer,
                          uint32_t len) {
   uint32_t encoded = 0;
 
@@ -107,4 +107,4 @@ int DNNMsg::EncodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
   return encoded;
 };
 
-}  // namespace magma5g
+} // namespace magma5g

@@ -38,15 +38,15 @@
 #ifndef FILE_3GPP_36_413_SEEN
 #define FILE_3GPP_36_413_SEEN
 
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 
 // 9.2.1.60 Allocation and Retention Priority
 // This IE specifies the relative importance compared to other E-RABs for
 // allocation and retention of the E-UTRAN Radio Access Bearer.
 typedef struct allocation_and_retention_priority_s {
-  priority_level_t priority_level;  // INTEGER (0..15)
+  priority_level_t priority_level; // INTEGER (0..15)
   pre_emption_capability_t pre_emption_capability;
   pre_emption_vulnerability_t pre_emption_vulnerability;
 } allocation_and_retention_priority_t;
@@ -170,12 +170,12 @@ typedef struct e_rab_admitted_list_s {
 // E-RAB TO BE MODIFIED ITEM BEARER MOD IND
 typedef struct e_rab_to_be_modified_bearer_mod_ind_s {
   e_rab_id_t e_rab_id;
-  fteid_t s1_xNB_fteid;  ///< S1 xNodeB F-TEID
+  fteid_t s1_xNB_fteid; ///< S1 xNodeB F-TEID
 } e_rab_to_be_modified_bearer_mod_ind_t;
 
 typedef struct e_rab_not_to_be_modified_bearer_mod_ind_s {
   e_rab_id_t e_rab_id;
-  fteid_t s1_xNB_fteid;  ///< S1 xNodeB F-TEID
+  fteid_t s1_xNB_fteid; ///< S1 xNodeB F-TEID
 } e_rab_not_to_be_modified_bearer_mod_ind_t;
 
 typedef struct e_rab_to_be_modified_bearer_mod_ind_list_s {

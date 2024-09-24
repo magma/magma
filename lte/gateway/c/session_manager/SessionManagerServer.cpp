@@ -12,10 +12,10 @@
  */
 #include "lte/gateway/c/session_manager/SessionManagerServer.hpp"
 
+#include <chrono>
 #include <glog/logging.h>
 #include <grpc/impl/codegen/log.h>
 #include <grpcpp/impl/codegen/status.h>
-#include <chrono>
 #include <memory>
 #include <ostream>
 #include <utility>
@@ -31,7 +31,7 @@ AsyncService::AsyncService(std::unique_ptr<ServerCompletionQueue> cq)
 
 void AsyncService::wait_for_requests() {
   init_call_data();
-  void* tag;
+  void *tag;
   bool ok;
   running_ = true;
   while (running_) {
@@ -44,10 +44,10 @@ void AsyncService::wait_for_requests() {
       MLOG(MINFO)
           << "sessiond server encountered error while processing request";
       // Free memory for the queued up item even if we couldn't process it
-      delete static_cast<CallData*>(tag);
+      delete static_cast<CallData *>(tag);
       continue;
     }
-    static_cast<CallData*>(tag)->proceed();
+    static_cast<CallData *>(tag)->proceed();
   }
 }
 
@@ -56,7 +56,7 @@ void AsyncService::stop() {
   cq_->Shutdown();
   // Pop all items in the queue until it is empty
   // https://github.com/grpc/grpc/issues/8610
-  void* tag;
+  void *tag;
   bool ok;
   while (cq_->Next(&tag, &ok)) {
   }
@@ -123,7 +123,7 @@ void AbortSessionResponderAsyncService::init_call_data() {
 
 template <class GRPCService, class RequestType, class ResponseType>
 AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::AsyncGRPCRequest(
-    ServerCompletionQueue* cq, GRPCService& service)
+    ServerCompletionQueue *cq, GRPCService &service)
     : cq_(cq), status_(PROCESS), responder_(&ctx_), service_(service) {}
 
 // Internal state management logic for AsyncGRPCRequest
@@ -133,7 +133,7 @@ AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::AsyncGRPCRequest(
 template <class GRPCService, class RequestType, class ResponseType>
 void AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::proceed() {
   if (status_ == PROCESS) {
-    clone();  // Create another stand by CallData
+    clone(); // Create another stand by CallData
     process();
     status_ = FINISH;
   } else {
@@ -143,11 +143,12 @@ void AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::proceed() {
 }
 
 template <class GRPCService, class RequestType, class ResponseType>
-std::function<void(Status, ResponseType)> AsyncGRPCRequest<
-    GRPCService, RequestType, ResponseType>::get_finish_callback() {
+std::function<void(Status, ResponseType)>
+AsyncGRPCRequest<GRPCService, RequestType,
+                 ResponseType>::get_finish_callback() {
   return [this](Status status, ResponseType response) {
-    responder_.Finish(response, status, (void*)this);
+    responder_.Finish(response, status, (void *)this);
   };
 }
 
-}  // namespace magma
+} // namespace magma

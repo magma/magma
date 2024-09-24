@@ -11,16 +11,16 @@
  * limitations under the License.
  */
 
+#include <algorithm>
+#include <cstdint>
+#include <experimental/optional>
 #include <gtest/gtest.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
+#include <memory>
 #include <metrics.pb.h>
 #include <orc8r/protos/metricsd.pb.h>
-#include <algorithm>
-#include <cstdint>
-#include <experimental/optional>
-#include <memory>
 #include <set>
 #include <string>
 #include <unordered_map>
@@ -46,10 +46,10 @@ using ::testing::Test;
 namespace magma {
 
 class SessionStoreTest : public ::testing::Test {
- protected:
+protected:
   SessionIDGenerator id_gen_;
 
- protected:
+protected:
   virtual void SetUp() {
     rule_store = std::make_shared<StaticRuleStore>();
     session_store = std::make_unique<SessionStore>(
@@ -76,7 +76,7 @@ class SessionStoreTest : public ::testing::Test {
     return policy;
   }
 
-  std::unique_ptr<SessionState> get_session(const std::string& imsi,
+  std::unique_ptr<SessionState> get_session(const std::string &imsi,
                                             std::string session_id) {
     Teids teid2;
     teid2.set_enb_teid(TEID_2_DL);
@@ -84,16 +84,16 @@ class SessionStoreTest : public ::testing::Test {
     return get_session(imsi, session_id, IP2, IPv6_2, teid2, "APN");
   }
 
-  std::unique_ptr<SessionState> get_session(const std::string& imsi,
+  std::unique_ptr<SessionState> get_session(const std::string &imsi,
                                             std::string session_id,
                                             std::string ip_addr,
                                             std::string ipv6_addr, Teids teids,
-                                            const std::string& apn) {
+                                            const std::string &apn) {
     std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
     SessionConfig cfg;
     cfg.common_context = build_common_context(imsi, ip_addr, ipv6_addr, teids,
                                               apn, MSISDN, TGPP_WLAN);
-    const auto& wlan_context = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+    const auto &wlan_context = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan_context);
     auto tgpp_context = TgppContext{};
     auto pdp_start_time = 12345;
@@ -105,7 +105,7 @@ class SessionStoreTest : public ::testing::Test {
     return session;
   }
 
-  std::unique_ptr<SessionState> get_lte_session(const std::string& imsi,
+  std::unique_ptr<SessionState> get_lte_session(const std::string &imsi,
                                                 std::string session_id) {
     Teids teid;
     teid.set_enb_teid(TEID_1_DL);
@@ -113,16 +113,17 @@ class SessionStoreTest : public ::testing::Test {
     return get_lte_session(imsi, session_id, IP2, IPv6_1, teid, "APN");
   }
 
-  std::unique_ptr<SessionState> get_lte_session(
-      const std::string& imsi, std::string session_id, std::string ip_addr,
-      std::string ipv6_addr, Teids teids, const std::string& apn) {
+  std::unique_ptr<SessionState>
+  get_lte_session(const std::string &imsi, std::string session_id,
+                  std::string ip_addr, std::string ipv6_addr, Teids teids,
+                  const std::string &apn) {
     SessionConfig cfg;
     cfg.common_context = build_common_context(imsi, ip_addr, ipv6_addr, teids,
                                               apn, MSISDN, TGPP_LTE);
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
-    const auto& lte_context =
+    const auto &lte_context =
         build_lte_context(imsi, "", "", "", "", 0, &qos_info);
     cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
     auto tgpp_context = TgppContext{};
@@ -225,13 +226,13 @@ class SessionStoreTest : public ::testing::Test {
     return update_criteria;
   }
 
-  bool is_equal(io::prometheus::client::LabelPair label_pair, const char*& name,
-                const char*& value) {
+  bool is_equal(io::prometheus::client::LabelPair label_pair, const char *&name,
+                const char *&value) {
     return label_pair.name().compare(name) == 0 &&
            label_pair.value().compare(value) == 0;
   }
 
- protected:
+protected:
   std::string session_id_3;
   std::string monitoring_key;
   std::string monitoring_key2;
@@ -283,10 +284,10 @@ TEST_F(SessionStoreTest, test_metering_reporting) {
       std::make_shared<service303::MagmaService>("test_service", "1.0");
   magma_service->GetMetrics(nullptr, nullptr, &resp);
   auto reported_metrics = 0;
-  for (auto const& fam : resp.family()) {
+  for (auto const &fam : resp.family()) {
     if (fam.name().compare("ue_traffic") == 0) {
-      for (auto const& m : fam.metric()) {
-        for (auto const& l : m.label()) {
+      for (auto const &m : fam.metric()) {
+        for (auto const &l : m.label()) {
           if (is_equal(l, DIRECTION_LABEL, DIRECTION_UP)) {
             EXPECT_EQ(m.counter().value(), UPLOADED_BYTES);
             reported_metrics += 1;
@@ -592,14 +593,14 @@ TEST_F(SessionStoreTest, test_get_session) {
                                         SESSION_ID_1);
   auto optional_it1 = session_store->find_session(session_map, id1_success_sid);
   EXPECT_TRUE(optional_it1);
-  auto& found_session1 = **optional_it1;
+  auto &found_session1 = **optional_it1;
   EXPECT_EQ(found_session1->get_session_id(), SESSION_ID_1);
 
   // Happy Path! IMSI+APN
   SessionSearchCriteria id1_success_apn(IMSI1, IMSI_AND_APN, "APN2");
   auto optional_it2 = session_store->find_session(session_map, id1_success_apn);
   EXPECT_TRUE(optional_it2);
-  auto& found_session2 = **optional_it2;
+  auto &found_session2 = **optional_it2;
   EXPECT_EQ(found_session2->get_config().common_context.apn(), "APN2");
 
   // Happy Path! IMSI+UE IPv4
@@ -607,7 +608,7 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto optional_it3 =
       session_store->find_session(session_map, id1_success_ipv4);
   EXPECT_TRUE(optional_it3);
-  auto& found_session3 = **optional_it3;
+  auto &found_session3 = **optional_it3;
   EXPECT_EQ(found_session3->get_config().common_context.ue_ipv4(), IP2);
 
   // Happy Path! LTE IMSI+UE IPv4 or IPv6
@@ -615,14 +616,14 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto optional_it46 =
       session_store->find_session(session_map, id1_success_ipv46);
   EXPECT_TRUE(optional_it46);
-  auto& found_session4 = **optional_it46;
+  auto &found_session4 = **optional_it46;
   EXPECT_EQ(found_session4->get_config().common_context.ue_ipv4(), IP3);
   SessionSearchCriteria id1_success_ipv46b(IMSI3, IMSI_AND_UE_IPV4_OR_IPV6,
                                            IPv6_3);
   auto optional_it46b =
       session_store->find_session(session_map, id1_success_ipv46b);
   EXPECT_TRUE(optional_it46b);
-  auto& found_session46b = **optional_it46b;
+  auto &found_session46b = **optional_it46b;
   EXPECT_EQ(found_session46b->get_config().common_context.ue_ipv6(), IPv6_3);
 
   // Happy Path! cwag IMSI+UE IPv4 or IPv6
@@ -630,14 +631,14 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto optional_it_cwg1 =
       session_store->find_session(session_map, id1_success_cwag1);
   EXPECT_TRUE(optional_it_cwg1);
-  auto& found_session_cwag1 = **optional_it_cwg1;
+  auto &found_session_cwag1 = **optional_it_cwg1;
   EXPECT_EQ(found_session_cwag1->get_config().common_context.apn(), "APN1");
 
   // Happy Path! IMSI+TEID LTE
   SessionSearchCriteria id6_success_sid(IMSI3, IMSI_AND_TEID, TEID_3_DL);
   auto optional_it6 = session_store->find_session(session_map, id6_success_sid);
   EXPECT_TRUE(optional_it6);
-  auto& found_session6 = **optional_it6;
+  auto &found_session6 = **optional_it6;
   EXPECT_EQ(found_session6->get_session_id(), SESSION_ID_3);
 
   // Not found IMSI and TEID
@@ -645,4 +646,4 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto optional_it7 = session_store->find_session(session_map, id7_success_sid);
   EXPECT_FALSE(optional_it7);
 }
-}  // namespace magma
+} // namespace magma

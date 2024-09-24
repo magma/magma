@@ -17,22 +17,22 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MsNetworkFeatureSupport.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_ms_network_feature_support(
-    MsNetworkFeatureSupport* msnetworkfeaturesupport, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    MsNetworkFeatureSupport *msnetworkfeaturesupport, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -45,8 +45,8 @@ int decode_ms_network_feature_support(
   return decoded;
 }
 int encode_ms_network_feature_support(
-    MsNetworkFeatureSupport* msnetworkfeaturesupport, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    MsNetworkFeatureSupport *msnetworkfeaturesupport, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
   /* Checking IEI and pointer */
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
@@ -60,7 +60,7 @@ int encode_ms_network_feature_support(
 }
 
 void dump_ms_network_feature_support_xml(
-    MsNetworkFeatureSupport* msnetworkfeaturesupport, uint8_t iei) {
+    MsNetworkFeatureSupport *msnetworkfeaturesupport, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Ms Network Feature Support>\n");
 
   if (iei > 0) /* Don't display IEI if = 0 */

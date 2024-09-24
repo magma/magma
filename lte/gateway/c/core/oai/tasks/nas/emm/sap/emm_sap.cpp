@@ -78,7 +78,7 @@ void emm_sap_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e emm_sap_send(emm_sap_t* msg) {
+status_code_e emm_sap_send(emm_sap_t *msg) {
   status_code_e rc = RETURNerror;
   emm_primitive_t primitive = msg->primitive;
 

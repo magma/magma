@@ -29,26 +29,26 @@ IPFlowDL to_proto_ip_flow_dl(struct ip_flow_dl flow_dl) {
 
   if ((flow_dl.set_params & DST_IPV4) || (flow_dl.set_params & SRC_IPV4)) {
     if (flow_dl.set_params & DST_IPV4) {
-      IPAddress* dest_ip = ue_flow_dl.mutable_dest_ip();
+      IPAddress *dest_ip = ue_flow_dl.mutable_dest_ip();
       dest_ip->set_version(IPAddress::IPV4);
       dest_ip->set_address(&flow_dl.dst_ip, sizeof(struct in_addr));
     }
 
     if (flow_dl.set_params & SRC_IPV4) {
-      IPAddress* src_ip = ue_flow_dl.mutable_src_ip();
+      IPAddress *src_ip = ue_flow_dl.mutable_src_ip();
       src_ip->set_version(IPAddress::IPV4);
       src_ip->set_address(&flow_dl.src_ip, sizeof(struct in_addr));
     }
 
   } else {
     if (flow_dl.set_params & DST_IPV6) {
-      IPAddress* dest_ip = ue_flow_dl.mutable_dest_ip();
+      IPAddress *dest_ip = ue_flow_dl.mutable_dest_ip();
       dest_ip->set_version(IPAddress::IPV6);
       dest_ip->set_address(&flow_dl.dst_ip6, sizeof(struct in6_addr));
     }
 
     if (flow_dl.set_params & SRC_IPV6) {
-      IPAddress* src_ip = ue_flow_dl.mutable_src_ip();
+      IPAddress *src_ip = ue_flow_dl.mutable_src_ip();
       src_ip->set_version(IPAddress::IPV6);
       src_ip->set_address(&flow_dl.src_ip6, sizeof(struct in6_addr));
     }
@@ -57,31 +57,31 @@ IPFlowDL to_proto_ip_flow_dl(struct ip_flow_dl flow_dl) {
   return ue_flow_dl;
 }
 
-void set_ue_ipv4_addr(const struct in_addr& ue_ipv4_addr,
-                      UESessionSet& request) {
-  IPAddress* encode_ue_ipv4_addr = request.mutable_ue_ipv4_address();
+void set_ue_ipv4_addr(const struct in_addr &ue_ipv4_addr,
+                      UESessionSet &request) {
+  IPAddress *encode_ue_ipv4_addr = request.mutable_ue_ipv4_address();
   encode_ue_ipv4_addr->set_version(IPAddress::IPV4);
   encode_ue_ipv4_addr->set_address(&ue_ipv4_addr, sizeof(struct in_addr));
 }
 
-void set_ue_ipv6_addr(const struct in6_addr& ue_ipv6_addr,
-                      UESessionSet& request) {
-  IPAddress* encode_ue_ipv6_addr = request.mutable_ue_ipv6_address();
+void set_ue_ipv6_addr(const struct in6_addr &ue_ipv6_addr,
+                      UESessionSet &request) {
+  IPAddress *encode_ue_ipv6_addr = request.mutable_ue_ipv6_address();
   encode_ue_ipv6_addr->set_version(IPAddress::IPV6);
   encode_ue_ipv6_addr->set_address(&ue_ipv6_addr, sizeof(struct in6_addr));
 }
 
 // Set the GNB IPv4 address
-void set_gnb_ipv4_addr(const struct in_addr& gnb_ipv4_addr,
-                       UESessionSet& request) {
-  IPAddress* encode_gnb_ipv4_addr = request.mutable_enb_ip_address();
+void set_gnb_ipv4_addr(const struct in_addr &gnb_ipv4_addr,
+                       UESessionSet &request) {
+  IPAddress *encode_gnb_ipv4_addr = request.mutable_enb_ip_address();
   encode_gnb_ipv4_addr->set_version(IPAddress::IPV4);
   encode_gnb_ipv4_addr->set_address(&gnb_ipv4_addr, sizeof(struct in_addr));
 }
 
 // Set the Session Config State
-void config_ue_session_state(uint32_t& ue_state, UESessionSet& request) {
-  UESessionState* ue_session_state = request.mutable_ue_session_state();
+void config_ue_session_state(uint32_t &ue_state, UESessionSet &request) {
+  UESessionState *ue_session_state = request.mutable_ue_session_state();
 
   if (UE_SESSION_ACTIVE_STATE == ue_state) {
     ue_session_state->set_ue_config_state(UESessionState::ACTIVE);
@@ -99,8 +99,8 @@ void config_ue_session_state(uint32_t& ue_state, UESessionSet& request) {
 }
 
 // Utility : IPv4 tunnel create generic request
-UESessionSet create_update_request_ipv4(struct in_addr& enb_ipv4_addr,
-                                        const struct in_addr& ue_ipv4_addr,
+UESessionSet create_update_request_ipv4(struct in_addr &enb_ipv4_addr,
+                                        const struct in_addr &ue_ipv4_addr,
                                         uint32_t in_teid, uint32_t out_teid,
                                         int vlan, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
@@ -129,14 +129,14 @@ UESessionSet create_update_request_ipv4(struct in_addr& enb_ipv4_addr,
 
 // IPv4 tunnel add request
 UESessionSet create_add_update_request_ipv4(
-    const struct in_addr& ue_ipv4_addr, int vlan, struct in_addr& enb_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const std::string& imsi,
-    uint32_t flow_precedence, const std::string& apn, uint32_t ue_state) {
+    const struct in_addr &ue_ipv4_addr, int vlan, struct in_addr &enb_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const std::string &imsi,
+    uint32_t flow_precedence, const std::string &apn, uint32_t ue_state) {
   UESessionSet request = create_update_request_ipv4(
       enb_ipv4_addr, ue_ipv4_addr, in_teid, out_teid, vlan, ue_state);
 
   // Set the Subscriber ID
-  SubscriberID* sid = request.mutable_subscriber_id();
+  SubscriberID *sid = request.mutable_subscriber_id();
   sid->set_id("IMSI" + std::string(imsi));
   sid->set_type(SubscriberID::IMSI);
 
@@ -151,15 +151,15 @@ UESessionSet create_add_update_request_ipv4(
 
 // IPv4 tunnel add request with flow_dl
 UESessionSet create_add_update_request_ipv4_flow_dl(
-    const struct in_addr& ue_ipv4_addr, int vlan, struct in_addr& enb_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const std::string& imsi,
-    const struct ip_flow_dl& flow_dl, uint32_t flow_precedence,
-    const std::string& apn, uint32_t ue_state) {
+    const struct in_addr &ue_ipv4_addr, int vlan, struct in_addr &enb_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const std::string &imsi,
+    const struct ip_flow_dl &flow_dl, uint32_t flow_precedence,
+    const std::string &apn, uint32_t ue_state) {
   UESessionSet request = create_update_request_ipv4(
       enb_ipv4_addr, ue_ipv4_addr, in_teid, out_teid, vlan, ue_state);
 
   // Set the Subscriber ID
-  SubscriberID* sid = request.mutable_subscriber_id();
+  SubscriberID *sid = request.mutable_subscriber_id();
   sid->set_id("IMSI" + std::string(imsi));
   sid->set_type(SubscriberID::IMSI);
 
@@ -178,8 +178,8 @@ UESessionSet create_add_update_request_ipv4_flow_dl(
 //---------- TUNNEL IPV4 ONLY DEL FUNCTION ----------
 
 // IPv4 tunnel del request
-UESessionSet create_del_update_request_ipv4(struct in_addr& enb_ipv4_addr,
-                                            const struct in_addr& ue_ipv4_addr,
+UESessionSet create_del_update_request_ipv4(struct in_addr &enb_ipv4_addr,
+                                            const struct in_addr &ue_ipv4_addr,
                                             uint32_t in_teid, uint32_t out_teid,
                                             uint32_t ue_state) {
   // For deletion vlan=0
@@ -191,8 +191,8 @@ UESessionSet create_del_update_request_ipv4(struct in_addr& enb_ipv4_addr,
 
 // IPv4 tunnel del request with flow_dl
 UESessionSet create_del_update_request_ipv4_flow_dl(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl& flow_dl,
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    uint32_t in_teid, uint32_t out_teid, const struct ip_flow_dl &flow_dl,
     uint32_t ue_state) {
   UESessionSet request = create_update_request_ipv4(
       enb_ipv4_addr, ue_ipv4_addr, in_teid, out_teid, 0, ue_state);
@@ -207,9 +207,9 @@ UESessionSet create_del_update_request_ipv4_flow_dl(
 
 // IPv4-v6 tunnel add request
 UESessionSet create_add_update_request_ipv4v6(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr, int vlan,
-    struct in_addr& enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
-    const std::string& imsi, uint32_t flow_precedence, const std::string& apn,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr, int vlan,
+    struct in_addr &enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
+    const std::string &imsi, uint32_t flow_precedence, const std::string &apn,
     uint32_t ue_state) {
   UESessionSet request = create_update_request_ipv4(
       enb_ipv4_addr, ue_ipv4_addr, in_teid, out_teid, vlan, ue_state);
@@ -218,7 +218,7 @@ UESessionSet create_add_update_request_ipv4v6(
   set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the Subscriber ID
-  SubscriberID* sid = request.mutable_subscriber_id();
+  SubscriberID *sid = request.mutable_subscriber_id();
   sid->set_id("IMSI" + std::string(imsi));
   sid->set_type(SubscriberID::IMSI);
 
@@ -233,10 +233,10 @@ UESessionSet create_add_update_request_ipv4v6(
 
 // IPv4-v6 tunnel add request with flow_dl
 UESessionSet create_add_update_request_ipv4v6_flow_dl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr, int vlan,
-    struct in_addr& enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
-    const std::string& imsi, const struct ip_flow_dl& flow_dl,
-    uint32_t flow_precedence, const std::string& apn, uint32_t ue_state) {
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr, int vlan,
+    struct in_addr &enb_ipv4_addr, uint32_t in_teid, uint32_t out_teid,
+    const std::string &imsi, const struct ip_flow_dl &flow_dl,
+    uint32_t flow_precedence, const std::string &apn, uint32_t ue_state) {
   UESessionSet request = create_update_request_ipv4(
       enb_ipv4_addr, ue_ipv4_addr, in_teid, out_teid, vlan, ue_state);
 
@@ -244,7 +244,7 @@ UESessionSet create_add_update_request_ipv4v6_flow_dl(
   set_ue_ipv6_addr(ue_ipv6_addr, request);
 
   // Set the Subscriber ID
-  SubscriberID* sid = request.mutable_subscriber_id();
+  SubscriberID *sid = request.mutable_subscriber_id();
   sid->set_id("IMSI" + std::string(imsi));
   sid->set_type(SubscriberID::IMSI);
 
@@ -264,8 +264,8 @@ UESessionSet create_add_update_request_ipv4v6_flow_dl(
 
 // IPv4-v6 tunnel del request
 UESessionSet create_del_update_request_ipv4v6(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    struct in6_addr& ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    struct in6_addr &ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
     uint32_t ue_state) {
   // For deletion vlan=0
   UESessionSet request = create_update_request_ipv4(
@@ -279,9 +279,9 @@ UESessionSet create_del_update_request_ipv4v6(
 
 // IPv4-v6 tunnel del request with flow dl
 UESessionSet create_del_update_request_ipv4v6_flow_dl(
-    struct in_addr& enb_ipv4_addr, const struct in_addr& ue_ipv4_addr,
-    struct in6_addr& ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t ue_state) {
+    struct in_addr &enb_ipv4_addr, const struct in_addr &ue_ipv4_addr,
+    struct in6_addr &ue_ipv6_addr, uint32_t in_teid, uint32_t out_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t ue_state) {
   // For deletion vlan=0
   UESessionSet request = create_update_request_ipv4(
       enb_ipv4_addr, ue_ipv4_addr, in_teid, out_teid, 0, ue_state);
@@ -298,8 +298,9 @@ UESessionSet create_del_update_request_ipv4v6_flow_dl(
 //---------- TUNNEL DISCARD FUNCTION ----------
 
 // IPv4 request for discarding data on tunnel
-UESessionSet create_discard_data_update_request_ipv4(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid, uint32_t ue_state) {
+UESessionSet
+create_discard_data_update_request_ipv4(const struct in_addr &ue_ipv4_addr,
+                                        uint32_t in_teid, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
   // Set the UE IPv4 address
@@ -316,8 +317,8 @@ UESessionSet create_discard_data_update_request_ipv4(
 
 // IPv4 request for discarding data on tunnel with flow_dl
 UESessionSet create_discard_data_update_request_ipv4_flow_dl(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t ue_state) {
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
   // Set the UE IPv4 address
@@ -336,9 +337,10 @@ UESessionSet create_discard_data_update_request_ipv4_flow_dl(
 }
 
 // IPv4v6 request for discarding data on tunnel
-UESessionSet create_discard_data_update_request_ipv4v6(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-    uint32_t in_teid, uint32_t ue_state) {
+UESessionSet
+create_discard_data_update_request_ipv4v6(const struct in_addr &ue_ipv4_addr,
+                                          struct in6_addr &ue_ipv6_addr,
+                                          uint32_t in_teid, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
   // Set the UE IPv4 address
@@ -358,8 +360,8 @@ UESessionSet create_discard_data_update_request_ipv4v6(
 
 // IPv4v6 request for discarding data on tunnel with flow_dl
 UESessionSet create_discard_data_update_request_ipv4v6_flow_dl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-    uint32_t in_teid, const struct ip_flow_dl& flow_dl, uint32_t ue_state) {
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+    uint32_t in_teid, const struct ip_flow_dl &flow_dl, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
   // Set the UE IPv4 address
@@ -384,7 +386,7 @@ UESessionSet create_discard_data_update_request_ipv4v6_flow_dl(
 
 // IPv4 request for forwarding data on tunnel
 UESessionSet create_forwarding_data_update_request_ipv4(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
     uint32_t flow_precedence, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
@@ -405,8 +407,8 @@ UESessionSet create_forwarding_data_update_request_ipv4(
 
 // IPv4 request for forwarding data on tunnel with flow_dl
 UESessionSet create_forwarding_data_update_request_ipv4_flow_dl(
-    const struct in_addr& ue_ipv4_addr, uint32_t in_teid,
-    const struct ip_flow_dl& flow_dl, uint32_t flow_precedence,
+    const struct in_addr &ue_ipv4_addr, uint32_t in_teid,
+    const struct ip_flow_dl &flow_dl, uint32_t flow_precedence,
     uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
@@ -430,7 +432,7 @@ UESessionSet create_forwarding_data_update_request_ipv4_flow_dl(
 
 // IPv4v6 request for forwarding data on tunnel
 UESessionSet create_forwarding_data_update_request_ipv4v6(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
     uint32_t in_teid, uint32_t flow_precedence, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
@@ -450,12 +452,12 @@ UESessionSet create_forwarding_data_update_request_ipv4v6(
   config_ue_session_state(ue_state, request);
 
   return request;
-}  // namespace lte
+} // namespace lte
 
 // IPv4v6 request for forwarding data on tunnel with flow_dl
 UESessionSet create_forwarding_data_update_request_ipv4v6_flow_dl(
-    const struct in_addr& ue_ipv4_addr, struct in6_addr& ue_ipv6_addr,
-    uint32_t in_teid, const struct ip_flow_dl& flow_dl,
+    const struct in_addr &ue_ipv4_addr, struct in6_addr &ue_ipv6_addr,
+    uint32_t in_teid, const struct ip_flow_dl &flow_dl,
     uint32_t flow_precedence, uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
@@ -483,8 +485,9 @@ UESessionSet create_forwarding_data_update_request_ipv4v6_flow_dl(
 //---------- UE PAGING FUNCTION ----------
 
 // Create paging request
-UESessionSet create_paging_update_request_ipv4(
-    const struct in_addr& ue_ipv4_addr, uint32_t ue_state) {
+UESessionSet
+create_paging_update_request_ipv4(const struct in_addr &ue_ipv4_addr,
+                                  uint32_t ue_state) {
   UESessionSet request = UESessionSet();
 
   // Set the UE IPv4 address
@@ -496,5 +499,5 @@ UESessionSet create_paging_update_request_ipv4(
   return request;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

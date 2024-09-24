@@ -15,21 +15,21 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include <grpcpp/impl/codegen/status.h>
+#include <iostream>
 #include <stdint.h>
 #include <string.h>
 #include <string>
-#include <iostream>
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "feg/protos/s6a_proxy.pb.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
 #include "lte/gateway/c/core/oai/lib/store/sqlite.hpp"
 #include "lte/protos/subscriberdb.pb.h"
 
@@ -40,7 +40,7 @@ extern task_zmq_ctx_t s6a_task_zmq_ctx;
 using namespace magma;
 using namespace magma::feg;
 
-bool s6a_purge_ue(const char* imsi) {
+bool s6a_purge_ue(const char *imsi) {
   if (imsi == nullptr) {
     return false;
   }
@@ -65,10 +65,10 @@ bool s6a_purge_ue(const char* imsi) {
 }
 
 static void s6a_handle_authentication_info_ans(
-    const std::string& imsi, uint8_t imsi_length, const grpc::Status& status,
+    const std::string &imsi, uint8_t imsi_length, const grpc::Status &status,
     feg::AuthenticationInformationAnswer response) {
-  MessageDef* message_p = NULL;
-  s6a_auth_info_ans_t* itti_msg = NULL;
+  MessageDef *message_p = NULL;
+  s6a_auth_info_ans_t *itti_msg = NULL;
 
   message_p = itti_alloc_new_message(TASK_S6A, S6A_AUTH_INFO_ANS);
   itti_msg = &message_p->ittiMsg.s6a_auth_info_ans;
@@ -101,13 +101,13 @@ static void s6a_handle_authentication_info_ans(
     itti_msg->result.choice.base = DIAMETER_UNABLE_TO_COMPLY;
   }
 
-  IMSI_STRING_TO_IMSI64((char*)imsi.c_str(), &message_p->ittiMsgHeader.imsi);
+  IMSI_STRING_TO_IMSI64((char *)imsi.c_str(), &message_p->ittiMsgHeader.imsi);
 
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   return;
 }
 
-bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
+bool s6a_authentication_info_req(const s6a_auth_info_req_t *const air_p) {
   auto imsi_len = air_p->imsi_length;
   std::cout
       << "[INFO] Sending S6A-AUTHENTICATION_INFORMATION_REQUEST with IMSI: "
@@ -122,13 +122,13 @@ bool s6a_authentication_info_req(const s6a_auth_info_req_t* const air_p) {
   return true;
 }
 
-static void s6a_handle_update_location_ans(const std::string& imsi,
+static void s6a_handle_update_location_ans(const std::string &imsi,
                                            uint8_t imsi_length,
                                            uint32_t rat_type,
-                                           const grpc::Status& status,
+                                           const grpc::Status &status,
                                            feg::UpdateLocationAnswer response) {
-  MessageDef* message_p = NULL;
-  s6a_update_location_ans_t* itti_msg = NULL;
+  MessageDef *message_p = NULL;
+  s6a_update_location_ans_t *itti_msg = NULL;
 
   message_p = itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
   itti_msg = &message_p->ittiMsg.s6a_update_location_ans;
@@ -154,8 +154,8 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
         sub_id->set_id(imsi);
         sub_id->set_type(magma::lte::SubscriberID::IMSI);
         magma::S6aClient::convert_ula_to_subscriber_data(response, &sub_data);
-        magma::lte::SqliteStore* sqlObj = new magma::lte::SqliteStore(
-            "/var/opt/magma/", 2);  // location is same as SubscriberDB
+        magma::lte::SqliteStore *sqlObj = new magma::lte::SqliteStore(
+            "/var/opt/magma/", 2); // location is same as SubscriberDB
         sqlObj->add_subscriber(sub_data);
       }
 
@@ -176,7 +176,7 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
   }
   std::cout << "[INFO] sent itti S6A-LOCATION-UPDATE_ANSWER for IMSI: " << imsi
             << std::endl;
-  IMSI_STRING_TO_IMSI64((char*)imsi.c_str(), &message_p->ittiMsgHeader.imsi);
+  IMSI_STRING_TO_IMSI64((char *)imsi.c_str(), &message_p->ittiMsgHeader.imsi);
 
   if (rat_type == RAT_NG_RAN) {
     send_msg_to_task(&s6a_task_zmq_ctx, TASK_AMF_APP, message_p);
@@ -187,7 +187,7 @@ static void s6a_handle_update_location_ans(const std::string& imsi,
   return;
 }
 
-bool s6a_update_location_req(const s6a_update_location_req_t* const ulr_p) {
+bool s6a_update_location_req(const s6a_update_location_req_t *const ulr_p) {
   auto imsi_len = ulr_p->imsi_length;
   std::cout << "[DEBUG] Sending S6A-UPDATE_LOCATION_REQUEST with IMSI: "
             << std::string(ulr_p->imsi) << std::endl;

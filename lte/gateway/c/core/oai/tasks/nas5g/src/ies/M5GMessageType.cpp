@@ -9,19 +9,19 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <iostream>
+#include <sstream>
 
 namespace magma5g {
 MessageTypeMsg::MessageTypeMsg(){};
 MessageTypeMsg::~MessageTypeMsg(){};
 
 // Decode MessageType IE
-int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,
-                                         uint8_t iei, uint8_t* buffer,
+int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg *message_type,
+                                         uint8_t iei, uint8_t *buffer,
                                          uint32_t len) {
   uint8_t decoded = 0;
 
@@ -31,8 +31,8 @@ int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,
 };
 
 // Encode MessageType IE
-int MessageTypeMsg::EncodeMessageTypeMsg(MessageTypeMsg* message_type,
-                                         uint8_t iei, uint8_t* buffer,
+int MessageTypeMsg::EncodeMessageTypeMsg(MessageTypeMsg *message_type,
+                                         uint8_t iei, uint8_t *buffer,
                                          uint32_t len) {
   uint8_t encoded = 0;
 
@@ -40,4 +40,4 @@ int MessageTypeMsg::EncodeMessageTypeMsg(MessageTypeMsg* message_type,
   encoded++;
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

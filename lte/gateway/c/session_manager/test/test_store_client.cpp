@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
+#include <functional>
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.pb.h>
-#include <functional>
 #include <memory>
 #include <set>
 #include <string>
@@ -35,7 +35,7 @@ using ::testing::Test;
 namespace magma {
 
 class StoreClientTest : public ::testing::Test {
- protected:
+protected:
   SessionIDGenerator id_gen_;
 };
 
@@ -60,7 +60,7 @@ TEST_F(StoreClientTest, test_read_and_write) {
       build_common_context(IMSI2, IP1, IPv6_1, teids, APN1, MSISDN, TGPP_WLAN);
   cfg3.common_context =
       build_common_context(IMSI3, IP1, IPv6_1, teids, APN1, MSISDN, TGPP_WLAN);
-  const auto& wlan = build_wlan_context("0f:10:2e:12:3a:55", RADIUS_SESSION_ID);
+  const auto &wlan = build_wlan_context("0f:10:2e:12:3a:55", RADIUS_SESSION_ID);
   cfg1.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
   cfg2.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
   cfg3.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
@@ -160,8 +160,8 @@ TEST_F(StoreClientTest, test_read_and_write) {
 TEST_F(StoreClientTest, test_lambdas) {
   auto sm = std::make_unique<int>(1);
 
-  std::function<void(std::unique_ptr<int>&)> callback2 =
-      [](std::unique_ptr<int>& inp) { EXPECT_EQ(*inp, 2); };
+  std::function<void(std::unique_ptr<int> &)> callback2 =
+      [](std::unique_ptr<int> &inp) { EXPECT_EQ(*inp, 2); };
 
   std::function<void()> callback =
       [=, shared = std::make_shared<decltype(sm)>(std::move(sm))]() mutable {
@@ -171,4 +171,4 @@ TEST_F(StoreClientTest, test_lambdas) {
       };
   callback();
 }
-}  // namespace magma
+} // namespace magma

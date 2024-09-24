@@ -45,7 +45,7 @@ extern "C" {
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
+int pdn_connectivity_delete(emm_context_t *emm_context, pdn_cid_t pid);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
@@ -58,7 +58,7 @@ int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 /*
    PDN disconnection handlers
 */
-static int pdn_disconnect_get_pid(emm_context_t* emm_context, proc_tid_t pti);
+static int pdn_disconnect_get_pid(emm_context_t *emm_context, proc_tid_t pti);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -93,11 +93,11 @@ static int pdn_disconnect_get_pid(emm_context_t* emm_context, proc_tid_t pti);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_disconnect_request(emm_context_t* emm_context, proc_tid_t pti,
-                                    esm_cause_t* esm_cause) {
+int esm_proc_pdn_disconnect_request(emm_context_t *emm_context, proc_tid_t pti,
+                                    esm_cause_t *esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   pdn_cid_t pid = RETURNerror;
-  ue_mm_context_t* ue_context_p =
+  ue_mm_context_t *ue_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   mme_ue_s1ap_id_t ue_id = ue_context_p->mme_ue_s1ap_id;
   int nb_active_pdn_contexts = ue_context_p->nb_active_pdn_contexts;
@@ -157,9 +157,9 @@ int esm_proc_pdn_disconnect_request(emm_context_t* emm_context, proc_tid_t pti,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_pdn_disconnect_accept(emm_context_t* emm_context,
+status_code_e esm_proc_pdn_disconnect_accept(emm_context_t *emm_context,
                                              pdn_cid_t pid,
-                                             esm_cause_t* esm_cause) {
+                                             esm_cause_t *esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
@@ -214,8 +214,8 @@ status_code_e esm_proc_pdn_disconnect_accept(emm_context_t* emm_context,
  **                                                                        **
  ***************************************************************************/
 status_code_e esm_proc_pdn_disconnect_reject(const bool is_standalone,
-                                             emm_context_t* emm_context,
-                                             ebi_t ebi, STOLEN_REF bstring* msg,
+                                             emm_context_t *emm_context,
+                                             ebi_t ebi, STOLEN_REF bstring *msg,
                                              const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc = RETURNok;
@@ -273,12 +273,12 @@ status_code_e esm_proc_pdn_disconnect_reject(const bool is_standalone,
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static pdn_cid_t pdn_disconnect_get_pid(emm_context_t* emm_context,
+static pdn_cid_t pdn_disconnect_get_pid(emm_context_t *emm_context,
                                         proc_tid_t pti) {
   pdn_cid_t i = MAX_APN_PER_UE;
 
   if (emm_context) {
-    ue_mm_context_t* ue_mm_context =
+    ue_mm_context_t *ue_mm_context =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     for (i = 0; i < MAX_APN_PER_UE; i++) {
       if (ue_mm_context->pdn_contexts[i]) {

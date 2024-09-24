@@ -19,8 +19,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
 
 namespace magma5g {
 DLNASTransportMsg::DLNASTransportMsg(){};
@@ -28,7 +28,7 @@ DLNASTransportMsg::~DLNASTransportMsg(){};
 
 // Decode DLNASTransport Message and its IEs
 int DLNASTransportMsg::DecodeDLNASTransportMsg(
-    DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len) {
+    DLNASTransportMsg *dl_nas_transport, uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -100,34 +100,34 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
     decoded_result = 0;
 
     switch (static_cast<M5GIei>(type)) {
-      case M5GIei::M5GMM_CAUSE: {
-        if ((decoded_result = dl_nas_transport->m5gmm_cause.DecodeM5GMMCauseMsg(
-                 &dl_nas_transport->m5gmm_cause,
-                 static_cast<uint8_t>(M5GIei::M5GMM_CAUSE), buffer + decoded,
-                 len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
+    case M5GIei::M5GMM_CAUSE: {
+      if ((decoded_result = dl_nas_transport->m5gmm_cause.DecodeM5GMMCauseMsg(
+               &dl_nas_transport->m5gmm_cause,
+               static_cast<uint8_t>(M5GIei::M5GMM_CAUSE), buffer + decoded,
+               len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
       }
-      case M5GIei::PDU_SESSION_IDENTITY_2: {
-        if ((decoded_result =
-                 dl_nas_transport->pdu_session_identity
-                     .DecodePDUSessionIdentityMsg(
-                         &dl_nas_transport->pdu_session_identity,
-                         static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2),
-                         buffer + decoded, len - decoded)) < 0) {
-          return decoded_result;
-        } else {
-          decoded += decoded_result;
-        }
-        break;
+      break;
+    }
+    case M5GIei::PDU_SESSION_IDENTITY_2: {
+      if ((decoded_result =
+               dl_nas_transport->pdu_session_identity
+                   .DecodePDUSessionIdentityMsg(
+                       &dl_nas_transport->pdu_session_identity,
+                       static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2),
+                       buffer + decoded, len - decoded)) < 0) {
+        return decoded_result;
+      } else {
+        decoded += decoded_result;
       }
-      default:
-        OAILOG_ERROR(LOG_NAS5G, "Unable to decode Optional Parameter");
-        decoded_result = -1;
-        break;
+      break;
+    }
+    default:
+      OAILOG_ERROR(LOG_NAS5G, "Unable to decode Optional Parameter");
+      decoded_result = -1;
+      break;
     }
 
     if (decoded_result < 0) {
@@ -140,7 +140,7 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
 
 // Encode DL NAS Transport Message and its IEs
 int DLNASTransportMsg::EncodeDLNASTransportMsg(
-    DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len) {
+    DLNASTransportMsg *dl_nas_transport, uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   int encoded_result = 0;
@@ -231,4 +231,4 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
 
   return encoded;
 }
-}  // namespace magma5g
+} // namespace magma5g

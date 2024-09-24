@@ -11,11 +11,11 @@
  * limitations under the License.
  */
 
-#include <grpcpp/grpcpp.h>
-#include <grpcpp/security/server_credentials.h>
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
+#include <grpcpp/grpcpp.h>
+#include <grpcpp/security/server_credentials.h>
 
 task_zmq_ctx_t task_zmq_ctx_grpc;
 grpc_service_data_t grpc_service_config = {0};
@@ -27,18 +27,18 @@ using magma::S8ServiceImpl;
 static S8ServiceImpl s8_service;
 static std::unique_ptr<Server> server;
 static void stop_mock_grpc_task();
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TERMINATE_MESSAGE: {
-      itti_free_msg_content(received_message_p);
-      free(received_message_p);
-      stop_mock_grpc_task();
-    } break;
+  case TERMINATE_MESSAGE: {
+    itti_free_msg_content(received_message_p);
+    free(received_message_p);
+    stop_mock_grpc_task();
+  } break;
 
-    default: {
-    } break;
+  default: {
+  } break;
   }
   itti_free_msg_content(received_message_p);
   free(received_message_p);

@@ -10,20 +10,20 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // SecurityHeaderType IE Class
 class SecurityHeaderTypeMsg {
- public:
+public:
   uint8_t sec_hdr : 4;
 
   SecurityHeaderTypeMsg();
   ~SecurityHeaderTypeMsg();
-  int EncodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg* sec_header_type,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg* sec_header_type,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg *sec_header_type,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len);
+  int DecodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg *sec_header_type,
+                                  uint8_t iei, uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

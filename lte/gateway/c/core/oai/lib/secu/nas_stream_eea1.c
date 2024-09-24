@@ -15,9 +15,9 @@
  *      contact@openairinterface.org
  */
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
@@ -26,14 +26,14 @@
 #include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/lib/secu/snow3g.h"
 
-int nas_stream_encrypt_eea1(nas_stream_cipher_t* const stream_cipher,
-                            uint8_t* const out) {
+int nas_stream_encrypt_eea1(nas_stream_cipher_t *const stream_cipher,
+                            uint8_t *const out) {
   snow_3g_context_t snow_3g_context;
   int n;
   int i = 0;
   uint32_t zero_bit = 0;
   // uint32_t                                byte_length;
-  uint32_t* KS;
+  uint32_t *KS;
   uint32_t K[4], IV[4];
 
   DevAssert(stream_cipher != NULL);
@@ -79,8 +79,8 @@ int nas_stream_encrypt_eea1(nas_stream_cipher_t* const stream_cipher,
    * Run SNOW 3G algorithm to generate sequence of key stream bits KS
    */
   snow3g_initialize(K, IV, &snow_3g_context);
-  KS = (uint32_t*)calloc(1, 4 * n);
-  snow3g_generate_key_stream(n, (uint32_t*)KS, &snow_3g_context);
+  KS = (uint32_t *)calloc(1, 4 * n);
+  snow3g_generate_key_stream(n, (uint32_t *)KS, &snow_3g_context);
 
   if (zero_bit > 0) {
     KS[n - 1] = KS[n - 1] & (uint32_t)(0xFFFFFFFF << (8 - zero_bit));
@@ -95,7 +95,7 @@ int nas_stream_encrypt_eea1(nas_stream_cipher_t* const stream_cipher,
    * stream
    */
   for (i = 0; i < n * 4; i++) {
-    stream_cipher->message[i] ^= *(((uint8_t*)KS) + i);
+    stream_cipher->message[i] ^= *(((uint8_t *)KS) + i);
   }
 
   int ceil_index = 0;
@@ -107,7 +107,7 @@ int nas_stream_encrypt_eea1(nas_stream_cipher_t* const stream_cipher,
         (uint8_t)(0xFF << (8 - zero_bit));
   }
 
-  free_wrapper((void**)&KS);
+  free_wrapper((void **)&KS);
   memcpy(out, stream_cipher->message, n * 4);
 
   if (zero_bit > 0) {

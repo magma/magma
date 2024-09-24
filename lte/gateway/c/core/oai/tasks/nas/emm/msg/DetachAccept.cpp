@@ -22,13 +22,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_detach_accept(detach_accept_msg* detach_accept, uint8_t* buffer,
+int decode_detach_accept(detach_accept_msg *detach_accept, uint8_t *buffer,
                          uint32_t len) {
   uint32_t decoded = 0;
 
@@ -42,7 +42,7 @@ int decode_detach_accept(detach_accept_msg* detach_accept, uint8_t* buffer,
   return decoded;
 }
 
-int encode_detach_accept(detach_accept_msg* detach_accept, uint8_t* buffer,
+int encode_detach_accept(detach_accept_msg *detach_accept, uint8_t *buffer,
                          uint32_t len) {
   int encoded = 0;
 

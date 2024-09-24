@@ -50,8 +50,9 @@ extern "C" {
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-status_code_e esm_proc_default_eps_bearer_context_failure(
-    emm_context_t* emm_context, pdn_cid_t* const pid);
+status_code_e
+esm_proc_default_eps_bearer_context_failure(emm_context_t *emm_context,
+                                            pdn_cid_t *const pid);
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -71,11 +72,11 @@ status_code_e esm_proc_default_eps_bearer_context_failure(
    retransmission counter */
 #define DEFAULT_EPS_BEARER_ACTIVATE_COUNTER_MAX 5
 
-static int default_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
-                                       STOLEN_REF bstring* msg);
+static int default_eps_bearer_activate(emm_context_t *emm_context, ebi_t ebi,
+                                       STOLEN_REF bstring *msg);
 
 static status_code_e default_eps_bearer_activate_in_bearer_setup_req(
-    emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg);
+    emm_context_t *emm_context, ebi_t ebi, STOLEN_REF bstring *msg);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -106,11 +107,11 @@ static status_code_e default_eps_bearer_activate_in_bearer_setup_req(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_default_eps_bearer_context(emm_context_t* emm_context,
+status_code_e esm_proc_default_eps_bearer_context(emm_context_t *emm_context,
                                                   const proc_tid_t pti,
-                                                  pdn_cid_t pid, ebi_t* ebi,
+                                                  pdn_cid_t pid, ebi_t *ebi,
                                                   const qci_t qci,
-                                                  esm_cause_t* esm_cause) {
+                                                  esm_cause_t *esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
@@ -132,8 +133,8 @@ status_code_e esm_proc_default_eps_bearer_context(emm_context_t* emm_context,
      */
     *ebi = esm_ebr_context_create(
         emm_context, pti, pid, *ebi, IS_DEFAULT_BEARER_YES, qci, 0, 0, 0, 0,
-        (traffic_flow_template_t*)NULL, (protocol_configuration_options_t*)NULL,
-        NULL);
+        (traffic_flow_template_t *)NULL,
+        (protocol_configuration_options_t *)NULL, NULL);
 
     if (*ebi == ESM_EBI_UNASSIGNED) {
       /*
@@ -191,8 +192,8 @@ status_code_e esm_proc_default_eps_bearer_context(emm_context_t* emm_context,
  **                                                                        **
  ***************************************************************************/
 status_code_e esm_proc_default_eps_bearer_context_request(
-    bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
-    STOLEN_REF bstring* msg, bool ue_triggered) {
+    bool is_standalone, emm_context_t *emm_context, ebi_t ebi,
+    STOLEN_REF bstring *msg, bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc = RETURNok;
 
@@ -267,8 +268,9 @@ status_code_e esm_proc_default_eps_bearer_context_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_default_eps_bearer_context_accept(
-    emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
+status_code_e
+esm_proc_default_eps_bearer_context_accept(emm_context_t *emm_context,
+                                           ebi_t ebi, esm_cause_t *esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc;
   mme_ue_s1ap_id_t ue_id =
@@ -328,8 +330,9 @@ status_code_e esm_proc_default_eps_bearer_context_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_default_eps_bearer_context_reject(
-    emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
+status_code_e
+esm_proc_default_eps_bearer_context_reject(emm_context_t *emm_context,
+                                           ebi_t ebi, esm_cause_t *esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc;
   mme_ue_s1ap_id_t ue_id =
@@ -364,7 +367,7 @@ status_code_e esm_proc_default_eps_bearer_context_reject(
     }
 
 #if EMBEDDED_SGW
-    ue_mm_context_t* ue_context_p =
+    ue_mm_context_t *ue_context_p =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     if (!ue_context_p) {
       OAILOG_ERROR(
@@ -414,8 +417,9 @@ status_code_e esm_proc_default_eps_bearer_context_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e esm_proc_default_eps_bearer_context_failure(
-    emm_context_t* emm_context, pdn_cid_t* const pid) {
+status_code_e
+esm_proc_default_eps_bearer_context_failure(emm_context_t *emm_context,
+                                            pdn_cid_t *const pid) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   status_code_e rc = RETURNerror;
   mme_ue_s1ap_id_t ue_id =
@@ -487,14 +491,14 @@ status_code_e esm_proc_default_eps_bearer_context_failure(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
+status_code_e default_eps_bearer_activate_t3485_handler(zloop_t *loop,
                                                         int timer_id,
-                                                        void* args) {
+                                                        void *args) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   timer_arg_t timer_args;
   if (args) {
-    timer_args = *((timer_arg_t*)args);
+    timer_args = *((timer_arg_t *)args);
   } else if (!mme_pop_timer_arg(timer_id, &timer_args)) {
     OAILOG_WARNING(LOG_NAS_EMM, "Invalid Timer Id expiration, Timer Id: %u\n",
                    timer_id);
@@ -502,8 +506,8 @@ status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
   }
   mme_ue_s1ap_id_t ue_id = timer_args.ue_id;
 
-  ue_mm_context_t* ue_mm_context = mme_app_get_ue_context_for_timer(
-      ue_id, const_cast<char*>("EPS BEARER ACTIVATE T3485 Timer"));
+  ue_mm_context_t *ue_mm_context = mme_app_get_ue_context_for_timer(
+      ue_id, const_cast<char *>("EPS BEARER ACTIVATE T3485 Timer"));
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
@@ -515,7 +519,7 @@ status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
   ebi_t ebi = timer_args.ebi;
   int bid = EBI_TO_INDEX(ebi);
 
-  bearer_context_t* bearer_context = ue_mm_context->bearer_contexts[bid];
+  bearer_context_t *bearer_context = ue_mm_context->bearer_contexts[bid];
   if (bearer_context == NULL) {
     OAILOG_ERROR_UE(LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
                     "Failed to find bearer context for bearer_id:%u and "
@@ -524,12 +528,12 @@ status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNok);
   }
 
-  esm_ebr_context_t* ebr_ctx = &(bearer_context->esm_ebr_context);
+  esm_ebr_context_t *ebr_ctx = &(bearer_context->esm_ebr_context);
 
   if (ebr_ctx && ebr_ctx->args) {
     // Get retransmission timer parameters data
-    esm_ebr_timer_data_t* esm_ebr_timer_data =
-        (esm_ebr_timer_data_t*)(ebr_ctx->args);
+    esm_ebr_timer_data_t *esm_ebr_timer_data =
+        (esm_ebr_timer_data_t *)(ebr_ctx->args);
     // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
     OAILOG_WARNING_UE(
@@ -607,8 +611,8 @@ status_code_e default_eps_bearer_activate_t3485_handler(zloop_t* loop,
  **      Others:    T3485                                      **
  **                                                                        **
  ***************************************************************************/
-static int default_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
-                                       STOLEN_REF bstring* msg) {
+static int default_eps_bearer_activate(emm_context_t *emm_context, ebi_t ebi,
+                                       STOLEN_REF bstring *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {};
   int rc;
@@ -620,7 +624,7 @@ static int default_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
    * Notify EMM that an activate default EPS bearer context request message
    * has to be sent to the UE
    */
-  emm_esm_data_t* emm_esm = &emm_sap.u.emm_esm.u.data;
+  emm_esm_data_t *emm_esm = &emm_sap.u.emm_esm.u.data;
 
   emm_sap.primitive = EMMESM_UNITDATA_REQ;
   emm_sap.u.emm_esm.ue_id = ue_id;
@@ -663,7 +667,7 @@ static int default_eps_bearer_activate(emm_context_t* emm_context, ebi_t ebi,
  **                                                                        **
  ***************************************************************************/
 static status_code_e default_eps_bearer_activate_in_bearer_setup_req(
-    emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg) {
+    emm_context_t *emm_context, ebi_t ebi, STOLEN_REF bstring *msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {};
   status_code_e rc = RETURNerror;
@@ -671,13 +675,13 @@ static status_code_e default_eps_bearer_activate_in_bearer_setup_req(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;
 
-  bearer_context_t* bearer_context = mme_app_get_bearer_context(
+  bearer_context_t *bearer_context = mme_app_get_bearer_context(
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context), ebi);
   /*
    * Notify EMM that an activate default EPS bearer context request message
    * has to be sent to the UE
    */
-  emm_esm_activate_bearer_req_t* emm_esm_activate =
+  emm_esm_activate_bearer_req_t *emm_esm_activate =
       &emm_sap.u.emm_esm.u.activate_bearer;
 
   emm_sap.primitive = EMMESM_ACTIVATE_BEARER_REQ;

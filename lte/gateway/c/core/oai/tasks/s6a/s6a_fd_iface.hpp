@@ -30,11 +30,11 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_viface.hpp"
 
 class S6aFdIface : public S6aViface {
- public:
-  S6aFdIface(const s6a_config_t* const config);
-  bool update_location_req(s6a_update_location_req_t* ulr_p);
-  bool authentication_info_req(s6a_auth_info_req_t* air_p);
-  bool send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP);
-  bool purge_ue(const char* imsi);
+public:
+  S6aFdIface(const s6a_config_t *const config);
+  bool update_location_req(s6a_update_location_req_t *ulr_p);
+  bool authentication_info_req(s6a_auth_info_req_t *air_p);
+  bool send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP);
+  bool purge_ue(const char *imsi);
   ~S6aFdIface();
 };

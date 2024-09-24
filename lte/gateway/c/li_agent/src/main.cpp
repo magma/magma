@@ -13,15 +13,15 @@
 
 #include <glog/logging.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
+#include <memory>
+#include <ostream>
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <yaml-cpp/yaml.h>
-#include <memory>
-#include <ostream>
 #include <string>
 #include <thread>
 #include <utility>
+#include <yaml-cpp/yaml.h>
 
 #include "lte/gateway/c/li_agent/src/InterfaceMonitor.hpp"
 #include "lte/gateway/c/li_agent/src/MobilitydClient.hpp"
@@ -35,7 +35,7 @@
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 #include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 
-static uint32_t get_log_verbosity(const YAML::Node& config,
+static uint32_t get_log_verbosity(const YAML::Node &config,
                                   magma::mconfig::LIAgentD mconfig) {
   if (!config["log_level"].IsDefined()) {
     return magma::get_log_verbosity_from_mconfig(mconfig.log_level());

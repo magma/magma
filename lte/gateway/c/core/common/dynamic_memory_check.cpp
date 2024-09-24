@@ -38,11 +38,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include <stdlib.h>
 #include "lte/gateway/c/core/common/assertions.h"
+#include <stdlib.h>
 
 //------------------------------------------------------------------------------
-void free_wrapper(void** ptr) {
+void free_wrapper(void **ptr) {
   // for debug only
   AssertFatal(ptr, "Trying to free NULL ptr");
   if (ptr) {
@@ -52,7 +52,7 @@ void free_wrapper(void** ptr) {
 }
 
 //------------------------------------------------------------------------------
-void bdestroy_wrapper(bstring* b) {
+void bdestroy_wrapper(bstring *b) {
   if ((b) && (*b)) {
     bdestroy(*b);
     *b = NULL;
@@ -66,7 +66,7 @@ void bdestroy_wrapper(bstring* b) {
 // map
 // TODO(rsarwad): rename free_wrapper once all tasks are migrated to cpp.
 // Shall be addressed while addressing issue_id: 13096
-void free_cpp_wrapper(void** ptr) {
+void free_cpp_wrapper(void **ptr) {
   if ((ptr) && (*ptr)) {
     delete *ptr;
     *ptr = nullptr;

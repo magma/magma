@@ -10,12 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.pb.h>
 #include <stddef.h>
-#include <unistd.h>
-#include <cstdint>
 #include <string>
+#include <unistd.h>
 #include <unordered_map>
 
 #include "lte/gateway/c/session_manager/SessionCredit.hpp"
@@ -264,7 +264,7 @@ TEST(test_counting_algorithm, test_session_credit) {
   EXPECT_EQ(1000, credit.get_credit(ALLOWED_TOTAL));
   EXPECT_EQ(
       100,
-      credit.get_credit(ALLOWED_TX));  // 250 because we overused so 150 + 100
+      credit.get_credit(ALLOWED_TX)); // 250 because we overused so 150 + 100
   EXPECT_EQ(200, credit.get_credit(ALLOWED_RX));
 
   // use tx and rx = 99 + 150 = 249
@@ -285,7 +285,7 @@ TEST(test_counting_algorithm, test_session_credit) {
   EXPECT_EQ(1000, credit.get_credit(ALLOWED_FLOOR_TOTAL));
   EXPECT_EQ(
       100,
-      credit.get_credit(ALLOWED_FLOOR_TX));  // 150 because we overused so 150
+      credit.get_credit(ALLOWED_FLOOR_TX)); // 150 because we overused so 150
   EXPECT_EQ(200, credit.get_credit(ALLOWED_FLOOR_RX));
   EXPECT_EQ(99, credit.get_credit(USED_TX));
   EXPECT_EQ(150, credit.get_credit(USED_RX));
@@ -438,4 +438,4 @@ TEST(test_get_credit_summary, test_session_credit) {
   EXPECT_NE(summary.time_of_last_usage, time_of_first_usage);
   EXPECT_GT(summary.time_of_last_usage, summary.time_of_first_usage);
 }
-}  // namespace magma
+} // namespace magma

@@ -9,12 +9,12 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
-#include <cstdint>
-#include <cstring>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <sstream>
 
 namespace magma5g {
 PayloadContainerTypeMsg::PayloadContainerTypeMsg(){};
@@ -22,8 +22,8 @@ PayloadContainerTypeMsg::~PayloadContainerTypeMsg(){};
 
 // Decode PayloadContainerType IE
 int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(
-    PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    PayloadContainerTypeMsg *payload_container_type, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int decoded = 0;
 
   payload_container_type->type_val = (*buffer & 0x0f);
@@ -34,8 +34,8 @@ int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(
 
 // Encode PayloadContainerType IE
 int PayloadContainerTypeMsg::EncodePayloadContainerTypeMsg(
-    PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    PayloadContainerTypeMsg *payload_container_type, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   *buffer = payload_container_type->type_val & 0x0f;
@@ -43,4 +43,4 @@ int PayloadContainerTypeMsg::EncodePayloadContainerTypeMsg(
 
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

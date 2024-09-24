@@ -29,10 +29,10 @@ extern "C" {
 #define GTPV1U_UDP_PORT (2152)
 #define MAX_BEARERS_PER_UE (11)
 
-#define BUFFER_TO_uint32_t(buf, x)                                   \
-  do {                                                               \
-    x = ((uint32_t)((buf)[0])) | ((uint32_t)((buf)[1]) << 8) |       \
-        ((uint32_t)((buf)[2]) << 16) | ((uint32_t)((buf)[3]) << 24); \
+#define BUFFER_TO_uint32_t(buf, x)                                             \
+  do {                                                                         \
+    x = ((uint32_t)((buf)[0])) | ((uint32_t)((buf)[1]) << 8) |                 \
+        ((uint32_t)((buf)[2]) << 16) | ((uint32_t)((buf)[3]) << 24);           \
   } while (0)
 
 typedef enum {
@@ -49,8 +49,8 @@ typedef struct {
   // RB_HEAD(gtpv1u_ue_map, gtpv1u_ue_data_s) gtpv1u_ue_map_head;
   /* Local IP address to use */
   struct in_addr sgw_ip_address_for_S1u_S12_S4_up;
-  struct in6_addr* sgw_ipv6_address_for_S1u_S12_S4_up;
-  hash_table_t* S1U_mapping;
+  struct in6_addr *sgw_ipv6_address_for_S1u_S12_S4_up;
+  hash_table_t *S1U_mapping;
 
   // GTP-U kernel interface
   pthread_t reader_thread;

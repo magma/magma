@@ -10,17 +10,17 @@
  */
 
 #pragma once
-#include <sstream>
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GEAPMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GEAPMessage.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 class AuthenticationResultMsg {
- public:
+public:
   AuthenticationResultMsg();
   ~AuthenticationResultMsg();
 
@@ -31,12 +31,12 @@ class AuthenticationResultMsg {
   NASKeySetIdentifierMsg nas_key_set_identifier;
   EAPMessageMsg eap_message;
 #define AUTHENTICATION_RESULT_MINIMUM_LENGTH 10
-  int DecodeAuthenticationResultMsg(AuthenticationResultMsg* auth_result,
-                                    uint8_t* buffer, uint32_t len);
-  int EncodeAuthenticationResultMsg(AuthenticationResultMsg* auth_result,
-                                    uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationResultMsg(AuthenticationResultMsg *auth_result,
+                                    uint8_t *buffer, uint32_t len);
+  int EncodeAuthenticationResultMsg(AuthenticationResultMsg *auth_result,
+                                    uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
                     AUTHENTICATION RESULT message content

@@ -31,10 +31,10 @@ extern "C" {
 #ifdef __cplusplus
 extern "C" {
 #endif
-status_code_e mme_config_embedded_spgw_parse_opt_line(int argc, char* argv[],
-                                                      mme_config_t*,
-                                                      amf_config_t*,
-                                                      spgw_config_t*);
+status_code_e mme_config_embedded_spgw_parse_opt_line(int argc, char *argv[],
+                                                      mme_config_t *,
+                                                      amf_config_t *,
+                                                      spgw_config_t *);
 
 #ifdef __cplusplus
 }

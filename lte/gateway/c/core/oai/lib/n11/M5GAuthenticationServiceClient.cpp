@@ -13,18 +13,18 @@
 
 #include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.hpp"
 
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
-#include <cassert>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #ifdef __cplusplus
 }
 #endif
@@ -33,10 +33,10 @@ extern "C" {
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
 
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
 #include "lte/protos/subscriberauth.grpc.pb.h"
 #include "lte/protos/subscriberauth.pb.h"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -52,12 +52,12 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 static void handle_subs_authentication_info_ans(
     grpc::Status status,
     magma::lte::M5GAuthenticationInformationAnswer response,
-    const std::string& imsi, uint8_t imsi_length, amf_ue_ngap_id_t ue_id) {
-  MessageDef* message_p;
+    const std::string &imsi, uint8_t imsi_length, amf_ue_ngap_id_t ue_id) {
+  MessageDef *message_p;
   message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_APP_SUBS_AUTH_INFO_RESP);
 
-  itti_amf_subs_auth_info_ans_t* amf_app_subs_auth_info_resp_p;
+  itti_amf_subs_auth_info_ans_t *amf_app_subs_auth_info_resp_p;
   amf_app_subs_auth_info_resp_p =
       &message_p->ittiMsg.amf_app_subs_auth_info_resp;
   memset(amf_app_subs_auth_info_resp_p, 0,
@@ -83,8 +83,8 @@ static void handle_subs_authentication_info_ans(
 
 namespace magma5g {
 
-M5GAuthenticationInformationRequest create_subs_auth_request(
-    const std::string& imsi, const std::string& snni) {
+M5GAuthenticationInformationRequest
+create_subs_auth_request(const std::string &imsi, const std::string &snni) {
   M5GAuthenticationInformationRequest request;
 
   request.Clear();
@@ -94,9 +94,9 @@ M5GAuthenticationInformationRequest create_subs_auth_request(
   return request;
 }
 
-M5GAuthenticationInformationRequest create_subs_auth_request(
-    const std::string& imsi, const std::string& snni, const void* resync_info,
-    uint8_t resync_info_len) {
+M5GAuthenticationInformationRequest
+create_subs_auth_request(const std::string &imsi, const std::string &snni,
+                         const void *resync_info, uint8_t resync_info_len) {
   M5GAuthenticationInformationRequest request;
 
   request.Clear();
@@ -108,15 +108,15 @@ M5GAuthenticationInformationRequest create_subs_auth_request(
 }
 
 bool AsyncM5GAuthenticationServiceClient::get_subs_auth_info(
-    const std::string& imsi, uint8_t imsi_length, const char* snni,
+    const std::string &imsi, uint8_t imsi_length, const char *snni,
     amf_ue_ngap_id_t ue_id) {
   M5GAuthenticationInformationRequest request =
       create_subs_auth_request(imsi, snni);
 
   GetSubscriberAuthInfoRPC(
-      request, [imsi, imsi_length, ue_id](
-                   const Status& status,
-                   const M5GAuthenticationInformationAnswer& response) {
+      request, [imsi, imsi_length,
+                ue_id](const Status &status,
+                       const M5GAuthenticationInformationAnswer &response) {
         handle_subs_authentication_info_ans(status, response, imsi, imsi_length,
                                             ue_id);
       });
@@ -124,15 +124,15 @@ bool AsyncM5GAuthenticationServiceClient::get_subs_auth_info(
 }
 
 bool AsyncM5GAuthenticationServiceClient::get_subs_auth_info_resync(
-    const std::string& imsi, uint8_t imsi_length, const char* snni,
-    const void* resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id) {
+    const std::string &imsi, uint8_t imsi_length, const char *snni,
+    const void *resync_info, uint8_t resync_info_len, amf_ue_ngap_id_t ue_id) {
   M5GAuthenticationInformationRequest request =
       create_subs_auth_request(imsi, snni, resync_info, resync_info_len);
 
   GetSubscriberAuthInfoRPC(
-      request, [imsi, imsi_length, ue_id](
-                   const Status& status,
-                   const M5GAuthenticationInformationAnswer& response) {
+      request, [imsi, imsi_length,
+                ue_id](const Status &status,
+                       const M5GAuthenticationInformationAnswer &response) {
         handle_subs_authentication_info_ans(status, response, imsi, imsi_length,
                                             ue_id);
       });
@@ -140,9 +140,9 @@ bool AsyncM5GAuthenticationServiceClient::get_subs_auth_info_resync(
 }
 
 void AsyncM5GAuthenticationServiceClient::GetSubscriberAuthInfoRPC(
-    M5GAuthenticationInformationRequest& request,
-    const std::function<void(Status, M5GAuthenticationInformationAnswer)>&
-        callback) {
+    M5GAuthenticationInformationRequest &request,
+    const std::function<void(Status, M5GAuthenticationInformationAnswer)>
+        &callback) {
   auto localResp = new AsyncLocalResponse<M5GAuthenticationInformationAnswer>(
       std::move(callback), RESPONSE_TIMEOUT);
   localResp->set_response_reader(
@@ -158,10 +158,10 @@ AsyncM5GAuthenticationServiceClient::AsyncM5GAuthenticationServiceClient() {
   resp_loop_thread.detach();
 }
 
-AsyncM5GAuthenticationServiceClient&
+AsyncM5GAuthenticationServiceClient &
 AsyncM5GAuthenticationServiceClient::getInstance() {
   static AsyncM5GAuthenticationServiceClient instance;
   return instance;
 }
 
-}  // namespace magma5g
+} // namespace magma5g

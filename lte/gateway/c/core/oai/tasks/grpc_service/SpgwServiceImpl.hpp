@@ -19,25 +19,25 @@
 #include <grpc++/grpc++.h>
 #include <grpcpp/impl/codegen/status.h>
 
-#include "lte/protos/spgw_service.grpc.pb.h"
 #include "lte/protos/policydb.pb.h"
+#include "lte/protos/spgw_service.grpc.pb.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/include/spgw_service_handler.hpp"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/spgw_service_handler.hpp"
 }
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 namespace magma {
 namespace lte {
 class CreateBearerRequest;
 class CreateBearerResult;
 class DeleteBearerRequest;
 class DeleteBearerResult;
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using grpc::ServerContext;
 using magma::lte::CreateBearerRequest;
@@ -56,7 +56,7 @@ typedef struct ipv4_network {
 } ipv4_network_t;
 
 class SpgwServiceImpl final : public SpgwService::Service {
- public:
+public:
   SpgwServiceImpl();
 
   /*
@@ -68,9 +68,9 @@ class SpgwServiceImpl final : public SpgwService::Service {
                                 err message.
        * @return grpc Status instance
        */
-  grpc::Status CreateBearer(ServerContext* context,
-                            const CreateBearerRequest* request,
-                            CreateBearerResult* response) override;
+  grpc::Status CreateBearer(ServerContext *context,
+                            const CreateBearerRequest *request,
+                            CreateBearerResult *response) override;
 
   /*
        * DeleteBearerRequest.
@@ -81,11 +81,11 @@ class SpgwServiceImpl final : public SpgwService::Service {
                                 err message.
        * @return grpc Status instance
        */
-  grpc::Status DeleteBearer(ServerContext* context,
-                            const DeleteBearerRequest* request,
-                            DeleteBearerResult* response) override;
+  grpc::Status DeleteBearer(ServerContext *context,
+                            const DeleteBearerRequest *request,
+                            DeleteBearerResult *response) override;
 
-  ipv4_network_t parseIpv4Network(const std::string& ipv4network_str);
+  ipv4_network_t parseIpv4Network(const std::string &ipv4network_str);
 
   /*
    * Fill up the ipv4 remote address field in packet filter
@@ -96,18 +96,18 @@ class SpgwServiceImpl final : public SpgwService::Service {
    * Visible for testing only.
    * This function should not be used outside of this class.
    */
-  bool fillIpv4(packet_filter_contents_t* pf_content,
-                const std::string& ipv4addr);
+  bool fillIpv4(packet_filter_contents_t *pf_content,
+                const std::string &ipv4addr);
 
- private:
+private:
   /*
    * Fill up the packet filter contents such as flags and flow tuple fields
    * @param pf_content: packet filter content to be filled
    * @param flow_match_rule: pf_content is filled based on flow match rule
    * @return bool: Return true if successful, false if not
    */
-  bool fillUpPacketFilterContents(packet_filter_contents_t* pf_content,
-                                  const FlowMatch* flow_match_rule);
+  bool fillUpPacketFilterContents(packet_filter_contents_t *pf_content,
+                                  const FlowMatch *flow_match_rule);
 
   /*
    * Fill up the ipv6 remote address field in packet filter
@@ -115,8 +115,8 @@ class SpgwServiceImpl final : public SpgwService::Service {
    * @param ipv6addr: IPv6 address in string form (e.g, "x:x:x:x::x")
    * @return bool: Return true if successful, false if not
    */
-  bool fillIpv6(packet_filter_contents_t* pf_content,
+  bool fillIpv6(packet_filter_contents_t *pf_content,
                 const std::string ipv6addr);
 };
 
-}  // namespace magma
+} // namespace magma

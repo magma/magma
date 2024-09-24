@@ -34,11 +34,11 @@
   \company Eurecom
   \email: lionel.gauthier@eurecom.fr
 */
-#include <string.h>
+#include <pthread.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <pthread.h>
+#include <string.h>
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
@@ -54,7 +54,7 @@
    tables.
 */
 
-static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
+static hash_size_t def_hashfunc(const void *const keyP, const int key_sizeP) {
   hash_size_t hash = 0;
   int key_size = key_sizeP;
 
@@ -64,7 +64,7 @@ static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
     int size = sizeof(val);
     while ((size > 0) && (key_size > 0)) {
       val = val << 8;
-      val |= ((uint8_t*)keyP)[key_size - 1];
+      val |= ((uint8_t *)keyP)[key_size - 1];
       size--;
       key_size--;
     }
@@ -85,12 +85,11 @@ static hash_size_t def_hashfunc(const void* const keyP, const int key_sizeP) {
  * hashtable_destroy().
  *
  */
-obj_hash_table_t* obj_hashtable_init(obj_hash_table_t* const hashtblP,
-                                     const hash_size_t sizeP,
-                                     hash_size_t (*hashfuncP)(const void*, int),
-                                     void (*freekeyfuncP)(void**),
-                                     void (*freedatafuncP)(void**),
-                                     bstring display_name_pP) {
+obj_hash_table_t *
+obj_hashtable_init(obj_hash_table_t *const hashtblP, const hash_size_t sizeP,
+                   hash_size_t (*hashfuncP)(const void *, int),
+                   void (*freekeyfuncP)(void **),
+                   void (*freedatafuncP)(void **), bstring display_name_pP) {
   hash_size_t size = sizeP;
   // upper power of two:
   // http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
@@ -117,8 +116,8 @@ obj_hash_table_t* obj_hashtable_init(obj_hash_table_t* const hashtblP,
   size |= size >> 16;
   size++;
 
-  if (!(hashtblP->nodes = calloc(size, sizeof(obj_hash_node_t*)))) {
-    free_wrapper((void**)&hashtblP);
+  if (!(hashtblP->nodes = calloc(size, sizeof(obj_hash_node_t *)))) {
+    free_wrapper((void **)&hashtblP);
     return NULL;
   }
 
@@ -160,13 +159,15 @@ obj_hash_table_t* obj_hashtable_init(obj_hash_table_t* const hashtblP,
    other values in the returned obj_hash_table_t pointer should be released with
    hashtable_destroy().
 */
-obj_hash_table_t* obj_hashtable_create(
-    const hash_size_t sizeP, hash_size_t (*hashfuncP)(const void*, int),
-    void (*freekeyfuncP)(void**), void (*freedatafuncP)(void**),
-    bstring display_name_pP) {
-  obj_hash_table_t* hashtbl = NULL;
+obj_hash_table_t *
+obj_hashtable_create(const hash_size_t sizeP,
+                     hash_size_t (*hashfuncP)(const void *, int),
+                     void (*freekeyfuncP)(void **),
+                     void (*freedatafuncP)(void **), bstring display_name_pP) {
+  obj_hash_table_t *hashtbl = NULL;
 
-  if (!(hashtbl = calloc(1, sizeof(obj_hash_table_t)))) return NULL;
+  if (!(hashtbl = calloc(1, sizeof(obj_hash_table_t))))
+    return NULL;
 
   return obj_hashtable_init(hashtbl, sizeP, hashfuncP, freekeyfuncP,
                             freedatafuncP, display_name_pP);
@@ -182,10 +183,11 @@ obj_hash_table_t* obj_hashtable_create(
    values in the returned obj_hash_table_t pointer should be released with
    hashtable_destroy().
 */
-obj_hash_table_t* obj_hashtable_ts_init(
-    obj_hash_table_t* const hashtblP, const hash_size_t sizeP,
-    hash_size_t (*hashfuncP)(const void*, int), void (*freekeyfuncP)(void**),
-    void (*freedatafuncP)(void**), bstring display_name_pP) {
+obj_hash_table_t *
+obj_hashtable_ts_init(obj_hash_table_t *const hashtblP, const hash_size_t sizeP,
+                      hash_size_t (*hashfuncP)(const void *, int),
+                      void (*freekeyfuncP)(void **),
+                      void (*freedatafuncP)(void **), bstring display_name_pP) {
   hash_size_t size = sizeP;
   // upper power of two:
   // http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2Float
@@ -213,9 +215,9 @@ obj_hash_table_t* obj_hashtable_ts_init(
   size++;
 
   if (!(hashtblP->lock_nodes = calloc(size, sizeof(pthread_mutex_t)))) {
-    free_wrapper((void**)&hashtblP->nodes);
-    free_wrapper((void**)&hashtblP->name);
-    free_wrapper((void**)&hashtblP);
+    free_wrapper((void **)&hashtblP->nodes);
+    free_wrapper((void **)&hashtblP->name);
+    free_wrapper((void **)&hashtblP);
     return NULL;
   }
 
@@ -238,11 +240,11 @@ obj_hash_table_t* obj_hashtable_ts_init(
    returned. All other values in the returned obj_hash_table_t pointer should be
    released with hashtable_destroy().
 */
-obj_hash_table_t* obj_hashtable_ts_create(
-    const hash_size_t sizeP, hash_size_t (*hashfuncP)(const void*, int),
-    void (*freekeyfuncP)(void**), void (*freedatafuncP)(void**),
+obj_hash_table_t *obj_hashtable_ts_create(
+    const hash_size_t sizeP, hash_size_t (*hashfuncP)(const void *, int),
+    void (*freekeyfuncP)(void **), void (*freedatafuncP)(void **),
     bstring display_name_pP) {
-  obj_hash_table_t* hashtbl = NULL;
+  obj_hash_table_t *hashtbl = NULL;
 
   hash_size_t size = sizeP;
   // upper power of two:
@@ -286,7 +288,7 @@ obj_hash_table_t* obj_hashtable_ts_create(
    value, and releases the elements. It also releases the nodes array and the
    obj_hash_table_t.
 */
-hashtable_rc_t obj_hashtable_destroy(obj_hash_table_t* const hashtblP) {
+hashtable_rc_t obj_hashtable_destroy(obj_hash_table_t *const hashtblP) {
   hash_size_t n;
   obj_hash_node_t *node, *oldnode;
 
@@ -298,14 +300,14 @@ hashtable_rc_t obj_hashtable_destroy(obj_hash_table_t* const hashtblP) {
       node = node->next;
       hashtblP->freekeyfunc(&oldnode->key);
       hashtblP->freedatafunc(&oldnode->data);
-      free_wrapper((void**)&oldnode);
+      free_wrapper((void **)&oldnode);
     }
   }
 
-  free_wrapper((void**)&hashtblP->nodes);
-  free_wrapper((void**)&hashtblP->lock_nodes);  // mmm....
+  free_wrapper((void **)&hashtblP->nodes);
+  free_wrapper((void **)&hashtblP->lock_nodes); // mmm....
   bdestroy_wrapper(&hashtblP->name);
-  free_wrapper((void**)&hashtblP);
+  free_wrapper((void **)&hashtblP);
   return HASH_TABLE_OK;
 }
 
@@ -316,7 +318,7 @@ hashtable_rc_t obj_hashtable_destroy(obj_hash_table_t* const hashtblP) {
    value, and releases the elements. It also releases the nodes array and the
    obj_hash_table_t.
 */
-hashtable_rc_t obj_hashtable_ts_destroy(obj_hash_table_t* const hashtblP) {
+hashtable_rc_t obj_hashtable_ts_destroy(obj_hash_table_t *const hashtblP) {
   hash_size_t n;
   obj_hash_node_t *node, *oldnode;
 
@@ -329,16 +331,16 @@ hashtable_rc_t obj_hashtable_ts_destroy(obj_hash_table_t* const hashtblP) {
       node = node->next;
       hashtblP->freekeyfunc(&oldnode->key);
       hashtblP->freedatafunc(&oldnode->data);
-      free_wrapper((void**)&oldnode);
+      free_wrapper((void **)&oldnode);
     }
     pthread_mutex_unlock(&hashtblP->lock_nodes[n]);
     pthread_mutex_destroy(&hashtblP->lock_nodes[n]);
   }
 
-  free_wrapper((void**)&hashtblP->nodes);
-  free_wrapper((void**)&hashtblP->lock_nodes);
+  free_wrapper((void **)&hashtblP->nodes);
+  free_wrapper((void **)&hashtblP->lock_nodes);
   bdestroy_wrapper(&hashtblP->name);
-  free_wrapper((void**)&hashtblP);
+  free_wrapper((void **)&hashtblP);
   return HASH_TABLE_OK;
 }
 
@@ -348,10 +350,10 @@ hashtable_rc_t obj_hashtable_ts_destroy(obj_hash_table_t* const hashtblP) {
    To make sure the hash value is not bigger than size, the result of the user
    provided hash function is used modulo size.
 */
-hashtable_rc_t obj_hashtable_insert(obj_hash_table_t* const hashtblP,
-                                    const void* const keyP, const int key_sizeP,
-                                    void* dataP) {
-  obj_hash_node_t* node;
+hashtable_rc_t obj_hashtable_insert(obj_hash_table_t *const hashtblP,
+                                    const void *const keyP, const int key_sizeP,
+                                    void *dataP) {
+  obj_hash_node_t *node;
   hash_size_t hash;
 
   if (hashtblP == NULL) {
@@ -394,7 +396,7 @@ hashtable_rc_t obj_hashtable_insert(obj_hash_table_t* const hashtblP,
   if (!(node->key = malloc(key_sizeP))) {
     PRINT_HASHTABLE(hashtblP, "%s(%s,key %p) hash %lx return SYSTEM_ERROR\n",
                     __FUNCTION__, bdata(hashtblP->name), keyP, hash);
-    free_wrapper((void**)&node);
+    free_wrapper((void **)&node);
     return -1;
   }
 
@@ -422,10 +424,10 @@ hashtable_rc_t obj_hashtable_insert(obj_hash_table_t* const hashtblP,
    To make sure the hash value is not bigger than size, the result of the user
    provided hash function is used modulo size.
 */
-hashtable_rc_t obj_hashtable_ts_insert(obj_hash_table_t* const hashtblP,
-                                       const void* const keyP,
-                                       const int key_sizeP, void* dataP) {
-  obj_hash_node_t* node;
+hashtable_rc_t obj_hashtable_ts_insert(obj_hash_table_t *const hashtblP,
+                                       const void *const keyP,
+                                       const int key_sizeP, void *dataP) {
+  obj_hash_node_t *node;
   hash_size_t hash;
 
   if (hashtblP == NULL) {
@@ -475,7 +477,7 @@ hashtable_rc_t obj_hashtable_ts_insert(obj_hash_table_t* const hashtblP,
   }
 
   if (!(node->key = calloc(1, key_sizeP))) {
-    free_wrapper((void**)&node);
+    free_wrapper((void **)&node);
     pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
     PRINT_HASHTABLE(hashtblP, "%s(%s,key %p) hash %lx return SYSTEM_ERROR\n",
                     __FUNCTION__, bdata(hashtblP->name), keyP, hash);
@@ -507,8 +509,8 @@ hashtable_rc_t obj_hashtable_ts_insert(obj_hash_table_t* const hashtblP,
    list for that hash value, and remove it if it is found. If it was not found,
    it is an error and -1 is returned.
 */
-hashtable_rc_t obj_hashtable_free(obj_hash_table_t* const hashtblP,
-                                  const void* const keyP, const int key_sizeP) {
+hashtable_rc_t obj_hashtable_free(obj_hash_table_t *const hashtblP,
+                                  const void *const keyP, const int key_sizeP) {
   obj_hash_node_t *node, *prevnode = NULL;
   hash_size_t hash;
 
@@ -535,7 +537,7 @@ hashtable_rc_t obj_hashtable_free(obj_hash_table_t* const hashtblP,
 
       hashtblP->freekeyfunc(&node->key);
       hashtblP->freedatafunc(&node->data);
-      free_wrapper((void**)&node);
+      free_wrapper((void **)&node);
       hashtblP->num_elements -= 1;
       PRINT_HASHTABLE(hashtblP, "%s(%s,key %p) hash %lx return OK\n",
                       __FUNCTION__, bdata(hashtblP->name), keyP, hash);
@@ -554,10 +556,10 @@ hashtable_rc_t obj_hashtable_free(obj_hash_table_t* const hashtblP,
    Searching for an element is easy. We just search through the linked list for
    the corresponding hash value. NULL is returned if we didn't find it.
 */
-hashtable_rc_t obj_hashtable_get(const obj_hash_table_t* const hashtblP,
-                                 const void* const keyP, const int key_sizeP,
-                                 void** dataP) {
-  obj_hash_node_t* node;
+hashtable_rc_t obj_hashtable_get(const obj_hash_table_t *const hashtblP,
+                                 const void *const keyP, const int key_sizeP,
+                                 void **dataP) {
+  obj_hash_node_t *node;
   hash_size_t hash;
 
   if (hashtblP == NULL) {

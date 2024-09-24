@@ -10,15 +10,15 @@
  */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 class DeRegistrationAcceptUEInitMsg {
- public:
+public:
   DeRegistrationAcceptUEInitMsg();
   ~DeRegistrationAcceptUEInitMsg();
 
@@ -28,13 +28,13 @@ class DeRegistrationAcceptUEInitMsg {
   MessageTypeMsg message_type;
 #define DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH 3
   int DecodeDeRegistrationAcceptUEInitMsg(
-      DeRegistrationAcceptUEInitMsg* de_reg_accept_ue, uint8_t* buffer,
+      DeRegistrationAcceptUEInitMsg *de_reg_accept_ue, uint8_t *buffer,
       uint32_t len);
   int EncodeDeRegistrationAcceptUEInitMsg(
-      DeRegistrationAcceptUEInitMsg* de_reg_accept_ue, uint8_t* buffer,
+      DeRegistrationAcceptUEInitMsg *de_reg_accept_ue, uint8_t *buffer,
       uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
                DEREGISTRATION ACCEPT UE Initiated message content

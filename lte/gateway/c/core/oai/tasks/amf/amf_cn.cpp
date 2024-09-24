@@ -37,20 +37,20 @@ extern "C" {
 namespace magma5g {
 
 //------------------------------------------------------------------------------
-static status_code_e amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
+static status_code_e amf_cn_authentication_res(amf_cn_auth_res_t *const msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  amf_context_t* amf_ctx = NULL;
+  amf_context_t *amf_ctx = NULL;
   status_code_e rc = RETURNerror;
 
   /*
    * We received security vector from HSS. Try to setup security with UE
    */
-  ue_m5gmm_context_s* ue_m5gmm_context =
+  ue_m5gmm_context_s *ue_m5gmm_context =
       amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
 
   if (ue_m5gmm_context) {
     amf_ctx = &ue_m5gmm_context->amf_context;
-    nas5g_auth_info_proc_t* auth_info_proc =
+    nas5g_auth_info_proc_t *auth_info_proc =
         get_nas5g_cn_procedure_auth_info(amf_ctx);
 
     if (auth_info_proc) {
@@ -73,10 +73,10 @@ static status_code_e amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
 }
 
 //------------------------------------------------------------------------------
-static status_code_e amf_cn_implicit_deregister_ue(
-    const amf_ue_ngap_id_t ue_id) {
+static status_code_e
+amf_cn_implicit_deregister_ue(const amf_ue_ngap_id_t ue_id) {
   status_code_e rc = RETURNok;
-  struct amf_context_s* amf_ctx_p = NULL;
+  struct amf_context_s *amf_ctx_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
@@ -103,28 +103,27 @@ static status_code_e amf_cn_implicit_deregister_ue(
 }
 
 //------------------------------------------------------------------------------
-status_code_e amf_cn_send(const amf_cn_t* msg) {
+status_code_e amf_cn_send(const amf_cn_t *msg) {
   status_code_e rc = RETURNerror;
   amf_cn_primitive_t primitive = msg->primitive;
 
   OAILOG_FUNC_IN(LOG_NAS_AMF);
 
   switch (primitive) {
-    case _AMFCN_AUTHENTICATION_PARAM_RES:
-      rc = amf_cn_authentication_res(msg->u.auth_res);
-      break;
+  case _AMFCN_AUTHENTICATION_PARAM_RES:
+    rc = amf_cn_authentication_res(msg->u.auth_res);
+    break;
 
-    case _AMFCN_IMPLICIT_DEREGISTER_UE:
-      rc = amf_cn_implicit_deregister_ue(
-          msg->u.amf_cn_implicit_deregister.ue_id);
-      break;
+  case _AMFCN_IMPLICIT_DEREGISTER_UE:
+    rc = amf_cn_implicit_deregister_ue(msg->u.amf_cn_implicit_deregister.ue_id);
+    break;
 
-    default:
-      /*
-       * Other primitives are forwarded to the Access Stratum
-       */
-      rc = RETURNerror;
-      break;
+  default:
+    /*
+     * Other primitives are forwarded to the Access Stratum
+     */
+    rc = RETURNerror;
+    break;
   }
 
   if (rc != RETURNok) {
@@ -133,4 +132,4 @@ status_code_e amf_cn_send(const amf_cn_t* msg) {
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-}  // namespace magma5g
+} // namespace magma5g

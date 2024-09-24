@@ -24,11 +24,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
@@ -37,38 +38,33 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_qos.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
-#include "lte/gateway/c/core/oai/include/map.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
-#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
-static int pdu_session_resource_modification_t3591_handler(zloop_t* loop,
+static int pdu_session_resource_modification_t3591_handler(zloop_t *loop,
                                                            int timer_id,
-                                                           void* arg);
+                                                           void *arg);
 
 //------------------------------------------------------------------------------
-void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
-                                     ue_m5gmm_context_s* ue_context_p,
+void amf_ue_context_update_coll_keys(amf_ue_context_t *const amf_ue_context_p,
+                                     ue_m5gmm_context_s *ue_context_p,
                                      const gnb_ngap_id_key_t gnb_ngap_id_key,
                                      const amf_ue_ngap_id_t amf_ue_ngap_id,
                                      const imsi64_t imsi,
                                      const teid_t amf_teid_n11,
-                                     const guti_m5_t* const guti_p) {
+                                     const guti_m5_t *const guti_p) {
   magma::map_rc_t m_rc = magma::MAP_OK;
 
-  map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
+  map_uint64_ue_context_t *amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
   OAILOG_TRACE(LOG_AMF_APP,
                "Existing ue context, old_gnb_ue_ngap_id_key %ld "
@@ -174,9 +170,9 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
 }
 
 /* Insert guti into guti_ue_context_table */
-void amf_ue_context_on_new_guti(ue_m5gmm_context_t* const ue_context_p,
-                                const guti_m5_t* const guti_p) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+void amf_ue_context_on_new_guti(ue_m5gmm_context_t *const ue_context_p,
+                                const guti_m5_t *const guti_p) {
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
   if (ue_context_p) {
@@ -192,13 +188,13 @@ void amf_ue_context_on_new_guti(ue_m5gmm_context_t* const ue_context_p,
 status_code_e amf_api_notify_imsi(const amf_ue_ngap_id_t id, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   OAILOG_DEBUG(
       LOG_AMF_APP,
       "imsi [" IMSI_64_FMT
       "]is going to be updated in imsi hash table, imsi_amf_ue_id_htbl \n",
       imsi64);
-  ue_m5gmm_context_s* ue_context_p = NULL;
+  ue_m5gmm_context_s *ue_context_p = NULL;
 
   ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(id);
 
@@ -216,17 +212,17 @@ status_code_e amf_api_notify_imsi(const amf_ue_ngap_id_t id, imsi64_t imsi64) {
 //----------------------------------------------------------------------------------------------
 /* This is deprecated function and removed in upcoming PRs related to
  * Service request and Periodic Reg updating.*/
-static bool amf_app_construct_guti(const plmn_t* const plmn_p,
-                                   const s_tmsi_m5_t* const s_tmsi_p,
-                                   guti_m5_t* const guti_p) {
+static bool amf_app_construct_guti(const plmn_t *const plmn_p,
+                                   const s_tmsi_m5_t *const s_tmsi_p,
+                                   guti_m5_t *const guti_p) {
   /*
    * This is a helper function to construct GUTI from S-TMSI. It uses PLMN id
    * and AMF Group Id of the serving AMF for this purpose.
    *
    */
   bool is_guti_valid =
-      false;  // Set to true if serving AMF is found and GUTI is constructed
-  uint8_t num_amf = 0;  // Number of configured AMF in the AMF pool
+      false; // Set to true if serving AMF is found and GUTI is constructed
+  uint8_t num_amf = 0; // Number of configured AMF in the AMF pool
   guti_p->m_tmsi = s_tmsi_p->m_tmsi;
   guti_p->guamfi.amf_set_id = s_tmsi_p->amf_set_id;
   guti_p->guamfi.amf_pointer = s_tmsi_p->amf_pointer;
@@ -300,10 +296,10 @@ static bool amf_app_construct_guti(const plmn_t* const plmn_p,
  **                                                                        **
  ***************************************************************************/
 imsi64_t amf_app_handle_initial_ue_message(
-    amf_app_desc_t* amf_app_desc_p,
-    itti_ngap_initial_ue_message_t* const initial_pP) {
+    amf_app_desc_t *amf_app_desc_p,
+    itti_ngap_initial_ue_message_t *const initial_pP) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  ue_m5gmm_context_s* ue_context_p = NULL;
+  ue_m5gmm_context_s *ue_context_p = NULL;
   bool is_guti_valid = false;
   bool is_mm_ctx_new = false;
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
@@ -479,7 +475,7 @@ imsi64_t amf_app_handle_initial_ue_message(
    * exists or not
    */
   if (ue_id != INVALID_AMF_UE_NGAP_ID) {
-    map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
+    map_uint64_ue_context_t *amf_state_ue_id_ht = get_amf_ue_state();
     if (amf_state_ue_id_ht->get(ue_id, &ue_context_p) == magma::MAP_OK) {
       imsi64 = ue_context_p->amf_context.imsi64;
     }
@@ -500,7 +496,7 @@ imsi64_t amf_app_handle_initial_ue_message(
 **      Return:    RETURNok, RETURNerror                                  **
 **                                                                        **
 ***************************************************************************/
-status_code_e amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
+status_code_e amf_app_handle_uplink_nas_message(amf_app_desc_t *amf_app_desc_p,
                                                 bstring msg,
                                                 amf_ue_ngap_id_t ue_id,
                                                 const tai_t originating_tai) {
@@ -531,8 +527,8 @@ status_code_e amf_app_handle_uplink_nas_message(amf_app_desc_t* amf_app_desc_p,
 // Update the pti and related paremeters from sessiond
 static int amf_smf_session_update_pti_proc(
     std::shared_ptr<smf_context_t> smf_ctx,
-    itti_n11_create_pdu_session_response_t* pdu_session_resp) {
-  qos_flow_list_t* current_pti_flow_list = smf_ctx->get_proc_flow_list();
+    itti_n11_create_pdu_session_response_t *pdu_session_resp) {
+  qos_flow_list_t *current_pti_flow_list = smf_ctx->get_proc_flow_list();
 
   // Check if its the same procedure received from sessiond
   if (pdu_session_resp->procedure_trans_identity == smf_ctx->get_pti()) {
@@ -552,10 +548,10 @@ static int amf_smf_session_update_pti_proc(
  * PDU Session Resource Setup Request message to gNB and  PDU Session
  * Establishment Accept Message to UE*/
 status_code_e amf_app_handle_pdu_session_response(
-    itti_n11_create_pdu_session_response_t* pdu_session_resp) {
+    itti_n11_create_pdu_session_response_t *pdu_session_resp) {
   DLNASTransportMsg encode_msg;
   memset(&encode_msg, 0, sizeof(encode_msg));
-  ue_m5gmm_context_s* ue_context = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
   memset(&amf_smf_msg, 0, sizeof(amf_smf_msg));
@@ -649,7 +645,7 @@ status_code_e amf_app_handle_pdu_session_response(
     bool all_pdu_active = true;
     uint16_t pdu_session_status = 0;
 
-    for (const auto& it : ue_context->amf_context.smf_ctxt_map) {
+    for (const auto &it : ue_context->amf_context.smf_ctxt_map) {
       std::shared_ptr<smf_context_t> smf_ctxt = it.second;
       if (smf_ctxt) {
         if (smf_ctxt->pdu_session_state != ACTIVE) {
@@ -697,9 +693,9 @@ status_code_e amf_app_handle_pdu_session_response(
 **      Return:   void                                                    **
 **                                                                        **
 ***************************************************************************/
-void convert_ambr(const uint32_t* pdu_ambr_response_unit,
-                  const uint32_t* pdu_ambr_response_value,
-                  M5GSessionAmbrUnit* ambr_unit, uint16_t* ambr_value) {
+void convert_ambr(const uint32_t *pdu_ambr_response_unit,
+                  const uint32_t *pdu_ambr_response_value,
+                  M5GSessionAmbrUnit *ambr_unit, uint16_t *ambr_value) {
   int count = 1;
   uint32_t temp_pdu_ambr_response_value = *pdu_ambr_response_value;
 
@@ -709,7 +705,7 @@ void convert_ambr(const uint32_t* pdu_ambr_response_unit,
       temp_pdu_ambr_response_value / 1000 == 0) {
     // Values less than 1Kbps are defaulted to 1Kbps
     *ambr_value = static_cast<uint16_t>(1);
-    *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
+    *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS; // Kbps
     OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
@@ -723,23 +719,23 @@ void convert_ambr(const uint32_t* pdu_ambr_response_unit,
   }
 
   switch (count) {
-    case 1:
-      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS;  // Kbps
-      break;
-    case 2:
-      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS;  // Mbps
-      break;
-    case 3:
-      *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS;  // Gbps
-      break;
+  case 1:
+    *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1KBPS; // Kbps
+    break;
+  case 2:
+    *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1MBPS; // Mbps
+    break;
+  case 3:
+    *ambr_unit = magma5g::M5GSessionAmbrUnit::MULTIPLES_1GBPS; // Gbps
+    break;
   }
   *ambr_value = static_cast<uint16_t>(temp_pdu_ambr_response_value);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
 // Utility function to convert address to buffer
-int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
-                        uint8_t* pdu_address_length) {
+int paa_to_address_info(const paa_t *paa, uint8_t *pdu_address_info,
+                        uint8_t *pdu_address_length) {
   uint32_t ip_int = 0;
   OAILOG_FUNC_IN(LOG_AMF_APP);
   if ((paa == nullptr) || (pdu_address_info == nullptr) ||
@@ -747,40 +743,40 @@ int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   switch (paa->pdn_type) {
-    case IPv4:
-      ip_int = ntohl(paa->ipv4_address.s_addr);
-      INT32_TO_BUFFER(ip_int, pdu_address_info);
-      *pdu_address_length = sizeof(ip_int);
-      break;
+  case IPv4:
+    ip_int = ntohl(paa->ipv4_address.s_addr);
+    INT32_TO_BUFFER(ip_int, pdu_address_info);
+    *pdu_address_length = sizeof(ip_int);
+    break;
 
-    case IPv6:
-      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
-        memcpy(pdu_address_info,
-               &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
-               IPV6_INTERFACE_ID_LEN);
-        *pdu_address_length = IPV6_INTERFACE_ID_LEN;
-      } else {
-        OAILOG_ERROR(LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
-                     paa->ipv6_prefix_length);
-        OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-      }
-      break;
-    case IPv4_AND_v6:
-      if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
-        memcpy(pdu_address_info,
-               &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
-               IPV6_INTERFACE_ID_LEN);
-        ip_int = ntohl(paa->ipv4_address.s_addr);
-        INT32_TO_BUFFER(ip_int, pdu_address_info + IPV6_INTERFACE_ID_LEN);
-        *pdu_address_length = IPV6_INTERFACE_ID_LEN + sizeof(ip_int);
-      } else {
-        OAILOG_ERROR(LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
-                     paa->ipv6_prefix_length);
-        OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-      }
-      break;
-    default:
-      break;
+  case IPv6:
+    if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+      memcpy(pdu_address_info,
+             &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+             IPV6_INTERFACE_ID_LEN);
+      *pdu_address_length = IPV6_INTERFACE_ID_LEN;
+    } else {
+      OAILOG_ERROR(LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
+                   paa->ipv6_prefix_length);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+    }
+    break;
+  case IPv4_AND_v6:
+    if (paa->ipv6_prefix_length == IPV6_PREFIX_LEN) {
+      memcpy(pdu_address_info,
+             &paa->ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+             IPV6_INTERFACE_ID_LEN);
+      ip_int = ntohl(paa->ipv4_address.s_addr);
+      INT32_TO_BUFFER(ip_int, pdu_address_info + IPV6_INTERFACE_ID_LEN);
+      *pdu_address_length = IPV6_INTERFACE_ID_LEN + sizeof(ip_int);
+    } else {
+      OAILOG_ERROR(LOG_AMF_APP, "Invalid ipv6_prefix_length : %u\n",
+                   paa->ipv6_prefix_length);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+    }
+    break;
+  default:
+    break;
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNok);
 }
@@ -798,17 +794,17 @@ int paa_to_address_info(const paa_t* paa, uint8_t* pdu_address_info,
 **                                                                        **
 ***************************************************************************/
 status_code_e amf_app_handle_pdu_session_accept(
-    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint64_t ue_id) {
-  DLNASTransportMsg* encode_msg;
+    itti_n11_create_pdu_session_response_t *pdu_session_resp, uint64_t ue_id) {
+  DLNASTransportMsg *encode_msg;
   amf_nas_message_t msg = {};
   uint32_t bytes = 0;
   uint32_t len = 0;
-  SmfMsg* smf_msg = nullptr;
+  SmfMsg *smf_msg = nullptr;
   bstring buffer;
   // smf_ctx declared and set but not used, commented to cleanup warnings
   std::shared_ptr<smf_context_t> smf_ctx;
-  ue_m5gmm_context_s* ue_context = nullptr;
-  protocol_configuration_options_t* msg_accept_pco = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
+  protocol_configuration_options_t *msg_accept_pco = nullptr;
 
   // Handle smf_context
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -1001,7 +997,7 @@ status_code_e amf_app_handle_pdu_session_accept(
       static_cast<uint8_t>(M5GIei::DNN);
   smf_msg->msg.pdu_session_estab_accept.dnn.len = smf_ctx->dnn.length() + 1;
   smf_ctx->dnn.copy(
-      reinterpret_cast<char*>(smf_msg->msg.pdu_session_estab_accept.dnn.dnn),
+      reinterpret_cast<char *>(smf_msg->msg.pdu_session_estab_accept.dnn.dnn),
       smf_ctx->dnn.length());
   buf_len += smf_msg->msg.pdu_session_estab_accept.dnn.len + 2;
 
@@ -1014,7 +1010,7 @@ status_code_e amf_app_handle_pdu_session_accept(
    */
   AMF_GET_BYTE_ALIGNED_LENGTH(len);
   if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
-    amf_msg_header* header = &msg.security_protected.plain.amf.header;
+    amf_msg_header *header = &msg.security_protected.plain.amf.header;
     /*
      * Expand size of protected NAS message
      */
@@ -1039,7 +1035,7 @@ status_code_e amf_app_handle_pdu_session_accept(
   }
 
   /* Clean up the pco of smf_ctx as its only filled by establishment request */
-  protocol_configuration_options_t* context_pco = &(smf_ctx->pco);
+  protocol_configuration_options_t *context_pco = &(smf_ctx->pco);
   sm_free_protocol_configuration_options(&context_pco);
 
   /* Clean up the pco of pdu session establishment accept message */
@@ -1049,14 +1045,14 @@ status_code_e amf_app_handle_pdu_session_accept(
   bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosflowdescriptors);
 
   return RETURNok;
-}  // namespace magma5g
+} // namespace magma5g
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp) {
   amf_ue_ngap_id_t ue_id;
 
-  ue_m5gmm_context_s* ue_context = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
   std::shared_ptr<smf_context_t> smf_ctx;
 
   /* Check if failure message is not NULL and if NULL,
@@ -1112,14 +1108,14 @@ void amf_app_handle_resource_setup_response(
            sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
 
     smf_ctx->gtp_tunnel_id
-        .gnb_gtp_teid = htonl(*(reinterpret_cast<unsigned int*>(
+        .gnb_gtp_teid = htonl(*(reinterpret_cast<unsigned int *>(
         session_seup_resp.pduSessionResource_setup_list.item[0]
             .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID)));
     memcpy(&smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
            &session_seup_resp.pduSessionResource_setup_list.item[0]
                 .PDU_Session_Resource_Setup_Response_Transfer.tunnel
                 .transportLayerAddress,
-           4);  // time being 4 byte is copying.
+           4); // time being 4 byte is copying.
     OAILOG_DEBUG(LOG_AMF_APP,
                  "gnb_gtp_teid_ipaddr: [%02x %02x %02x %02x]  and gnb_gtp_teid "
                  "[" GNB_GTP_TEID_FMT "]\n",
@@ -1163,7 +1159,7 @@ void amf_app_handle_resource_modify_response(
     itti_ngap_pdu_session_resource_modify_response_t session_mod_resp) {
   amf_ue_ngap_id_t ue_id;
 
-  ue_m5gmm_context_s* ue_context = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
   std::shared_ptr<smf_context_t> smf_ctx;
 
   /* Check if failure message is not NULL and if NULL,
@@ -1202,7 +1198,7 @@ void amf_app_handle_resource_modify_response(
      * and drop the message here
      */
     amf_ue_ngap_id_t ue_id;
-    ue_m5gmm_context_s* ue_context = nullptr;
+    ue_m5gmm_context_s *ue_context = nullptr;
     ue_id = session_mod_resp.amf_ue_ngap_id;
 
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -1259,15 +1255,16 @@ void amf_app_handle_resource_release_response(
  * - In AMF move the UE/IMSI state to CM-idle
  *   Go over all PDU sessions and change the state to in-active.
  * */
-static void amf_app_handle_ngap_ue_context_release(
-    const amf_ue_ngap_id_t amf_ue_ngap_id,
-    const gnb_ue_ngap_id_t gnb_ue_ngap_id, uint32_t gnb_id, n2cause_e cause) {
-  struct ue_m5gmm_context_s* ue_context_p = NULL;
+static void
+amf_app_handle_ngap_ue_context_release(const amf_ue_ngap_id_t amf_ue_ngap_id,
+                                       const gnb_ue_ngap_id_t gnb_ue_ngap_id,
+                                       uint32_t gnb_id, n2cause_e cause) {
+  struct ue_m5gmm_context_s *ue_context_p = NULL;
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(amf_ue_ngap_id);
   if (!ue_context_p) {
     ue_context_p = amf_ue_context_exists_gnb_ue_ngap_id(
@@ -1321,8 +1318,7 @@ static void amf_app_handle_ngap_ue_context_release(
           LOG_AMF_APP, ue_context_p->amf_context.imsi64,
           "UE Conetext Release Reqeust:Cause SCTP RESET/SHUTDOWN. UE state: "
           "IDLE. amf_ue_ngap_id = " AMF_UE_NGAP_ID_FMT
-          "gnb_ue_ngap_id = " GNB_UE_NGAP_ID_FMT
-          " Action -- Handle the "
+          "gnb_ue_ngap_id = " GNB_UE_NGAP_ID_FMT " Action -- Handle the "
           "message\n ",
           ue_context_p->amf_ue_ngap_id, ue_context_p->gnb_ue_ngap_id);
       OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -1382,7 +1378,7 @@ static void amf_app_handle_ngap_ue_context_release(
 }
 
 void amf_app_handle_ngap_ue_context_release_req(
-    const itti_ngap_ue_context_release_req_t* const ngap_ue_context_release_req)
+    const itti_ngap_ue_context_release_req_t *const ngap_ue_context_release_req)
 
 {
   amf_app_handle_ngap_ue_context_release(
@@ -1393,11 +1389,11 @@ void amf_app_handle_ngap_ue_context_release_req(
 }
 
 void amf_app_handle_ngap_ue_context_release_complete(
-    amf_app_desc_t* amf_app_desc_p,
-    const itti_ngap_ue_context_release_complete_t* const
-        ngap_ue_context_release_complete) {
+    amf_app_desc_t *amf_app_desc_p,
+    const itti_ngap_ue_context_release_complete_t
+        *const ngap_ue_context_release_complete) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  struct ue_m5gmm_context_s* ue_context_p = NULL;
+  struct ue_m5gmm_context_s *ue_context_p = NULL;
 
   ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(
       ngap_ue_context_release_complete->amf_ue_ngap_id);
@@ -1445,7 +1441,7 @@ void amf_app_handle_ngap_ue_context_release_complete(
 }
 
 void amf_app_handle_gnb_deregister_ind(
-    const itti_ngap_gNB_deregistered_ind_t* const gNB_deregistered_ind) {
+    const itti_ngap_gNB_deregistered_ind_t *const gNB_deregistered_ind) {
   for (int i = 0; i < gNB_deregistered_ind->nb_ue_to_deregister; i++) {
     amf_app_handle_ngap_ue_context_release(
         gNB_deregistered_ind->amf_ue_ngap_id[i],
@@ -1454,15 +1450,15 @@ void amf_app_handle_gnb_deregister_ind(
   }
 }
 
-static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
+static int paging_t3513_handler(zloop_t *loop, int timer_id, void *arg) {
   OAILOG_INFO(LOG_AMF_APP, "T3513: In Paging handler\n");
   int rc = RETURNerror;
   amf_ue_ngap_id_t ue_id = 0;
-  ue_m5gmm_context_s* ue_context = nullptr;
-  amf_context_t* amf_ctx = nullptr;
-  paging_context_t* paging_ctx = nullptr;
-  MessageDef* message_p = nullptr;
-  itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
+  amf_context_t *amf_ctx = nullptr;
+  paging_context_t *paging_ctx = nullptr;
+  MessageDef *message_p = nullptr;
+  itti_ngap_paging_request_t *ngap_paging_notify = nullptr;
 
   if (!amf_pop_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(LOG_AMF_APP,
@@ -1556,12 +1552,12 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
 // Doing Paging Request handling received from SMF in AMF CORE
 // int amf_app_defs::amf_app_handle_notification_received(
 status_code_e amf_app_handle_notification_received(
-    itti_n11_received_notification_t* notification) {
-  ue_m5gmm_context_s* ue_context = nullptr;
-  amf_context_t* amf_ctx = nullptr;
-  paging_context_t* paging_ctx = nullptr;
-  MessageDef* message_p = nullptr;
-  itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
+    itti_n11_received_notification_t *notification) {
+  ue_m5gmm_context_s *ue_context = nullptr;
+  amf_context_t *amf_ctx = nullptr;
+  paging_context_t *paging_ctx = nullptr;
+  MessageDef *message_p = nullptr;
+  itti_ngap_paging_request_t *ngap_paging_notify = nullptr;
   status_code_e rc = RETURNok;
   amf_as_establish_t establish = {0};
   nas5g_establish_rsp_t nas_msg = {0};
@@ -1579,81 +1575,81 @@ status_code_e amf_app_handle_notification_received(
   }
 
   switch (notification->notify_ue_evnt) {
-    case UE_PAGING_NOTIFY:
-      OAILOG_DEBUG(LOG_AMF_APP, "Paging notification received\n");
+  case UE_PAGING_NOTIFY:
+    OAILOG_DEBUG(LOG_AMF_APP, "Paging notification received\n");
 
-      // Get Paging Context
-      amf_ctx = &ue_context->amf_context;
-      paging_ctx = &ue_context->paging_context;
+    // Get Paging Context
+    amf_ctx = &ue_context->amf_context;
+    paging_ctx = &ue_context->paging_context;
 
-      OAILOG_INFO(LOG_AMF_APP,
-                  "T3513: Starting PAGING Timer for UE ID: " AMF_UE_NGAP_ID_FMT,
-                  ue_context->amf_ue_ngap_id);
-      paging_ctx->paging_retx_count = 0;
-      /* Start Paging Timer T3513 */
-      paging_ctx->m5_paging_response_timer.id =
-          amf_app_start_timer(PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
-                              paging_t3513_handler, ue_context->amf_ue_ngap_id);
-      // Fill the itti msg based on context info produced in amf core
-      OAILOG_INFO(LOG_AMF_APP,
-                  "T3513: Starting PAGING Timer for UE ID: " AMF_UE_NGAP_ID_FMT
-                  " and timer id: %ld",
-                  ue_context->amf_ue_ngap_id,
-                  paging_ctx->m5_paging_response_timer.id);
+    OAILOG_INFO(LOG_AMF_APP,
+                "T3513: Starting PAGING Timer for UE ID: " AMF_UE_NGAP_ID_FMT,
+                ue_context->amf_ue_ngap_id);
+    paging_ctx->paging_retx_count = 0;
+    /* Start Paging Timer T3513 */
+    paging_ctx->m5_paging_response_timer.id =
+        amf_app_start_timer(PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+                            paging_t3513_handler, ue_context->amf_ue_ngap_id);
+    // Fill the itti msg based on context info produced in amf core
+    OAILOG_INFO(LOG_AMF_APP,
+                "T3513: Starting PAGING Timer for UE ID: " AMF_UE_NGAP_ID_FMT
+                " and timer id: %ld",
+                ue_context->amf_ue_ngap_id,
+                paging_ctx->m5_paging_response_timer.id);
 
-      message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
+    message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
 
-      ngap_paging_notify = &message_p->ittiMsg.ngap_paging_request;
-      memset(ngap_paging_notify, 0, sizeof(itti_ngap_paging_request_t));
-      ngap_paging_notify->UEPagingIdentity.amf_set_id =
-          amf_ctx->m5_guti.guamfi.amf_set_id;
-      ngap_paging_notify->UEPagingIdentity.amf_pointer =
-          amf_ctx->m5_guti.guamfi.amf_pointer;
-      ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->m5_guti.m_tmsi;
-      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit1 =
-          amf_ctx->m5_guti.guamfi.plmn.mcc_digit1;
-      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit2 =
-          amf_ctx->m5_guti.guamfi.plmn.mcc_digit2;
-      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit3 =
-          amf_ctx->m5_guti.guamfi.plmn.mcc_digit3;
-      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit1 =
-          amf_ctx->m5_guti.guamfi.plmn.mnc_digit1;
-      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit2 =
-          amf_ctx->m5_guti.guamfi.plmn.mnc_digit2;
-      ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit3 =
-          amf_ctx->m5_guti.guamfi.plmn.mnc_digit3;
-      ngap_paging_notify->TAIListForPaging.no_of_items = 1;
-      ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
-      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: sending downlink message to NGAP");
-      rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
-      break;
+    ngap_paging_notify = &message_p->ittiMsg.ngap_paging_request;
+    memset(ngap_paging_notify, 0, sizeof(itti_ngap_paging_request_t));
+    ngap_paging_notify->UEPagingIdentity.amf_set_id =
+        amf_ctx->m5_guti.guamfi.amf_set_id;
+    ngap_paging_notify->UEPagingIdentity.amf_pointer =
+        amf_ctx->m5_guti.guamfi.amf_pointer;
+    ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->m5_guti.m_tmsi;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit1 =
+        amf_ctx->m5_guti.guamfi.plmn.mcc_digit1;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit2 =
+        amf_ctx->m5_guti.guamfi.plmn.mcc_digit2;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit3 =
+        amf_ctx->m5_guti.guamfi.plmn.mcc_digit3;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit1 =
+        amf_ctx->m5_guti.guamfi.plmn.mnc_digit1;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit2 =
+        amf_ctx->m5_guti.guamfi.plmn.mnc_digit2;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit3 =
+        amf_ctx->m5_guti.guamfi.plmn.mnc_digit3;
+    ngap_paging_notify->TAIListForPaging.no_of_items = 1;
+    ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
+    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: sending downlink message to NGAP");
+    rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+    break;
 
-    case UE_SERVICE_REQUEST_ON_PAGING:
-      OAILOG_DEBUG(LOG_AMF_APP, "Service Accept notification received\n");
-      establish.ue_id = ue_context->amf_ue_ngap_id;
-      establish.nas_info = AMF_AS_NAS_INFO_SR;
-      establish.pdu_session_reactivation_status =
-          AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
-      establish.pdu_session_status_ie =
-          (AMF_AS_PDU_SESSION_REACTIVATION_STATUS | AMF_AS_PDU_SESSION_STATUS);
-      establish.pdu_session_status = AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
-      amf_as_establish_cnf(&establish, &nas_msg);
-      break;
+  case UE_SERVICE_REQUEST_ON_PAGING:
+    OAILOG_DEBUG(LOG_AMF_APP, "Service Accept notification received\n");
+    establish.ue_id = ue_context->amf_ue_ngap_id;
+    establish.nas_info = AMF_AS_NAS_INFO_SR;
+    establish.pdu_session_reactivation_status =
+        AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
+    establish.pdu_session_status_ie =
+        (AMF_AS_PDU_SESSION_REACTIVATION_STATUS | AMF_AS_PDU_SESSION_STATUS);
+    establish.pdu_session_status = AMF_AS_PDU_SESSION_REACTIVATION_STATUS;
+    amf_as_establish_cnf(&establish, &nas_msg);
+    break;
 
-    default:
-      OAILOG_DEBUG(LOG_AMF_APP, "default case nothing to do\n");
-      break;
+  default:
+    OAILOG_DEBUG(LOG_AMF_APP, "default case nothing to do\n");
+    break;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 void amf_app_handle_initial_context_setup_rsp(
-    amf_app_desc_t* amf_app_desc_p,
-    itti_amf_app_initial_context_setup_rsp_t* initial_context_rsp) {
-  ue_m5gmm_context_s* ue_context = NULL;
+    amf_app_desc_t *amf_app_desc_p,
+    itti_amf_app_initial_context_setup_rsp_t *initial_context_rsp) {
+  ue_m5gmm_context_s *ue_context = NULL;
   std::shared_ptr<smf_context_t> smf_context;
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
-  Ngap_PDUSession_Resource_Setup_Response_List_t* pdu_list =
+  Ngap_PDUSession_Resource_Setup_Response_List_t *pdu_list =
       &initial_context_rsp->PDU_Session_Resource_Setup_Response_Transfer;
 
   // Handle smf_context
@@ -1680,7 +1676,7 @@ void amf_app_handle_initial_context_setup_rsp(
         // gnb tunnel info
 
         smf_context->gtp_tunnel_id.gnb_gtp_teid =
-            htonl(*(reinterpret_cast<unsigned int*>(
+            htonl(*(reinterpret_cast<unsigned int *>(
                 pdu_list->item[index]
                     .PDU_Session_Resource_Setup_Response_Transfer.tunnel
                     .gTP_TEID)));
@@ -1724,18 +1720,18 @@ void amf_app_handle_initial_context_setup_rsp(
   }
 
   if (ue_context->cm_state != M5GCM_CONNECTED) {
-    amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+    amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
     amf_ue_context_update_ue_sig_connection_state(
         &amf_app_desc_p->amf_ue_contexts, ue_context, M5GCM_CONNECTED);
   }
 }
 using grpc::Status;
 status_code_e amf_app_handle_pdu_session_failure(
-    itti_n11_create_pdu_session_failure_t* pdu_session_failure) {
+    itti_n11_create_pdu_session_failure_t *pdu_session_failure) {
   if (!pdu_session_failure) {
     return RETURNok;
   }
-  ue_m5gmm_context_s* ue_context = nullptr;
+  ue_m5gmm_context_s *ue_context = nullptr;
 
   imsi64_t imsi64 = 0;
   IMSI_STRING_TO_IMSI64(pdu_session_failure->imsi, &imsi64);
@@ -1792,17 +1788,17 @@ status_code_e amf_app_handle_pdu_session_failure(
  **                                                                        **
  ***************************************************************************/
 int amf_app_pdu_session_modification_request(
-    itti_n11_create_pdu_session_response_t* pdu_sess_mod_req,
+    itti_n11_create_pdu_session_response_t *pdu_sess_mod_req,
     amf_ue_ngap_id_t ue_id) {
   nas5g_error_code_t rc = M5G_AS_SUCCESS;
 
-  DLNASTransportMsg* encode_msg;
-  SmfMsg* smf_msg = nullptr;
+  DLNASTransportMsg *encode_msg;
+  SmfMsg *smf_msg = nullptr;
   amf_nas_message_t msg = {};
   uint32_t bytes = 0;
   uint32_t len = 0;
   bstring buffer;
-  ue_m5gmm_context_s* ue_context = NULL;
+  ue_m5gmm_context_s *ue_context = NULL;
   std::shared_ptr<smf_context_t> smf_ctx;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -1902,7 +1898,7 @@ int amf_app_pdu_session_modification_request(
    */
   AMF_GET_BYTE_ALIGNED_LENGTH(len);
   if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
-    amf_msg_header* header = &msg.security_protected.plain.amf.header;
+    amf_msg_header *header = &msg.security_protected.plain.amf.header;
     /*
      * Expand size of protected NAS message
      */
@@ -1939,9 +1935,9 @@ int amf_app_pdu_session_modification_request(
   return rc;
 }
 
-static int pdu_session_resource_modification_t3591_handler(zloop_t* loop,
+static int pdu_session_resource_modification_t3591_handler(zloop_t *loop,
                                                            int timer_id,
-                                                           void* arg) {
+                                                           void *arg) {
   OAILOG_INFO(LOG_AMF_APP,
               "T3591: pdu_session_resource_modification_t3591_handler\n");
 
@@ -1962,7 +1958,7 @@ static int pdu_session_resource_modification_t3591_handler(zloop_t* loop,
   amf_ue_ngap_id = uepdu_id.ue_id;
   pdu_session_id = uepdu_id.pdu_id;
 
-  ue_m5gmm_context_s* ue_context =
+  ue_m5gmm_context_s *ue_context =
       amf_ue_context_exists_amf_ue_ngap_id(amf_ue_ngap_id);
 
   if (ue_context) {
@@ -2015,9 +2011,9 @@ static int pdu_session_resource_modification_t3591_handler(zloop_t* loop,
 
 //------------------------------------------------------------------------------
 void amf_app_handle_gnb_reset_req(
-    const itti_ngap_gnb_initiated_reset_req_t* const gnb_reset_req) {
-  MessageDef* msg;
-  itti_ngap_gnb_initiated_reset_ack_t* reset_ack;
+    const itti_ngap_gnb_initiated_reset_req_t *const gnb_reset_req) {
+  MessageDef *msg;
+  itti_ngap_gnb_initiated_reset_ack_t *reset_ack;
 
   OAILOG_FUNC_IN(LOG_AMF_APP);
 
@@ -2057,4 +2053,4 @@ void amf_app_handle_gnb_reset_req(
 
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
-}  // namespace magma5g
+} // namespace magma5g

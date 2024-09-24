@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string.h>
 #include <gtest/gtest.h>
+#include <string.h>
 
 #include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
@@ -148,4 +148,4 @@ TEST(ULA2SubDataTest, TestULAallFields) {
   EXPECT_EQ(sub_data.non_3gpp().apn_config(0).assigned_static_ip(),
             served_party_ip_address);
 }
-}  // namespace magma
+} // namespace magma

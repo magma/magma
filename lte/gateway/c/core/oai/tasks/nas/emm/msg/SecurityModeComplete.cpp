@@ -31,7 +31,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 
 int decode_security_mode_complete(
-    security_mode_complete_msg* security_mode_complete, uint8_t* buffer,
+    security_mode_complete_msg *security_mode_complete, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -53,27 +53,28 @@ int decode_security_mode_complete(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case SECURITY_MODE_COMPLETE_IMEISV_IEI:
-        if ((decoded_result = decode_mobile_identity_ie(
-                 &security_mode_complete->imeisv,
-                 SECURITY_MODE_COMPLETE_IMEISV_IEI != 0, buffer + decoded,
-                 len - decoded)) <= 0)
-          return decoded_result;
+    case SECURITY_MODE_COMPLETE_IMEISV_IEI:
+      if ((decoded_result =
+               decode_mobile_identity_ie(&security_mode_complete->imeisv,
+                                         SECURITY_MODE_COMPLETE_IMEISV_IEI != 0,
+                                         buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        security_mode_complete->presencemask |=
-            SECURITY_MODE_COMPLETE_IMEISV_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      security_mode_complete->presencemask |=
+          SECURITY_MODE_COMPLETE_IMEISV_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -81,7 +82,7 @@ int decode_security_mode_complete(
 }
 
 int encode_security_mode_complete(
-    security_mode_complete_msg* security_mode_complete, uint8_t* buffer,
+    security_mode_complete_msg *security_mode_complete, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   int encode_result = 0;

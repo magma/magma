@@ -47,32 +47,32 @@ static void sms_orc8r_exit(void);
 
 task_zmq_ctx_t sms_orc8r_task_zmq_ctx;
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case SGSAP_UPLINK_UNITDATA: {
-      /*
-       * We received a SGs uplink unitdata message from NAS
-       * * * * procedures might be:
-       * * * *      Mobile origination SMS - Uplink Nas Transport message
-       * * * *      Mobile terminating SMS - Uplink Nas Transport message
-       */
-      OAILOG_DEBUG(LOG_SMS_ORC8R, "Received SGSAP_UPLINK_UNITDATA message \n");
-      send_smo_uplink_unitdata(
-          &received_message_p->ittiMsg.sgsap_uplink_unitdata);
-    } break;
+  case SGSAP_UPLINK_UNITDATA: {
+    /*
+     * We received a SGs uplink unitdata message from NAS
+     * * * * procedures might be:
+     * * * *      Mobile origination SMS - Uplink Nas Transport message
+     * * * *      Mobile terminating SMS - Uplink Nas Transport message
+     */
+    OAILOG_DEBUG(LOG_SMS_ORC8R, "Received SGSAP_UPLINK_UNITDATA message \n");
+    send_smo_uplink_unitdata(
+        &received_message_p->ittiMsg.sgsap_uplink_unitdata);
+  } break;
 
-    case TERMINATE_MESSAGE: {
-      free(received_message_p);
-      sms_orc8r_exit();
-    } break;
+  case TERMINATE_MESSAGE: {
+    free(received_message_p);
+    sms_orc8r_exit();
+  } break;
 
-    default: {
-      OAILOG_DEBUG(LOG_SMS_ORC8R, "Unknown message ID %d:%s\n",
-                   ITTI_MSG_ID(received_message_p),
-                   ITTI_MSG_NAME(received_message_p));
-    } break;
+  default: {
+    OAILOG_DEBUG(LOG_SMS_ORC8R, "Unknown message ID %d:%s\n",
+                 ITTI_MSG_ID(received_message_p),
+                 ITTI_MSG_NAME(received_message_p));
+  } break;
   }
 
   free(received_message_p);
@@ -80,8 +80,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 //------------------------------------------------------------------------------
-static void* sms_orc8r_thread(__attribute__((unused)) void* args_p) {
-  task_zmq_ctx_t* task_zmq_ctx_p = &sms_orc8r_task_zmq_ctx;
+static void *sms_orc8r_thread(__attribute__((unused)) void *args_p) {
+  task_zmq_ctx_t *task_zmq_ctx_p = &sms_orc8r_task_zmq_ctx;
 
   itti_mark_task_ready(TASK_SMS_ORC8R);
   const task_id_t peer_task_ids[] = {TASK_MME_APP};
@@ -95,7 +95,7 @@ static void* sms_orc8r_thread(__attribute__((unused)) void* args_p) {
 }
 
 //------------------------------------------------------------------------------
-extern "C" status_code_e sms_orc8r_init(const mme_config_t* mme_config_p) {
+extern "C" status_code_e sms_orc8r_init(const mme_config_t *mme_config_p) {
   OAILOG_DEBUG(LOG_SMS_ORC8R, "Initializing SMS_ORC8R task interface\n");
 
   if (itti_create_task(TASK_SMS_ORC8R, &sms_orc8r_thread, NULL) < 0) {

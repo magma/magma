@@ -13,22 +13,22 @@
 #pragma once
 
 #include <folly/io/async/EventBase.h>
+#include <functional>
 #include <grpc++/grpc++.h>
 #include <lte/protos/apn.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <stdint.h>
-#include <functional>
 #include <memory>
+#include <stdint.h>
 
 #include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace folly {
 class EventBase;
-}  // namespace folly
+} // namespace folly
 namespace grpc {
 class Channel;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace lte {
@@ -38,7 +38,7 @@ class SessionTerminateRequest;
 class SessionTerminateResponse;
 class UpdateSessionRequest;
 class UpdateSessionResponse;
-}  // namespace lte
+} // namespace lte
 
 using namespace lte;
 
@@ -56,74 +56,74 @@ using ReporterCallbackFn = std::function<void(grpc::Status, ResponseType)>;
  */
 template <typename ResponseType>
 class AsyncEvbResponse : public AsyncGRPCResponse<ResponseType> {
- public:
-  AsyncEvbResponse(folly::EventBase* base,
+public:
+  AsyncEvbResponse(folly::EventBase *base,
                    ReporterCallbackFn<ResponseType> callback,
                    uint32_t timeout_sec);
 
   void handle_response() override;
 
- private:
-  folly::EventBase* base_;
+private:
+  folly::EventBase *base_;
 };
 
 class SessionReporter : public GRPCReceiver {
- public:
+public:
   virtual ~SessionReporter() = default;
 
   /**
    * Either proxy an UpdateSessionRequest gRPC call to the cloud
    * or send the request to the local PCRF/OCS on the gateway
    */
-  virtual void report_updates(
-      const UpdateSessionRequest& request,
-      ReporterCallbackFn<UpdateSessionResponse> callback) = 0;
+  virtual void
+  report_updates(const UpdateSessionRequest &request,
+                 ReporterCallbackFn<UpdateSessionResponse> callback) = 0;
 
   /**
    * Either proxy a CreateSessionRequest gRPC call to the cloud
    * or send the request to the local PCRF/OCS on the gateway
    */
-  virtual void report_create_session(
-      const CreateSessionRequest& request,
-      ReporterCallbackFn<CreateSessionResponse> callback) = 0;
+  virtual void
+  report_create_session(const CreateSessionRequest &request,
+                        ReporterCallbackFn<CreateSessionResponse> callback) = 0;
 
   /**
    * Either proxy a SessionTerminateRequest gRPC call to the cloud
    * or send the request to the local PCRF/OCS on the gateway
    */
   virtual void report_terminate_session(
-      const SessionTerminateRequest& request,
+      const SessionTerminateRequest &request,
       ReporterCallbackFn<SessionTerminateResponse> callback) = 0;
 
   /**
    * get_terminate_logging_cb returns a callback function for report_terminate
    * that logs whether or not there was an error.
    */
-  static ReporterCallbackFn<SessionTerminateResponse> get_terminate_logging_cb(
-      const SessionTerminateRequest& request);
+  static ReporterCallbackFn<SessionTerminateResponse>
+  get_terminate_logging_cb(const SessionTerminateRequest &request);
 };
 
 class SessionReporterImpl : public SessionReporter {
- public:
-  SessionReporterImpl(folly::EventBase* base,
+public:
+  SessionReporterImpl(folly::EventBase *base,
                       std::shared_ptr<grpc::Channel> channel);
 
   void report_updates(
-      const UpdateSessionRequest& request,
+      const UpdateSessionRequest &request,
       std::function<void(grpc::Status, UpdateSessionResponse)> callback);
 
   void report_create_session(
-      const CreateSessionRequest& request,
+      const CreateSessionRequest &request,
       std::function<void(grpc::Status, CreateSessionResponse)> callback);
 
   void report_terminate_session(
-      const SessionTerminateRequest& request,
+      const SessionTerminateRequest &request,
       std::function<void(grpc::Status, SessionTerminateResponse)> callback);
 
- private:
-  folly::EventBase* base_;
+private:
+  folly::EventBase *base_;
   std::unique_ptr<CentralSessionController::Stub> stub_;
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
 };
 
-}  // namespace magma
+} // namespace magma

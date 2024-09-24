@@ -28,7 +28,7 @@ extern task_zmq_ctx_t ha_task_zmq_ctx;
 #ifdef __cplusplus
 extern "C" {
 #endif
-status_code_e ha_init(const mme_config_t* mme_config);
+status_code_e ha_init(const mme_config_t *mme_config);
 #ifdef __cplusplus
 }
 #endif
@@ -48,4 +48,4 @@ bool sync_up_with_orc8r(void);
 /*
  * Sends a S1AP_UE_CONTEXT_RELEASE_REQ message to MME.
  */
-void handle_agw_offload_req(ha_agw_offload_req_t* offload_req);
+void handle_agw_offload_req(ha_agw_offload_req_t *offload_req);

@@ -17,8 +17,8 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <stdint.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus
@@ -40,7 +40,7 @@ extern "C" {
 extern struct gtp_tunnel_ops gtp_tunnel_ops;
 
 // Tunnel port related functionality
-static const char* ovs_gtp_type;
+static const char *ovs_gtp_type;
 
 static int ebpf_fd;
 
@@ -57,7 +57,7 @@ struct gtp_portno {
 };
 
 struct gtp_portno_record {
-  struct gtp_portno* arr;
+  struct gtp_portno *arr;
   int allocated;
   int size;
 };
@@ -67,7 +67,7 @@ static struct gtp_portno_record gtp_portno_rec;
  * Generate GTP port name from eNodeB IP address
  */
 static void ip_addr_to_gtp_port_name(struct in_addr enb_addr,
-                                     struct in6_addr* enb_addr_ipv6,
+                                     struct in6_addr *enb_addr_ipv6,
                                      char name[]) {
   int rc;
 
@@ -89,7 +89,7 @@ static void ip_addr_to_gtp_port_name(struct in_addr enb_addr,
   assert(rc > 0);
 }
 
-static uint32_t search_portno_records(char* name) {
+static uint32_t search_portno_records(char *name) {
   int i;
   for (i = 0; i < gtp_portno_rec.allocated; i++) {
     if (!strncmp(name, gtp_portno_rec.arr[i].name, MAX_GTP_PORT_NAME_LENGTH)) {
@@ -102,7 +102,7 @@ static uint32_t search_portno_records(char* name) {
 /**
  * Implements basic port number map with linear seach.
  */
-static void add_portno_rec(char* port_name, uint32_t portno) {
+static void add_portno_rec(char *port_name, uint32_t portno) {
   if (gtp_portno_rec.allocated == gtp_portno_rec.size) {
     int new_size = gtp_portno_rec.size * 2;
     if (new_size > MAX_GTP_TABLE_SIZE) {
@@ -110,8 +110,8 @@ static void add_portno_rec(char* port_name, uint32_t portno) {
       // all records.
       new_size = INIT_GTP_TABLE_SIZE;
     }
-    struct gtp_portno* new_arr =
-        (gtp_portno*)calloc(new_size, sizeof(struct gtp_portno));
+    struct gtp_portno *new_arr =
+        (gtp_portno *)calloc(new_size, sizeof(struct gtp_portno));
     if (!new_arr) {
       return;
     }
@@ -131,7 +131,7 @@ static void add_portno_rec(char* port_name, uint32_t portno) {
   int i;
 
   for (i = 0; i < gtp_portno_rec.size; i++) {
-    struct gtp_portno* rec = &gtp_portno_rec.arr[i];
+    struct gtp_portno *rec = &gtp_portno_rec.arr[i];
 
     if (!rec->portno) {
       strncpy(rec->name, port_name, MAX_GTP_PORT_NAME_LENGTH);
@@ -147,7 +147,7 @@ static void add_portno_rec(char* port_name, uint32_t portno) {
  * Read GTP tunnel port number from OVSDB.
  */
 static uint32_t get_gtp_port_no(char port_name[]) {
-  FILE* fp;
+  FILE *fp;
   uint32_t port_no = 0;
   char ovsdb_dump[256];
 
@@ -161,7 +161,7 @@ static uint32_t get_gtp_port_no(char port_name[]) {
   /* Read the output a line at a time - output it. */
   while (fgets(ovsdb_dump, sizeof(ovsdb_dump), fp) != NULL) {
     OAILOG_DEBUG(LOG_GTPV1U, "ovsdb: %s\n", ovsdb_dump);
-    char* p = strstr(ovsdb_dump, port_name);
+    char *p = strstr(ovsdb_dump, port_name);
     if (p) {
       int len = strlen(port_name);
       // ovsdb dump has port number after portname separated by whitespaces.
@@ -178,31 +178,31 @@ static uint32_t get_gtp_port_no(char port_name[]) {
  * Create GTP tunnel using OVS tool
  */
 static uint32_t create_gtp_port(struct in_addr enb_addr,
-                                struct in6_addr* enb_addr_ipv6,
+                                struct in6_addr *enb_addr_ipv6,
                                 char port_name[], bool is_pgw) {
   char gtp_port_create[512];
-  const char* gtp_echo;
-  const char* gtp_csum;
-  const char* l3_tunnel;
+  const char *gtp_echo;
+  const char *gtp_csum;
+  const char *l3_tunnel;
   char buf[INET6_ADDRSTRLEN];
   int rc;
 
   if (spgw_config.sgw_config.ovs_config.gtp_echo) {
-    gtp_echo = const_cast<char*>("true");
+    gtp_echo = const_cast<char *>("true");
   } else {
-    gtp_echo = const_cast<char*>("false");
+    gtp_echo = const_cast<char *>("false");
   }
 
   if (spgw_config.sgw_config.ovs_config.gtp_csum) {
-    gtp_csum = const_cast<char*>("true");
+    gtp_csum = const_cast<char *>("true");
   } else {
-    gtp_csum = const_cast<char*>("false");
+    gtp_csum = const_cast<char *>("false");
   }
 
   if (is_pgw && spgw_config.sgw_config.agw_l3_tunnel) {
-    l3_tunnel = const_cast<char*>("true");
+    l3_tunnel = const_cast<char *>("true");
   } else {
-    l3_tunnel = const_cast<char*>("false");
+    l3_tunnel = const_cast<char *>("false");
   }
   if (enb_addr.s_addr != INADDR_ANY) {
     rc =
@@ -238,7 +238,7 @@ static uint32_t create_gtp_port(struct in_addr enb_addr,
  * retrieve port number from OVSDB.
  */
 static uint32_t find_gtp_port_no(struct in_addr enb_addr,
-                                 struct in6_addr* enb_addr_ipv6, bool is_pgw) {
+                                 struct in6_addr *enb_addr_ipv6, bool is_pgw) {
   if (!spgw_config.sgw_config.ovs_config.multi_tunnel) {
     return 0;
   }
@@ -263,7 +263,7 @@ static uint32_t find_gtp_port_no(struct in_addr enb_addr,
  * Initialize GTP port table for caching GTP tunnel port numbers.
  */
 static void openflow_multi_tunnel_init(void) {
-  const char* probe_gtp_type = "sudo ovs-vsctl list Open_vSwitch | grep gtpu";
+  const char *probe_gtp_type = "sudo ovs-vsctl list Open_vSwitch | grep gtpu";
 
   // OVS GTP tunnel type has changed upstream, for better compatibility
   // detect it on initilization.
@@ -276,7 +276,7 @@ static void openflow_multi_tunnel_init(void) {
   OAILOG_INFO(LOG_GTPV1U, "Using GTP type: %s", ovs_gtp_type);
 
   gtp_portno_rec.arr =
-      (gtp_portno*)calloc(INIT_GTP_TABLE_SIZE, sizeof(struct gtp_portno));
+      (gtp_portno *)calloc(INIT_GTP_TABLE_SIZE, sizeof(struct gtp_portno));
   assert(gtp_portno_rec.arr != NULL);
   gtp_portno_rec.size = INIT_GTP_TABLE_SIZE;
 }
@@ -290,8 +290,8 @@ int openflow_uninit(void) {
   return ret;
 }
 
-int openflow_init(struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0,
-                  int* fd1u, bool persist_state) {
+int openflow_init(struct in_addr *ue_net, uint32_t mask, int mtu, int *fd0,
+                  int *fd1u, bool persist_state) {
   AssertFatal(start_of_controller(persist_state) >= 0,
               "Could not start openflow controller\n");
   ebpf_fd = get_map_fd();
@@ -303,11 +303,11 @@ int openflow_reset(void) {
   return rv;
 }
 
-int openflow_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
-                        struct in_addr enb, struct in6_addr* enb_ipv6,
+int openflow_add_tunnel(struct in_addr ue, struct in6_addr *ue_ipv6, int vlan,
+                        struct in_addr enb, struct in6_addr *enb_ipv6,
                         uint32_t i_tei, uint32_t o_tei, Imsi_t imsi,
-                        struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl,
-                        const char* apn) {
+                        struct ip_flow_dl *flow_dl, uint32_t flow_precedence_dl,
+                        const char *apn) {
   uint32_t gtp_portno = find_gtp_port_no(enb, enb_ipv6, false);
 
   if (spgw_config.sgw_config.ebpf_enabled) {
@@ -321,14 +321,14 @@ int openflow_add_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6, int vlan,
   }
 
   return openflow_controller_add_gtp_tunnel(
-      ue, ue_ipv6, vlan, enb, enb_ipv6, i_tei, o_tei, (const char*)imsi.digit,
+      ue, ue_ipv6, vlan, enb, enb_ipv6, i_tei, o_tei, (const char *)imsi.digit,
       flow_dl, flow_precedence_dl, gtp_portno);
 }
 
-int openflow_del_tunnel(struct in_addr enb, struct in6_addr* enb_ipv6,
-                        struct in_addr ue, struct in6_addr* ue_ipv6,
+int openflow_del_tunnel(struct in_addr enb, struct in6_addr *enb_ipv6,
+                        struct in_addr ue, struct in6_addr *ue_ipv6,
                         uint32_t i_tei, uint32_t o_tei,
-                        struct ip_flow_dl* flow_dl) {
+                        struct ip_flow_dl *flow_dl) {
   uint32_t gtp_portno = find_gtp_port_no(enb, enb_ipv6, false);
 
   if (spgw_config.sgw_config.ebpf_enabled) {
@@ -343,10 +343,10 @@ int openflow_del_tunnel(struct in_addr enb, struct in6_addr* enb_ipv6,
 }
 
 /* S8 tunnel related APIs */
-int openflow_add_s8_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
+int openflow_add_s8_tunnel(struct in_addr ue, struct in6_addr *ue_ipv6,
                            int vlan, struct in_addr enb,
-                           struct in6_addr* enb_ipv6, struct in_addr pgw,
-                           struct in6_addr* pgw_ipv6, uint32_t i_tei,
+                           struct in6_addr *enb_ipv6, struct in_addr pgw,
+                           struct in6_addr *pgw_ipv6, uint32_t i_tei,
                            uint32_t o_tei, uint32_t pgw_in_tei,
                            uint32_t pgw_o_tei, Imsi_t imsi) {
   uint32_t enb_portno = find_gtp_port_no(enb, enb_ipv6, false);
@@ -354,12 +354,12 @@ int openflow_add_s8_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
 
   return openflow_controller_add_gtp_s8_tunnel(
       ue, ue_ipv6, vlan, enb, enb_ipv6, pgw, pgw_ipv6, i_tei, o_tei, pgw_in_tei,
-      pgw_o_tei, (const char*)imsi.digit, enb_portno, pgw_portno);
+      pgw_o_tei, (const char *)imsi.digit, enb_portno, pgw_portno);
 }
 
-int openflow_del_s8_tunnel(struct in_addr enb, struct in6_addr* enb_ipv6,
-                           struct in_addr pgw, struct in6_addr* pgw_ipv6,
-                           struct in_addr ue, struct in6_addr* ue_ipv6,
+int openflow_del_s8_tunnel(struct in_addr enb, struct in6_addr *enb_ipv6,
+                           struct in_addr pgw, struct in6_addr *pgw_ipv6,
+                           struct in_addr ue, struct in6_addr *ue_ipv6,
                            uint32_t i_tei, uint32_t pgw_in_tei) {
   uint32_t enb_portno = find_gtp_port_no(enb, enb_ipv6, false);
   uint32_t pgw_portno = find_gtp_port_no(pgw, pgw_ipv6, true);
@@ -368,27 +368,27 @@ int openflow_del_s8_tunnel(struct in_addr enb, struct in6_addr* enb_ipv6,
                                                enb_portno, pgw_portno);
 }
 
-int openflow_discard_data_on_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
+int openflow_discard_data_on_tunnel(struct in_addr ue, struct in6_addr *ue_ipv6,
                                     uint32_t i_tei,
-                                    struct ip_flow_dl* flow_dl) {
+                                    struct ip_flow_dl *flow_dl) {
   return openflow_controller_discard_data_on_tunnel(ue, ue_ipv6, i_tei,
                                                     flow_dl);
 }
 
-int openflow_forward_data_on_tunnel(struct in_addr ue, struct in6_addr* ue_ipv6,
-                                    uint32_t i_tei, struct ip_flow_dl* flow_dl,
+int openflow_forward_data_on_tunnel(struct in_addr ue, struct in6_addr *ue_ipv6,
+                                    uint32_t i_tei, struct ip_flow_dl *flow_dl,
                                     uint32_t flow_precedence_dl) {
   return openflow_controller_forward_data_on_tunnel(ue, ue_ipv6, i_tei, flow_dl,
                                                     flow_precedence_dl);
 }
 
 int openflow_add_paging_rule(Imsi_t imsi, struct in_addr ue,
-                             struct in6_addr* ue_ipv6) {
-  return openflow_controller_add_paging_rule((const char*)imsi.digit, ue,
+                             struct in6_addr *ue_ipv6) {
+  return openflow_controller_add_paging_rule((const char *)imsi.digit, ue,
                                              ue_ipv6);
 }
 
-int openflow_delete_paging_rule(struct in_addr ue, struct in6_addr* ue_ipv6) {
+int openflow_delete_paging_rule(struct in_addr ue, struct in6_addr *ue_ipv6) {
   return openflow_controller_delete_paging_rule(ue, ue_ipv6);
 }
 
@@ -415,8 +415,7 @@ int openflow_send_end_marker(struct in_addr enb, uint32_t tei) {
       end_marker_cmd, sizeof(end_marker_cmd),
       "sudo ovs-ofctl packet-out gtp_br0 "
       "'in_port=local packet=50540000000a5054000000008000,"
-      "actions=load:%" PRIu32
-      "->tun_id[0..31],"
+      "actions=load:%" PRIu32 "->tun_id[0..31],"
       "set_field:%s->tun_dst,"
       "set_field:0xfe->tun_gtpu_msgtype,set_field:0x30->tun_gtpu_flags,output:"
       "gtp0'",
@@ -438,7 +437,7 @@ int openflow_send_end_marker(struct in_addr enb, uint32_t tei) {
   return rc;
 }
 
-const char* openflow_get_dev_name(void) {
+const char *openflow_get_dev_name(void) {
   return bdata(spgw_config.sgw_config.ovs_config.bridge_name);
 }
 
@@ -458,7 +457,7 @@ static const struct gtp_tunnel_ops openflow_ops = {
     .get_dev_name = openflow_get_dev_name,
 };
 
-const struct gtp_tunnel_ops* gtp_tunnel_ops_init_openflow(void) {
+const struct gtp_tunnel_ops *gtp_tunnel_ops_init_openflow(void) {
   if (spgw_config.sgw_config.ovs_config.multi_tunnel) {
     openflow_multi_tunnel_init();
   }

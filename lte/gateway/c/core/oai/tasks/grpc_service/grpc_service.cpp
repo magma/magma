@@ -21,14 +21,14 @@
 #include <memory>
 
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
@@ -70,7 +70,7 @@ void start_grpc_service(bstring server_address) {
   builder.RegisterService(&amf_service);
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF
-  char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
+  char *non_eps_service_control = bdata(mme_config.non_eps_service_control);
   if (non_eps_service_control) {
     if (!strcmp(non_eps_service_control, "CSFB_SMS") ||
         !strcmp(non_eps_service_control, "SMS")) {
@@ -95,5 +95,5 @@ void start_grpc_service(bstring server_address) {
 
 void stop_grpc_service(void) {
   server->Shutdown();
-  server->Wait();  // Blocks until server finishes shutting down
+  server->Wait(); // Blocks until server finishes shutting down
 }

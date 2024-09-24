@@ -17,20 +17,20 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/NetworkName.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_network_name(NetworkName* networkname, uint8_t iei, uint8_t* buffer,
+int decode_network_name(NetworkName *networkname, uint8_t iei, uint8_t *buffer,
                         uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
@@ -66,9 +66,9 @@ int decode_network_name(NetworkName* networkname, uint8_t iei, uint8_t* buffer,
   return decoded;
 }
 
-int encode_network_name(NetworkName* networkname, uint8_t iei, uint8_t* buffer,
+int encode_network_name(NetworkName *networkname, uint8_t iei, uint8_t *buffer,
                         uint32_t len) {
-  uint8_t* lenPtr;
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
   int encode_result;
 
@@ -104,7 +104,7 @@ int encode_network_name(NetworkName* networkname, uint8_t iei, uint8_t* buffer,
   return encoded;
 }
 
-void dump_network_name_xml(NetworkName* networkname, uint8_t iei) {
+void dump_network_name_xml(NetworkName *networkname, uint8_t iei) {
   OAILOG_DEBUG(LOG_NAS, "<Network Name>\n");
 
   if (iei > 0)

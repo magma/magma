@@ -39,8 +39,8 @@
 #define FILE_COMMON_TYPES_SEEN
 
 #include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"
@@ -52,11 +52,11 @@ typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
 typedef uint32_t sctp_ppid_t;
 typedef uint64_t enb_s1ap_id_key_t;
-#define MME_APP_ENB_S1AP_ID_KEY(kEy, eNb_Id, eNb_Ue_S1Ap_Id)    \
-  do {                                                          \
-    kEy = (((enb_s1ap_id_key_t)eNb_Id) << 24) | eNb_Ue_S1Ap_Id; \
+#define MME_APP_ENB_S1AP_ID_KEY(kEy, eNb_Id, eNb_Ue_S1Ap_Id)                   \
+  do {                                                                         \
+    kEy = (((enb_s1ap_id_key_t)eNb_Id) << 24) | eNb_Ue_S1Ap_Id;                \
   } while (0);
-#define MME_APP_ENB_S1AP_ID_KEY2ENB_S1AP_ID(kEy) \
+#define MME_APP_ENB_S1AP_ID_KEY2ENB_S1AP_ID(kEy)                               \
   (enb_ue_s1ap_id_t)(((enb_s1ap_id_key_t)kEy) & ENB_UE_S1AP_ID_MASK)
 #define MME_APP_ENB_S1AP_ID_KEY_FORMAT "0x%16" PRIX64
 
@@ -92,9 +92,9 @@ typedef uint64_t enb_s1ap_id_key_t;
 #define INVALID_AMF_UE_NGAP_ID 0x0
 #define INVALID_GNB_UE_NGAP_ID 0x0
 
-#define AMF_APP_GNB_NGAP_ID_KEY(kEy, gNb_Id, gNb_Ue_NgAp_Id)    \
-  do {                                                          \
-    kEy = (((gnb_ngap_id_key_t)gNb_Id) << 32) | gNb_Ue_NgAp_Id; \
+#define AMF_APP_GNB_NGAP_ID_KEY(kEy, gNb_Id, gNb_Ue_NgAp_Id)                   \
+  do {                                                                         \
+    kEy = (((gnb_ngap_id_key_t)gNb_Id) << 32) | gNb_Ue_NgAp_Id;                \
   } while (0);
 
 //------------------------------------------------------------------------------
@@ -125,25 +125,25 @@ typedef uint64_t imei64_t;
 
 #define LAC_FMT "0x%04X"
 /* Checks LAC validity */
-#define LAC_IS_VALID(lac) \
+#define LAC_IS_VALID(lac)                                                      \
   (((lac) != INVALID_LAC_0000) && ((lac) != INVALID_LAC_FFFE))
 
 //------------------------------------------------------------------------------
 // GUTI
 #define GUTI_FMT PLMN_FMT "|%04x|%02x|%08x"
-#define GUTI_ARG(GuTi_PtR)                                        \
-  PLMN_ARG(&(GuTi_PtR)->gummei.plmn), (GuTi_PtR)->gummei.mme_gid, \
+#define GUTI_ARG(GuTi_PtR)                                                     \
+  PLMN_ARG(&(GuTi_PtR)->gummei.plmn), (GuTi_PtR)->gummei.mme_gid,              \
       (GuTi_PtR)->gummei.mme_code, (GuTi_PtR)->m_tmsi
 
-#define GUTI_ARG_M5G(GuTi_PtR)                                     \
-  PLMN_ARG(&(GuTi_PtR)->guamfi.plmn), (GuTi_PtR)->guamfi.amf_gid,  \
-      (GuTi_PtR)->guamfi.amf_code, (GuTi_PtR)->guamfi.amf_Pointer, \
+#define GUTI_ARG_M5G(GuTi_PtR)                                                 \
+  PLMN_ARG(&(GuTi_PtR)->guamfi.plmn), (GuTi_PtR)->guamfi.amf_gid,              \
+      (GuTi_PtR)->guamfi.amf_code, (GuTi_PtR)->guamfi.amf_Pointer,             \
       (GuTi_PtR)->m_tmsi
 
 #define MSISDN_LENGTH (15)
 #define IMEI_DIGITS_MAX (15)
 #define IMEISV_DIGITS_MAX (16)
-#define CHARGING_CHARACTERISTICS_LENGTH (4)  // 3GPP TS 29.061
+#define CHARGING_CHARACTERISTICS_LENGTH (4) // 3GPP TS 29.061
 #define APN_MAX_LENGTH (100)
 #define PRIORITY_LEVEL_MAX (15)
 #define PRIORITY_LEVEL_MIN (1)
@@ -201,7 +201,7 @@ typedef struct supported_features_s {
 
 typedef uint64_t bitrate_t;
 
-typedef char* APN_t;
+typedef char *APN_t;
 typedef uint8_t APNRestriction_t;
 typedef uint8_t DelayValue_t;
 typedef uint8_t priority_level_t;
@@ -213,10 +213,10 @@ typedef uint32_t context_identifier_t;
 typedef uint32_t rau_tau_timer_t;
 
 typedef uint32_t ard_t;
-typedef int pdn_cid_t;  // pdn connexion identity, related to esm protocol,
-                        // sometimes type is mixed with int return code!!...
+typedef int pdn_cid_t; // pdn connexion identity, related to esm protocol,
+                       // sometimes type is mixed with int return code!!...
 typedef uint8_t
-    proc_tid_t;  // procedure transaction identity, related to esm protocol
+    proc_tid_t; // procedure transaction identity, related to esm protocol
 #define ARD_UTRAN_NOT_ALLOWED (1U)
 #define ARD_GERAN_NOT_ALLOWED (1U << 1)
 #define ARD_GAN_NOT_ALLOWED (1U << 2)
@@ -226,7 +226,7 @@ typedef uint8_t
 #define ARD_MAX (1U << 6)
 
 typedef union {
-  uint8_t imei[IMEI_DIGITS_MAX - 1];  // -1 =  remove CD/SD digit
+  uint8_t imei[IMEI_DIGITS_MAX - 1]; // -1 =  remove CD/SD digit
   uint8_t imeisv[IMEISV_DIGITS_MAX];
 } me_identity_t;
 
@@ -401,17 +401,17 @@ typedef struct m5g_authentication_info_s {
 
 typedef struct served_tai_s {
   uint8_t nb_tai;
-  uint16_t* plmn_mcc;
-  uint16_t* plmn_mnc;
-  uint16_t* plmn_mnc_len;
-  uint16_t* tac;
+  uint16_t *plmn_mcc;
+  uint16_t *plmn_mnc;
+  uint16_t *plmn_mnc_len;
+  uint16_t *tac;
 } served_tai_t;
 
 typedef struct partial_list_s {
   uint8_t list_type;
   uint8_t nb_elem;
-  plmn_t* plmn;
-  uint16_t* tac;
+  plmn_t *plmn;
+  uint16_t *tac;
 } partial_list_t;
 
 typedef enum {

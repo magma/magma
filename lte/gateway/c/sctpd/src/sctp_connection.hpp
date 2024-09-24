@@ -13,10 +13,10 @@
 
 #pragma once
 
-#include <lte/protos/sctpd.grpc.pb.h>
-#include <stdint.h>
 #include <atomic>
+#include <lte/protos/sctpd.grpc.pb.h>
 #include <memory>
+#include <stdint.h>
 #include <string>
 #include <thread>
 
@@ -31,19 +31,19 @@ class InitReq;
 
 // Describes status of Sctp event (up or down stream)
 enum class SctpStatus {
-  OK,                      // Sctp event was ok
-  FAILURE,                 // General failure - nonfatal
-  DISCONNECT,              // Sctp assoc disconnected
-  NEW_ASSOC_NOTIF_FAILED,  // GRPC call for new assoc notification failed
+  OK,                     // Sctp event was ok
+  FAILURE,                // General failure - nonfatal
+  DISCONNECT,             // Sctp assoc disconnected
+  NEW_ASSOC_NOTIF_FAILED, // GRPC call for new assoc notification failed
 };
 
 // Interface for upstream Sctp event handling
 class SctpEventHandler {
- public:
+public:
   // Specification for NewAssoc handler function
   virtual int HandleNewAssoc(uint32_t ppid, uint32_t assoc_id,
                              uint32_t instreams, uint32_t outstreams,
-                             std::string& ran_cp_ipaddr) = 0;
+                             std::string &ran_cp_ipaddr) = 0;
 
   // Specification for CloseAssoc handler function
   virtual void HandleCloseAssoc(uint32_t ppid, uint32_t assoc_id,
@@ -51,14 +51,14 @@ class SctpEventHandler {
 
   // Specification for Recv handler function
   virtual void HandleRecv(uint32_t ppid, uint32_t assoc_id, uint32_t stream,
-                          const std::string& payload) = 0;
+                          const std::string &payload) = 0;
 };
 
 // Manages Sctp connection including setup/teardown and send/recv
 class SctpConnection {
- public:
+public:
   // Construct as per the InitReq and sending upstream events to handler
-  SctpConnection(const InitReq& req, SctpEventHandler& handler);
+  SctpConnection(const InitReq &req, SctpEventHandler &handler);
 
   // Start SCTP connection and begin listening/relaying events to handler
   void Start();
@@ -66,19 +66,19 @@ class SctpConnection {
   void Close();
 
   // Send a message on the Sctp connection to (assoc_id, stream)
-  void Send(uint32_t assoc_id, uint32_t stream, const std::string& msg);
+  void Send(uint32_t assoc_id, uint32_t stream, const std::string &msg);
 
- private:
+private:
   // Listener loop run in separate thread by Start
   void Listen();
   // Handle an event on a client socket
   SctpStatus HandleClientSock(int sd);
   // Handle an association change event for an association sd/change
-  SctpStatus HandleAssocChange(int sd, struct sctp_assoc_change* change);
+  SctpStatus HandleAssocChange(int sd, struct sctp_assoc_change *change);
   // Handle a send failed event
-  SctpStatus HandleSendFailure(int sd, struct sctp_send_failed* change);
+  SctpStatus HandleSendFailure(int sd, struct sctp_send_failed *change);
   // Handle a comup event on an association sd/change
-  SctpStatus HandleComUp(int sd, struct sctp_assoc_change* change);
+  SctpStatus HandleComUp(int sd, struct sctp_assoc_change *change);
   // Handle a comdown event on an association keyed by assoc_id
   SctpStatus HandleComDown(uint32_t assoc_id);
   // Handle a reset event on an association keyed by assoc_id
@@ -87,7 +87,7 @@ class SctpConnection {
   // Flag is set to true when the connection is closing
   std::atomic<bool> _done;
   // Concrete handler instance to handle upstream events
-  SctpEventHandler& _handler;
+  SctpEventHandler &_handler;
   // PPID to use with Sctp connections
   int _ppid;
   // Keeps track of sctp and assocation info
@@ -96,5 +96,5 @@ class SctpConnection {
   std::unique_ptr<std::thread> _thread;
 };
 
-}  // namespace sctpd
-};  // namespace magma
+} // namespace sctpd
+}; // namespace magma

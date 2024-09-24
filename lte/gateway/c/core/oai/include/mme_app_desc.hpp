@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <stdint.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
 

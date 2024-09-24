@@ -10,20 +10,20 @@
 */
 
 #pragma once
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+#include <sstream>
 
 namespace magma5g {
 // DLNASTransport Message Class
 class DLNASTransportMsg {
- public:
+public:
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   SpareHalfOctetMsg spare_half_octet;
   SecurityHeaderTypeMsg sec_header_type;
@@ -37,12 +37,12 @@ class DLNASTransportMsg {
 
   DLNASTransportMsg();
   ~DLNASTransportMsg();
-  int DecodeDLNASTransportMsg(DLNASTransportMsg* dl_nas_transport,
-                              uint8_t* buffer, uint32_t len);
-  int EncodeDLNASTransportMsg(DLNASTransportMsg* dl_nas_transport,
-                              uint8_t* buffer, uint32_t len);
+  int DecodeDLNASTransportMsg(DLNASTransportMsg *dl_nas_transport,
+                              uint8_t *buffer, uint32_t len);
+  int EncodeDLNASTransportMsg(DLNASTransportMsg *dl_nas_transport,
+                              uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g
 
 /******************************************************************************
      SPEC TS-24501 Table 8.2.11.1.1: DL NAS TRANSPORT message content

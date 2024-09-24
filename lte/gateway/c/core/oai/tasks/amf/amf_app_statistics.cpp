@@ -19,8 +19,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 // Utility Functions to update Statistics
 namespace magma5g {
@@ -30,7 +30,7 @@ static inline int get_max(int num1, int num2) {
 /*****************************************************/
 // Number of Connected UEs
 void update_amf_app_stats_connected_ue_add(void) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   if (amf_app_desc_p == NULL) {
     return;
   }
@@ -40,7 +40,7 @@ void update_amf_app_stats_connected_ue_add(void) {
   return;
 }
 void update_amf_app_stats_connected_ue_sub(void) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   if (amf_app_desc_p == NULL) {
     return;
   }
@@ -55,7 +55,7 @@ void update_amf_app_stats_connected_ue_sub(void) {
 /*****************************************************/
 // Number of Registered UEs
 void update_amf_app_stats_registered_ue_add(void) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   if (amf_app_desc_p == NULL) {
     return;
   }
@@ -63,11 +63,12 @@ void update_amf_app_stats_registered_ue_add(void) {
   return;
 }
 void update_amf_app_stats_registered_ue_sub(void) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   if (amf_app_desc_p == NULL) {
     return;
   }
-  if (amf_app_desc_p->nb_ue_attached != 0) (amf_app_desc_p->nb_ue_attached)--;
+  if (amf_app_desc_p->nb_ue_attached != 0)
+    (amf_app_desc_p->nb_ue_attached)--;
   amf_app_desc_p->nb_ue_idle = get_max(
       amf_app_desc_p->nb_ue_attached - amf_app_desc_p->nb_ue_connected, 0);
   return;
@@ -76,7 +77,7 @@ void update_amf_app_stats_registered_ue_sub(void) {
 /*****************************************************/
 // Number of Pdusessions UEs
 void update_amf_app_stats_pdusessions_ue_add(void) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   if (amf_app_desc_p == NULL) {
     return;
   }
@@ -84,13 +85,14 @@ void update_amf_app_stats_pdusessions_ue_add(void) {
   return;
 }
 void update_amf_app_stats_pdusessions_ue_sub(void) {
-  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+  amf_app_desc_t *amf_app_desc_p = get_amf_nas_state(false);
   if (amf_app_desc_p == NULL) {
     return;
   }
-  if (amf_app_desc_p->nb_pdu_sessions != 0) (amf_app_desc_p->nb_pdu_sessions)--;
+  if (amf_app_desc_p->nb_pdu_sessions != 0)
+    (amf_app_desc_p->nb_pdu_sessions)--;
   return;
 }
 
 /*****************************************************/
-}  // namespace magma5g
+} // namespace magma5g

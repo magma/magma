@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/ActivateDefaultEpsBearerContextRequest.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,9 +32,9 @@ extern "C" {
 #endif
 
 int decode_activate_default_eps_bearer_context_request(
-    activate_default_eps_bearer_context_request_msg*
-        activate_default_eps_bearer_context_request,
-    uint8_t* buffer, uint32_t len) {
+    activate_default_eps_bearer_context_request_msg
+        *activate_default_eps_bearer_context_request,
+    uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -76,131 +76,131 @@ int decode_activate_default_eps_bearer_context_request(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_IEI:
-        if ((decoded_result = decode_linked_ti_ie(
-                 &activate_default_eps_bearer_context_request
-                      ->transactionidentifier,
-                 true, buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_IEI:
+      if ((decoded_result =
+               decode_linked_ti_ie(&activate_default_eps_bearer_context_request
+                                        ->transactionidentifier,
+                                   true, buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        activate_default_eps_bearer_context_request->presencemask |=
-            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      activate_default_eps_bearer_context_request->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_PRESENT;
+      break;
 
-      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_IEI:
-        if ((decoded_result = decode_quality_of_service_ie(
-                 &activate_default_eps_bearer_context_request->negotiatedqos,
-                 true, buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_IEI:
+      if ((decoded_result = decode_quality_of_service_ie(
+               &activate_default_eps_bearer_context_request->negotiatedqos,
+               true, buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        activate_default_eps_bearer_context_request->presencemask |=
-            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      activate_default_eps_bearer_context_request->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_PRESENT;
+      break;
 
-      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_IEI:
-        if ((decoded_result = decode_llc_service_access_point_identifier_ie(
-                 &activate_default_eps_bearer_context_request
-                      ->negotiatedllcsapi,
-                 true, buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_IEI:
+      if ((decoded_result = decode_llc_service_access_point_identifier_ie(
+               &activate_default_eps_bearer_context_request->negotiatedllcsapi,
+               true, buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        activate_default_eps_bearer_context_request->presencemask |=
-            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      activate_default_eps_bearer_context_request->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_PRESENT;
+      break;
 
-      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_IEI:
-        if ((decoded_result = decode_radio_priority(
-                 &activate_default_eps_bearer_context_request->radiopriority,
-                 ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_IEI:
+      if ((decoded_result = decode_radio_priority(
+               &activate_default_eps_bearer_context_request->radiopriority,
+               ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        activate_default_eps_bearer_context_request->presencemask |=
-            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      activate_default_eps_bearer_context_request->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT;
+      break;
 
-      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_IEI:
-        if ((decoded_result = decode_packet_flow_identifier_ie(
-                 &activate_default_eps_bearer_context_request
-                      ->packetflowidentifier,
-                 true, buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_IEI:
+      if ((decoded_result = decode_packet_flow_identifier_ie(
+               &activate_default_eps_bearer_context_request
+                    ->packetflowidentifier,
+               true, buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        activate_default_eps_bearer_context_request->presencemask |=
-            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      activate_default_eps_bearer_context_request->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_PRESENT;
+      break;
 
-      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_IEI:
-        if ((decoded_result = decode_apn_aggregate_maximum_bit_rate(
-                 &activate_default_eps_bearer_context_request->apnambr,
-                 ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_IEI:
+      if ((decoded_result = decode_apn_aggregate_maximum_bit_rate(
+               &activate_default_eps_bearer_context_request->apnambr,
+               ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        activate_default_eps_bearer_context_request->presencemask |=
-            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      activate_default_eps_bearer_context_request->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT;
+      break;
 
-      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_IEI:
-        if ((decoded_result = decode_esm_cause(
-                 &activate_default_eps_bearer_context_request->esmcause,
-                 ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_IEI:
+      if ((decoded_result = decode_esm_cause(
+               &activate_default_eps_bearer_context_request->esmcause,
+               ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        activate_default_eps_bearer_context_request->presencemask |=
-            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      activate_default_eps_bearer_context_request->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_PRESENT;
+      break;
 
-      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
-        if ((decoded_result = decode_protocol_configuration_options_ie(
-                 &activate_default_eps_bearer_context_request
-                      ->protocolconfigurationoptions,
-                 true, buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
+      if ((decoded_result = decode_protocol_configuration_options_ie(
+               &activate_default_eps_bearer_context_request
+                    ->protocolconfigurationoptions,
+               true, buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        activate_default_eps_bearer_context_request->presencemask |=
-            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      activate_default_eps_bearer_context_request->presencemask |=
+          ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -208,9 +208,9 @@ int decode_activate_default_eps_bearer_context_request(
 }
 
 int encode_activate_default_eps_bearer_context_request(
-    activate_default_eps_bearer_context_request_msg*
-        activate_default_eps_bearer_context_request,
-    uint8_t* buffer, uint32_t len) {
+    activate_default_eps_bearer_context_request_msg
+        *activate_default_eps_bearer_context_request,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
 
@@ -223,7 +223,7 @@ int encode_activate_default_eps_bearer_context_request(
   if ((encode_result = encode_eps_quality_of_service(
            &activate_default_eps_bearer_context_request->epsqos, 0,
            buffer + encoded,
-           len - encoded)) < 0) {  // Return in case of error
+           len - encoded)) < 0) { // Return in case of error
     OAILOG_ERROR(LOG_NAS_ESM, "ESM  ENCODE epsqos\n");
     return encode_result;
   } else
@@ -232,7 +232,7 @@ int encode_activate_default_eps_bearer_context_request(
   if ((encode_result = encode_access_point_name_ie(
            activate_default_eps_bearer_context_request->accesspointname, 0,
            buffer + encoded,
-           len - encoded)) < 0) {  // Return in case of error
+           len - encoded)) < 0) { // Return in case of error
     OAILOG_ERROR(LOG_NAS_ESM, "ESM  ENCODE accesspointname\n");
     return encode_result;
   } else
@@ -241,7 +241,7 @@ int encode_activate_default_eps_bearer_context_request(
   if ((encode_result = encode_pdn_address(
            &activate_default_eps_bearer_context_request->pdnaddress, 0,
            buffer + encoded,
-           len - encoded)) < 0) {  // Return in case of error
+           len - encoded)) < 0) { // Return in case of error
     OAILOG_ERROR(LOG_NAS_ESM, "ESM  ENCODE pdnaddress\n");
     return encode_result;
   } else

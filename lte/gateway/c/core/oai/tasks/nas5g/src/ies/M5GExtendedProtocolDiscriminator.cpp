@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 ExtendedProtocolDiscriminatorMsg::ExtendedProtocolDiscriminatorMsg(){};
@@ -20,8 +20,8 @@ ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg(){};
 
 // Decode ExtendedProtocolDiscriminator IE
 int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(
-    ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
-    uint8_t iei, uint8_t* buffer, uint32_t len) {
+    ExtendedProtocolDiscriminatorMsg *extended_protocol_discriminator,
+    uint8_t iei, uint8_t *buffer, uint32_t len) {
   uint8_t decoded = 0;
 
   extended_protocol_discriminator->extended_proto_discriminator =
@@ -32,8 +32,8 @@ int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(
 
 // Encode ExtendedProtocolDiscriminator IE
 int ExtendedProtocolDiscriminatorMsg::EncodeExtendedProtocolDiscriminatorMsg(
-    ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
-    uint8_t iei, uint8_t* buffer, uint32_t len) {
+    ExtendedProtocolDiscriminatorMsg *extended_protocol_discriminator,
+    uint8_t iei, uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   *(buffer + encoded) =
@@ -41,4 +41,4 @@ int ExtendedProtocolDiscriminatorMsg::EncodeExtendedProtocolDiscriminatorMsg(
   encoded++;
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

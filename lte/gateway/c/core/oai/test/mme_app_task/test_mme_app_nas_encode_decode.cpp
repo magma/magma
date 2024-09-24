@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include <glog/logging.h>
+#include <gtest/gtest.h>
 
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
@@ -20,8 +20,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
 
 class NASEncodeDecodeTest : public ::testing::Test {
   virtual void SetUp() {}
@@ -43,10 +43,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
   uint8_t eps_qos_buffersize_encoded1[10] = {0};
-  ASSERT_EQ(
-      encode_eps_quality_of_service(&eps_qos, 0, eps_qos_buffersize_encoded1,
-                                    sizeof(eps_qos_buffersize_encoded1)),
-      sizeof(eps_qos_buffersize_encoded1));
+  ASSERT_EQ(encode_eps_quality_of_service(&eps_qos, 0,
+                                          eps_qos_buffersize_encoded1,
+                                          sizeof(eps_qos_buffersize_encoded1)),
+            sizeof(eps_qos_buffersize_encoded1));
 
   ASSERT_EQ(memcmp(eps_qos_buffersize_encoded1, eps_qos_buffersize1,
                    sizeof(eps_qos_buffersize1)),
@@ -66,10 +66,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
   uint8_t eps_qos_buffersize_encoded2[10] = {0};
-  ASSERT_EQ(
-      encode_eps_quality_of_service(&eps_qos, 0, eps_qos_buffersize_encoded2,
-                                    sizeof(eps_qos_buffersize_encoded2)),
-      sizeof(eps_qos_buffersize_encoded2));
+  ASSERT_EQ(encode_eps_quality_of_service(&eps_qos, 0,
+                                          eps_qos_buffersize_encoded2,
+                                          sizeof(eps_qos_buffersize_encoded2)),
+            sizeof(eps_qos_buffersize_encoded2));
   ASSERT_EQ(memcmp(eps_qos_buffersize_encoded2, eps_qos_buffersize2,
                    sizeof(eps_qos_buffersize2)),
             0);
@@ -88,10 +88,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
   uint8_t eps_qos_buffersize_encoded3[10] = {0};
-  ASSERT_EQ(
-      encode_eps_quality_of_service(&eps_qos, 0, eps_qos_buffersize_encoded3,
-                                    sizeof(eps_qos_buffersize_encoded3)),
-      sizeof(eps_qos_buffersize_encoded3));
+  ASSERT_EQ(encode_eps_quality_of_service(&eps_qos, 0,
+                                          eps_qos_buffersize_encoded3,
+                                          sizeof(eps_qos_buffersize_encoded3)),
+            sizeof(eps_qos_buffersize_encoded3));
   ASSERT_EQ(memcmp(eps_qos_buffersize_encoded3, eps_qos_buffersize3,
                    sizeof(eps_qos_buffersize3)),
             0);
@@ -110,10 +110,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
   uint8_t eps_qos_buffersize_encoded4[10] = {0};
-  ASSERT_EQ(
-      encode_eps_quality_of_service(&eps_qos, 0, eps_qos_buffersize_encoded4,
-                                    sizeof(eps_qos_buffersize_encoded4)),
-      sizeof(eps_qos_buffersize_encoded4));
+  ASSERT_EQ(encode_eps_quality_of_service(&eps_qos, 0,
+                                          eps_qos_buffersize_encoded4,
+                                          sizeof(eps_qos_buffersize_encoded4)),
+            sizeof(eps_qos_buffersize_encoded4));
   ASSERT_EQ(memcmp(eps_qos_buffersize_encoded4, eps_qos_buffersize4,
                    sizeof(eps_qos_buffersize4)),
             0);
@@ -132,10 +132,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
   uint8_t eps_qos_buffersize_encoded5[10] = {0};
-  ASSERT_EQ(
-      encode_eps_quality_of_service(&eps_qos, 0, eps_qos_buffersize_encoded5,
-                                    sizeof(eps_qos_buffersize_encoded5)),
-      sizeof(eps_qos_buffersize_encoded5));
+  ASSERT_EQ(encode_eps_quality_of_service(&eps_qos, 0,
+                                          eps_qos_buffersize_encoded5,
+                                          sizeof(eps_qos_buffersize_encoded5)),
+            sizeof(eps_qos_buffersize_encoded5));
   ASSERT_EQ(memcmp(eps_qos_buffersize_encoded5, eps_qos_buffersize5,
                    sizeof(eps_qos_buffersize5)),
             0);
@@ -154,10 +154,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
   uint8_t eps_qos_buffersize_encoded6[10] = {0};
-  ASSERT_EQ(
-      encode_eps_quality_of_service(&eps_qos, 0, eps_qos_buffersize_encoded6,
-                                    sizeof(eps_qos_buffersize_encoded6)),
-      sizeof(eps_qos_buffersize_encoded6));
+  ASSERT_EQ(encode_eps_quality_of_service(&eps_qos, 0,
+                                          eps_qos_buffersize_encoded6,
+                                          sizeof(eps_qos_buffersize_encoded6)),
+            sizeof(eps_qos_buffersize_encoded6));
   ASSERT_EQ(memcmp(eps_qos_buffersize_encoded6, eps_qos_buffersize6,
                    sizeof(eps_qos_buffersize6)),
             0);
@@ -176,10 +176,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
   uint8_t eps_qos_buffersize_encoded7[10] = {0};
-  ASSERT_EQ(
-      encode_eps_quality_of_service(&eps_qos, 0, eps_qos_buffersize_encoded7,
-                                    sizeof(eps_qos_buffersize_encoded7)),
-      sizeof(eps_qos_buffersize_encoded7));
+  ASSERT_EQ(encode_eps_quality_of_service(&eps_qos, 0,
+                                          eps_qos_buffersize_encoded7,
+                                          sizeof(eps_qos_buffersize_encoded7)),
+            sizeof(eps_qos_buffersize_encoded7));
   ASSERT_EQ(memcmp(eps_qos_buffersize_encoded7, eps_qos_buffersize7,
                    sizeof(eps_qos_buffersize7)),
             0);
@@ -198,10 +198,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeEPSQoS) {
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForUL), 0);
   ASSERT_EQ((eps_qos.bitRatesExt2.maxBitRateForDL), 0);
   uint8_t eps_qos_buffersize_encoded8[10] = {0};
-  ASSERT_EQ(
-      encode_eps_quality_of_service(&eps_qos, 0, eps_qos_buffersize_encoded8,
-                                    sizeof(eps_qos_buffersize_encoded8)),
-      sizeof(eps_qos_buffersize_encoded8));
+  ASSERT_EQ(encode_eps_quality_of_service(&eps_qos, 0,
+                                          eps_qos_buffersize_encoded8,
+                                          sizeof(eps_qos_buffersize_encoded8)),
+            sizeof(eps_qos_buffersize_encoded8));
   ASSERT_EQ(memcmp(eps_qos_buffersize_encoded8, eps_qos_buffersize8,
                    sizeof(eps_qos_buffersize8)),
             0);
@@ -594,10 +594,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
   ApnAggregateMaximumBitRate apn_ambr = {0};
 
   uint8_t apn_ambr_buffersize1[] = {0x06, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize1,
-                                            sizeof(apn_ambr_buffersize1)),
-      sizeof(apn_ambr_buffersize1));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize1,
+                                                  sizeof(apn_ambr_buffersize1)),
+            sizeof(apn_ambr_buffersize1));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 255);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 255);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);
@@ -613,10 +613,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
             0);
 
   uint8_t apn_ambr_buffersize2[] = {0x06, 0x01, 0x01, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize2,
-                                            sizeof(apn_ambr_buffersize2)),
-      sizeof(apn_ambr_buffersize2));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize2,
+                                                  sizeof(apn_ambr_buffersize2)),
+            sizeof(apn_ambr_buffersize2));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 1);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 1);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);
@@ -634,10 +634,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
             0);
 
   uint8_t apn_ambr_buffersize3[] = {0x06, 0x3F, 0x3F, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize3,
-                                            sizeof(apn_ambr_buffersize3)),
-      sizeof(apn_ambr_buffersize2));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize3,
+                                                  sizeof(apn_ambr_buffersize3)),
+            sizeof(apn_ambr_buffersize2));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 63);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 63);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);
@@ -655,10 +655,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
             0);
 
   uint8_t apn_ambr_buffersize4[] = {0x06, 0x40, 0x40, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize4,
-                                            sizeof(apn_ambr_buffersize4)),
-      sizeof(apn_ambr_buffersize4));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize4,
+                                                  sizeof(apn_ambr_buffersize4)),
+            sizeof(apn_ambr_buffersize4));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 64);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 64);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);
@@ -676,10 +676,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
             0);
 
   uint8_t apn_ambr_buffersize5[] = {0x06, 0x41, 0x41, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize5,
-                                            sizeof(apn_ambr_buffersize5)),
-      sizeof(apn_ambr_buffersize5));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize5,
+                                                  sizeof(apn_ambr_buffersize5)),
+            sizeof(apn_ambr_buffersize5));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 65);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 65);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);
@@ -697,10 +697,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
             0);
 
   uint8_t apn_ambr_buffersize6[] = {0x06, 0x7F, 0x7F, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize6,
-                                            sizeof(apn_ambr_buffersize6)),
-      sizeof(apn_ambr_buffersize6));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize6,
+                                                  sizeof(apn_ambr_buffersize6)),
+            sizeof(apn_ambr_buffersize6));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 127);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 127);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);
@@ -718,10 +718,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
             0);
 
   uint8_t apn_ambr_buffersize7[] = {0x06, 0x80, 0x80, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize7,
-                                            sizeof(apn_ambr_buffersize7)),
-      sizeof(apn_ambr_buffersize7));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize7,
+                                                  sizeof(apn_ambr_buffersize7)),
+            sizeof(apn_ambr_buffersize7));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 128);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 128);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);
@@ -739,10 +739,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
             0);
 
   uint8_t apn_ambr_buffersize8[] = {0x06, 0x89, 0x89, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize8,
-                                            sizeof(apn_ambr_buffersize8)),
-      sizeof(apn_ambr_buffersize8));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize8,
+                                                  sizeof(apn_ambr_buffersize8)),
+            sizeof(apn_ambr_buffersize8));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 137);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 137);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);
@@ -760,10 +760,10 @@ TEST_F(NASEncodeDecodeTest, TestDecodeEncodeAPNAMBR) {
             0);
 
   uint8_t apn_ambr_buffersize9[] = {0x06, 0xFE, 0xFE, 0x00, 0x00, 0x00, 0x00};
-  ASSERT_EQ(
-      decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0, apn_ambr_buffersize9,
-                                            sizeof(apn_ambr_buffersize9)),
-      sizeof(apn_ambr_buffersize9));
+  ASSERT_EQ(decode_apn_aggregate_maximum_bit_rate(&apn_ambr, 0,
+                                                  apn_ambr_buffersize9,
+                                                  sizeof(apn_ambr_buffersize9)),
+            sizeof(apn_ambr_buffersize9));
   ASSERT_EQ((apn_ambr.apnambrfordownlink), 254);
   ASSERT_EQ((apn_ambr.apnambrforuplink), 254);
   ASSERT_EQ((apn_ambr.apnambrfordownlink_extended), 0);

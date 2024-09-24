@@ -10,13 +10,13 @@
  */
 
 #pragma once
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 // AuthenticationParameterAUTN IE Class
 class AuthenticationParameterAUTNMsg {
- public:
+public:
 #define AUTN_MIN_LEN 16
 #define AUTN_MAX_LEN 16
   uint8_t iei;
@@ -25,10 +25,10 @@ class AuthenticationParameterAUTNMsg {
   AuthenticationParameterAUTNMsg();
   ~AuthenticationParameterAUTNMsg();
   int EncodeAuthenticationParameterAUTNMsg(
-      AuthenticationParameterAUTNMsg* auth_parameter_autn, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      AuthenticationParameterAUTNMsg *auth_parameter_autn, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
   int DecodeAuthenticationParameterAUTNMsg(
-      AuthenticationParameterAUTNMsg* auth_parameter_autn, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      AuthenticationParameterAUTNMsg *auth_parameter_autn, uint8_t iei,
+      uint8_t *buffer, uint32_t len);
 };
-}  // namespace magma5g
+} // namespace magma5g

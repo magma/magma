@@ -35,8 +35,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/util/parser.hpp"
 #include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
-#include <stdio.h>   // fprintf
-#include <string.h>  // strcmp, strncpy
+#include <stdio.h>  // fprintf
+#include <string.h> // strcmp, strncpy
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -63,7 +63,7 @@
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-void parser_print_usage(const parser_command_line_t* command_line) {
+void parser_print_usage(const parser_command_line_t *command_line) {
   fprintf(stderr, "Usage: %s", command_line->name);
 
   for (int i = 0; i < command_line->nb_options; i++) {
@@ -95,8 +95,8 @@ void parser_print_usage(const parser_command_line_t* command_line) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-status_code_e parser_get_options(int argc, const char** argv,
-                                 parser_command_line_t* command_line) {
+status_code_e parser_get_options(int argc, const char **argv,
+                                 parser_command_line_t *command_line) {
   int argument_not_found, option_not_found = 1;
   int option_length;
 

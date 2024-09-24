@@ -22,13 +22,13 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
-int decode_detach_request(detach_request_msg* detach_request, uint8_t* buffer,
+int decode_detach_request(detach_request_msg *detach_request, uint8_t *buffer,
                           uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -53,9 +53,9 @@ int decode_detach_request(detach_request_msg* detach_request, uint8_t* buffer,
 
   decoded++;
 
-  if ((decoded_result = decode_eps_mobile_identity(
-           &detach_request->gutiorimsi, 0, buffer + decoded, len - decoded)) <
-      0)
+  if ((decoded_result =
+           decode_eps_mobile_identity(&detach_request->gutiorimsi, 0,
+                                      buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -63,7 +63,7 @@ int decode_detach_request(detach_request_msg* detach_request, uint8_t* buffer,
   return decoded;
 }
 
-int encode_detach_request(detach_request_msg* detach_request, uint8_t* buffer,
+int encode_detach_request(detach_request_msg *detach_request, uint8_t *buffer,
                           uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -81,7 +81,7 @@ int encode_detach_request(detach_request_msg* detach_request, uint8_t* buffer,
 
   if ((encode_result = encode_eps_mobile_identity(
            &detach_request->gutiorimsi, 0, buffer + encoded, len - encoded)) <
-      0)  // Return in case of error
+      0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;
@@ -89,8 +89,8 @@ int encode_detach_request(detach_request_msg* detach_request, uint8_t* buffer,
   return encoded;
 }
 
-int encode_nw_detach_request(nw_detach_request_msg* nw_detach_request,
-                             uint8_t* buffer, uint32_t len) {
+int encode_nw_detach_request(nw_detach_request_msg *nw_detach_request,
+                             uint8_t *buffer, uint32_t len) {
   int encoded = 0;
 
   //  Checking IEI and pointer

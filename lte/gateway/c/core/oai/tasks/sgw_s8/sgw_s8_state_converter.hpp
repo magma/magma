@@ -24,24 +24,24 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 #include "lte/gateway/c/core/oai/include/state_converter.hpp"
 #include "lte/protos/oai/sgw_state.pb.h"
-#include "lte/gateway/c/core/oai/include/spgw_types.hpp"
 
 namespace magma {
 namespace lte {
 
 // Class for SGW_S8 tasks state conversion helper functions.
 class SgwStateConverter : StateConverter {
- public:
+public:
   /**
    * Main function to convert SGW state to proto definition
    * @param sgw_state const pointer to sgw_state struct
    * @param sgw_proto SgwState proto object to be written to
    * Memory is owned by the caller
    */
-  static void state_to_proto(const sgw_state_t* sgw_state,
-                             oai::SgwState* sgw_proto);
+  static void state_to_proto(const sgw_state_t *sgw_state,
+                             oai::SgwState *sgw_proto);
 
   /**
    * Main function to convert SGW proto to state definition
@@ -49,18 +49,18 @@ class SgwStateConverter : StateConverter {
    * @param sgw_state const pointer to sgw_state struct
    * Memory is owned by the caller
    */
-  static void proto_to_state(const oai::SgwState& proto,
-                             sgw_state_t* sgw_state);
+  static void proto_to_state(const oai::SgwState &proto,
+                             sgw_state_t *sgw_state);
 
-  static void ue_to_proto(const spgw_ue_context_t* ue_state,
-                          oai::SgwUeContext* ue_proto);
+  static void ue_to_proto(const spgw_ue_context_t *ue_state,
+                          oai::SgwUeContext *ue_proto);
 
-  static void proto_to_ue(const oai::SgwUeContext& ue_proto,
-                          spgw_ue_context_t* ue_context_p);
+  static void proto_to_ue(const oai::SgwUeContext &ue_proto,
+                          spgw_ue_context_t *ue_context_p);
 
- private:
+private:
   SgwStateConverter();
   ~SgwStateConverter();
 };
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

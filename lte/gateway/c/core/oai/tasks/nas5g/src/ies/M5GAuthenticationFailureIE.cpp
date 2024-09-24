@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,8 +18,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationFailureIE.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationFailureIE.hpp"
 
 namespace magma5g {
 M5GAuthenticationFailureIE::M5GAuthenticationFailureIE(){};
@@ -27,8 +27,8 @@ M5GAuthenticationFailureIE::~M5GAuthenticationFailureIE(){};
 
 // Decode 5GMMCause IE
 int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(
-    M5GAuthenticationFailureIE* m5g_auth_failure_ie, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    M5GAuthenticationFailureIE *m5g_auth_failure_ie, uint8_t iei,
+    uint8_t *buffer, uint32_t len) {
   uint8_t decoded = 0;
   uint8_t ielen = 0;
 
@@ -49,4 +49,4 @@ int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(
   return (decoded);
 };
 
-}  // namespace magma5g
+} // namespace magma5g

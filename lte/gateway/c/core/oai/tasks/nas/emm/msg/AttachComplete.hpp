@@ -19,12 +19,12 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
 #define ATTACH_COMPLETE_MINIMUM_LENGTH (ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH)
@@ -47,8 +47,8 @@ typedef struct attach_complete_msg_tag {
   EsmMessageContainer esmmessagecontainer;
 } attach_complete_msg;
 
-int decode_attach_complete(attach_complete_msg* attachcomplete, uint8_t* buffer,
+int decode_attach_complete(attach_complete_msg *attachcomplete, uint8_t *buffer,
                            uint32_t len);
 
-int encode_attach_complete(attach_complete_msg* attachcomplete, uint8_t* buffer,
+int encode_attach_complete(attach_complete_msg *attachcomplete, uint8_t *buffer,
                            uint32_t len);

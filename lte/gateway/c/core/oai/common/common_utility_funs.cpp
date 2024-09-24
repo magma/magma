@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <stdint.h>
-#include <iostream>
 #include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 #include "lte/protos/mconfig/mconfigs.pb.h"
+#include <iostream>
+#include <stdint.h>
 
 // Extract MCC and MNC from the imsi received and match with
 // configuration
-int match_fed_mode_map(const char* imsi, log_proto_t module) {
+int match_fed_mode_map(const char *imsi, log_proto_t module) {
   OAILOG_FUNC_IN(module);
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(imsi, &imsi64);
@@ -60,14 +60,14 @@ int match_fed_mode_map(const char* imsi, log_proto_t module) {
 
 // Verify that tac is included in registered subscription areas
 int verify_service_area_restriction(tac_t tac,
-                                    const regional_subscription_t* reg_sub,
+                                    const regional_subscription_t *reg_sub,
                                     uint8_t num_reg_sub) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  tac_list_per_sac_t* tac_list = NULL;
+  tac_list_per_sac_t *tac_list = NULL;
   for (uint8_t itr = 0; itr < num_reg_sub; itr++) {
     hashtable_rc_t htbl = obj_hashtable_get(
         mme_config.sac_to_tacs_map.sac_to_tacs_map_htbl, reg_sub[itr].zone_code,
-        ZONE_CODE_LEN, (void**)&tac_list);
+        ZONE_CODE_LEN, (void **)&tac_list);
     if (htbl == HASH_TABLE_OK) {
       for (uint8_t idx = 0; idx < tac_list->num_tac_entries; idx++) {
         if (tac_list->tacs[idx] == tac) {

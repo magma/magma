@@ -42,8 +42,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
@@ -63,11 +63,11 @@ extern "C" {
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 static status_code_e mme_app_send_sgsap_alert_reject(
-    itti_sgsap_alert_request_t* const sgsap_alert_req_pP, SgsCause_t sgs_cause,
+    itti_sgsap_alert_request_t *const sgsap_alert_req_pP, SgsCause_t sgs_cause,
     uint64_t imsi64);
 
 static status_code_e mme_app_send_sgsap_alert_ack(
-    itti_sgsap_alert_request_t* const sgsap_alert_req_pP, uint64_t imsi64);
+    itti_sgsap_alert_request_t *const sgsap_alert_req_pP, uint64_t imsi64);
 
 /****************************************************************************
  **                                                                        **
@@ -83,10 +83,10 @@ static status_code_e mme_app_send_sgsap_alert_ack(
  **                                                                        **
  ***************************************************************************/
 status_code_e mme_app_handle_sgsap_alert_request(
-    mme_app_desc_t* mme_app_desc_p,
-    itti_sgsap_alert_request_t* const sgsap_alert_req_pP) {
+    mme_app_desc_t *mme_app_desc_p,
+    itti_sgsap_alert_request_t *const sgsap_alert_req_pP) {
   uint64_t imsi64 = 0;
-  struct ue_mm_context_s* ue_context_p = NULL;
+  struct ue_mm_context_s *ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (!sgsap_alert_req_pP) {
@@ -151,12 +151,12 @@ status_code_e mme_app_handle_sgsap_alert_request(
  **
  ***********************************************************************************/
 static status_code_e mme_app_send_sgsap_alert_reject(
-    itti_sgsap_alert_request_t* const sgsap_alert_req_pP, SgsCause_t sgs_cause,
+    itti_sgsap_alert_request_t *const sgsap_alert_req_pP, SgsCause_t sgs_cause,
     uint64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   status_code_e rc = RETURNerror;
-  MessageDef* message_p = NULL;
-  itti_sgsap_alert_reject_t* sgsap_alert_reject_pP = NULL;
+  MessageDef *message_p = NULL;
+  itti_sgsap_alert_reject_t *sgsap_alert_reject_pP = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_ALERT_REJECT);
   if (!message_p) {
@@ -168,10 +168,10 @@ static status_code_e mme_app_send_sgsap_alert_reject(
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgsap_alert_reject_pP = &message_p->ittiMsg.sgsap_alert_reject;
-  memset((void*)sgsap_alert_reject_pP, 0, sizeof(itti_sgsap_alert_reject_t));
+  memset((void *)sgsap_alert_reject_pP, 0, sizeof(itti_sgsap_alert_reject_t));
 
-  memcpy((void*)sgsap_alert_reject_pP->imsi,
-         (const void*)sgsap_alert_req_pP->imsi,
+  memcpy((void *)sgsap_alert_reject_pP->imsi,
+         (const void *)sgsap_alert_req_pP->imsi,
          sgsap_alert_req_pP->imsi_length);
   sgsap_alert_reject_pP->imsi_length = sgsap_alert_req_pP->imsi_length;
   sgsap_alert_reject_pP->sgs_cause = sgs_cause;
@@ -196,10 +196,10 @@ static status_code_e mme_app_send_sgsap_alert_reject(
  **
  ***********************************************************************************/
 static status_code_e mme_app_send_sgsap_alert_ack(
-    itti_sgsap_alert_request_t* const sgsap_alert_req_pP, uint64_t imsi64) {
+    itti_sgsap_alert_request_t *const sgsap_alert_req_pP, uint64_t imsi64) {
   status_code_e rc = RETURNerror;
-  MessageDef* message_p = NULL;
-  itti_sgsap_alert_ack_t* sgsap_alert_ack_pP = NULL;
+  MessageDef *message_p = NULL;
+  itti_sgsap_alert_ack_t *sgsap_alert_ack_pP = NULL;
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_ALERT_ACK);
@@ -212,9 +212,10 @@ static status_code_e mme_app_send_sgsap_alert_ack(
     OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
   }
   sgsap_alert_ack_pP = &message_p->ittiMsg.sgsap_alert_ack;
-  memset((void*)sgsap_alert_ack_pP, 0, sizeof(itti_sgsap_alert_ack_t));
+  memset((void *)sgsap_alert_ack_pP, 0, sizeof(itti_sgsap_alert_ack_t));
 
-  memcpy((void*)sgsap_alert_ack_pP->imsi, (const void*)sgsap_alert_req_pP->imsi,
+  memcpy((void *)sgsap_alert_ack_pP->imsi,
+         (const void *)sgsap_alert_req_pP->imsi,
          sgsap_alert_req_pP->imsi_length);
   sgsap_alert_ack_pP->imsi_length = sgsap_alert_req_pP->imsi_length;
 

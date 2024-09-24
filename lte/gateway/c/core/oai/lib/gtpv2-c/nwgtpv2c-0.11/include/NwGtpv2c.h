@@ -34,13 +34,13 @@
 #ifndef __NW_GTPV2C_H__
 #define __NW_GTPV2C_H__
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
-#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwError.h"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
 #include "lte/gateway/c/core/oai/include/udp_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwError.h"
+#include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwTypes.h"
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/types.h>
 
 #include <czmq.h>
 
@@ -214,8 +214,8 @@ typedef struct nw_gtpv2c_initial_req_info_s {
   NW_IN nw_gtpv2c_ulp_trxn_handle_t
       hUlpTrxn; /**< Optional handle to be returned in rsp of this msg. */
 
-  NW_IN struct sockaddr*
-      edns_peer_ip; /**< Required only in case when hTunnel == 0            */
+  NW_IN struct sockaddr
+      *edns_peer_ip; /**< Required only in case when hTunnel == 0            */
   NW_IN uint8_t
       internal_flags; /**< Required only in case when hTunnel == 0            */
   NW_IN uint32_t teidLocal; /**< Required only in case when hTunnel == 0 */
@@ -239,8 +239,8 @@ typedef struct nw_gtpv2c_triggered_req_info_s {
   NW_IN uint16_t maxRetries;
   NW_IN nw_gtpv2c_ulp_trxn_handle_t
       hUlpTrxn; /**< Optional handle to be returned in rsp of this msg. */
-  NW_IN struct sockaddr_in*
-      peerIp; /**< Required only in case when hTunnel == 0            */
+  NW_IN struct sockaddr_in
+      *peerIp; /**< Required only in case when hTunnel == 0            */
   NW_IN uint32_t teidLocal; /**< Required only in case when hTunnel == 0 */
   NW_IN nw_gtpv2c_ulp_tunnel_handle_t
       hUlpTunnel; /**< Required only in case when hTunnel == 0            */
@@ -290,7 +290,7 @@ typedef struct nw_gtpv2c_triggered_ack_info_s {
   NW_OUT nw_gtpv2c_tunnel_handle_t
       hTunnel; /**< Returned only in case flags is set to
                 NW_GTPV2C_ULP_API_FLAG_CREATE_LOCAL_TUNNEL */
-  NW_IN struct sockaddr* peerIp;
+  NW_IN struct sockaddr *peerIp;
   NW_IN uint32_t peerPort;
   NW_IN uint32_t localPort;
 } nw_gtpv2c_triggered_ack_info_t;
@@ -305,7 +305,7 @@ typedef struct nw_gtpv2c_initial_req_ind_info_s {
   NW_IN nw_gtpv2c_trxn_handle_t hTrxn;
   NW_IN nw_gtpv2c_ulp_trxn_handle_t hUlpTrxn;
   NW_IN nw_gtpv2c_msg_type_t msgType;
-  NW_IN struct sockaddr* peerIp;
+  NW_IN struct sockaddr *peerIp;
   NW_IN uint32_t peerPort;
   NW_IN nw_gtpv2c_ulp_tunnel_handle_t hUlpTunnel;
   NW_INOUT nw_gtpv2c_tunnel_handle_t hTunnel;
@@ -342,7 +342,7 @@ typedef struct nw_gtpv2c_triggered_rsp_ind_info_s {
   NW_IN uint8_t trx_flags;
   NW_IN nw_gtpv2c_msg_type_t msgType;
   NW_IN bool noDelete;
-  NW_IN struct sockaddr* peerIp;
+  NW_IN struct sockaddr *peerIp;
   NW_IN uint32_t localPort;
   NW_IN uint32_t peerPort;
 } nw_gtpv2c_triggered_rsp_ind_info_t;
@@ -371,7 +371,7 @@ typedef struct nw_gtpv2c_create_local_tunnel_info_s {
   NW_OUT nw_gtpv2c_tunnel_handle_t hTunnel;
   NW_IN nw_gtpv2c_ulp_tunnel_handle_t hUlpTunnel;
   NW_IN uint32_t teidLocal;
-  NW_IN struct sockaddr* peerIp;
+  NW_IN struct sockaddr *peerIp;
 } nw_gtpv2c_create_local_tunnel_info_t;
 
 /**
@@ -388,7 +388,7 @@ typedef struct nw_gtpv2c_delete_local_tunnel_info_s {
  */
 
 typedef struct proc_contex_s {
-  uint8_t ebi;  // saved GTPV2-C info element
+  uint8_t ebi; // saved GTPV2-C info element
 } proc_context_t;
 
 /**
@@ -429,7 +429,7 @@ typedef struct nw_gtpv2c_ulp_api_s {
 typedef struct nw_gtpv2c_ulp_entity_s {
   nw_gtpv2c_ulp_handle_t hUlp;
   nw_rc_t (*ulpReqCallback)(NW_IN nw_gtpv2c_ulp_handle_t hUlp,
-                            NW_IN nw_gtpv2c_ulp_api_t* pUlpApi);
+                            NW_IN nw_gtpv2c_ulp_api_t *pUlpApi);
 } nw_gtpv2c_ulp_entity_t;
 
 /**
@@ -440,9 +440,9 @@ typedef struct nw_gtpv2c_udp_entity_s {
   nw_gtpv2c_udp_handle_t hUdp;
   uint16_t gtpv2cStandardPort;
   nw_rc_t (*udpDataReqCallback)(NW_IN nw_gtpv2c_udp_handle_t udpHandle,
-                                NW_IN uint8_t* dataBuf, NW_IN uint32_t dataSize,
+                                NW_IN uint8_t *dataBuf, NW_IN uint32_t dataSize,
                                 NW_IN uint16_t localPort,
-                                NW_IN struct sockaddr* peerIp,
+                                NW_IN struct sockaddr *peerIp,
                                 NW_IN uint16_t peerPort);
 } nw_gtpv2c_udp_entity_t;
 
@@ -452,12 +452,12 @@ typedef struct nw_gtpv2c_udp_entity_s {
 
 typedef struct nw_gtpv2c_mem_mgr_entity_s {
   nw_gtpv2c_mem_mgr_handle_t hMemMgr;
-  void* (*memAlloc)(NW_IN nw_gtpv2c_mem_mgr_handle_t hMemMgr,
-                    NW_IN uint32_t memSize, NW_IN char* fileName,
+  void *(*memAlloc)(NW_IN nw_gtpv2c_mem_mgr_handle_t hMemMgr,
+                    NW_IN uint32_t memSize, NW_IN char *fileName,
                     NW_IN uint32_t lineNumber);
 
-  void (*memFree)(NW_IN nw_gtpv2c_mem_mgr_handle_t hMemMgr, NW_IN void* hMem,
-                  NW_IN char* fileName, NW_IN uint32_t lineNumber);
+  void (*memFree)(NW_IN nw_gtpv2c_mem_mgr_handle_t hMemMgr, NW_IN void *hMem,
+                  NW_IN char *fileName, NW_IN uint32_t lineNumber);
 } nw_gtpv2c_mem_mgr_entity_t;
 
 #define NW_GTPV2C_TMR_TYPE_ONE_SHOT (0)
@@ -470,8 +470,8 @@ typedef struct nw_gtpv2c_timer_mgr_entity_s {
   nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle;
   nw_rc_t (*tmrStartCallback)(NW_IN nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle,
                               NW_IN uint32_t timeoutMilliSec,
-                              NW_IN uint32_t tmrType, NW_IN void* tmrArg,
-                              NW_OUT nw_gtpv2c_timer_handle_t* tmrHandle);
+                              NW_IN uint32_t tmrType, NW_IN void *tmrArg,
+                              NW_OUT nw_gtpv2c_timer_handle_t *tmrHandle);
 
   nw_rc_t (*tmrStopCallback)(NW_IN nw_gtpv2c_timer_mgr_handle_t tmrMgrHandle,
                              NW_IN nw_gtpv2c_timer_handle_t tmrHandle);
@@ -484,8 +484,8 @@ typedef struct nw_gtpv2c_timer_mgr_entity_s {
 typedef struct nw_gtpv2c_log_mgr_entity_s {
   nw_gtpv2c_log_mgr_handle_t logMgrHandle;
   nw_rc_t (*logReqCallback)(NW_IN nw_gtpv2c_log_mgr_handle_t logMgrHandle,
-                            NW_IN uint32_t logLevel, NW_IN char* filename,
-                            NW_IN uint32_t line, NW_IN char* logStr);
+                            NW_IN uint32_t logLevel, NW_IN char *filename,
+                            NW_IN uint32_t line, NW_IN char *logStr);
 } nw_gtpv2c_log_mgr_entity_t;
 
 /*--------------------------------------------------------------------------*
@@ -502,8 +502,8 @@ extern "C" {
  @param[in,out] phGtpcStackHandle : Pointer to stack instance handle
  */
 
-nw_rc_t nwGtpv2cInitialize(
-    NW_INOUT nw_gtpv2c_stack_handle_t* phGtpcStackHandle);
+nw_rc_t
+nwGtpv2cInitialize(NW_INOUT nw_gtpv2c_stack_handle_t *phGtpcStackHandle);
 
 /**
  Destructor. Destroy nw-gtpv2c stack instance .
@@ -519,8 +519,8 @@ nw_rc_t nwGtpv2cFinalize(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle);
  @param[in,out] phGtpcStackHandle : Pointer to stack handle
  */
 
-nw_rc_t nwGtpv2cConfigSet(NW_IN nw_gtpv2c_stack_handle_t* phGtpcStackHandle,
-                          NW_IN nw_gtpv2c_stack_config_t* pConfig);
+nw_rc_t nwGtpv2cConfigSet(NW_IN nw_gtpv2c_stack_handle_t *phGtpcStackHandle,
+                          NW_IN nw_gtpv2c_stack_config_t *pConfig);
 
 //#define T3_TIMER  10
 
@@ -530,8 +530,8 @@ nw_rc_t nwGtpv2cConfigSet(NW_IN nw_gtpv2c_stack_handle_t* phGtpcStackHandle,
  @param[in,out] phGtpcStackHandle : Pointer to stack handle
  */
 
-nw_rc_t nwGtpv2cConfigGet(NW_IN nw_gtpv2c_stack_handle_t* phGtpcStackHandle,
-                          NW_OUT nw_gtpv2c_stack_config_t* pConfig);
+nw_rc_t nwGtpv2cConfigGet(NW_IN nw_gtpv2c_stack_handle_t *phGtpcStackHandle,
+                          NW_OUT nw_gtpv2c_stack_config_t *pConfig);
 
 /**
  Set ULP entity for the stack.
@@ -542,7 +542,7 @@ nw_rc_t nwGtpv2cConfigGet(NW_IN nw_gtpv2c_stack_handle_t* phGtpcStackHandle,
  */
 
 nw_rc_t nwGtpv2cSetUlpEntity(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-                             NW_IN nw_gtpv2c_ulp_entity_t* pUlpEntity);
+                             NW_IN nw_gtpv2c_ulp_entity_t *pUlpEntity);
 
 /**
  Set UDP entity for the stack.
@@ -553,7 +553,7 @@ nw_rc_t nwGtpv2cSetUlpEntity(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
  */
 
 nw_rc_t nwGtpv2cSetUdpEntity(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-                             NW_IN nw_gtpv2c_udp_entity_t* pUdpEntity);
+                             NW_IN nw_gtpv2c_udp_entity_t *pUdpEntity);
 
 /**
  Set MemMgr entity for the stack.
@@ -564,7 +564,7 @@ nw_rc_t nwGtpv2cSetUdpEntity(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
  */
 
 nw_rc_t nwGtpv2cSetMemMgrEntity(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-                                NW_IN nw_gtpv2c_mem_mgr_entity_t* pMemMgr);
+                                NW_IN nw_gtpv2c_mem_mgr_entity_t *pMemMgr);
 
 /**
  Set TmrMgr entity for the stack.
@@ -574,9 +574,9 @@ nw_rc_t nwGtpv2cSetMemMgrEntity(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
  @return NW_OK on success.
  */
 
-nw_rc_t nwGtpv2cSetTimerMgrEntity(NW_IN nw_gtpv2c_stack_handle_t
-                                      hGtpcStackHandle,
-                                  NW_IN nw_gtpv2c_timer_mgr_entity_t* pTmrMgr);
+nw_rc_t
+nwGtpv2cSetTimerMgrEntity(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
+                          NW_IN nw_gtpv2c_timer_mgr_entity_t *pTmrMgr);
 
 /**
  Set LogMgr entity for the stack.
@@ -587,7 +587,7 @@ nw_rc_t nwGtpv2cSetTimerMgrEntity(NW_IN nw_gtpv2c_stack_handle_t
  */
 
 nw_rc_t nwGtpv2cSetLogMgrEntity(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-                                NW_IN nw_gtpv2c_log_mgr_entity_t* pLogMgr);
+                                NW_IN nw_gtpv2c_log_mgr_entity_t *pLogMgr);
 
 /**
  Set log level for the stack.
@@ -613,9 +613,9 @@ nw_rc_t nwGtpv2cSetLogLevel(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
  */
 
 nw_rc_t nwGtpv2cProcessUdpReq(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-                              NW_IN uint8_t* udpData, NW_IN uint32_t udpDataLen,
+                              NW_IN uint8_t *udpData, NW_IN uint32_t udpDataLen,
                               NW_IN uint16_t localPort, NW_IN uint16_t peerPort,
-                              NW_IN struct sockaddr* peerIp);
+                              NW_IN struct sockaddr *peerIp);
 
 /**
  Process Request from ULP entity.
@@ -626,7 +626,7 @@ nw_rc_t nwGtpv2cProcessUdpReq(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
  */
 
 nw_rc_t nwGtpv2cProcessUlpReq(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
-                              NW_IN nw_gtpv2c_ulp_api_t* ulpReq);
+                              NW_IN nw_gtpv2c_ulp_api_t *ulpReq);
 
 /**
  Process Timer timeout Request from Timer Manager
@@ -636,8 +636,8 @@ nw_rc_t nwGtpv2cProcessUlpReq(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle,
  @param[in] arg : Pointer timeout arguments.
  @return NW_OK on success.
  */
-int nwGtpv2cProcessTimeoutExt(NW_IN zloop_t* loop, NW_IN int timer_id,
-                              NW_IN void* arg);
+int nwGtpv2cProcessTimeoutExt(NW_IN zloop_t *loop, NW_IN int timer_id,
+                              NW_IN void *arg);
 
 /**
  Process Timer timeout Request from Timer Manager
@@ -645,7 +645,7 @@ int nwGtpv2cProcessTimeoutExt(NW_IN zloop_t* loop, NW_IN int timer_id,
  @param[in] arg : Pointer timeout arguments.
  @return NW_OK on success.
  */
-nw_rc_t nwGtpv2cProcessTimeout(void* arg);
+nw_rc_t nwGtpv2cProcessTimeout(void *arg);
 
 #ifdef __cplusplus
 }

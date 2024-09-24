@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSIdentityType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include <cstdint>
+#include <sstream>
 
 namespace magma5g {
 M5GSIdentityTypeMsg::M5GSIdentityTypeMsg(){};
@@ -20,7 +20,7 @@ M5GSIdentityTypeMsg::~M5GSIdentityTypeMsg(){};
 
 // Decode M5GSIdentityType IE
 int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(
-    M5GSIdentityTypeMsg* m5gs_identity_type, uint8_t iei, uint8_t* buffer,
+    M5GSIdentityTypeMsg *m5gs_identity_type, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   uint8_t decoded = 0;
 
@@ -31,7 +31,7 @@ int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(
 
 // Encode M5GSIdentityType IE
 int M5GSIdentityTypeMsg::EncodeM5GSIdentityTypeMsg(
-    M5GSIdentityTypeMsg* m5gs_identity_type, uint8_t iei, uint8_t* buffer,
+    M5GSIdentityTypeMsg *m5gs_identity_type, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
 
@@ -39,4 +39,4 @@ int M5GSIdentityTypeMsg::EncodeM5GSIdentityTypeMsg(
   encoded++;
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

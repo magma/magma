@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_extended_service_request(
-    extended_service_request_msg* extended_service_request, uint8_t* buffer,
+    extended_service_request_msg *extended_service_request, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -79,7 +79,7 @@ int decode_extended_service_request(
 }
 
 int encode_extended_service_request(
-    extended_service_request_msg* extended_service_request, uint8_t* buffer,
+    extended_service_request_msg *extended_service_request, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
@@ -99,14 +99,14 @@ int encode_extended_service_request(
 
   if ((encode_result = encode_mobile_identity_ie(
            &extended_service_request->mtmsi, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;
 
   if ((encode_result = encode_csfb_response(
            &extended_service_request->csfbresponse, 0, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

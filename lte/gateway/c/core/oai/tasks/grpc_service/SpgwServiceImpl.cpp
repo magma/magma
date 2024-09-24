@@ -16,8 +16,8 @@
  */
 #include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
 
-#include <string>
 #include <arpa/inet.h>
+#include <string>
 
 #include "lte/protos/spgw_service.pb.h"
 
@@ -27,7 +27,7 @@ extern "C" {
 
 namespace grpc {
 class ServerContext;
-}  // namespace grpc
+} // namespace grpc
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -44,9 +44,9 @@ SpgwServiceImpl::SpgwServiceImpl() {}
 /*
  * CreateBearer is called by North Bound to create dedicated bearers
  */
-Status SpgwServiceImpl::CreateBearer(ServerContext* context,
-                                     const CreateBearerRequest* request,
-                                     CreateBearerResult* response) {
+Status SpgwServiceImpl::CreateBearer(ServerContext *context,
+                                     const CreateBearerRequest *request,
+                                     CreateBearerResult *response) {
   OAILOG_INFO(LOG_UTIL, "Received CreateBearer GRPC request\n");
   itti_gx_nw_init_actv_bearer_request_t itti_msg;
   std::string imsi = request->sid().id();
@@ -71,10 +71,10 @@ Status SpgwServiceImpl::CreateBearer(ServerContext* context,
   // request.
   // (2) Refactor this code with functions to copy from
   // policy rules to itti message fields
-  bearer_qos_t* qos = &itti_msg.eps_bearer_qos;
-  traffic_flow_template_t* ul_tft = &itti_msg.ul_tft;
-  traffic_flow_template_t* dl_tft = &itti_msg.dl_tft;
-  for (const auto& policy_rule : request->policy_rules()) {
+  bearer_qos_t *qos = &itti_msg.eps_bearer_qos;
+  traffic_flow_template_t *ul_tft = &itti_msg.ul_tft;
+  traffic_flow_template_t *dl_tft = &itti_msg.dl_tft;
+  for (const auto &policy_rule : request->policy_rules()) {
     // Copy the policy rule name
     std::string policy_rule_name = policy_rule.id();
     // Truncate to maximum allowed in ITTI message
@@ -102,7 +102,7 @@ Status SpgwServiceImpl::CreateBearer(ServerContext* context,
     dl_tft->ebit = TRAFFIC_FLOW_TEMPLATE_PARAMETER_LIST_IS_NOT_INCLUDED;
     int ul_count_packetfilters = 0;
     int dl_count_packetfilters = 0;
-    for (const auto& flow : policy_rule.flow_list()) {
+    for (const auto &flow : policy_rule.flow_list()) {
       // Skip to next flow if flow rule is for denying access;
       // TFT is used for mapping admitted flows onto bearers
       if (flow.action() == FlowDescription::DENY) {
@@ -185,11 +185,11 @@ Status SpgwServiceImpl::CreateBearer(ServerContext* context,
   }
 
   return Status::OK;
-}  // namespace magma
+} // namespace magma
 
-Status SpgwServiceImpl::DeleteBearer(ServerContext* context,
-                                     const DeleteBearerRequest* request,
-                                     DeleteBearerResult* response) {
+Status SpgwServiceImpl::DeleteBearer(ServerContext *context,
+                                     const DeleteBearerRequest *request,
+                                     DeleteBearerResult *response) {
   OAILOG_INFO(LOG_UTIL, "Received DeleteBearer GRPC request\n");
   itti_gx_nw_init_deactv_bearer_request_t itti_msg;
   std::string imsi = request->sid().id();
@@ -212,7 +212,7 @@ Status SpgwServiceImpl::DeleteBearer(ServerContext* context,
 }
 
 bool SpgwServiceImpl::fillUpPacketFilterContents(
-    packet_filter_contents_t* pf_content, const FlowMatch* flow_match_rule) {
+    packet_filter_contents_t *pf_content, const FlowMatch *flow_match_rule) {
   uint16_t flags = 0;
   pf_content->protocolidentifier_nextheader = flow_match_rule->ip_proto();
   if (pf_content->protocolidentifier_nextheader) {
@@ -291,8 +291,8 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
 
 // Extract and validate IP address and subnet mask
 // IPv4 network format ex.: 192.176.128.10/24
-ipv4_network_t SpgwServiceImpl::parseIpv4Network(
-    const std::string& ipv4network_str) {
+ipv4_network_t
+SpgwServiceImpl::parseIpv4Network(const std::string &ipv4network_str) {
   ipv4_network_t result;
   const int slash_pos = ipv4network_str.find("/");
   std::string ipv4addr = (slash_pos != std::string::npos)
@@ -335,17 +335,17 @@ ipv4_network_t SpgwServiceImpl::parseIpv4Network(
 // FEG can provide an empty string which indicates
 // ANY and it is equivalent to 0.0.0.0/0
 // But this function is called only for non-empty ipv4 string
-bool SpgwServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
-                               const std::string& ipv4network_str) {
+bool SpgwServiceImpl::fillIpv4(packet_filter_contents_t *pf_content,
+                               const std::string &ipv4network_str) {
   ipv4_network_t ipv4network = parseIpv4Network(ipv4network_str);
   if (!ipv4network.success) {
     return false;
   }
 
-  uint32_t mask = UINT32_MAX;  // all ones
+  uint32_t mask = UINT32_MAX; // all ones
   mask =
       (mask << (32 -
-                ipv4network.mask_len));  // first mask_len bits are 1s, rest 0s
+                ipv4network.mask_len)); // first mask_len bits are 1s, rest 0s
   uint32_t ipv4addrHBO = ipv4network.addr_hbo;
 
   for (int i = (TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE - 1); i >= 0; --i) {
@@ -367,7 +367,7 @@ bool SpgwServiceImpl::fillIpv4(packet_filter_contents_t* pf_content,
   return true;
 }
 
-bool SpgwServiceImpl::fillIpv6(packet_filter_contents_t* pf_content,
+bool SpgwServiceImpl::fillIpv6(packet_filter_contents_t *pf_content,
                                const std::string ipv6addr) {
   struct in6_addr in6addr;
   if (inet_pton(AF_INET6, ipv6addr.c_str(), &in6addr) != 1) {
@@ -392,4 +392,4 @@ bool SpgwServiceImpl::fillIpv6(packet_filter_contents_t* pf_content,
   return true;
 }
 
-}  // namespace magma
+} // namespace magma

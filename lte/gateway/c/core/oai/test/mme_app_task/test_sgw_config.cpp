@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include <gtest/gtest.h>
 #include <libconfig.h>
 
 extern "C" {
@@ -21,12 +21,12 @@ extern "C" {
 namespace magma {
 namespace lte {
 
-const char* sEmptyConfig =
+const char *sEmptyConfig =
     R"libconfig(S-GW :
 {
 };)libconfig";
 
-const char* sHealthyConfig =
+const char *sHealthyConfig =
     R"libconfig(S-GW :
 {
     NETWORK_INTERFACES :
@@ -89,5 +89,5 @@ TEST(SGWConfigTest, TestParseHealthyConfigDisplay) {
   free_sgw_config(&sgw_config);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

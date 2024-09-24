@@ -39,7 +39,7 @@ constexpr char MME_ENB_UE_S1AP_KEY2MME_UE_ID_MAP_NAME[] =
     "mme_enb_ue_s1ap_key2ue_id_map";
 constexpr char MME_TASK_NAME[] = "MME";
 constexpr char MME_UEIP_IMSI_MAP_NAME[] = "mme_ueip_imsi_map";
-}  // namespace
+} // namespace
 
 namespace magma {
 namespace lte {
@@ -48,12 +48,12 @@ namespace lte {
  * Getter function for singleton instance of the MmeNasStateManager class,
  * guaranteed to be thread-safe and initialized only once
  */
-MmeNasStateManager& MmeNasStateManager::getInstance() {
+MmeNasStateManager &MmeNasStateManager::getInstance() {
   static MmeNasStateManager instance;
   return instance;
 }
 
-proto_map_uint32_ue_context_t* MmeNasStateManager::get_ue_state_map() {
+proto_map_uint32_ue_context_t *MmeNasStateManager::get_ue_state_map() {
   return &mme_app_state_ue_map;
 }
 
@@ -64,7 +64,7 @@ MmeNasStateManager::MmeNasStateManager()
 // Destructor for MME NAS state object
 MmeNasStateManager::~MmeNasStateManager() { free_state(); }
 
-int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p) {
+int MmeNasStateManager::initialize_state(const mme_config_t *mme_config_p) {
   persist_state_enabled = mme_config_p->use_stateless;
   max_ue_htbl_lists_ = mme_config_p->max_ues;
   log_task = LOG_MME_APP;
@@ -93,7 +93,7 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p) {
  * data store when initialize_state is called and get_state just returns the
  * pointer to that structure.
  */
-mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db) {
+mme_app_desc_t *MmeNasStateManager::get_state(bool read_from_db) {
   AssertFatal(is_initialized,
               "Calling get_state without initializing state manager");
   AssertFatal(state_cache_p, "mme_nas_state is NULL");
@@ -147,7 +147,7 @@ void MmeNasStateManager::create_protomaps() {
       MME_S11_TEID2MME_UE_ID_MAP_NAME);
 
   mme_app_state_ue_map.map =
-      new google::protobuf::Map<uint32_t, struct ue_mm_context_s*>();
+      new google::protobuf::Map<uint32_t, struct ue_mm_context_s *>();
   mme_app_state_ue_map.set_name(MME_UE_ID2UE_CTXT_MAP_NAME);
   mme_app_state_ue_map.bind_callback(mme_app_state_free_ue_context);
 
@@ -164,7 +164,7 @@ void MmeNasStateManager::create_protomaps() {
 
 // Initialize memory for MME state before reading from data-store
 void MmeNasStateManager::create_state() {
-  state_cache_p = (mme_app_desc_t*)calloc(1, sizeof(mme_app_desc_t));
+  state_cache_p = (mme_app_desc_t *)calloc(1, sizeof(mme_app_desc_t));
   if (!state_cache_p) {
     return;
   }
@@ -203,13 +203,13 @@ status_code_e MmeNasStateManager::read_ue_state_from_db() {
 #if !MME_UNIT_TEST
   if (persist_state_enabled) {
     auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
-    for (const auto& key : keys) {
+    for (const auto &key : keys) {
       OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
       oai::UeContext ue_proto = oai::UeContext();
       if (redis_client->read_proto(key, ue_proto) != RETURNok) {
         return RETURNerror;
       }
-      auto* ue_context = reinterpret_cast<ue_mm_context_t*>(
+      auto *ue_context = reinterpret_cast<ue_mm_context_t *>(
           calloc(1, sizeof(ue_mm_context_t)));
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);
 
@@ -263,9 +263,9 @@ void MmeNasStateManager::write_mme_ueip_imsi_map_to_db() {
   return;
 }
 
-UeIpImsiMap& MmeNasStateManager::get_mme_ueip_imsi_map(void) {
+UeIpImsiMap &MmeNasStateManager::get_mme_ueip_imsi_map(void) {
   return ueip_imsi_map;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

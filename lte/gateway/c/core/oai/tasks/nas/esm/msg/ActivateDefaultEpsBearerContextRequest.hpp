@@ -30,25 +30,25 @@ extern "C" {
 }
 #endif
 
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/PdnAddress.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/ies/RadioPriority.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmCause.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH           \
-  (EPS_QUALITY_OF_SERVICE_MINIMUM_LENGTH + ACCESS_POINT_NAME_IE_MIN_LENGTH + \
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_MINIMUM_LENGTH             \
+  (EPS_QUALITY_OF_SERVICE_MINIMUM_LENGTH + ACCESS_POINT_NAME_IE_MIN_LENGTH +   \
    PDN_ADDRESS_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_MAXIMUM_LENGTH            \
-  (EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH + ACCESS_POINT_NAME_IE_MAX_LENGTH +  \
-   PDN_ADDRESS_MAXIMUM_LENGTH + TRANSACTION_IDENTIFIER_MAXIMUM_LENGTH +       \
-   QUALITY_OF_SERVICE_IE_MAX_LENGTH +                                         \
-   LLC_SERVICE_ACCESS_POINT_IDENTIFIER_MAXIMUM_LENGTH +                       \
-   RADIO_PRIORITY_MAXIMUM_LENGTH + PACKET_FLOW_IDENTIFIER_MAXIMUM_LENGTH +    \
-   APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_LENGTH + ESM_CAUSE_MAXIMUM_LENGTH + \
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_MAXIMUM_LENGTH             \
+  (EPS_QUALITY_OF_SERVICE_MAXIMUM_LENGTH + ACCESS_POINT_NAME_IE_MAX_LENGTH +   \
+   PDN_ADDRESS_MAXIMUM_LENGTH + TRANSACTION_IDENTIFIER_MAXIMUM_LENGTH +        \
+   QUALITY_OF_SERVICE_IE_MAX_LENGTH +                                          \
+   LLC_SERVICE_ACCESS_POINT_IDENTIFIER_MAXIMUM_LENGTH +                        \
+   RADIO_PRIORITY_MAXIMUM_LENGTH + PACKET_FLOW_IDENTIFIER_MAXIMUM_LENGTH +     \
+   APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_LENGTH + ESM_CAUSE_MAXIMUM_LENGTH +  \
    PROTOCOL_CONFIGURATION_OPTIONS_IE_MAX_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
@@ -56,11 +56,11 @@ extern "C" {
  */
 #define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_PRESENT \
   (1 << 0)
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_PRESENT \
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_QOS_PRESENT     \
   (1 << 1)
 #define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_NEGOTIATED_LLC_SAPI_PRESENT \
   (1 << 2)
-#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT \
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_RADIO_PRIORITY_PRESENT     \
   (1 << 3)
 #define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PACKET_FLOW_IDENTIFIER_PRESENT \
   (1 << 4)
@@ -117,11 +117,11 @@ typedef struct activate_default_eps_bearer_context_request_msg_tag {
 } activate_default_eps_bearer_context_request_msg;
 
 int decode_activate_default_eps_bearer_context_request(
-    activate_default_eps_bearer_context_request_msg*
-        activatedefaultepsbearercontextrequest,
-    uint8_t* buffer, uint32_t len);
+    activate_default_eps_bearer_context_request_msg
+        *activatedefaultepsbearercontextrequest,
+    uint8_t *buffer, uint32_t len);
 
 int encode_activate_default_eps_bearer_context_request(
-    activate_default_eps_bearer_context_request_msg*
-        activatedefaultepsbearercontextrequest,
-    uint8_t* buffer, uint32_t len);
+    activate_default_eps_bearer_context_request_msg
+        *activatedefaultepsbearercontextrequest,
+    uint8_t *buffer, uint32_t len);

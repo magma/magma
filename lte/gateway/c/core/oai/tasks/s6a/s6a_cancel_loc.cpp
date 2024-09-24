@@ -21,9 +21,9 @@
    \version 0.1
 */
 
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include <stdio.h>
 #include <string.h>
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -47,19 +47,19 @@ struct msg;
 struct session;
 
 #define IMSI_LENGTH 15
-int s6a_clr_cb(struct msg** msg_p, struct avp* paramavp_p,
-               struct session* sess_p, void* opaque_p,
-               enum disp_action* act_p) {
-  struct msg* ans_p = NULL;
-  struct msg* qry_p = NULL;
+int s6a_clr_cb(struct msg **msg_p, struct avp *paramavp_p,
+               struct session *sess_p, void *opaque_p,
+               enum disp_action *act_p) {
+  struct msg *ans_p = NULL;
+  struct msg *qry_p = NULL;
   struct avp *avp_p, *origin_host_p, *origin_realm_p;
-  struct avp* failed_avp_p = NULL;
-  struct avp_hdr* hdr_p = NULL;
+  struct avp *failed_avp_p = NULL;
+  struct avp_hdr *hdr_p = NULL;
   struct avp_hdr *origin_host_hdr, *origin_realm_hdr;
   int result_code = ER_DIAMETER_SUCCESS;
   int experimental = 0;
-  MessageDef* message_p = NULL;
-  s6a_cancel_location_req_t* s6a_cancel_location_req_p = NULL;
+  MessageDef *message_p = NULL;
+  s6a_cancel_location_req_t *s6a_cancel_location_req_p = NULL;
   int imsi_len = 0;
   char imsi_str[IMSI_LENGTH + 1];
 
@@ -142,7 +142,7 @@ int s6a_clr_cb(struct msg** msg_p, struct avp* paramavp_p,
       s6a_cancel_location_req_p->imsi_length = imsi_len;
       s6a_cancel_location_req_p->cancellation_type = SUBSCRIPTION_WITHDRAWL;
       s6a_cancel_location_req_p->msg_cla_p = msg_p;
-      IMSI_STRING_TO_IMSI64((char*)s6a_cancel_location_req_p->imsi,
+      IMSI_STRING_TO_IMSI64((char *)s6a_cancel_location_req_p->imsi,
                             &message_p->ittiMsgHeader.imsi);
       send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
       OAILOG_DEBUG(LOG_S6A,
@@ -178,13 +178,13 @@ out:
   CHECK_FCT(fd_msg_send(msg_p, NULL, NULL));
   return 0;
 }
-int s6a_add_result_code(struct msg* ans, struct avp* failed_avp,
+int s6a_add_result_code(struct msg *ans, struct avp *failed_avp,
                         int result_code, int experimental) {
-  struct avp* avp;
+  struct avp *avp;
   union avp_value value;
 
   if (DIAMETER_ERROR_IS_VENDOR(result_code) && experimental != 0) {
-    struct avp* experimental_result;
+    struct avp *experimental_result;
 
     CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_experimental_result, 0,
                              &experimental_result));
@@ -214,10 +214,10 @@ int s6a_add_result_code(struct msg* ans, struct avp* failed_avp,
   return 0;
 }
 
-int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
-  struct msg** msg_p = NULL;
-  struct msg* ans_p = NULL;
-  struct avp* failed_avp_p = NULL;
+int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t *cla_pP) {
+  struct msg **msg_p = NULL;
+  struct msg *ans_p = NULL;
+  struct avp *failed_avp_p = NULL;
   int result_code = 0;
   int experimental = 0;
 
@@ -227,7 +227,7 @@ int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
 
   result_code = cla_pP->result;
 
-  msg_p = (struct msg**)cla_pP->msg_cla_p;
+  msg_p = (struct msg **)cla_pP->msg_cla_p;
   if (msg_p == NULL) {
     return -1;
   }

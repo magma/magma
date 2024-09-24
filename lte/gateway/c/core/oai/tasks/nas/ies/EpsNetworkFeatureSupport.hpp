@@ -29,7 +29,7 @@ typedef struct eps_network_feature_support_s {
 
 #define EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1_NOT_SUPPORTED \
   0x00
-#define EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1_SUPPORTED \
+#define EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1_SUPPORTED  \
   0x01
 #define EPS_NETWORK_FEATURE_SUPPORT_IMS_VOICE_OVER_PS_SESSION_IN_S1_BITMASK 0x01
 
@@ -65,9 +65,9 @@ typedef struct eps_network_feature_support_s {
 #define EPS_NETWORK_FEATURE_SUPPORT_B2_15_BEARERS_SUPPORTED 0x80
 
 int encode_eps_network_feature_support(
-    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    eps_network_feature_support_t *epsnetworkfeaturesupport, uint8_t iei,
+    uint8_t *buffer, uint32_t len);
 
 int decode_eps_network_feature_support(
-    eps_network_feature_support_t* epsnetworkfeaturesupport, uint8_t iei,
-    uint8_t* buffer, uint32_t len);
+    eps_network_feature_support_t *epsnetworkfeaturesupport, uint8_t iei,
+    uint8_t *buffer, uint32_t len);

@@ -19,23 +19,23 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/AdditionalUpdateResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EmmCause.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsAttachResult.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsMobileIdentity.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EpsNetworkFeatureSupport.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/EsmMessageContainer.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/MessageType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/SecurityHeaderType.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/TrackingAreaIdentityList.hpp"
 
 /* Minimum length macro. Formed by minimum length of each mandatory field */
-#define ATTACH_ACCEPT_MINIMUM_LENGTH                             \
-  (EPS_ATTACH_RESULT_MINIMUM_LENGTH + GPRS_TIMER_IE_MIN_LENGTH + \
-   TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH +                  \
+#define ATTACH_ACCEPT_MINIMUM_LENGTH                                           \
+  (EPS_ATTACH_RESULT_MINIMUM_LENGTH + GPRS_TIMER_IE_MIN_LENGTH +               \
+   TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH +                                \
    ESM_MESSAGE_CONTAINER_MINIMUM_LENGTH)
 
 /* Maximum length macro. Formed by maximum length of each field */
@@ -109,8 +109,8 @@ typedef struct attach_accept_msg_tag {
   additional_update_result_t additionalupdateresult;
 } attach_accept_msg;
 
-int decode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
+int decode_attach_accept(attach_accept_msg *attachaccept, uint8_t *buffer,
                          uint32_t len);
 
-int encode_attach_accept(attach_accept_msg* attachaccept, uint8_t* buffer,
+int encode_attach_accept(attach_accept_msg *attachaccept, uint8_t *buffer,
                          uint32_t len);

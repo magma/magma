@@ -40,10 +40,10 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 
-void bytes_to_lai(const char* bytes, lai_t* lai);
-void bytes_to_tmsi(const char* bytes, tmsi_t* tmsi);
+void bytes_to_lai(const char *bytes, lai_t *lai);
+void bytes_to_tmsi(const char *bytes, tmsi_t *tmsi);
 
-void bytes_to_mobile_identity(const char* bytes, uint8_t mobile_identity_len,
-                              bool is_imsi, MobileIdentity_t* mobile_identity);
+void bytes_to_mobile_identity(const char *bytes, uint8_t mobile_identity_len,
+                              bool is_imsi, MobileIdentity_t *mobile_identity);
 
 #endif /* FILE_BYTES_TO_IE_SEEN */

@@ -17,49 +17,49 @@
 
 #include "lte/gateway/c/core/oai/oai_mme/oai_mme.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <systemd/sd-daemon.h>
 
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/include/mme_events.hpp"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/include/mme_events.hpp"
 #include "lte/gateway/c/core/oai/include/mme_init.hpp"
 #include "orc8r/gateway/c/common/sentry/SentryWrapper.hpp"
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
-#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.hpp"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_extern.hpp"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf.h"
+#include "lte/gateway/c/core/oai/tasks/sctp/sctp_primitives_server.hpp"
 /* FreeDiameter headers for support of S6A interface */
-#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
 #include "lte/gateway/c/core/oai/common/pid_file.h"
-#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/lib/message_utils/service303_message_utils.h"
+#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgs/sgs_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sms_orc8r/sms_orc8r_defs.hpp"
 #if EMBEDDED_SGW
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_config.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw_s8/sgw_s8_defs.hpp"
 #endif
-#include "lte/gateway/c/core/oai/include/udp_primitives_server.h"
-#include "lte/gateway/c/core/oai/include/s11_mme.hpp"
-#include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/common/shared_ts_log.h"
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
+#include "lte/gateway/c/core/oai/include/s11_mme.hpp"
+#include "lte/gateway/c/core/oai/include/service303.hpp"
+#include "lte/gateway/c/core/oai/include/udp_primitives_server.h"
 
 static void send_timer_recovery_message(void);
 
@@ -71,22 +71,22 @@ static int main_init(void) {
   // Don't include optional services such as CSFB, SMS, HA
   // into target task list (i.e., they will not receive any
   // broadcast messages or timer messages)
-  init_task_context(
-      TASK_MAIN,
-      (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
-                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
-                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG,
-                    TASK_ASYNC_GRPC_SERVICE},
-      12, NULL, &main_zmq_ctx);
+  init_task_context(TASK_MAIN,
+                    (task_id_t[]){TASK_MME_APP, TASK_SERVICE303,
+                                  TASK_SERVICE303_SERVER, TASK_S6A, TASK_S1AP,
+                                  TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
+                                  TASK_GRPC_SERVICE, TASK_LOG,
+                                  TASK_SHARED_TS_LOG, TASK_ASYNC_GRPC_SERVICE},
+                    12, NULL, &main_zmq_ctx);
 
   return RETURNok;
 }
 
 static void main_exit(void) { destroy_task_context(&main_zmq_ctx); }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
   srand(time(NULL));
-  char* pid_file_name;
+  char *pid_file_name;
 
   CHECK_INIT_RETURN(OAILOG_INIT(MME_CONFIG_STRING_MME_CONFIG,
                                 OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS));
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
   if (!pid_file_lock(pid_file_name)) {
     exit(-EDEADLK);
   }
-  free_wrapper((void**)&pid_file_name);
+  free_wrapper((void **)&pid_file_name);
 
   /*
    * Calling each layer init function
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
   // Create SGS Task only if non_eps_service_control is not set to OFF
-  char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
+  char *non_eps_service_control = bdata(mme_config.non_eps_service_control);
   if (!(strcmp(non_eps_service_control, "SMS")) ||
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
     CHECK_INIT_RETURN(sgs_init(&mme_config));
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
 }
 
 static void send_timer_recovery_message(void) {
-  MessageDef* recovery_message_p;
+  MessageDef *recovery_message_p;
 
   recovery_message_p =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_UNKNOWN, RECOVERY_MESSAGE);

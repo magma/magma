@@ -31,7 +31,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "S1ap_InitiatingMessage.h"
 #include "S1ap_ProcedureCode.h"
 #include "S1ap_S1AP-PDU.h"
@@ -40,17 +39,18 @@ extern "C" {
 #include "asn_codecs.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "per_decoder.h"
 
 //-----------------------------------------------------------------------------
-status_code_e s1ap_mme_decode_pdu(S1ap_S1AP_PDU_t* pdu,
+status_code_e s1ap_mme_decode_pdu(S1ap_S1AP_PDU_t *pdu,
                                   const_bstring const raw) {
   if ((pdu) && (raw)) {
     if (blength(raw) == 0) {
       OAILOG_DEBUG(LOG_S1AP, "Buffer length is Zero \n");
     }
     asn_dec_rval_t dec_ret =
-        aper_decode(NULL, &asn_DEF_S1ap_S1AP_PDU, (void**)&pdu, bdata(raw),
+        aper_decode(NULL, &asn_DEF_S1ap_S1AP_PDU, (void **)&pdu, bdata(raw),
                     blength(raw), 0, 0);
 
     if (dec_ret.code != RC_OK) {

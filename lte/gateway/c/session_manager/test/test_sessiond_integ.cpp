@@ -11,22 +11,22 @@
  * limitations under the License.
  */
 
+#include <chrono>
+#include <cstdint>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <future>
 #include <gmock/gmock.h>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <grpcpp/impl/codegen/status_code_enum.h>
 #include <gtest/gtest.h>
+#include <iostream>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include <orc8r/protos/common.pb.h>
-#include <chrono>
-#include <cstdint>
-#include <future>
-#include <iostream>
 #include <memory>
+#include <orc8r/protos/common.pb.h>
 #include <string>
 #include <thread>
 #include <vector>
@@ -68,8 +68,8 @@ ACTION_P(SetPromise, promise_p) { promise_p->set_value(); }
 
 // Take the SessionID from the request as it is generated internally
 ACTION_P2(SetCreateSessionResponse, first_quota, second_quota) {
-  auto req = static_cast<const CreateSessionRequest*>(arg1);
-  auto res = static_cast<CreateSessionResponse*>(arg2);
+  auto req = static_cast<const CreateSessionRequest *>(arg1);
+  auto res = static_cast<CreateSessionResponse *>(arg2);
   auto imsi = req->common_context().sid().id();
   res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   res->mutable_static_rules()->Add()->mutable_rule_id()->assign("rule2");
@@ -81,8 +81,8 @@ ACTION_P2(SetCreateSessionResponse, first_quota, second_quota) {
 }
 // Take the SessionID from the request as it is generated internally
 ACTION_P(SetUpdateSessionResponse, quota) {
-  auto req = static_cast<const UpdateSessionRequest*>(arg1)->updates(0);
-  auto res = static_cast<UpdateSessionResponse*>(arg2);
+  auto req = static_cast<const UpdateSessionRequest *>(arg1)->updates(0);
+  auto res = static_cast<UpdateSessionResponse *>(arg2);
   auto imsi = req.common_context().sid().id();
   auto session_id = req.session_id();
   create_credit_update_response(imsi, session_id, 1, quota,
@@ -90,14 +90,14 @@ ACTION_P(SetUpdateSessionResponse, quota) {
 }
 
 ACTION(SetSessionTerminateResponse) {
-  auto req = static_cast<const SessionTerminateRequest*>(arg1);
-  auto res = static_cast<SessionTerminateResponse*>(arg2);
+  auto req = static_cast<const SessionTerminateRequest *>(arg1);
+  auto res = static_cast<SessionTerminateResponse *>(arg2);
   res->set_sid(req->common_context().sid().id());
   res->set_session_id(req->session_id());
 }
 
 class SessiondTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp() {
     auto test_channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "test_service", ServiceRegistrySingleton::LOCAL);
@@ -222,7 +222,7 @@ class SessiondTest : public ::testing::Test {
     delete evb;
   }
 
-  void insert_static_rule(uint32_t charging_key, const std::string& rule_id) {
+  void insert_static_rule(uint32_t charging_key, const std::string &rule_id) {
     auto mkey = "";
     rule_store->insert_rule(create_policy_rule(rule_id, mkey, charging_key));
   }
@@ -235,7 +235,7 @@ class SessiondTest : public ::testing::Test {
       EXPECT_TRUE(false);
       try {
         call_promise->set_value();
-      } catch (std::future_error& e) {
+      } catch (std::future_error &e) {
         std::cout << "Exception caught when trying to set promise value: "
                   << e.what();
       }
@@ -244,8 +244,8 @@ class SessiondTest : public ::testing::Test {
 
   // This function should always be called at the beginning of the test to
   // prevent unexpected SessionD <-> PipelineD syncing logic mid-test.
-  void send_empty_pipelined_table(
-      std::unique_ptr<LocalSessionManager::Stub>& stub) {
+  void
+  send_empty_pipelined_table(std::unique_ptr<LocalSessionManager::Stub> &stub) {
     RuleRecordTable empty_table;
     // epoch indicates the last PipelineD service start time
     empty_table.set_epoch(DEFAULT_PIPELINED_EPOCH);
@@ -268,8 +268,9 @@ class SessiondTest : public ::testing::Test {
     setup_promise2.get_future().get();
   }
 
-  void send_update_pipelined_table(
-      std::unique_ptr<LocalSessionManager::Stub>& stub, RuleRecordTable table) {
+  void
+  send_update_pipelined_table(std::unique_ptr<LocalSessionManager::Stub> &stub,
+                              RuleRecordTable table) {
     grpc::ClientContext context;
     Void void_resp;
     // The epoch should be consistent with the initial empty table to prevent
@@ -278,8 +279,8 @@ class SessiondTest : public ::testing::Test {
     stub->ReportRuleStats(&context, table, &void_resp);
   }
 
- protected:
-  folly::EventBase* evb;
+protected:
+  folly::EventBase *evb;
   std::thread test_service_thread;
   std::thread pipelined_client_thread;
   std::thread main_evb_thread;
@@ -392,12 +393,12 @@ TEST_F(SessiondTest, end_to_end_success) {
     // Temporary fix for PipelineD client in SessionD introduces separate
     // calls for static and dynamic rules. So here is the call for static
     // rules.
-    EXPECT_CALL(
-        *pipelined_mock,
-        ActivateFlows(testing::_,
-                      CheckActivateFlowsForTunnIds(
-                          IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid, 3),
-                      testing::_))
+    EXPECT_CALL(*pipelined_mock,
+                ActivateFlows(testing::_,
+                              CheckActivateFlowsForTunnIds(IMSI1, ipv4_addrs,
+                                                           ipv6_addrs, enb_teid,
+                                                           agw_teid, 3),
+                              testing::_))
         .WillOnce(testing::DoAll(SetPromise(&tunnel_promise),
                                  testing::Return(grpc::Status::OK)));
   }
@@ -547,10 +548,10 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
     create_usage_update(IMSI1, 1, 512, 512, CreditUsage::QUOTA_EXHAUSTED,
                         &expected_update_fail);
     // Expect update with IMSI1, charging key 1, return timeout from cloud
-    EXPECT_CALL(
-        *controller_mock,
-        UpdateSession(testing::_, CheckSingleUpdate(expected_update_fail),
-                      testing::_))
+    EXPECT_CALL(*controller_mock,
+                UpdateSession(testing::_,
+                              CheckSingleUpdate(expected_update_fail),
+                              testing::_))
         .Times(1)
         .WillOnce(
             testing::Return(grpc::Status(grpc::DEADLINE_EXCEEDED, "timeout")));
@@ -572,10 +573,10 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
                         &expected_update_success);
     // second update should contain the original usage report + new usage
     // report since the first update failed
-    EXPECT_CALL(
-        *controller_mock,
-        UpdateSession(testing::_, CheckSingleUpdate(expected_update_success),
-                      testing::_))
+    EXPECT_CALL(*controller_mock,
+                UpdateSession(testing::_,
+                              CheckSingleUpdate(expected_update_success),
+                              testing::_))
         .Times(1)
         .WillOnce(SetEndPromise(end_promise, Status::OK));
   }
@@ -588,4 +589,4 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   set_timeout(5000, end_promise);
   end_promise->get_future().get();
 }
-}  // namespace magma
+} // namespace magma

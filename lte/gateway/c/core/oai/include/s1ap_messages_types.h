@@ -37,57 +37,57 @@
 #ifndef FILE_S1AP_MESSAGES_TYPES_SEEN
 #define FILE_S1AP_MESSAGES_TYPES_SEEN
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.331.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.331.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 
-#include "S1ap_Source-ToTarget-TransparentContainer.h"
 #include "S1ap_HandoverType.h"
+#include "S1ap_Source-ToTarget-TransparentContainer.h"
 
-#define S1AP_ENB_DEREGISTERED_IND(mSGpTR) \
+#define S1AP_ENB_DEREGISTERED_IND(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s1ap_eNB_deregistered_ind
-#define S1AP_ENB_INITIATED_RESET_REQ(mSGpTR) \
+#define S1AP_ENB_INITIATED_RESET_REQ(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_enb_initiated_reset_req
-#define S1AP_ENB_INITIATED_RESET_ACK(mSGpTR) \
+#define S1AP_ENB_INITIATED_RESET_ACK(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_enb_initiated_reset_ack
-#define S1AP_UE_CONTEXT_RELEASE_REQ(mSGpTR) \
+#define S1AP_UE_CONTEXT_RELEASE_REQ(mSGpTR)                                    \
   (mSGpTR)->ittiMsg.s1ap_ue_context_release_req
-#define S1AP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR) \
+#define S1AP_UE_CONTEXT_RELEASE_COMMAND(mSGpTR)                                \
   (mSGpTR)->ittiMsg.s1ap_ue_context_release_command
-#define S1AP_UE_CONTEXT_RELEASE_COMPLETE(mSGpTR) \
+#define S1AP_UE_CONTEXT_RELEASE_COMPLETE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.s1ap_ue_context_release_complete
-#define S1AP_UE_CONTEXT_MODIFICATION_REQUEST(mSGpTR) \
+#define S1AP_UE_CONTEXT_MODIFICATION_REQUEST(mSGpTR)                           \
   (mSGpTR)->ittiMsg.s1ap_ue_context_mod_request
-#define S1AP_UE_CONTEXT_MODIFICATION_RESPONSE(mSGpTR) \
+#define S1AP_UE_CONTEXT_MODIFICATION_RESPONSE(mSGpTR)                          \
   (mSGpTR)->ittiMsg.s1ap_ue_context_mod_response
-#define S1AP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR) \
+#define S1AP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR)                           \
   (mSGpTR)->ittiMsg.s1ap_ue_context_mod_failure
 #define S1AP_E_RAB_SETUP_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_setup_req
 #define S1AP_E_RAB_SETUP_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_setup_rsp
-#define S1AP_E_RAB_MODIFICATION_IND(mSGpTR) \
+#define S1AP_E_RAB_MODIFICATION_IND(mSGpTR)                                    \
   (mSGpTR)->ittiMsg.s1ap_e_rab_modification_ind
-#define S1AP_E_RAB_MODIFICATION_CNF(mSGpTR) \
+#define S1AP_E_RAB_MODIFICATION_CNF(mSGpTR)                                    \
   (mSGpTR)->ittiMsg.s1ap_e_rab_modification_cnf
-#define S1AP_INITIAL_UE_MESSAGE(mSGpTR) \
+#define S1AP_INITIAL_UE_MESSAGE(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s1ap_initial_ue_message
 #define S1AP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_nas_dl_data_req
 #define S1AP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.s1ap_paging_request
 #define S1AP_E_RAB_REL_CMD(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_cmd
 #define S1AP_E_RAB_REL_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_rel_rsp
-#define S1AP_PATH_SWITCH_REQUEST(mSGpTR) \
+#define S1AP_PATH_SWITCH_REQUEST(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request
-#define S1AP_PATH_SWITCH_REQUEST_ACK(mSGpTR) \
+#define S1AP_PATH_SWITCH_REQUEST_ACK(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_ack
-#define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR) \
+#define S1AP_PATH_SWITCH_REQUEST_FAILURE(mSGpTR)                               \
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
-#define S1AP_REMOVE_STALE_UE_CONTEXT(mSGpTR) \
+#define S1AP_REMOVE_STALE_UE_CONTEXT(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_remove_stale_ue_context
 #define S1AP_HANDOVER_REQUIRED(mSGpTR) (mSGpTR)->ittiMsg.s1ap_handover_required
-#define S1AP_HANDOVER_REQUEST_ACK(mSGpTR) \
+#define S1AP_HANDOVER_REQUEST_ACK(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s1ap_handover_request_ack
 #define S1AP_HANDOVER_NOTIFY(mSGpTR) (mSGpTR)->ittiMsg.s1ap_handover_notify
 
@@ -149,7 +149,7 @@ typedef struct itti_s1ap_initial_ctxt_setup_req_s {
 typedef struct itti_s1ap_ue_cap_ind_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
-  uint8_t* radio_capabilities;
+  uint8_t *radio_capabilities;
   size_t radio_capabilities_length;
 } itti_s1ap_ue_cap_ind_t;
 
@@ -177,7 +177,7 @@ typedef struct itti_s1ap_enb_initiated_reset_req_s {
   uint32_t enb_id;
   s1ap_reset_type_t s1ap_reset_type;
   uint32_t num_ue;
-  s1_sig_conn_id_t* ue_to_reset_list;
+  s1_sig_conn_id_t *ue_to_reset_list;
 } itti_s1ap_enb_initiated_reset_req_t;
 
 typedef struct itti_s1ap_enb_initiated_reset_ack_s {
@@ -185,7 +185,7 @@ typedef struct itti_s1ap_enb_initiated_reset_ack_s {
   uint16_t sctp_stream_id;
   s1ap_reset_type_t s1ap_reset_type;
   uint32_t num_ue;
-  s1_sig_conn_id_t* ue_to_reset_list;
+  s1_sig_conn_id_t *ue_to_reset_list;
 } itti_s1ap_enb_initiated_reset_ack_t;
 
 // List of possible causes for MME generated UE context release command towards
@@ -261,8 +261,8 @@ typedef struct itti_s1ap_paging_request_s {
 } itti_s1ap_paging_request_t;
 
 typedef struct itti_s1ap_initial_ue_message_s {
-  sctp_assoc_id_t sctp_assoc_id;  // key stored in MME_APP for MME_APP forward
-                                  // NAS response to S1AP
+  sctp_assoc_id_t sctp_assoc_id; // key stored in MME_APP for MME_APP forward
+                                 // NAS response to S1AP
   uint32_t enb_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id;
   mme_ue_s1ap_id_t mme_ue_s1ap_id;

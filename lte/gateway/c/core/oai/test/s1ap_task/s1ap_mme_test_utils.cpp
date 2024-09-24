@@ -12,16 +12,16 @@
  */
 #include "lte/gateway/c/core/oai/test/s1ap_task/s1ap_mme_test_utils.h"
 
+#include "S1ap_Cause.h"
 #include <cstdlib>
 #include <fstream>
-#include "S1ap_Cause.h"
 
 extern "C" {
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 }
 
@@ -35,7 +35,7 @@ using oai::S1apUeState;
 using oai::UeDescription;
 task_zmq_ctx_t task_zmq_ctx_main_s1ap;
 
-status_code_e setup_new_association(oai::S1apState* state,
+status_code_e setup_new_association(oai::S1apState *state,
                                     sctp_assoc_id_t assoc_id) {
   bstring ran_cp_ipaddr = bfromcstr("\xc0\xa8\x3c\x8d");
   sctp_new_peer_t p = {
@@ -50,7 +50,7 @@ status_code_e setup_new_association(oai::S1apState* state,
 }
 
 status_code_e send_s1ap_close_sctp_association(sctp_assoc_id_t assoc_id) {
-  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_CLOSE_ASSOCIATION);
+  MessageDef *msg = itti_alloc_new_message(TASK_SCTP, SCTP_CLOSE_ASSOCIATION);
 
   SCTP_CLOSE_ASSOCIATION(msg).assoc_id = assoc_id;
   SCTP_CLOSE_ASSOCIATION(msg).reset = false;
@@ -58,7 +58,7 @@ status_code_e send_s1ap_close_sctp_association(sctp_assoc_id_t assoc_id) {
   return send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, msg);
 }
 
-status_code_e generate_s1_setup_request_pdu(S1ap_S1AP_PDU_t* pdu_s1) {
+status_code_e generate_s1_setup_request_pdu(S1ap_S1AP_PDU_t *pdu_s1) {
   uint8_t packet_bytes[] = {
       0x00, 0x11, 0x00, 0x2f, 0x00, 0x00, 0x04, 0x00, 0x3b, 0x00, 0x09,
       0x00, 0x00, 0xf1, 0x10, 0x40, 0x00, 0x00, 0x00, 0xa0, 0x00, 0x3c,
@@ -74,11 +74,11 @@ status_code_e generate_s1_setup_request_pdu(S1ap_S1AP_PDU_t* pdu_s1) {
   return pdu_rc;
 }
 
-void handle_mme_ue_id_notification(oai::S1apState* s,
+void handle_mme_ue_id_notification(oai::S1apState *s,
                                    sctp_assoc_id_t assoc_id) {
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, MME_APP_S1AP_MME_UE_ID_NOTIFICATION);
-  itti_mme_app_s1ap_mme_ue_id_notification_t* notification_p =
+  itti_mme_app_s1ap_mme_ue_id_notification_t *notification_p =
       &message_p->ittiMsg.mme_app_s1ap_mme_ue_id_notification;
   memset(notification_p, 0, sizeof(itti_mme_app_s1ap_mme_ue_id_notification_t));
   notification_p->enb_ue_s1ap_id = 1;
@@ -88,12 +88,12 @@ void handle_mme_ue_id_notification(oai::S1apState* s,
   free(message_p);
 }
 
-status_code_e send_s1ap_erab_rel_cmd(oai::S1apState* state,
+status_code_e send_s1ap_erab_rel_cmd(oai::S1apState *state,
                                      mme_ue_s1ap_id_t ue_id,
                                      enb_ue_s1ap_id_t enb_ue_id) {
-  MessageDef* message_p;
+  MessageDef *message_p;
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_REL_CMD);
-  itti_s1ap_e_rab_rel_cmd_t* s1ap_e_rab_rel_cmd =
+  itti_s1ap_e_rab_rel_cmd_t *s1ap_e_rab_rel_cmd =
       &message_p->ittiMsg.s1ap_e_rab_rel_cmd;
   s1ap_e_rab_rel_cmd->mme_ue_s1ap_id = ue_id;
   s1ap_e_rab_rel_cmd->enb_ue_s1ap_id = enb_ue_id;
@@ -113,10 +113,10 @@ status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
                                           bool trigger_ext_ue_ambr,
                                           bool sec_capabilities_present,
                                           bool ue_radio_capability) {
-  MessageDef* message_p;
+  MessageDef *message_p;
   message_p = itti_alloc_new_message(TASK_MME_APP,
                                      MME_APP_CONNECTION_ESTABLISHMENT_CNF);
-  itti_mme_app_connection_establishment_cnf_t* establishment_cnf_p = NULL;
+  itti_mme_app_connection_establishment_cnf_t *establishment_cnf_p = NULL;
   establishment_cnf_p =
       &message_p->ittiMsg.mme_app_connection_establishment_cnf;
   establishment_cnf_p->ue_id = ue_id;
@@ -124,7 +124,7 @@ status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
 
   establishment_cnf_p->no_of_e_rabs = 1;
 
-  establishment_cnf_p->e_rab_id[0] = 1;  //+ EPS_BEARER_IDENTITY_FIRST;
+  establishment_cnf_p->e_rab_id[0] = 1; //+ EPS_BEARER_IDENTITY_FIRST;
   establishment_cnf_p->e_rab_level_qos_qci[0] = 1;
   establishment_cnf_p->e_rab_level_qos_priority_level[0] = 1;
   establishment_cnf_p->transport_layer_address[0] = bfromcstr("test");
@@ -151,12 +151,12 @@ status_code_e send_conn_establishment_cnf(mme_ue_s1ap_id_t ue_id,
   return send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, message_p);
 }
 
-status_code_e send_s1ap_erab_setup_req(oai::S1apState* state,
+status_code_e send_s1ap_erab_setup_req(oai::S1apState *state,
                                        mme_ue_s1ap_id_t ue_id,
                                        enb_ue_s1ap_id_t enb_ue_id, ebi_t ebi) {
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_SETUP_REQ);
-  itti_s1ap_e_rab_setup_req_t* s1ap_e_rab_setup_req =
+  itti_s1ap_e_rab_setup_req_t *s1ap_e_rab_setup_req =
       &message_p->ittiMsg.s1ap_e_rab_setup_req;
 
   s1ap_e_rab_setup_req->mme_ue_s1ap_id = ue_id;
@@ -209,14 +209,14 @@ status_code_e send_s1ap_erab_reset_req(sctp_assoc_id_t assoc_id,
                                        sctp_stream_id_t stream_id,
                                        enb_ue_s1ap_id_t enb_ue_id,
                                        mme_ue_s1ap_id_t ue_id) {
-  MessageDef* msg = DEPRECATEDitti_alloc_new_message_fatal(
+  MessageDef *msg = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_MME_APP, S1AP_ENB_INITIATED_RESET_ACK);
 
-  itti_s1ap_enb_initiated_reset_ack_t* reset_ack =
+  itti_s1ap_enb_initiated_reset_ack_t *reset_ack =
       &msg->ittiMsg.s1ap_enb_initiated_reset_ack;
 
-  s1_sig_conn_id_t* list =
-      (s1_sig_conn_id_t*)(calloc(1, sizeof(s1_sig_conn_id_t)));
+  s1_sig_conn_id_t *list =
+      (s1_sig_conn_id_t *)(calloc(1, sizeof(s1_sig_conn_id_t)));
   list->enb_ue_s1ap_id = enb_ue_id;
   list->mme_ue_s1ap_id = ue_id;
   // ue_to_reset_list needs to be freed by S1AP module
@@ -232,9 +232,9 @@ status_code_e send_s1ap_erab_reset_req(sctp_assoc_id_t assoc_id,
 
 status_code_e send_s1ap_ue_ctxt_mod(enb_ue_s1ap_id_t enb_ue_id,
                                     mme_ue_s1ap_id_t ue_id) {
-  MessageDef* message_p = itti_alloc_new_message(
+  MessageDef *message_p = itti_alloc_new_message(
       TASK_MME_APP, S1AP_UE_CONTEXT_MODIFICATION_REQUEST);
-  memset((void*)&message_p->ittiMsg.s1ap_ue_context_mod_request, 0,
+  memset((void *)&message_p->ittiMsg.s1ap_ue_context_mod_request, 0,
          sizeof(itti_s1ap_ue_context_mod_req_t));
   S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).mme_ue_s1ap_id = ue_id;
   S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).enb_ue_s1ap_id = enb_ue_id;
@@ -247,10 +247,10 @@ status_code_e send_s1ap_ue_ctxt_mod(enb_ue_s1ap_id_t enb_ue_id,
 }
 
 status_code_e send_s1ap_paging_request(sctp_assoc_id_t assoc_id) {
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_PAGING_REQUEST);
 
-  itti_s1ap_paging_request_t* paging_request =
+  itti_s1ap_paging_request_t *paging_request =
       &message_p->ittiMsg.s1ap_paging_request;
   memset(paging_request, 0, sizeof(itti_s1ap_paging_request_t));
 
@@ -279,9 +279,9 @@ status_code_e send_s1ap_paging_request(sctp_assoc_id_t assoc_id) {
 status_code_e send_s1ap_path_switch_failure(sctp_assoc_id_t assoc_id,
                                             enb_ue_s1ap_id_t enb_ue_id,
                                             mme_ue_s1ap_id_t ue_id) {
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_PATH_SWITCH_REQUEST_FAILURE);
-  itti_s1ap_path_switch_request_failure_t* s1ap_path_switch_req_failure =
+  itti_s1ap_path_switch_request_failure_t *s1ap_path_switch_req_failure =
       &message_p->ittiMsg.s1ap_path_switch_request_failure;
 
   s1ap_path_switch_req_failure->sctp_assoc_id = assoc_id;
@@ -294,10 +294,10 @@ status_code_e send_s1ap_path_switch_failure(sctp_assoc_id_t assoc_id,
 status_code_e send_s1ap_path_switch_req(sctp_assoc_id_t assoc_id,
                                         enb_ue_s1ap_id_t enb_ue_id,
                                         mme_ue_s1ap_id_t ue_id) {
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_PATH_SWITCH_REQUEST_ACK);
 
-  itti_s1ap_path_switch_request_ack_t* s1ap_path_switch_req_ack =
+  itti_s1ap_path_switch_request_ack_t *s1ap_path_switch_req_ack =
       &message_p->ittiMsg.s1ap_path_switch_request_ack;
 
   s1ap_path_switch_req_ack->sctp_assoc_id = assoc_id;
@@ -314,9 +314,9 @@ status_code_e send_s1ap_path_switch_req(sctp_assoc_id_t assoc_id,
 status_code_e send_s1ap_mme_handover_request(sctp_assoc_id_t assoc_id,
                                              mme_ue_s1ap_id_t ue_id,
                                              uint32_t target_enb_id) {
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, MME_APP_HANDOVER_REQUEST);
-  itti_mme_app_handover_request_t* ho_request_p =
+  itti_mme_app_handover_request_t *ho_request_p =
       &message_p->ittiMsg.mme_app_handover_request;
 
   char arbitrary_src_tgt_container[20] = "Arbitrary target";
@@ -368,9 +368,9 @@ status_code_e send_s1ap_mme_handover_command(sctp_assoc_id_t assoc_id,
                                              uint32_t source_enb_id,
                                              uint32_t target_enb_id) {
   char arbitrary_src_tgt_container[20] = "Arbitrary target";
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, MME_APP_HANDOVER_COMMAND);
-  itti_mme_app_handover_command_t* ho_command_p =
+  itti_mme_app_handover_command_t *ho_command_p =
       &message_p->ittiMsg.mme_app_handover_command;
 
   ho_command_p->source_assoc_id = assoc_id;
@@ -387,10 +387,10 @@ status_code_e send_s1ap_mme_handover_command(sctp_assoc_id_t assoc_id,
 
 status_code_e send_s1ap_erab_mod_confirm(enb_ue_s1ap_id_t enb_ue_id,
                                          mme_ue_s1ap_id_t ue_id) {
-  MessageDef* message_p =
+  MessageDef *message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_MODIFICATION_CNF);
 
-  itti_s1ap_e_rab_modification_cnf_t* s1ap_e_rab_modification_cnf_p =
+  itti_s1ap_e_rab_modification_cnf_t *s1ap_e_rab_modification_cnf_p =
       &message_p->ittiMsg.s1ap_e_rab_modification_cnf;
 
   /** Set the identifiers. */
@@ -410,7 +410,7 @@ status_code_e send_s1ap_erab_mod_confirm(enb_ue_s1ap_id_t enb_ue_id,
   return send_msg_to_task(&task_zmq_ctx_main_s1ap, TASK_S1AP, message_p);
 }
 
-bool is_enb_state_valid(oai::S1apState* state, sctp_assoc_id_t assoc_id,
+bool is_enb_state_valid(oai::S1apState *state, sctp_assoc_id_t assoc_id,
                         oai::S1apEnbState expected_state,
                         uint32_t expected_num_ues) {
   oai::EnbDescription enb_associated;
@@ -424,7 +424,7 @@ bool is_enb_state_valid(oai::S1apState* state, sctp_assoc_id_t assoc_id,
   return false;
 }
 
-bool is_num_enbs_valid(oai::S1apState* state, uint32_t expected_num_enbs) {
+bool is_num_enbs_valid(oai::S1apState *state, uint32_t expected_num_enbs) {
   hash_size_t num_enb_elements = state->enbs_size();
   if ((num_enb_elements == expected_num_enbs) &&
       (state->num_enbs() == expected_num_enbs)) {
@@ -435,8 +435,8 @@ bool is_num_enbs_valid(oai::S1apState* state, uint32_t expected_num_enbs) {
 
 bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
                        enum S1apUeState expected_ue_state) {
-  UeDescription* ue = nullptr;
-  map_uint64_ue_description_t* state_ue_map = get_s1ap_ue_state();
+  UeDescription *ue = nullptr;
+  map_uint64_ue_description_t *state_ue_map = get_s1ap_ue_state();
   if (!state_ue_map) {
     std::cerr << "Failed to get s1ap_ue_state" << std::endl;
     return false;
@@ -450,8 +450,8 @@ bool is_ue_state_valid(sctp_assoc_id_t assoc_id, enb_ue_s1ap_id_t enb_ue_id,
   return ue->s1ap_ue_state() == expected_ue_state ? true : false;
 }
 
-status_code_e simulate_pdu_s1_message(uint8_t* bytes, long bytes_len,
-                                      oai::S1apState* state,
+status_code_e simulate_pdu_s1_message(uint8_t *bytes, long bytes_len,
+                                      oai::S1apState *state,
                                       sctp_assoc_id_t assoc_id,
                                       sctp_stream_id_t stream_id) {
   status_code_e rc = RETURNok;
@@ -467,5 +467,5 @@ status_code_e simulate_pdu_s1_message(uint8_t* bytes, long bytes_len,
   return rc;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

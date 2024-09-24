@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstring>
 #include <cstdint>
+#include <cstring>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,8 +19,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.hpp"
 
 namespace magma5g {
 AuthenticationParameterAUTNMsg::AuthenticationParameterAUTNMsg(){};
@@ -28,7 +28,7 @@ AuthenticationParameterAUTNMsg::~AuthenticationParameterAUTNMsg(){};
 
 // Decode AuthenticationParameterAUTN IE
 int AuthenticationParameterAUTNMsg::DecodeAuthenticationParameterAUTNMsg(
-    AuthenticationParameterAUTNMsg* autn, uint8_t iei, uint8_t* buffer,
+    AuthenticationParameterAUTNMsg *autn, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   uint8_t decoded = 0;
   /*** Not Implemented, Will be supported POST MVC ***/
@@ -37,9 +37,9 @@ int AuthenticationParameterAUTNMsg::DecodeAuthenticationParameterAUTNMsg(
 
 // Encode AuthenticationParameterAUTN IE
 int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
-    AuthenticationParameterAUTNMsg* autn, uint8_t iei, uint8_t* buffer,
+    AuthenticationParameterAUTNMsg *autn, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
-  uint8_t* lenPtr;
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -51,7 +51,7 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
     encoded++;
   }
 
-  lenPtr = (uint8_t*)(buffer + encoded);
+  lenPtr = (uint8_t *)(buffer + encoded);
   encoded++;
   memcpy(buffer + encoded, autn->AUTN, AUTN_MAX_LEN);
   encoded = encoded + AUTN_MAX_LEN;
@@ -59,4 +59,4 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
 
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

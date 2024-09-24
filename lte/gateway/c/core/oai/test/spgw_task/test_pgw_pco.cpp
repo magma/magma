@@ -12,10 +12,10 @@
  */
 
 #include <arpa/inet.h>
+#include <cstdint>
 #include <gtest/gtest.h>
 #include <netinet/in.h>
 #include <string.h>
-#include <cstdint>
 #include <string>
 
 extern "C" {
@@ -34,27 +34,27 @@ namespace lte {
 
 #define PCO_PI_IPCP_LEN 16
 
-#define DEFAULT_DNS_PRIMARY_HEX 0x8080808  // 8.8.8.8
-#define DEFAULT_DNS_PRIMARY_ARRAY \
+#define DEFAULT_DNS_PRIMARY_HEX 0x8080808 // 8.8.8.8
+#define DEFAULT_DNS_PRIMARY_ARRAY                                              \
   { 0x08, 0x08, 0x08, 0x08 }
-#define DEFAULT_DNS_SECONDARY_HEX 0x4040808  // 8.8.4.4
-#define DEFAULT_DNS_SECONDARY_ARRAY \
+#define DEFAULT_DNS_SECONDARY_HEX 0x4040808 // 8.8.4.4
+#define DEFAULT_DNS_SECONDARY_ARRAY                                            \
   { 0x08, 0x08, 0x04, 0x04 }
 #define DEFAULT_DNS_IPV6 "2001:4860:4860:0:0:0:0:8888"
 
-#define DEFAULT_PCSCF_IPV4 0x96171bac  // "172.27.23.150"
-#define DEFAULT_PCSCF_IPV4_ARRAY \
+#define DEFAULT_PCSCF_IPV4 0x96171bac // "172.27.23.150"
+#define DEFAULT_PCSCF_IPV4_ARRAY                                               \
   { 0xac, 0x1b, 0x17, 0x96 }
 #define DEFAULT_PCSCF_IPV6 "2a12:577:9941:f99c:0002:0001:c731:f114"
 
 #define DEFAULT_MTU 1400
-#define PCO_IDS_EXPECT_EQ(ipcp, dns, ipnas, dhcp, mtu)                    \
-  do {                                                                    \
-    EXPECT_EQ(pco_ids.pi_ipcp, ipcp);                                     \
-    EXPECT_EQ(pco_ids.ci_dns_server_ipv4_address_request, dns);           \
-    EXPECT_EQ(pco_ids.ci_ip_address_allocation_via_nas_signaling, ipnas); \
-    EXPECT_EQ(pco_ids.ci_ipv4_address_allocation_via_dhcpv4, dhcp);       \
-    EXPECT_EQ(pco_ids.ci_ipv4_link_mtu_request, mtu);                     \
+#define PCO_IDS_EXPECT_EQ(ipcp, dns, ipnas, dhcp, mtu)                         \
+  do {                                                                         \
+    EXPECT_EQ(pco_ids.pi_ipcp, ipcp);                                          \
+    EXPECT_EQ(pco_ids.ci_dns_server_ipv4_address_request, dns);                \
+    EXPECT_EQ(pco_ids.ci_ip_address_allocation_via_nas_signaling, ipnas);      \
+    EXPECT_EQ(pco_ids.ci_ipv4_address_allocation_via_dhcpv4, dhcp);            \
+    EXPECT_EQ(pco_ids.ci_ipv4_link_mtu_request, mtu);                          \
   } while (0)
 
 class SPGWPcoTest : public ::testing::Test {
@@ -71,7 +71,7 @@ class SPGWPcoTest : public ::testing::Test {
 
   virtual void TearDown() { free_spgw_config(&spgw_config); }
 
- protected:
+protected:
   const char test_dns_primary[4] = DEFAULT_DNS_PRIMARY_ARRAY;
   const char test_dns_secondary[4] = DEFAULT_DNS_SECONDARY_ARRAY;
   const std::string test_dns_ipv6 = DEFAULT_DNS_IPV6;
@@ -79,25 +79,25 @@ class SPGWPcoTest : public ::testing::Test {
   const uint8_t test_pcscf_ipv4_addr[4] = DEFAULT_PCSCF_IPV4_ARRAY;
   const std::string test_pcscf_ipv6_addr = DEFAULT_PCSCF_IPV6;
 
-  void fill_ipcp(magma::lte::oai::PcoProtocol* poc_id, char* primary_dns,
-                 char* secondary_dns) {
+  void fill_ipcp(magma::lte::oai::PcoProtocol *poc_id, char *primary_dns,
+                 char *secondary_dns) {
     poc_id->set_id(PCO_PI_IPCP);
     poc_id->set_length(PCO_PI_IPCP_LEN);
 
     char poc_content[PCO_PI_IPCP_LEN];
 
-    poc_content[0] = 0x01;  // Code = 01 , i.e. Config Request
-    poc_content[1] = 0x00;  // Identifier = 00
-    poc_content[2] = 0x00;  // Length = 0x0010 , i.e. 16
+    poc_content[0] = 0x01; // Code = 01 , i.e. Config Request
+    poc_content[1] = 0x00; // Identifier = 00
+    poc_content[2] = 0x00; // Length = 0x0010 , i.e. 16
     poc_content[3] = 0x10;
-    poc_content[4] = 0x81;  // Option: 81 for primary DNS IP addr
-    poc_content[5] = 0x06;  // length = 6
+    poc_content[4] = 0x81; // Option: 81 for primary DNS IP addr
+    poc_content[5] = 0x06; // length = 6
     poc_content[6] = primary_dns[0];
     poc_content[7] = primary_dns[1];
     poc_content[8] = primary_dns[2];
     poc_content[9] = primary_dns[3];
-    poc_content[10] = 0x83;  // Option: 83 for secondary DNS IP addr
-    poc_content[11] = 0x06;  // length = 6
+    poc_content[10] = 0x83; // Option: 83 for secondary DNS IP addr
+    poc_content[11] = 0x06; // length = 6
     poc_content[12] = secondary_dns[0];
     poc_content[13] = secondary_dns[1];
     poc_content[14] = secondary_dns[2];
@@ -106,31 +106,31 @@ class SPGWPcoTest : public ::testing::Test {
     poc_id->set_contents(poc_content, PCO_PI_IPCP_LEN);
   }
 
-  void clear_pco(protocol_configuration_options_t* pco) {
+  void clear_pco(protocol_configuration_options_t *pco) {
     for (int i = 0; i < pco->num_protocol_or_container_id; i++) {
       bdestroy_wrapper(&pco->protocol_or_container_ids[i].contents);
     }
   }
 
-  bool are_force_push_pcos_valid(protocol_configuration_options_t* pco_resp,
+  bool are_force_push_pcos_valid(protocol_configuration_options_t *pco_resp,
                                  bool expected_dns, bool expected_mtu) {
     bool has_dns = false;
     bool has_mtu = false;
     for (int i = 0; i < pco_resp->num_protocol_or_container_id; i++) {
       switch (pco_resp->protocol_or_container_ids[i].id) {
-        case PCO_CI_DNS_SERVER_IPV4_ADDRESS:
-          if (memcmp(pco_resp->protocol_or_container_ids[i].contents->data,
-                     test_dns_primary, sizeof(test_dns_primary)) == 0) {
-            has_dns = true;
-          }
-          break;
+      case PCO_CI_DNS_SERVER_IPV4_ADDRESS:
+        if (memcmp(pco_resp->protocol_or_container_ids[i].contents->data,
+                   test_dns_primary, sizeof(test_dns_primary)) == 0) {
+          has_dns = true;
+        }
+        break;
 
-        case PCO_CI_IPV4_LINK_MTU:
-          if (memcmp(pco_resp->protocol_or_container_ids[i].contents->data,
-                     test_mtu, sizeof(test_mtu)) == 0) {
-            has_mtu = true;
-          }
-          break;
+      case PCO_CI_IPV4_LINK_MTU:
+        if (memcmp(pco_resp->protocol_or_container_ids[i].contents->data,
+                   test_mtu, sizeof(test_mtu)) == 0) {
+          has_mtu = true;
+        }
+        break;
       }
     }
     if ((has_dns == expected_dns) && (has_mtu == expected_mtu)) {
@@ -159,7 +159,7 @@ TEST_F(SPGWPcoTest, TestIPCPWithNoDNS) {
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
   std::string contents = poc_id.contents();
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
-            contents.at(1));  // Identifier is same as poc_id
+            contents.at(1)); // Identifier is same as poc_id
 
   // check that return code is NACK
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
@@ -182,8 +182,8 @@ TEST_F(SPGWPcoTest, TestIPCPWithRandomDNS) {
   protocol_configuration_options_t pco_resp = {};
   magma::lte::oai::PcoProtocol poc_id = {};
 
-  char primary_dns[4] = {0x01, 0x02, 0x03, 0x04};    // 1.2.3.4
-  char secondary_dns[4] = {0x05, 0x06, 0x07, 0x08};  // 5.6.7.8
+  char primary_dns[4] = {0x01, 0x02, 0x03, 0x04};   // 1.2.3.4
+  char secondary_dns[4] = {0x05, 0x06, 0x07, 0x08}; // 5.6.7.8
 
   fill_ipcp(&poc_id, primary_dns, secondary_dns);
 
@@ -197,7 +197,7 @@ TEST_F(SPGWPcoTest, TestIPCPWithRandomDNS) {
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
   std::string contents = poc_id.contents();
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
-            contents.at(1));  // Identifier is same as poc_id
+            contents.at(1)); // Identifier is same as poc_id
 
   // check that return code is NACK
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
@@ -234,7 +234,7 @@ TEST_F(SPGWPcoTest, TestIPCPWithMatchingDNS) {
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].length, PCO_PI_IPCP_LEN);
   std::string contents = poc_id.contents();
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[1],
-            contents.at(1));  // Identifier is same as poc_id
+            contents.at(1)); // Identifier is same as poc_id
 
   // check that return code is ACK
   EXPECT_EQ(pco_resp.protocol_or_container_ids[0].contents->data[0],
@@ -299,7 +299,7 @@ TEST_F(SPGWPcoTest, TestPcoRequestIpv6DNS) {
   pco_req.set_configuration_protocol(
       PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
   pco_req.set_num_protocol_or_container_id(1);
-  magma::lte::oai::PcoProtocol* pco_protocol = pco_req.add_pco_protocol();
+  magma::lte::oai::PcoProtocol *pco_protocol = pco_req.add_pco_protocol();
   pco_protocol->set_id(PCO_CI_DNS_SERVER_IPV6_ADDRESS_REQUEST);
 
   return_code = pgw_process_pco_request(&pco_req, &pco_resp, &pco_ids);
@@ -328,7 +328,7 @@ TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv4) {
   pco_req.set_configuration_protocol(
       PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
   pco_req.set_num_protocol_or_container_id(1);
-  magma::lte::oai::PcoProtocol* pco_protocol = pco_req.add_pco_protocol();
+  magma::lte::oai::PcoProtocol *pco_protocol = pco_req.add_pco_protocol();
   pco_protocol->set_id(PCO_CI_P_CSCF_IPV4_ADDRESS_REQUEST);
 
   // process PCO for PCSCF without initializing SPGW config
@@ -365,7 +365,7 @@ TEST_F(SPGWPcoTest, TestPcoRequestPcscfIpv6) {
   pco_req.set_configuration_protocol(
       PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
   pco_req.set_num_protocol_or_container_id(1);
-  magma::lte::oai::PcoProtocol* pco_protocol = pco_req.add_pco_protocol();
+  magma::lte::oai::PcoProtocol *pco_protocol = pco_req.add_pco_protocol();
   pco_protocol->set_id(PCO_CI_P_CSCF_IPV6_ADDRESS_REQUEST);
 
   // process PCO for PCSCF without initializing SPGW config
@@ -407,7 +407,7 @@ TEST_F(SPGWPcoTest, TestPcoRequestNasSignallingIPCP) {
       PCO_CONFIGURATION_PROTOCOL_PPP_FOR_USE_WITH_IP_PDP_TYPE_OR_IP_PDN_TYPE);
   pco_req.set_num_protocol_or_container_id(2);
 
-  magma::lte::oai::PcoProtocol* pco_protocol = pco_req.add_pco_protocol();
+  magma::lte::oai::PcoProtocol *pco_protocol = pco_req.add_pco_protocol();
   pco_protocol->set_id(PCO_CI_IP_ADDRESS_ALLOCATION_VIA_NAS_SIGNALLING);
 
   fill_ipcp(pco_req.add_pco_protocol(), no_dns, no_dns);
@@ -575,5 +575,5 @@ TEST_F(SPGWPcoTest, TestPcoRequestConfigurationProtocol) {
   clear_pco(&pco_resp);
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

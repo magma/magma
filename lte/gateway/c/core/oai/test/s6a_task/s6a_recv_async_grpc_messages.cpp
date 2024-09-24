@@ -14,10 +14,10 @@
 #include <gtest/gtest.h>
 #include <thread>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
-#include "lte/gateway/c/core/oai/tasks/async_grpc_service/grpc_async_service_task.hpp"
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
+#include "lte/gateway/c/core/oai/tasks/async_grpc_service/grpc_async_service_task.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
@@ -27,16 +27,16 @@ using ::testing::Test;
 task_zmq_ctx_t task_zmq_ctx_main_s6a;
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg);
 
 class S6aMessagesTest : public ::testing::Test {
- protected:
+protected:
   virtual void SetUp();
   virtual void TearDown();
-  void build_grpc_cancel_location_req(magma::feg::CancelLocationRequest* clr);
-  void build_grpc_reset_req(magma::feg::ResetRequest* reset);
+  void build_grpc_cancel_location_req(magma::feg::CancelLocationRequest *clr);
+  void build_grpc_reset_req(magma::feg::ResetRequest *reset);
 
- protected:
+protected:
   std::shared_ptr<MockMmeAppHandler> mme_app_handler;
   std::shared_ptr<magma::S6aProxyAsyncResponderHandler> async_service_handler;
 };
@@ -66,12 +66,12 @@ void S6aMessagesTest::TearDown() {
   std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 }
 
-static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  MessageDef* received_message_p = receive_msg(reader);
+static int handle_message(zloop_t *loop, zsock_t *reader, void *arg) {
+  MessageDef *received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    default: {
-    } break;
+  default: {
+  } break;
   }
 
   itti_free_msg_content(received_message_p);
@@ -80,14 +80,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 void S6aMessagesTest::build_grpc_cancel_location_req(
-    magma::feg::CancelLocationRequest* clr) {
+    magma::feg::CancelLocationRequest *clr) {
   clr->set_user_name("1010000000001");
   clr->set_cancellation_type(
       magma::feg::CancelLocationRequest::SUBSCRIPTION_WITHDRAWAL);
   return;
 }
 
-void S6aMessagesTest::build_grpc_reset_req(magma::feg::ResetRequest* reset) {
+void S6aMessagesTest::build_grpc_reset_req(magma::feg::ResetRequest *reset) {
   reset->add_user_id("1010000000001");
   return;
 }

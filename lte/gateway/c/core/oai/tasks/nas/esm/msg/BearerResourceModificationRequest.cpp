@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/esm/msg/BearerResourceModificationRequest.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,9 +31,9 @@ extern "C" {
 #endif
 
 int decode_bearer_resource_modification_request(
-    bearer_resource_modification_request_msg*
-        bearer_resource_modification_request,
-    uint8_t* buffer, uint32_t len) {
+    bearer_resource_modification_request_msg
+        *bearer_resource_modification_request,
+    uint8_t *buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -69,57 +69,58 @@ int decode_bearer_resource_modification_request(
     /*
      * Type | value iei are below 0x80 so just return the first 4 bits
      */
-    if (ieiDecoded >= 0x80) ieiDecoded = ieiDecoded & 0xf0;
+    if (ieiDecoded >= 0x80)
+      ieiDecoded = ieiDecoded & 0xf0;
 
     switch (ieiDecoded) {
-      case BEARER_RESOURCE_MODIFICATION_REQUEST_REQUIRED_TRAFFIC_FLOW_QOS_IEI:
-        if ((decoded_result = decode_eps_quality_of_service(
-                 &bearer_resource_modification_request->requiredtrafficflowqos,
-                 BEARER_RESOURCE_MODIFICATION_REQUEST_REQUIRED_TRAFFIC_FLOW_QOS_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case BEARER_RESOURCE_MODIFICATION_REQUEST_REQUIRED_TRAFFIC_FLOW_QOS_IEI:
+      if ((decoded_result = decode_eps_quality_of_service(
+               &bearer_resource_modification_request->requiredtrafficflowqos,
+               BEARER_RESOURCE_MODIFICATION_REQUEST_REQUIRED_TRAFFIC_FLOW_QOS_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        bearer_resource_modification_request->presencemask |=
-            BEARER_RESOURCE_MODIFICATION_REQUEST_REQUIRED_TRAFFIC_FLOW_QOS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      bearer_resource_modification_request->presencemask |=
+          BEARER_RESOURCE_MODIFICATION_REQUEST_REQUIRED_TRAFFIC_FLOW_QOS_PRESENT;
+      break;
 
-      case BEARER_RESOURCE_MODIFICATION_REQUEST_ESM_CAUSE_IEI:
-        if ((decoded_result = decode_esm_cause(
-                 &bearer_resource_modification_request->esmcause,
-                 BEARER_RESOURCE_MODIFICATION_REQUEST_ESM_CAUSE_IEI,
-                 buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case BEARER_RESOURCE_MODIFICATION_REQUEST_ESM_CAUSE_IEI:
+      if ((decoded_result = decode_esm_cause(
+               &bearer_resource_modification_request->esmcause,
+               BEARER_RESOURCE_MODIFICATION_REQUEST_ESM_CAUSE_IEI,
+               buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        bearer_resource_modification_request->presencemask |=
-            BEARER_RESOURCE_MODIFICATION_REQUEST_ESM_CAUSE_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      bearer_resource_modification_request->presencemask |=
+          BEARER_RESOURCE_MODIFICATION_REQUEST_ESM_CAUSE_PRESENT;
+      break;
 
-      case BEARER_RESOURCE_MODIFICATION_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
-        if ((decoded_result = decode_protocol_configuration_options_ie(
-                 &bearer_resource_modification_request
-                      ->protocolconfigurationoptions,
-                 true, buffer + decoded, len - decoded)) <= 0)
-          return decoded_result;
+    case BEARER_RESOURCE_MODIFICATION_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI:
+      if ((decoded_result = decode_protocol_configuration_options_ie(
+               &bearer_resource_modification_request
+                    ->protocolconfigurationoptions,
+               true, buffer + decoded, len - decoded)) <= 0)
+        return decoded_result;
 
-        decoded += decoded_result;
-        /*
-         * Set corresponding mask to 1 in presencemask
-         */
-        bearer_resource_modification_request->presencemask |=
-            BEARER_RESOURCE_MODIFICATION_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
-        break;
+      decoded += decoded_result;
+      /*
+       * Set corresponding mask to 1 in presencemask
+       */
+      bearer_resource_modification_request->presencemask |=
+          BEARER_RESOURCE_MODIFICATION_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
+      break;
 
-      default:
-        errorCodeDecoder = TLV_UNEXPECTED_IEI;
-        return TLV_UNEXPECTED_IEI;
+    default:
+      errorCodeDecoder = TLV_UNEXPECTED_IEI;
+      return TLV_UNEXPECTED_IEI;
     }
   }
 
@@ -127,9 +128,9 @@ int decode_bearer_resource_modification_request(
 }
 
 int encode_bearer_resource_modification_request(
-    bearer_resource_modification_request_msg*
-        bearer_resource_modification_request,
-    uint8_t* buffer, uint32_t len) {
+    bearer_resource_modification_request_msg
+        *bearer_resource_modification_request,
+    uint8_t *buffer, uint32_t len) {
   int encoded = 0;
   int encode_result = 0;
 
@@ -149,7 +150,7 @@ int encode_bearer_resource_modification_request(
   if ((encode_result = encode_traffic_flow_template_ie(
            &bearer_resource_modification_request->trafficflowaggregate,
            TFT_ENCODE_IEI_FALSE, buffer + encoded,
-           len - encoded)) < 0)  // Return in case of error
+           len - encoded)) < 0) // Return in case of error
     return encode_result;
   else
     encoded += encode_result;

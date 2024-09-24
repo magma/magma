@@ -22,14 +22,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
 #ifdef __cplusplus
 }
 #endif
 
 int decode_guti_reallocation_complete(
-    guti_reallocation_complete_msg* guti_reallocation_complete, uint8_t* buffer,
+    guti_reallocation_complete_msg *guti_reallocation_complete, uint8_t *buffer,
     uint32_t len) {
   uint32_t decoded = 0;
 
@@ -44,7 +44,7 @@ int decode_guti_reallocation_complete(
 }
 
 int encode_guti_reallocation_complete(
-    guti_reallocation_complete_msg* guti_reallocation_complete, uint8_t* buffer,
+    guti_reallocation_complete_msg *guti_reallocation_complete, uint8_t *buffer,
     uint32_t len) {
   int encoded = 0;
 

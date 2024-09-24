@@ -37,13 +37,13 @@ extern "C" {
 #define NO_LABELS 0
 
 void service303_mme_app_statistics_read(
-    application_mme_app_stats_msg_t* stats_msg_p);
-void service303_s1ap_statistics_read(application_s1ap_stats_msg_t* stats_msg_p);
+    application_mme_app_stats_msg_t *stats_msg_p);
+void service303_s1ap_statistics_read(application_s1ap_stats_msg_t *stats_msg_p);
 void service303_statistics_display(void);
 void service303_amf_app_statistics_read(
-    application_amf_app_stats_msg_t* stats_msg_p);
+    application_amf_app_stats_msg_t *stats_msg_p);
 void service303_statistics_display_5G(void);
-void service303_ngap_statistics_read(application_ngap_stats_msg_t* stats_msg_p);
+void service303_ngap_statistics_read(application_ngap_stats_msg_t *stats_msg_p);
 
 // service303 conf type added to be able to use same task interface for MME and
 // SPGW while passing configs from mme_config and spgw_config types
@@ -62,7 +62,7 @@ typedef enum application_health_e {
 #ifdef __cplusplus
 extern "C" {
 #endif
-status_code_e service303_init(service303_data_t* service303_data);
+status_code_e service303_init(service303_data_t *service303_data);
 #ifdef __cplusplus
 }
 #endif

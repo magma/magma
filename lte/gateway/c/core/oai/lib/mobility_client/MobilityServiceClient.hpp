@@ -24,14 +24,14 @@
 #include <memory>
 #include <string>
 
-#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 #include "lte/protos/mobilityd.grpc.pb.h"
+#include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 namespace grpc {
 class Channel;
 class ClientContext;
 class Status;
-}  // namespace grpc
+} // namespace grpc
 
 namespace magma {
 namespace lte {
@@ -39,7 +39,7 @@ namespace lte {
  * gRPC client for MobilityService
  */
 class MobilityServiceClient : public GRPCReceiver {
- public:
+public:
   virtual ~MobilityServiceClient() = default;
   /*
    * Get the address and netmask of an assigned IPv4 block
@@ -52,8 +52,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @return -RPC_STATUS_INVALID_ARGUMENT if IPBlock is invalid
    * @return -RPC_STATUS_FAILED_PRECONDITION if IPBlock overlaps
    */
-  int GetAssignedIPv4Block(int index, struct in_addr* netaddr,
-                           uint32_t* netmask);
+  int GetAssignedIPv4Block(int index, struct in_addr *netaddr,
+                           uint32_t *netmask);
 
   /**
    * Allocate an IPv4 address from the free IP pool (non-blocking)
@@ -63,9 +63,9 @@ class MobilityServiceClient : public GRPCReceiver {
    * "network byte order"
    */
   void AllocateIPv4AddressAsync(
-      const std::string& imsi, const std::string& apn,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
-          callback);
+      const std::string &imsi, const std::string &apn,
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>
+          &callback);
 
   /**
    * Allocate an IPv6 address from the free IP pool (non-blocking)
@@ -74,9 +74,9 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param addr (out): contains the IP address allocated upon returning
    */
   void AllocateIPv6AddressAsync(
-      const std::string& imsi, const std::string& apn,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
-          callback);
+      const std::string &imsi, const std::string &apn,
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>
+          &callback);
 
   /**
    * Allocate an IPv4v6 address from the free IP pool (non-blocking)
@@ -85,9 +85,9 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param addr (out): contains the IP address allocated upon returning
    */
   void AllocateIPv4v6AddressAsync(
-      const std::string& imsi, const std::string& apn,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
-          callback);
+      const std::string &imsi, const std::string &apn,
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>
+          &callback);
 
   /**
    * Release an allocated IPv4 address. (non-blocking)
@@ -99,8 +99,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param apn:  APN string
    * @param addr: IP address to release in "network byte order"
    */
-  void ReleaseIPv4Address(const std::string& imsi, const std::string& apn,
-                          const struct in_addr& addr);
+  void ReleaseIPv4Address(const std::string &imsi, const std::string &apn,
+                          const struct in_addr &addr);
 
   /**
    * Release an allocated IPv6 address. (non-blocking)
@@ -112,8 +112,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param apn:  APN string
    * @param addr: IPv6 address to release
    */
-  void ReleaseIPv6Address(const std::string& imsi, const std::string& apn,
-                          const struct in6_addr& addr);
+  void ReleaseIPv6Address(const std::string &imsi, const std::string &apn,
+                          const struct in6_addr &addr);
 
   /**
    * Release an allocated IPv4v6 address. (non-blocking)
@@ -126,9 +126,9 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param ipv4_addr: IPv4 address to release in "network byte order"
    * @param ipv6_addr: IPv6 address to release
    */
-  void ReleaseIPv4v6Address(const std::string& imsi, const std::string& apn,
-                            const struct in_addr& ipv4_addr,
-                            const struct in6_addr& ipv6_addr);
+  void ReleaseIPv4v6Address(const std::string &imsi, const std::string &apn,
+                            const struct in_addr &ipv4_addr,
+                            const struct in6_addr &ipv6_addr);
 
   /*
    * Get the allocated IPv4 address for a subscriber
@@ -137,8 +137,8 @@ class MobilityServiceClient : public GRPCReceiver {
    * @return 0 on success
    * @return -RPC_STATUS_NOT_FOUND if the SID is not found
    */
-  int GetIPv4AddressForSubscriber(const std::string& imsi,
-                                  const std::string& apn, struct in_addr* addr);
+  int GetIPv4AddressForSubscriber(const std::string &imsi,
+                                  const std::string &apn, struct in_addr *addr);
 
   /*
    * Get the subscriber id given its allocated IPv4 address. If the address
@@ -149,17 +149,17 @@ class MobilityServiceClient : public GRPCReceiver {
    * @return 0 on success
    * @return -RPC_STATUS_NOT_FOUND if IPv4 address is not found
    */
-  int GetSubscriberIDFromIPv4(const struct in_addr& addr, std::string* imsi);
+  int GetSubscriberIDFromIPv4(const struct in_addr &addr, std::string *imsi);
 
- public:
-  static MobilityServiceClient& getInstance();
+public:
+  static MobilityServiceClient &getInstance();
 
-  MobilityServiceClient(MobilityServiceClient const&) = delete;
-  void operator=(MobilityServiceClient const&) = delete;
+  MobilityServiceClient(MobilityServiceClient const &) = delete;
+  void operator=(MobilityServiceClient const &) = delete;
 
- private:
+private:
   MobilityServiceClient();
-  static const uint32_t RESPONSE_TIMEOUT = 60;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT = 60; // seconds
   std::unique_ptr<MobilityService::Stub> stub_{};
 
   /**
@@ -168,9 +168,9 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param callback std::function that returns Status and actual gRPC response
    */
   void AllocateIPAddressRPC(
-      const AllocateIPRequest& request,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
-          callback);
+      const AllocateIPRequest &request,
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>
+          &callback);
 
   /**
    * Helper function to chain callback for gRPC response
@@ -178,9 +178,9 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param callback std::function that returns Status and actual gRPC response
    */
   void ReleaseIPAddressRPC(
-      const ReleaseIPRequest& request,
-      const std::function<void(grpc::Status, magma::orc8r::Void)>& callback);
+      const ReleaseIPRequest &request,
+      const std::function<void(grpc::Status, magma::orc8r::Void)> &callback);
 };
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma

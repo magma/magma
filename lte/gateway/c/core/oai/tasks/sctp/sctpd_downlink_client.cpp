@@ -24,15 +24,15 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 
-#include <memory>  // for make_unique<>
+#include <memory> // for make_unique<>
 #include <unistd.h>
 
 #include <grpcpp/grpcpp.h>
 
 #include <lte/protos/sctpd.grpc.pb.h>
 
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 namespace magma {
 namespace lte {
@@ -47,26 +47,26 @@ using magma::sctpd::SendDlReq;
 using magma::sctpd::SendDlRes;
 
 class SctpdDownlinkClient {
- public:
-  explicit SctpdDownlinkClient(const std::shared_ptr<Channel>& channel,
+public:
+  explicit SctpdDownlinkClient(const std::shared_ptr<Channel> &channel,
                                bool force_restart);
 
-  int init(InitReq& req, InitRes* res);
-  int sendDl(SendDlReq& req, SendDlRes* res);
+  int init(InitReq &req, InitRes *res);
+  int sendDl(SendDlReq &req, SendDlRes *res);
 
   bool should_force_restart = false;
 
- private:
+private:
   std::unique_ptr<SctpdDownlink::Stub> _stub;
 };
 
 SctpdDownlinkClient::SctpdDownlinkClient(
-    const std::shared_ptr<Channel>& channel, bool force_restart) {
+    const std::shared_ptr<Channel> &channel, bool force_restart) {
   _stub = SctpdDownlink::NewStub(channel);
   should_force_restart = force_restart;
 }
 
-int SctpdDownlinkClient::init(InitReq& req, InitRes* res) {
+int SctpdDownlinkClient::init(InitReq &req, InitRes *res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -81,7 +81,7 @@ int SctpdDownlinkClient::init(InitReq& req, InitRes* res) {
   return status.ok() ? 0 : -1;
 }
 
-int SctpdDownlinkClient::sendDl(SendDlReq& req, SendDlRes* res) {
+int SctpdDownlinkClient::sendDl(SendDlReq &req, SendDlRes *res) {
   assert(res != nullptr);
 
   ClientContext context;
@@ -96,8 +96,8 @@ int SctpdDownlinkClient::sendDl(SendDlReq& req, SendDlRes* res) {
   return status.ok() ? 0 : -1;
 }
 
-}  // namespace lte
-}  // namespace magma
+} // namespace lte
+} // namespace magma
 
 using magma::lte::SctpdDownlinkClient;
 using magma::sctpd::InitReq;
@@ -106,7 +106,7 @@ using magma::sctpd::SendDlReq;
 using magma::sctpd::SendDlRes;
 
 // Max sleep backoff delay in microseconds
-constexpr useconds_t max_backoff_usecs = 1000000;  // 1 sec
+constexpr useconds_t max_backoff_usecs = 1000000; // 1 sec
 
 std::unique_ptr<SctpdDownlinkClient> client = nullptr;
 
@@ -120,7 +120,7 @@ int init_sctpd_downlink_client(bool force_restart) {
 }
 
 // init
-int sctpd_init(sctp_init_t* init) {
+int sctpd_init(sctp_init_t *init) {
   assert(init != nullptr);
 
   int i;
@@ -177,7 +177,7 @@ int sctpd_init(sctp_init_t* init) {
       OAILOG_DEBUG(LOG_SCTP, "Sleeping for %d usecs", sleep_time);
       usleep(sleep_time);
       if (current_delay < max_backoff_usecs) {
-        current_delay += 10000;  // Add 10 ms to backoff
+        current_delay += 10000; // Add 10 ms to backoff
       }
     }
   }

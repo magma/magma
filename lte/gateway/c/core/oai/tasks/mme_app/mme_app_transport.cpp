@@ -54,21 +54,21 @@ status_code_e mme_app_handle_nas_dl_req(const mme_ue_s1ap_id_t ue_id,
 //------------------------------------------------------------------------------
 {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  MessageDef* message_p = NULL;
+  MessageDef *message_p = NULL;
   status_code_e rc = RETURNok;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
 
   message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP,
                                                      S1AP_NAS_DL_DATA_REQ);
 
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t *mme_app_desc_p = get_mme_nas_state(false);
   if (!mme_app_desc_p) {
     OAILOG_CRITICAL(
         LOG_MME_APP,
         "DOWNLINK NAS TRANSPORT. Failed to get global mme_app_desc context \n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  ue_mm_context_t* ue_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
+  ue_mm_context_t *ue_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
   if (ue_context) {
     enb_ue_s1ap_id = ue_context->enb_ue_s1ap_id;
   } else {
@@ -114,8 +114,7 @@ status_code_e mme_app_handle_nas_dl_req(const mme_ue_s1ap_id_t ue_id,
     OAILOG_DEBUG(
         LOG_MME_APP,
         "MME_APP:DOWNLINK NAS TRANSPORT. Establishing S1 sig connection. "
-        "mme_ue_s1ap_id = " MME_UE_S1AP_ID_FMT
-        "\t "
+        "mme_ue_s1ap_id = " MME_UE_S1AP_ID_FMT "\t "
         "enb_ue_s1ap_id = " ENB_UE_S1AP_ID_FMT " \n",
         ue_id, enb_ue_s1ap_id);
     mme_ue_context_update_ue_sig_connection_state(

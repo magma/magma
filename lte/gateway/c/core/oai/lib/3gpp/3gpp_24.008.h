@@ -76,11 +76,11 @@ typedef uint8_t ciphering_key_sequence_number_t;
 extern "C" {
 #endif
 int encode_ciphering_key_sequence_number_ie(
-    ciphering_key_sequence_number_t* cipheringkeysequencenumber,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    ciphering_key_sequence_number_t *cipheringkeysequencenumber,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_ciphering_key_sequence_number_ie(
-    ciphering_key_sequence_number_t* cipheringkeysequencenumber,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    ciphering_key_sequence_number_t *cipheringkeysequencenumber,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -92,14 +92,14 @@ int decode_ciphering_key_sequence_number_ie(
 #define LOCATION_AREA_IDENTIFICATION_IE_MIN_LENGTH 6
 #define LOCATION_AREA_IDENTIFICATION_IE_MAX_LENGTH 6
 
-#define INVALID_LAC_0000                                                  \
-  (uint16_t)0x0000 /*!< \brief  This LAC can be coded using a full        \
-                      hexadecimal representation except for the following \
+#define INVALID_LAC_0000                                                       \
+  (uint16_t)0x0000 /*!< \brief  This LAC can be coded using a full             \
+                      hexadecimal representation except for the following      \
                       reserved hexadecimal values: 0000, and FFFE.   */
 
-#define INVALID_LAC_FFFE                                                  \
-  (uint16_t)0xFFFE /*!< \brief  This LAC can be coded using a full        \
-                      hexadecimal representation except for the following \
+#define INVALID_LAC_FFFE                                                       \
+  (uint16_t)0xFFFE /*!< \brief  This LAC can be coded using a full             \
+                      hexadecimal representation except for the following      \
                       reserved hexadecimal values: 0000, and FFFE.   */
 typedef uint16_t
     lac_t; /*!< \brief  Location Area Code (LAC) is a fixed length code (of 2
@@ -121,11 +121,11 @@ typedef location_area_identification_t lai_t;
 extern "C" {
 #endif
 int encode_location_area_identification_ie(
-    location_area_identification_t* locationareaidentification,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    location_area_identification_t *locationareaidentification,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_location_area_identification_ie(
-    location_area_identification_t* locationareaidentification,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    location_area_identification_t *locationareaidentification,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -261,39 +261,39 @@ typedef union mobile_identity_s {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_mobile_identity_ie(mobile_identity_t* mobileidentity,
-                              const bool iei_present, uint8_t* buffer,
+int encode_mobile_identity_ie(mobile_identity_t *mobileidentity,
+                              const bool iei_present, uint8_t *buffer,
                               const uint32_t len);
-int decode_mobile_identity_ie(mobile_identity_t* mobileidentity,
-                              const bool iei_present, uint8_t* buffer,
+int decode_mobile_identity_ie(mobile_identity_t *mobileidentity,
+                              const bool iei_present, uint8_t *buffer,
                               const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
 
-int decode_imsi_mobile_identity(imsi_mobile_identity_t* imsi, uint8_t* buffer,
+int decode_imsi_mobile_identity(imsi_mobile_identity_t *imsi, uint8_t *buffer,
                                 const uint32_t len);
-int decode_imei_mobile_identity(imei_mobile_identity_t* imei, uint8_t* buffer,
+int decode_imei_mobile_identity(imei_mobile_identity_t *imei, uint8_t *buffer,
                                 const uint32_t len);
-int decode_imeisv_mobile_identity(imeisv_mobile_identity_t* imeisv,
-                                  uint8_t* buffer, const uint32_t len);
-int decode_tmsi_mobile_identity(tmsi_mobile_identity_t* tmsi, uint8_t* buffer,
+int decode_imeisv_mobile_identity(imeisv_mobile_identity_t *imeisv,
+                                  uint8_t *buffer, const uint32_t len);
+int decode_tmsi_mobile_identity(tmsi_mobile_identity_t *tmsi, uint8_t *buffer,
                                 const uint32_t len);
-int decode_tmgi_mobile_identity(tmgi_mobile_identity_t* tmgi, uint8_t* buffer,
+int decode_tmgi_mobile_identity(tmgi_mobile_identity_t *tmgi, uint8_t *buffer,
                                 const uint32_t len);
-int decode_no_mobile_identity(no_mobile_identity_t* no_id, uint8_t* buffer,
+int decode_no_mobile_identity(no_mobile_identity_t *no_id, uint8_t *buffer,
                               const uint32_t len);
-int encode_imsi_mobile_identity(imsi_mobile_identity_t* imsi, uint8_t* buffer,
+int encode_imsi_mobile_identity(imsi_mobile_identity_t *imsi, uint8_t *buffer,
                                 const uint32_t len);
-int encode_imei_mobile_identity(imei_mobile_identity_t* imei, uint8_t* buffer,
+int encode_imei_mobile_identity(imei_mobile_identity_t *imei, uint8_t *buffer,
                                 const uint32_t len);
-int encode_imeisv_mobile_identity(imeisv_mobile_identity_t* imeisv,
-                                  uint8_t* buffer, const uint32_t len);
-int encode_tmsi_mobile_identity(tmsi_mobile_identity_t* tmsi, uint8_t* buffer,
+int encode_imeisv_mobile_identity(imeisv_mobile_identity_t *imeisv,
+                                  uint8_t *buffer, const uint32_t len);
+int encode_tmsi_mobile_identity(tmsi_mobile_identity_t *tmsi, uint8_t *buffer,
                                 const uint32_t len);
-int encode_tmgi_mobile_identity(tmgi_mobile_identity_t* tmgi, uint8_t* buffer,
+int encode_tmgi_mobile_identity(tmgi_mobile_identity_t *tmgi, uint8_t *buffer,
                                 const uint32_t len);
-int encode_no_mobile_identity(no_mobile_identity_t* no_id, uint8_t* buffer,
+int encode_no_mobile_identity(no_mobile_identity_t *no_id, uint8_t *buffer,
                               const uint32_t len);
 
 //------------------------------------------------------------------------------
@@ -327,11 +327,11 @@ typedef struct mobile_station_classmark2_s {
 extern "C" {
 #endif
 int encode_mobile_station_classmark_2_ie(
-    mobile_station_classmark2_t* mobilestationclassmark2,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    mobile_station_classmark2_t *mobilestationclassmark2,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_mobile_station_classmark_2_ie(
-    mobile_station_classmark2_t* mobilestationclassmark2,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    mobile_station_classmark2_t *mobilestationclassmark2,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -340,22 +340,22 @@ int decode_mobile_station_classmark_2_ie(
 // 10.5.1.7 Mobile Station Classmark 3
 //------------------------------------------------------------------------------
 #define MOBILE_STATION_CLASSMARK_3_IE_TYPE 4
-#define MOBILE_STATION_CLASSMARK_3_IE_MIN_LENGTH 34  // TODO
+#define MOBILE_STATION_CLASSMARK_3_IE_MIN_LENGTH 34 // TODO
 #define MOBILE_STATION_CLASSMARK_3_IE_MAX_LENGTH 34
 
 typedef struct mobile_station_classmark3_s {
-  uint8_t byte[32];  // TODO
+  uint8_t byte[32]; // TODO
 } mobile_station_classmark3_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 int encode_mobile_station_classmark_3_ie(
-    mobile_station_classmark3_t* mobilestationclassmark3,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    mobile_station_classmark3_t *mobilestationclassmark3,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_mobile_station_classmark_3_ie(
-    mobile_station_classmark3_t* mobilestationclassmark3,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    mobile_station_classmark3_t *mobilestationclassmark3,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -376,10 +376,10 @@ typedef struct plmn_list_s {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_plmn_list_ie(plmn_list_t* plmnlist, const bool iei_present,
-                        uint8_t* buffer, const uint32_t len);
-int decode_plmn_list_ie(plmn_list_t* plmnlist, const bool iei_present,
-                        uint8_t* buffer, const uint32_t len);
+int encode_plmn_list_ie(plmn_list_t *plmnlist, const bool iei_present,
+                        uint8_t *buffer, const uint32_t len);
+int decode_plmn_list_ie(plmn_list_t *plmnlist, const bool iei_present,
+                        uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -400,11 +400,11 @@ typedef struct ms_network_feature_support_s {
 extern "C" {
 #endif
 int encode_ms_network_feature_support_ie(
-    ms_network_feature_support_t* msnetworkfeaturesupport,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    ms_network_feature_support_t *msnetworkfeaturesupport,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_ms_network_feature_support_ie(
-    ms_network_feature_support_t* msnetworkfeaturesupport,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    ms_network_feature_support_t *msnetworkfeaturesupport,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -412,22 +412,22 @@ int decode_ms_network_feature_support_ie(
 // 10.5.5.31 Network Resource Identifier Container
 //------------------------------------------------------------------------------
 #define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_TYPE 4
-#define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_MIN_LENGTH 4  // TODO
+#define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_MIN_LENGTH 4 // TODO
 #define NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IE_MAX_LENGTH 4
 
 typedef struct network_resource_identifier_container_s {
-  uint8_t byte[32];  // TODO
+  uint8_t byte[32]; // TODO
 } network_resource_identifier_container_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 int encode_network_resource_identifier_container_ie(
-    network_resource_identifier_container_t* networkresourceidentifiercontainer,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    network_resource_identifier_container_t *networkresourceidentifiercontainer,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_network_resource_identifier_container_ie(
-    network_resource_identifier_container_t* networkresourceidentifiercontainer,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    network_resource_identifier_container_t *networkresourceidentifiercontainer,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -463,10 +463,10 @@ extern "C" {
 #endif
 int encode_authentication_parameter_rand_ie(
     authentication_parameter_rand_t authenticationparameterrand,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_authentication_parameter_rand_ie(
-    authentication_parameter_rand_t* authenticationparameterrand,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    authentication_parameter_rand_t *authenticationparameterrand,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -486,10 +486,10 @@ extern "C" {
 #endif
 int encode_authentication_parameter_autn_ie(
     authentication_parameter_autn_t authenticationparameterautn,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_authentication_parameter_autn_ie(
-    authentication_parameter_autn_t* authenticationparameterautn,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    authentication_parameter_autn_t *authenticationparameterautn,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -508,10 +508,10 @@ extern "C" {
 #endif
 int encode_authentication_response_parameter_ie(
     authentication_response_parameter_t authenticationresponseparameter,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_authentication_response_parameter_ie(
-    authentication_response_parameter_t* authenticationresponseparameter,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    authentication_response_parameter_t *authenticationresponseparameter,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -531,10 +531,10 @@ extern "C" {
 #endif
 int encode_authentication_failure_parameter_ie(
     authentication_failure_parameter_t authenticationfailureparameter,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_authentication_failure_parameter_ie(
-    authentication_failure_parameter_t* authenticationfailureparameter,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    authentication_failure_parameter_t *authenticationfailureparameter,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -556,10 +556,10 @@ typedef struct network_name_s {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_network_name_ie(network_name_t* networkname, const uint8_t iei,
-                           uint8_t* buffer, const uint32_t len);
-int decode_network_name_ie(network_name_t* networkname, const uint8_t iei,
-                           uint8_t* buffer, const uint32_t len);
+int encode_network_name_ie(network_name_t *networkname, const uint8_t iei,
+                           uint8_t *buffer, const uint32_t len);
+int decode_network_name_ie(network_name_t *networkname, const uint8_t iei,
+                           uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -576,10 +576,10 @@ typedef uint8_t time_zone_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_time_zone(time_zone_t* timezone, const bool iei_present,
-                     uint8_t* buffer, const uint32_t len);
-int decode_time_zone(time_zone_t* timezone, const bool iei_present,
-                     uint8_t* buffer, const uint32_t len);
+int encode_time_zone(time_zone_t *timezone, const bool iei_present,
+                     uint8_t *buffer, const uint32_t len);
+int decode_time_zone(time_zone_t *timezone, const bool iei_present,
+                     uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -603,11 +603,11 @@ typedef struct time_zone_and_time_s {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_time_zone_and_time(time_zone_and_time_t* timezoneandtime,
-                              const bool iei_present, uint8_t* buffer,
+int encode_time_zone_and_time(time_zone_and_time_t *timezoneandtime,
+                              const bool iei_present, uint8_t *buffer,
                               const uint32_t len);
-int decode_time_zone_and_time(time_zone_and_time_t* timezoneandtime,
-                              const bool iei_present, uint8_t* buffer,
+int decode_time_zone_and_time(time_zone_and_time_t *timezoneandtime,
+                              const bool iei_present, uint8_t *buffer,
                               const uint32_t len);
 #ifdef __cplusplus
 }
@@ -625,11 +625,11 @@ typedef uint8_t daylight_saving_time_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_daylight_saving_time_ie(daylight_saving_time_t* daylightsavingtime,
-                                   const bool iei_present, uint8_t* buffer,
+int encode_daylight_saving_time_ie(daylight_saving_time_t *daylightsavingtime,
+                                   const bool iei_present, uint8_t *buffer,
                                    const uint32_t len);
-int decode_daylight_saving_time_ie(daylight_saving_time_t* daylightsavingtime,
-                                   const bool iei_present, uint8_t* buffer,
+int decode_daylight_saving_time_ie(daylight_saving_time_t *daylightsavingtime,
+                                   const bool iei_present, uint8_t *buffer,
                                    const uint32_t len);
 #ifdef __cplusplus
 }
@@ -648,18 +648,18 @@ typedef struct emergency_number_list_s {
   uint8_t emergencyservicecategoryvalue : 5;
 #define EMERGENCY_NUMBER_MAX_DIGITS (MSISDN_DIGIT_SIZE * 2)
   uint8_t number_digit[EMERGENCY_NUMBER_MAX_DIGITS];
-  struct emergency_number_list_s* next;
+  struct emergency_number_list_s *next;
 } emergency_number_list_t;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 int encode_emergency_number_list_ie(
-    emergency_number_list_t* emergencynumberlist, const bool iei_present,
-    uint8_t* buffer, const uint32_t len);
+    emergency_number_list_t *emergencynumberlist, const bool iei_present,
+    uint8_t *buffer, const uint32_t len);
 int decode_emergency_number_list_ie(
-    emergency_number_list_t* emergencynumberlist, const bool iei_present,
-    uint8_t* buffer, const uint32_t len);
+    emergency_number_list_t *emergencynumberlist, const bool iei_present,
+    uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -683,11 +683,11 @@ typedef bstring supported_codec_list_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_supported_codec_list_ie(supported_codec_list_t* supportedcodeclist,
-                                   const bool iei_present, uint8_t* buffer,
+int encode_supported_codec_list_ie(supported_codec_list_t *supportedcodeclist,
+                                   const bool iei_present, uint8_t *buffer,
                                    const uint32_t len);
-int decode_supported_codec_list_ie(supported_codec_list_t* supportedcodeclist,
-                                   const bool iei_present, uint8_t* buffer,
+int decode_supported_codec_list_ie(supported_codec_list_t *supportedcodeclist,
+                                   const bool iei_present, uint8_t *buffer,
                                    const uint32_t len);
 #ifdef __cplusplus
 }
@@ -718,10 +718,10 @@ typedef uint8_t tmsi_status_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
-                       uint8_t* buffer, const uint32_t len);
-int decode_tmsi_status(tmsi_status_t* tmsistatus, const bool iei_present,
-                       uint8_t* buffer, const uint32_t len);
+int encode_tmsi_status(tmsi_status_t *tmsistatus, const bool iei_present,
+                       uint8_t *buffer, const uint32_t len);
+int decode_tmsi_status(tmsi_status_t *tmsistatus, const bool iei_present,
+                       uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -742,11 +742,11 @@ typedef struct drx_parameter_s {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_drx_parameter_ie(drx_parameter_t* drxparameter,
-                            const bool iei_present, uint8_t* buffer,
+int encode_drx_parameter_ie(drx_parameter_t *drxparameter,
+                            const bool iei_present, uint8_t *buffer,
                             const uint32_t len);
-int decode_drx_parameter_ie(drx_parameter_t* drxparameter,
-                            const bool iei_present, uint8_t* buffer,
+int decode_drx_parameter_ie(drx_parameter_t *drxparameter,
+                            const bool iei_present, uint8_t *buffer,
                             const uint32_t len);
 #ifdef __cplusplus
 }
@@ -764,10 +764,10 @@ typedef uint32_t p_tmsi_signature_t;
 extern "C" {
 #endif
 int encode_p_tmsi_signature_ie(p_tmsi_signature_t ptmsisignature,
-                               const bool iei_present, uint8_t* buffer,
+                               const bool iei_present, uint8_t *buffer,
                                const uint32_t len);
-int decode_p_tmsi_signature_ie(p_tmsi_signature_t* ptmsisignature,
-                               const bool iei_present, uint8_t* buffer,
+int decode_p_tmsi_signature_ie(p_tmsi_signature_t *ptmsisignature,
+                               const bool iei_present, uint8_t *buffer,
                                const uint32_t len);
 #ifdef __cplusplus
 }
@@ -789,11 +789,11 @@ typedef uint8_t identity_type2_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_identity_type_2_ie(identity_type2_t* identitytype2,
-                              bool is_ie_present, uint8_t* buffer,
+int encode_identity_type_2_ie(identity_type2_t *identitytype2,
+                              bool is_ie_present, uint8_t *buffer,
                               const uint32_t len);
-int decode_identity_type_2_ie(identity_type2_t* identitytype2,
-                              bool is_ie_present, uint8_t* buffer,
+int decode_identity_type_2_ie(identity_type2_t *identitytype2,
+                              bool is_ie_present, uint8_t *buffer,
                               const uint32_t len);
 #ifdef __cplusplus
 }
@@ -813,11 +813,11 @@ typedef uint8_t imeisv_request_t;
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
-                             bool is_ie_present, uint8_t* buffer,
+int encode_imeisv_request_ie(imeisv_request_t *imeisvrequest,
+                             bool is_ie_present, uint8_t *buffer,
                              const uint32_t len);
-int decode_imeisv_request_ie(imeisv_request_t* imeisvrequest,
-                             bool is_ie_present, uint8_t* buffer,
+int decode_imeisv_request_ie(imeisv_request_t *imeisvrequest,
+                             bool is_ie_present, uint8_t *buffer,
                              const uint32_t len);
 #ifdef __cplusplus
 }
@@ -899,11 +899,11 @@ typedef struct ms_network_capability_s {
 extern "C" {
 #endif
 int encode_ms_network_capability_ie(
-    ms_network_capability_t* msnetworkcapability, const bool iei_present,
-    uint8_t* buffer, const uint32_t len) __attribute__((unused));
+    ms_network_capability_t *msnetworkcapability, const bool iei_present,
+    uint8_t *buffer, const uint32_t len) __attribute__((unused));
 int decode_ms_network_capability_ie(
-    ms_network_capability_t* msnetworkcapability, const bool iei_present,
-    uint8_t* buffer, const uint32_t len);
+    ms_network_capability_t *msnetworkcapability, const bool iei_present,
+    uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -938,9 +938,9 @@ typedef struct voice_domain_preference_and_ue_usage_setting_s {
   uint8_t ue_usage_setting : 1;
 #define VOICE_DOMAIN_PREFERENCE_CS_VOICE_ONLY 0b00
 #define VOICE_DOMAIN_PREFERENCE_IMS_PS_VOICE_ONLY 0b01
-#define VOICE_DOMAIN_PREFERENCE_CS_VOICE_PREFERRED_IMS_PS_VOICE_AS_SECONDARY \
+#define VOICE_DOMAIN_PREFERENCE_CS_VOICE_PREFERRED_IMS_PS_VOICE_AS_SECONDARY   \
   0b10
-#define VOICE_DOMAIN_PREFERENCE_IMS_PS_VOICE_PREFERRED_CS_VOICE_AS_SECONDARY \
+#define VOICE_DOMAIN_PREFERENCE_IMS_PS_VOICE_PREFERRED_CS_VOICE_AS_SECONDARY   \
   0b11
   uint8_t voice_domain_for_eutran : 2;
 } voice_domain_preference_and_ue_usage_setting_t;
@@ -949,13 +949,13 @@ typedef struct voice_domain_preference_and_ue_usage_setting_s {
 extern "C" {
 #endif
 int encode_voice_domain_preference_and_ue_usage_setting(
-    voice_domain_preference_and_ue_usage_setting_t*
-        voicedomainpreferenceandueusagesetting,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    voice_domain_preference_and_ue_usage_setting_t
+        *voicedomainpreferenceandueusagesetting,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_voice_domain_preference_and_ue_usage_setting(
-    voice_domain_preference_and_ue_usage_setting_t*
-        voicedomainpreferenceandueusagesetting,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    voice_domain_preference_and_ue_usage_setting_t
+        *voicedomainpreferenceandueusagesetting,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
@@ -986,10 +986,10 @@ typedef enum session_managenent_ie_e {
 typedef bstring access_point_name_t;
 
 int encode_access_point_name_ie(access_point_name_t accesspointname,
-                                const bool iei_present, uint8_t* buffer,
+                                const bool iei_present, uint8_t *buffer,
                                 const uint32_t len);
-int decode_access_point_name_ie(access_point_name_t* accesspointname,
-                                const bool iei_present, uint8_t* buffer,
+int decode_access_point_name_ie(access_point_name_t *accesspointname,
+                                const bool iei_present, uint8_t *buffer,
                                 const uint32_t len);
 
 //------------------------------------------------------------------------------
@@ -1079,33 +1079,33 @@ typedef struct TimeZoneAndTime_s {
 extern "C" {
 #endif
 void copy_protocol_configuration_options(
-    protocol_configuration_options_t* const pco_dst,
-    const protocol_configuration_options_t* const pco_src);
+    protocol_configuration_options_t *const pco_dst,
+    const protocol_configuration_options_t *const pco_src);
 
 void clear_protocol_configuration_options(
-    protocol_configuration_options_t* const pco);
+    protocol_configuration_options_t *const pco);
 
 void free_protocol_configuration_options(
-    protocol_configuration_options_t** const protocol_configuration_options);
+    protocol_configuration_options_t **const protocol_configuration_options);
 #ifdef __cplusplus
 }
 #endif
 
 int decode_protocol_configuration_options(
-    protocol_configuration_options_t* protocolconfigurationoptions,
-    const uint8_t* const buffer, const uint32_t len);
+    protocol_configuration_options_t *protocolconfigurationoptions,
+    const uint8_t *const buffer, const uint32_t len);
 
 int decode_protocol_configuration_options_ie(
-    protocol_configuration_options_t* protocolconfigurationoptions,
-    const bool iei_present, const uint8_t* const buffer, const uint32_t len);
+    protocol_configuration_options_t *protocolconfigurationoptions,
+    const bool iei_present, const uint8_t *const buffer, const uint32_t len);
 
 int encode_protocol_configuration_options(
-    const protocol_configuration_options_t* const protocolconfigurationoptions,
-    uint8_t* buffer, const uint32_t len);
+    const protocol_configuration_options_t *const protocolconfigurationoptions,
+    uint8_t *buffer, const uint32_t len);
 
 int encode_protocol_configuration_options_ie(
-    const protocol_configuration_options_t* const protocolconfigurationoptions,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    const protocol_configuration_options_t *const protocolconfigurationoptions,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.5 Quality of service
@@ -1136,11 +1136,11 @@ typedef struct quality_of_service_s {
   uint8_t sourcestatisticsdescriptor : 4;
 } quality_of_service_t;
 
-int encode_quality_of_service_ie(quality_of_service_t* qualityofservice,
-                                 const bool iei_present, uint8_t* buffer,
+int encode_quality_of_service_ie(quality_of_service_t *qualityofservice,
+                                 const bool iei_present, uint8_t *buffer,
                                  const uint32_t len);
-int decode_quality_of_service_ie(quality_of_service_t* qualityofservice,
-                                 const bool iei_present, uint8_t* buffer,
+int decode_quality_of_service_ie(quality_of_service_t *qualityofservice,
+                                 const bool iei_present, uint8_t *buffer,
                                  const uint32_t len);
 
 //------------------------------------------------------------------------------
@@ -1157,11 +1157,11 @@ typedef struct linked_ti_s {
   uint8_t tivalue_cont : 5;
 } linked_ti_t;
 
-int encode_linked_ti_ie(linked_ti_t* llcserviceaccesspointidentifier,
-                        const bool iei_present, uint8_t* buffer,
+int encode_linked_ti_ie(linked_ti_t *llcserviceaccesspointidentifier,
+                        const bool iei_present, uint8_t *buffer,
                         const uint32_t len);
-int decode_linked_ti_ie(linked_ti_t* llcserviceaccesspointidentifier,
-                        const bool iei_present, uint8_t* buffer,
+int decode_linked_ti_ie(linked_ti_t *llcserviceaccesspointidentifier,
+                        const bool iei_present, uint8_t *buffer,
                         const uint32_t len);
 
 //------------------------------------------------------------------------------
@@ -1174,11 +1174,11 @@ int decode_linked_ti_ie(linked_ti_t* llcserviceaccesspointidentifier,
 typedef uint8_t llc_service_access_point_identifier_t;
 
 int encode_llc_service_access_point_identifier_ie(
-    llc_service_access_point_identifier_t* llcserviceaccesspointidentifier,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    llc_service_access_point_identifier_t *llcserviceaccesspointidentifier,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 int decode_llc_service_access_point_identifier_ie(
-    llc_service_access_point_identifier_t* llcserviceaccesspointidentifier,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
+    llc_service_access_point_identifier_t *llcserviceaccesspointidentifier,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.11 Packet Flow Identifier
@@ -1190,11 +1190,11 @@ int decode_llc_service_access_point_identifier_ie(
 typedef uint8_t packet_flow_identifier_t;
 
 int encode_packet_flow_identifier_ie(
-    packet_flow_identifier_t* packetflowidentifier, const bool iei_present,
-    uint8_t* buffer, const uint32_t len);
+    packet_flow_identifier_t *packetflowidentifier, const bool iei_present,
+    uint8_t *buffer, const uint32_t len);
 int decode_packet_flow_identifier_ie(
-    packet_flow_identifier_t* packetflowidentifier, const bool iei_present,
-    uint8_t* buffer, const uint32_t len);
+    packet_flow_identifier_t *packetflowidentifier, const bool iei_present,
+    uint8_t *buffer, const uint32_t len);
 
 //------------------------------------------------------------------------------
 // 10.5.6.12 Traffic Flow Template
@@ -1337,10 +1337,10 @@ typedef union {
 } packet_filter_list_t;
 
 typedef struct parameter_s {
-#define PARAMETER_IDENTIFIER_AUTHORIZATION_TOKEN 0x01  // Authorization Token
-#define PARAMETER_IDENTIFIER_FLOW_IDENTIFIER 0x02      // Flow Identifier
-#define PARAMETER_IDENTIFIER_PACKET_FILTER_IDENTIFIER \
-  0x03  // Packet Filter Identifier
+#define PARAMETER_IDENTIFIER_AUTHORIZATION_TOKEN 0x01 // Authorization Token
+#define PARAMETER_IDENTIFIER_FLOW_IDENTIFIER 0x02     // Flow Identifier
+#define PARAMETER_IDENTIFIER_PACKET_FILTER_IDENTIFIER                          \
+  0x03 // Packet Filter Identifier
   uint8_t parameteridentifier;
   uint8_t length;
   bstring contents;
@@ -1348,7 +1348,7 @@ typedef struct parameter_s {
 
 typedef struct parameters_list_s {
   uint8_t num_parameters;
-#define TRAFFIC_FLOW_TEMPLATE_NB_PARAMETERS_MAX 16  // TODO or may use []
+#define TRAFFIC_FLOW_TEMPLATE_NB_PARAMETERS_MAX 16 // TODO or may use []
   parameter_t parameter[TRAFFIC_FLOW_TEMPLATE_NB_PARAMETERS_MAX];
 } parameters_list_t;
 
@@ -1357,9 +1357,9 @@ typedef struct traffic_flow_template_s {
 #define TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT 0b001
 #define TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_EXISTING_TFT 0b010
 #define TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT 0b011
-#define TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT \
+#define TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT    \
   0b100
-#define TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT \
+#define TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT   \
   0b101
 #define TRAFFIC_FLOW_TEMPLATE_OPCODE_NO_TFT_OPERATION 0b110
 #define TRAFFIC_FLOW_TEMPLATE_OPCODE_RESERVED 0b111
@@ -1369,8 +1369,8 @@ typedef struct traffic_flow_template_s {
   uint8_t ebit : 1;
   uint8_t numberofpacketfilters : 4;
   packet_filter_list_t packetfilterlist;
-  parameters_list_t parameterslist;  // The parameters list contains a variable
-                                     // number of parameters that may be
+  parameters_list_t parameterslist; // The parameters list contains a variable
+                                    // number of parameters that may be
   // transferred. If the parameters list is included, the E bit is set to 1;
   // otherwise, the E bit is set to 0.
 } traffic_flow_template_t;
@@ -1381,23 +1381,23 @@ typedef struct traffic_flow_template_s {
 #define TFT_ENCODE_LENGTH_FALSE false
 
 int encode_traffic_flow_template(
-    const traffic_flow_template_t* trafficflowtemplate, uint8_t* buffer,
+    const traffic_flow_template_t *trafficflowtemplate, uint8_t *buffer,
     const uint32_t len);
 int encode_traffic_flow_template_ie(
-    const traffic_flow_template_t* const trafficflowtemplate,
-    const bool iei_present, uint8_t* buffer, const uint32_t len);
-int decode_traffic_flow_template(traffic_flow_template_t* trafficflowtemplate,
-                                 const uint8_t* const buffer,
+    const traffic_flow_template_t *const trafficflowtemplate,
+    const bool iei_present, uint8_t *buffer, const uint32_t len);
+int decode_traffic_flow_template(traffic_flow_template_t *trafficflowtemplate,
+                                 const uint8_t *const buffer,
                                  const uint32_t len);
 int decode_traffic_flow_template_ie(
-    traffic_flow_template_t* trafficflowtemplate, const bool iei_present,
-    const uint8_t* const buffer, const uint32_t len);
+    traffic_flow_template_t *trafficflowtemplate, const bool iei_present,
+    const uint8_t *const buffer, const uint32_t len);
 #ifdef __cplusplus
 extern "C" {
 #endif
-void copy_traffic_flow_template(traffic_flow_template_t* const tft_dst,
-                                const traffic_flow_template_t* const tft_src);
-void free_traffic_flow_template(traffic_flow_template_t** tft);
+void copy_traffic_flow_template(traffic_flow_template_t *const tft_dst,
+                                const traffic_flow_template_t *const tft_src);
+void free_traffic_flow_template(traffic_flow_template_t **tft);
 #ifdef __cplusplus
 }
 #endif
@@ -1432,13 +1432,13 @@ typedef struct gprs_timer_s {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int encode_gprs_timer_ie(gprs_timer_t* gprstimer, uint8_t iei, uint8_t* buffer,
+int encode_gprs_timer_ie(gprs_timer_t *gprstimer, uint8_t iei, uint8_t *buffer,
                          const uint32_t len);
-int decode_gprs_timer_ie(gprs_timer_t* gprstimer, uint8_t iei, uint8_t* buffer,
+int decode_gprs_timer_ie(gprs_timer_t *gprstimer, uint8_t iei, uint8_t *buffer,
                          const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
-long gprs_timer_value(gprs_timer_t* gprstimer);
+long gprs_timer_value(gprs_timer_t *gprstimer);
 
 #endif /* FILE_3GPP_24_008_SEEN */

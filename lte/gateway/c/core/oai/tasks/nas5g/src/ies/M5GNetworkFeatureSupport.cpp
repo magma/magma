@@ -9,9 +9,9 @@
  * limitations under the License.
  * */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,7 +29,7 @@ NetworkFeatureSupportMsg::NetworkFeatureSupportMsg() {}
 NetworkFeatureSupportMsg::~NetworkFeatureSupportMsg() {}
 
 int NetworkFeatureSupportMsg::DecodeNetworkFeatureSupportMsg(
-    NetworkFeatureSupportMsg* networkfeature, uint8_t iei, uint8_t* buffer,
+    NetworkFeatureSupportMsg *networkfeature, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   int decoded = 0;
 
@@ -57,7 +57,7 @@ int NetworkFeatureSupportMsg::DecodeNetworkFeatureSupportMsg(
 }
 
 int NetworkFeatureSupportMsg::EncodeNetworkFeatureSupportMsg(
-    NetworkFeatureSupportMsg* networkfeature, uint8_t iei, uint8_t* buffer,
+    NetworkFeatureSupportMsg *networkfeature, uint8_t iei, uint8_t *buffer,
     uint32_t len) {
   uint32_t encoded = 0;
 
@@ -86,4 +86,4 @@ int NetworkFeatureSupportMsg::EncodeNetworkFeatureSupportMsg(
   return encoded;
 }
 
-}  // namespace magma5g
+} // namespace magma5g

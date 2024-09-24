@@ -45,14 +45,14 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
-static void mme_app_handle_sgs_status_for_imsi_detach_ind(
-    ue_mm_context_t* ue_context_p);
+static void
+mme_app_handle_sgs_status_for_imsi_detach_ind(ue_mm_context_t *ue_context_p);
 
-static void mme_app_handle_sgs_status_for_eps_detach_ind(
-    ue_mm_context_t* ue_context_p);
+static void
+mme_app_handle_sgs_status_for_eps_detach_ind(ue_mm_context_t *ue_context_p);
 
-static void mme_app_handle_sgs_status_for_loc_upd_req(
-    ue_mm_context_t* ue_context_p);
+static void
+mme_app_handle_sgs_status_for_loc_upd_req(ue_mm_context_t *ue_context_p);
 
 /****************************************************************************
  **                                                                        **
@@ -68,10 +68,10 @@ static void mme_app_handle_sgs_status_for_loc_upd_req(
  **                                                                        **
  ***************************************************************************/
 
-status_code_e mme_app_handle_sgs_status_message(
-    mme_app_desc_t* mme_app_desc_p,
-    itti_sgsap_status_t* const sgsap_status_pP) {
-  struct ue_mm_context_s* ue_context_p = NULL;
+status_code_e
+mme_app_handle_sgs_status_message(mme_app_desc_t *mme_app_desc_p,
+                                  itti_sgsap_status_t *const sgsap_status_pP) {
+  struct ue_mm_context_s *ue_context_p = NULL;
   uint8_t message_type;
   imsi64_t imsi64 = INVALID_IMSI64;
 
@@ -103,100 +103,86 @@ status_code_e mme_app_handle_sgs_status_message(
 #define MESSAGE_TYPE_POSITION 0
   message_type = sgsap_status_pP->error_msg_rcvd[MESSAGE_TYPE_POSITION];
   switch (message_type) {
-    case SGS_LOCATION_UPDATE_REQUEST: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "LOCATION_UPDATE_REQUEST \n");
-      mme_app_handle_sgs_status_for_loc_upd_req(ue_context_p);
-      break;
-    }
-    case SGS_TMSI_REALLOCATION_COMPLETE: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "TMSI_REALLOCATION_COMPLETE \n");
-      break;
-    }
-    case SGS_EPS_DETACH_INDICATION: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "EPS_DETACH_INDICATION \n");
-      mme_app_handle_sgs_status_for_eps_detach_ind(ue_context_p);
-      break;
-    }
-    case SGS_IMSI_DETACH_INDICATION: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "IMSI_DETACH_INDICATION \n");
-      mme_app_handle_sgs_status_for_imsi_detach_ind(ue_context_p);
-      break;
-    }
-    case SGS_RESET_ACK: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "RESET_ACK \n");
-      break;
-    }
-    case SGS_UE_ACTIVITY_INDICATION: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "UE_ACTIVITY_INDICATION \n");
-      ue_context_p->sgs_context->neaf = SET_NEAF;
-      break;
-    }
-    case SGS_ALERT_ACK: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "ALERT_ACK \n");
-      ue_context_p->sgs_context->neaf = SET_NEAF;
-      break;
-    }
-    case SGS_ALERT_REJECT: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "ALERT_REJECT \n");
-      break;
-    }
-    case SGS_SERVICE_REQUEST: {
-      if (ue_context_p->sgs_context->csfb_service_type ==
-          CSFB_SERVICE_MT_CALL) {
-        OAILOG_ERROR(LOG_MME_APP,
-                     "Received SGS Error Status message for"
-                     "SERVICE_REQUEST for MT CS call \n");
-        if (!ue_context_p->sgs_context->mt_call_in_progress) {
-          ue_context_p->sgs_context->call_canceled = true;
-          OAILOG_DEBUG(LOG_MME_APP, "Setting Call Canceled flag to true \n");
-        } else {
-          OAILOG_INFO(LOG_MME_APP,
-                      "Can not abort MT call, as MT call is"
-                      "already accepted by the user\n");
-        }
-      } else if (ue_context_p->sgs_context->csfb_service_type ==
-                 CSFB_SERVICE_MT_SMS) {
-        OAILOG_ERROR(LOG_MME_APP,
-                     "Received SGS Error Status message for"
-                     "SERVICE_REQUEST sent for SMS services \n");
+  case SGS_LOCATION_UPDATE_REQUEST: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "LOCATION_UPDATE_REQUEST \n");
+    mme_app_handle_sgs_status_for_loc_upd_req(ue_context_p);
+    break;
+  }
+  case SGS_TMSI_REALLOCATION_COMPLETE: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "TMSI_REALLOCATION_COMPLETE \n");
+    break;
+  }
+  case SGS_EPS_DETACH_INDICATION: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "EPS_DETACH_INDICATION \n");
+    mme_app_handle_sgs_status_for_eps_detach_ind(ue_context_p);
+    break;
+  }
+  case SGS_IMSI_DETACH_INDICATION: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "IMSI_DETACH_INDICATION \n");
+    mme_app_handle_sgs_status_for_imsi_detach_ind(ue_context_p);
+    break;
+  }
+  case SGS_RESET_ACK: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "RESET_ACK \n");
+    break;
+  }
+  case SGS_UE_ACTIVITY_INDICATION: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "UE_ACTIVITY_INDICATION \n");
+    ue_context_p->sgs_context->neaf = SET_NEAF;
+    break;
+  }
+  case SGS_ALERT_ACK: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "ALERT_ACK \n");
+    ue_context_p->sgs_context->neaf = SET_NEAF;
+    break;
+  }
+  case SGS_ALERT_REJECT: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "ALERT_REJECT \n");
+    break;
+  }
+  case SGS_SERVICE_REQUEST: {
+    if (ue_context_p->sgs_context->csfb_service_type == CSFB_SERVICE_MT_CALL) {
+      OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                                "SERVICE_REQUEST for MT CS call \n");
+      if (!ue_context_p->sgs_context->mt_call_in_progress) {
+        ue_context_p->sgs_context->call_canceled = true;
+        OAILOG_DEBUG(LOG_MME_APP, "Setting Call Canceled flag to true \n");
+      } else {
+        OAILOG_INFO(LOG_MME_APP, "Can not abort MT call, as MT call is"
+                                 "already accepted by the user\n");
       }
-      break;
+    } else if (ue_context_p->sgs_context->csfb_service_type ==
+               CSFB_SERVICE_MT_SMS) {
+      OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                                "SERVICE_REQUEST sent for SMS services \n");
     }
-    case SGS_UE_UNREACHABLE: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "UE_UN_REACHABLE \n");
-      break;
-    }
-    case SGS_UPLINK_UNIT_DATA: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received SGS Error Status message for"
-                   "SGS_UPLINK_UNIT_DATA \n");
-      break;
-    }
-    default: {
-      OAILOG_ERROR(LOG_MME_APP,
-                   "Received unknown messag type in SGS Error"
-                   "Status message, the received message is :%d \n",
-                   message_type);
-      break;
-    }
+    break;
+  }
+  case SGS_UE_UNREACHABLE: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "UE_UN_REACHABLE \n");
+    break;
+  }
+  case SGS_UPLINK_UNIT_DATA: {
+    OAILOG_ERROR(LOG_MME_APP, "Received SGS Error Status message for"
+                              "SGS_UPLINK_UNIT_DATA \n");
+    break;
+  }
+  default: {
+    OAILOG_ERROR(LOG_MME_APP,
+                 "Received unknown messag type in SGS Error"
+                 "Status message, the received message is :%d \n",
+                 message_type);
+    break;
+  }
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
@@ -215,8 +201,8 @@ status_code_e mme_app_handle_sgs_status_message(
  **                                                                        **
  ***************************************************************************/
 
-static void mme_app_handle_sgs_status_for_imsi_detach_ind(
-    ue_mm_context_t* ue_context_p) {
+static void
+mme_app_handle_sgs_status_for_imsi_detach_ind(ue_mm_context_t *ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (ue_context_p->sgs_context) {
@@ -265,8 +251,8 @@ static void mme_app_handle_sgs_status_for_imsi_detach_ind(
  **                                                                        **
  ***************************************************************************/
 
-static void mme_app_handle_sgs_status_for_eps_detach_ind(
-    ue_mm_context_t* ue_context_p) {
+static void
+mme_app_handle_sgs_status_for_eps_detach_ind(ue_mm_context_t *ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   if (ue_context_p->sgs_context) {
@@ -295,10 +281,10 @@ static void mme_app_handle_sgs_status_for_eps_detach_ind(
  **                                                                        **
  ***************************************************************************/
 
-static void mme_app_handle_sgs_status_for_loc_upd_req(
-    ue_mm_context_t* ue_context_p) {
+static void
+mme_app_handle_sgs_status_for_loc_upd_req(ue_mm_context_t *ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  lai_t* lai = NULL;
+  lai_t *lai = NULL;
 
   mme_app_ue_sgs_context_free_content(ue_context_p->sgs_context,
                                       ue_context_p->emm_context._imsi64);

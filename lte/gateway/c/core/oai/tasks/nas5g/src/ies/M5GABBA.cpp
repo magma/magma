@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstring>
 #include <cstdint>
+#include <cstring>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,15 +19,15 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GABBA.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GABBA.hpp"
 
 namespace magma5g {
 ABBAMsg::ABBAMsg(){};
 ABBAMsg::~ABBAMsg(){};
 
 // Decode ABBA Message IE
-int ABBAMsg::DecodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
+int ABBAMsg::DecodeABBAMsg(ABBAMsg *abba, uint8_t iei, uint8_t *buffer,
                            uint32_t len) {
   uint8_t decoded = 0;
   /*** Not Implemented, Will be supported POST MVC ***/
@@ -35,9 +35,9 @@ int ABBAMsg::DecodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
 };
 
 // Encode ABBA Message IE
-int ABBAMsg::EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
+int ABBAMsg::EncodeABBAMsg(ABBAMsg *abba, uint8_t iei, uint8_t *buffer,
                            uint32_t len) {
-  uint8_t* lenPtr;
+  uint8_t *lenPtr;
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -57,4 +57,4 @@ int ABBAMsg::EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
 
   return (encoded);
 };
-}  // namespace magma5g
+} // namespace magma5g

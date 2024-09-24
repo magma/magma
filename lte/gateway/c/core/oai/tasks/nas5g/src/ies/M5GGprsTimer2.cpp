@@ -9,9 +9,9 @@
  * limitations under the License.
  * */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,15 +19,15 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer2.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer2.hpp"
 
 namespace magma5g {
 GPRSTimer2Msg::GPRSTimer2Msg(){};
 GPRSTimer2Msg::~GPRSTimer2Msg(){};
 
-int GPRSTimer2Msg::DecodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int GPRSTimer2Msg::DecodeGPRSTimer2Msg(GPRSTimer2Msg *gprstimer, uint8_t iei,
+                                       uint8_t *buffer, uint32_t len) {
   int decoded = 0;
   if (iei > 0) {
     gprstimer->iei = *buffer;
@@ -43,8 +43,8 @@ int GPRSTimer2Msg::DecodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
   return decoded;
 };
 
-int GPRSTimer2Msg::EncodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int GPRSTimer2Msg::EncodeGPRSTimer2Msg(GPRSTimer2Msg *gprstimer, uint8_t iei,
+                                       uint8_t *buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   if (iei > 0) {
@@ -60,4 +60,4 @@ int GPRSTimer2Msg::EncodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
   return encoded;
 };
 
-}  // namespace magma5g
+} // namespace magma5g

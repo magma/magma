@@ -22,9 +22,9 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <string.h>
-#include <stdint.h>
 #include <errno.h>
+#include <stdint.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -41,10 +41,10 @@ extern "C" {
 
 struct avp;
 
-int s6a_parse_experimental_result(struct avp* avp,
-                                  s6a_experimental_result_t* ptr) {
-  struct avp_hdr* hdr;
-  struct avp* child_avp = NULL;
+int s6a_parse_experimental_result(struct avp *avp,
+                                  s6a_experimental_result_t *ptr) {
+  struct avp_hdr *hdr;
+  struct avp *child_avp = NULL;
 
   if (!avp) {
     return (status_code_e)EINVAL;
@@ -53,103 +53,103 @@ int s6a_parse_experimental_result(struct avp* avp,
   CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
   DevAssert(hdr->avp_code == AVP_CODE_EXPERIMENTAL_RESULT);
   CHECK_FCT(fd_msg_browse_internal(avp, MSG_BRW_FIRST_CHILD,
-                                   reinterpret_cast<msg_or_avp**>(&child_avp),
+                                   reinterpret_cast<msg_or_avp **>(&child_avp),
                                    NULL));
 
   while (child_avp) {
     CHECK_FCT(fd_msg_avp_hdr(child_avp, &hdr));
 
     switch (hdr->avp_code) {
-      case AVP_CODE_EXPERIMENTAL_RESULT_CODE:
-        OAILOG_ERROR(LOG_S6A, "Got experimental error %u:%s\n",
-                     hdr->avp_value->u32,
-                     experimental_retcode_2_string(hdr->avp_value->u32));
+    case AVP_CODE_EXPERIMENTAL_RESULT_CODE:
+      OAILOG_ERROR(LOG_S6A, "Got experimental error %u:%s\n",
+                   hdr->avp_value->u32,
+                   experimental_retcode_2_string(hdr->avp_value->u32));
 
-        if (ptr) {
-          *ptr = (s6a_experimental_result_t)hdr->avp_value->u32;
-        }
+      if (ptr) {
+        *ptr = (s6a_experimental_result_t)hdr->avp_value->u32;
+      }
 
-        break;
+      break;
 
-      case AVP_CODE_VENDOR_ID:
-        DevCheck(hdr->avp_value->u32 == 10415, hdr->avp_value->u32,
-                 AVP_CODE_VENDOR_ID, 10415);
-        break;
+    case AVP_CODE_VENDOR_ID:
+      DevCheck(hdr->avp_value->u32 == 10415, hdr->avp_value->u32,
+               AVP_CODE_VENDOR_ID, 10415);
+      break;
 
-      default:
-        return RETURNerror;
+    default:
+      return RETURNerror;
     }
 
     /*
      * Go to next AVP in the grouped AVP
      */
-    CHECK_FCT(fd_msg_browse_internal(child_avp, MSG_BRW_NEXT,
-                                     reinterpret_cast<msg_or_avp**>(&child_avp),
-                                     NULL));
+    CHECK_FCT(fd_msg_browse_internal(
+        child_avp, MSG_BRW_NEXT, reinterpret_cast<msg_or_avp **>(&child_avp),
+        NULL));
   }
 
   return RETURNok;
 }
 
-char* experimental_retcode_2_string(uint32_t ret_code) {
+char *experimental_retcode_2_string(uint32_t ret_code) {
   switch (ret_code) {
-      /*
-       * Experimental-Result-Codes
-       */
-    case DIAMETER_ERROR_USER_UNKNOWN:
-      return const_cast<char*>("DIAMETER_ERROR_USER_UNKNOWN");
+    /*
+     * Experimental-Result-Codes
+     */
+  case DIAMETER_ERROR_USER_UNKNOWN:
+    return const_cast<char *>("DIAMETER_ERROR_USER_UNKNOWN");
 
-    case DIAMETER_ERROR_ROAMING_NOT_ALLOWED:
-      return const_cast<char*>("DIAMETER_ERROR_ROAMING_NOT_ALLOWED");
+  case DIAMETER_ERROR_ROAMING_NOT_ALLOWED:
+    return const_cast<char *>("DIAMETER_ERROR_ROAMING_NOT_ALLOWED");
 
-    case DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION:
-      return const_cast<char*>("DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION");
+  case DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION:
+    return const_cast<char *>("DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION");
 
-    case DIAMETER_ERROR_RAT_NOT_ALLOWED:
-      return const_cast<char*>("DIAMETER_ERROR_RAT_NOT_ALLOWED");
+  case DIAMETER_ERROR_RAT_NOT_ALLOWED:
+    return const_cast<char *>("DIAMETER_ERROR_RAT_NOT_ALLOWED");
 
-    case DIAMETER_ERROR_EQUIPMENT_UNKNOWN:
-      return const_cast<char*>("DIAMETER_ERROR_EQUIPMENT_UNKNOWN");
+  case DIAMETER_ERROR_EQUIPMENT_UNKNOWN:
+    return const_cast<char *>("DIAMETER_ERROR_EQUIPMENT_UNKNOWN");
 
-    case DIAMETER_ERROR_UNKNOWN_SERVING_NODE:
-      return const_cast<char*>("DIAMETER_ERROR_UNKNOWN_SERVING_NODE");
+  case DIAMETER_ERROR_UNKNOWN_SERVING_NODE:
+    return const_cast<char *>("DIAMETER_ERROR_UNKNOWN_SERVING_NODE");
 
-    case DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE:
-      return const_cast<char*>("DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE");
+  case DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE:
+    return const_cast<char *>("DIAMETER_AUTHENTICATION_DATA_UNAVAILABLE");
 
-    default:
-      break;
+  default:
+    break;
   }
 
-  return const_cast<char*>("DIAMETER_AVP_UNSUPPORTED");
+  return const_cast<char *>("DIAMETER_AVP_UNSUPPORTED");
 }
 
-char* retcode_2_string(uint32_t ret_code) {
+char *retcode_2_string(uint32_t ret_code) {
   switch (ret_code) {
-    case ER_DIAMETER_SUCCESS:
-      return const_cast<char*>("DIAMETER_SUCCESS");
+  case ER_DIAMETER_SUCCESS:
+    return const_cast<char *>("DIAMETER_SUCCESS");
 
-    case ER_DIAMETER_MISSING_AVP:
-      return const_cast<char*>("DIAMETER_MISSING_AVP");
+  case ER_DIAMETER_MISSING_AVP:
+    return const_cast<char *>("DIAMETER_MISSING_AVP");
 
-    case ER_DIAMETER_INVALID_AVP_VALUE:
-      return const_cast<char*>("DIAMETER_INVALID_AVP_VALUE");
+  case ER_DIAMETER_INVALID_AVP_VALUE:
+    return const_cast<char *>("DIAMETER_INVALID_AVP_VALUE");
 
-    case ER_DIAMETER_AUTHORIZATION_REJECTED:
-      return const_cast<char*>("DIAMETER_AUTHORIZATION_REJECTED");
+  case ER_DIAMETER_AUTHORIZATION_REJECTED:
+    return const_cast<char *>("DIAMETER_AUTHORIZATION_REJECTED");
 
-    case ER_DIAMETER_COMMAND_UNSUPPORTED:
-      return const_cast<char*>("DIAMETER_COMMAND_UNSUPPORTED");
+  case ER_DIAMETER_COMMAND_UNSUPPORTED:
+    return const_cast<char *>("DIAMETER_COMMAND_UNSUPPORTED");
 
-    case ER_DIAMETER_UNABLE_TO_DELIVER:
-      return const_cast<char*>("DIAMETER_UNABLE_TO_DELIVER");
+  case ER_DIAMETER_UNABLE_TO_DELIVER:
+    return const_cast<char *>("DIAMETER_UNABLE_TO_DELIVER");
 
-    case ER_DIAMETER_UNKNOWN_PEER:
-      return const_cast<char*>("DIAMETER_UNKNOWN_PEER");
+  case ER_DIAMETER_UNKNOWN_PEER:
+    return const_cast<char *>("DIAMETER_UNKNOWN_PEER");
 
-    default:
-      break;
+  default:
+    break;
   }
 
-  return const_cast<char*>("DIAMETER_AVP_UNSUPPORTED");
+  return const_cast<char *>("DIAMETER_AVP_UNSUPPORTED");
 }

@@ -12,15 +12,15 @@
  */
 #pragma once
 
-#include <stdint.h>
 #include <functional>
+#include <stdint.h>
 #include <string>
 
 namespace google {
 namespace protobuf {
 class Message;
 }
-}  // namespace google
+} // namespace google
 
 using google::protobuf::Message;
 namespace magma {
@@ -29,12 +29,12 @@ namespace magma {
 /**
  * Serialize a protobuf message into the standard string form
  */
-std::function<bool(const Message&, std::string&, uint64_t&)>
+std::function<bool(const Message &, std::string &, uint64_t &)>
 get_proto_serializer();
 
 /**
  * Deserialize a string into a protobuf message
  */
-std::function<bool(const std::string&, Message&)> get_proto_deserializer();
+std::function<bool(const std::string &, Message &)> get_proto_deserializer();
 
-}  // namespace magma
+} // namespace magma
