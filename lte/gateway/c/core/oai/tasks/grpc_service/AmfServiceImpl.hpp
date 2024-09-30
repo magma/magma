@@ -18,6 +18,7 @@
 
 #include "lte/protos/policydb.pb.h"
 #include "lte/protos/session_manager.grpc.pb.h"
+#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
 
 namespace grpc {
 class ServerContext;
