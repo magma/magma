@@ -10,7 +10,7 @@ This how-to guide can be used to deploy Magma's Orchestrator on any cloud
 environment. It contains steps to set up a Kubernetes cluster, bootstrap
 a Juju controller, deploy charmed operators for Magma Orchestrator
 and configure DNS A records. For more information on Charmed Magma, please
-visit the project's [homepage](https://canonical.github.io/charmed-magma).
+visit the project's [homepage](https://canonical-charmed-magma.readthedocs-hosted.com/en/latest/).
 
 > Charmed-Magma is in Beta and is not yet production ready or feature complete.
 
@@ -109,8 +109,8 @@ In your domain registrar, create A records for the following Kubernetes services
 Get the host organization's username and password:
 
 ```bash
-juju run-action nms-magmalte/leader get-master-admin-credentials --wait
+juju run-action nms-magmalte/leader get-host-admin-credentials --wait
 ```
 
-Confirm successful deployment by visiting `https://master.nms.<your domain>` and logging in
+Confirm successful deployment by visiting `https://host.nms.<your domain>` and logging in
 with the `admin-username` and `admin-password` outputted here.

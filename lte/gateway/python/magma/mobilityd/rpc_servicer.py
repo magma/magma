@@ -225,7 +225,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 ipv4_address = ipv4_response.ip_list[0]
                 ipv6_address = ipv6_response.ip_list[0]
             except IndexError:
-                logging.warning("IPv4/IPv6 IP address allocation not successful")
+                logging.error("IPv4/IPv6 IP address allocation not successful, session will be rejected, check APN and/or UE configurations.")
                 resp = AllocateIPAddressResponse()
             else:
                 resp = AllocateIPAddressResponse(

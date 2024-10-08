@@ -15,7 +15,7 @@ The Magma platform aims to provide unified access network management, across dom
 
 To achieve this goal, the Orchestrator provides a set of core, domain-agnostic features, which are then extended by domain-specific functionality on a per-deployment basis. This logic-based extension occurs completely at runtime -- that is, while we provide Helm charts targeting a default set of use-cases, extending an Orchestrator deployment is, practically, as simple as spinning up a new service within the cluster.
 
-For more background on microservice patterns, and the extension pattern specifically, refer to [this article on domain-oriented microservice architectures](https://www.uber.com/en-AU/blog/microservice-architecture/).
+For more background on microservice patterns, and the extension pattern specifically, refer to the article on domain-oriented microservice architectures.
 
 ## Implementation
 

@@ -11,9 +11,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"time"
 
 	dockerTypes "github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
 	dockerFilters "github.com/docker/docker/api/types/filters"
 	dockerClient "github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
@@ -34,8 +34,11 @@ func (tr *TestRunner) RestartService(serviceName string) error {
 	if err != nil {
 		return err
 	}
-	timeout := 30 * time.Second
-	err = cli.ContainerRestart(ctx, containerID, &timeout)
+	var dockerRequestTimeout int = 3
+	options := container.StopOptions{
+		Timeout: &dockerRequestTimeout,
+	}
+	err = cli.ContainerRestart(ctx, containerID, options)
 	return err
 }
 
@@ -72,8 +75,11 @@ func (tr *TestRunner) StopService(serviceName string) error {
 		fmt.Print(err)
 		return err
 	}
-	timeout := 30 * time.Second
-	return cli.ContainerStop(ctx, containerId, &timeout)
+	var dockerRequestTimeout int = 3
+	options := container.StopOptions{
+		Timeout: &dockerRequestTimeout,
+	}
+	return cli.ContainerStop(ctx, containerId, options)
 }
 
 // StopService adds ability to stop a particular service managed by docker
@@ -124,7 +130,7 @@ func (tr *TestRunner) RunCommandInContainer(serviceName string, cmdList [][]stri
 			continue
 		}
 
-		attachResp, err := cli.ContainerExecAttach(ctx, createResp.ID, dockerTypes.ExecConfig{})
+		attachResp, err := cli.ContainerExecAttach(ctx, createResp.ID, dockerTypes.ExecStartCheck{})
 		if err != nil {
 			r.err = err
 			continue

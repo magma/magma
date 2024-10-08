@@ -2604,6 +2604,10 @@ definitions:
           - 2
           - 3
         description: Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
+      is_default:
+        type: boolean
+        default: false
+        description: Is this the default APN?
 
   apn_name:
     type: string
