@@ -1,0 +1,39 @@
+{
+  "version_1_0_X_docs": {
+    "Basics": [
+      "basics/version-1.0.X-introduction",
+      "basics/version-1.0.X-prerequisites",
+      "basics/version-1.0.X-quick_start_guide"
+    ],
+    "Orchestrator": [
+      {
+        "type": "category",
+        "label": "Deploying Orchestrator",
+        "items": [
+          "orc8r/version-1.0.X-deploy_intro",
+          "orc8r/version-1.0.X-deploy_build",
+          "orc8r/version-1.0.X-deploy_terraform",
+          "orc8r/version-v1.0.X-deploy_install",
+          "orc8r/version-1.0.X-deploy_dns"
+        ]
+      }
+    ],
+    "Access Gateway": [
+      "lte/version-1.0.X-setup_deb",
+      "lte/version-1.0.X-config_agw",
+      "lte/version-1.0.X-enodebd",
+      "lte/version-1.0.X-tr069"
+    ],
+    "Federation Gateway": [
+      {
+        "type": "category",
+        "label": "Deploying FeG",
+        "items": [
+          "feg/version-1.0.X-deploy_intro",
+          "feg/version-1.0.X-deploy_build",
+          "feg/version-1.0.X-deploy_install"
+        ]
+      }
+    ]
+  }
+}
