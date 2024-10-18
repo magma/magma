@@ -1,0 +1,44 @@
+{
+  "version_1_0_0_docs": {
+    "Basics": [
+      "basics/version-1.0.0-introduction",
+      "basics/version-1.0.0-prerequisites",
+      "basics/version-1.0.0-quick_start_guide"
+    ],
+    "Orchestrator": [
+      {
+        "type": "category",
+        "label": "Deploying Orchestrator",
+        "items": [
+          "orc8r/version-1.0.0-deploy_intro",
+          "orc8r/version-1.0.0-deploy_build",
+          "orc8r/version-1.0.0-deploy_terraform",
+          "orc8r/version-1.0.0-deploy_install",
+          "orc8r/version-1.0.0-deploy_dns"
+        ]
+      }
+    ],
+    "Access Gateway": [
+      "lte/version-1.0.0-setup_deb",
+      "lte/version-1.0.0-config_agw",
+      "lte/version-1.0.0-enodebd",
+      "lte/version-1.0.0-tr069"
+    ],
+    "Federation Gateway": [
+      {
+        "type": "category",
+        "label": "Deploying FeG",
+        "items": [
+          "feg/version-1.0.0-deploy_intro",
+          "feg/version-1.0.0-deploy_build",
+          "feg/version-1.0.0-deploy_install"
+        ]
+      }
+    ],
+    "Symphony": [
+      "symphony/version-1.0.0-quick_start",
+      "symphony/version-1.0.0-symphony_download_requirements",
+      "symphony/version-1.0.0-building_the_symphony_agent"
+    ]
+  }
+}
