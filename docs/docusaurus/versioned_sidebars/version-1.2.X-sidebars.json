@@ -1,0 +1,130 @@
+{
+  "version_1_2_X_docs": {
+    "Basics": [
+      "basics/version-1.2.X-introduction",
+      "basics/version-1.2.X-prerequisites",
+      "basics/version-1.2.X-quick_start_guide"
+    ],
+    "Orchestrator": [
+      {
+        "type": "category",
+        "label": "Deploy Orchestrator",
+        "items": [
+          "orc8r/version-1.2.X-deploy_intro",
+          "orc8r/version-1.2.X-deploy_build",
+          "orc8r/version-1.2.X-deploy_install"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Upgrade Orchestrator",
+        "items": [
+          "orc8r/version-1.2.X-upgrade_1_2",
+          "orc8r/version-1.2.X-upgrade_1_1"
+        ]
+      }
+    ],
+    "NMS User Guide": [
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_overview"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_organizations"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_dashboard"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_equipment"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_network"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_subscriber"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_traffic"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_developer"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.2.X-nms_how_to_guide"
+      }
+    ],
+    "Access Gateway": [
+      {
+        "type": "category",
+        "label": "Deploy AGWs",
+        "items": [
+          "lte/version-1.2.X-setup_deb",
+          "lte/version-1.2.X-config_agw",
+          "lte/version-1.2.X-enodebd",
+          "lte/version-1.2.X-config_apn",
+          "lte/version-1.2.X-agw_120_upgrade",
+          "lte/version-1.2.X-agw_110_upgrade"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "AGW Development",
+        "items": [
+          "lte/version-1.2.X-tr069",
+          "lte/version-1.2.X-s1ap_tests",
+          "lte/version-1.2.X-dev_notes"
+        ]
+      }
+    ],
+    "Feature Guides": [
+      {
+        "type": "doc",
+        "id": "howtos/version-1.2.X-ue_metering"
+      },
+      {
+        "type": "doc",
+        "id": "howtos/version-1.2.X-config_agw_bridged"
+      }
+    ],
+    "Federation Gateway": [
+      {
+        "type": "category",
+        "label": "Deploy FeG",
+        "items": [
+          "feg/version-1.2.X-deploy_intro",
+          "feg/version-1.2.X-deploy_build",
+          "feg/version-1.2.X-deploy_install"
+        ]
+      }
+    ],
+    "FAQ": [
+      {
+        "type": "doc",
+        "id": "faq/version-1.2.X-magma_faq"
+      }
+    ],
+    "Proposals": [
+      {
+        "type": "doc",
+        "id": "proposals/version-1.2.X-p001_vpn_config_from_api"
+      },
+      {
+        "type": "doc",
+        "id": "proposals/version-1.2.X-p002_scaled_prometheus_pipeline"
+      },
+      {
+        "type": "doc",
+        "id": "proposals/version-1.2.X-p003_qos_enforcement"
+      }
+    ]
+  }
+}

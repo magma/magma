@@ -1,0 +1,89 @@
+{
+  "version_1_3_X_docs": {
+    "Basics": [
+      "basics/version-1.3.X-introduction",
+      "basics/version-1.3.X-prerequisites",
+      "basics/version-1.3.X-quick_start_guide"
+    ],
+    "Orchestrator": [
+      {
+        "type": "category",
+        "label": "Deploy Orchestrator",
+        "items": [
+          "orc8r/version-1.3.X-deploy_intro",
+          "orc8r/version-1.3.X-deploy_build",
+          "orc8r/version-1.3.X-deploy_install"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Upgrade Orchestrator",
+        "items": [
+          "orc8r/version-1.3.X-upgrade_intro",
+          "orc8r/version-1.3.X-upgrade_1_3",
+          "orc8r/version-1.3.X-upgrade_1_2",
+          "orc8r/version-1.3.X-upgrade_1_1"
+        ]
+      }
+    ],
+    "NMS User Guide": [
+      "nms/version-1.3.X-nms_overview",
+      "nms/version-1.3.X-nms_dashboard",
+      "nms/version-1.3.X-nms_equipment",
+      "nms/version-1.3.X-nms_network",
+      "nms/version-1.3.X-nms_subscriber",
+      "nms/version-1.3.X-nms_traffic",
+      "nms/version-1.3.X-nms_organizations",
+      "nms/version-1.3.X-nms_developer",
+      "nms/version-1.3.X-nms_how_to_guide"
+    ],
+    "Access Gateway": [
+      {
+        "type": "category",
+        "label": "Deploy AGWs",
+        "items": [
+          "lte/version-1.3.X-setup_deb",
+          "lte/version-1.3.X-config_agw",
+          "lte/version-1.3.X-enodebd",
+          "lte/version-1.3.X-config_apn",
+          "lte/version-1.3.X-agw_130_upgrade",
+          "lte/version-1.3.X-agw_120_upgrade",
+          "lte/version-1.3.X-agw_110_upgrade"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "AGW Development",
+        "items": [
+          "lte/version-1.3.X-tr069",
+          "lte/version-1.3.X-s1ap_tests",
+          "lte/version-1.3.X-dev_notes"
+        ]
+      }
+    ],
+    "Feature Guides": [
+      "howtos/version-1.3.X-ue_metering",
+      "howtos/version-1.3.X-config_agw_bridged"
+    ],
+    "Federation Gateway": [
+      {
+        "type": "category",
+        "label": "Deploy FeG",
+        "items": [
+          "feg/version-1.3.X-deploy_intro",
+          "feg/version-1.3.X-deploy_build",
+          "feg/version-1.3.X-deploy_install",
+          "feg/version-1.3.X-federated_FWA_setup_guide"
+        ]
+      }
+    ],
+    "FAQ": [
+      "faq/version-1.3.X-magma_faq"
+    ],
+    "Proposals": [
+      "proposals/version-1.3.X-p001_vpn_config_from_api",
+      "proposals/version-1.3.X-p002_scaled_prometheus_pipeline",
+      "proposals/version-1.3.X-p003_qos_enforcement"
+    ]
+  }
+}
