@@ -1,0 +1,144 @@
+{
+  "version_1_4_X_docs": {
+    "Basics": [
+      "basics/version-1.4.X-introduction",
+      "basics/version-1.4.X-prerequisites",
+      "basics/version-1.4.X-quick_start_guide"
+    ],
+    "Orchestrator": [
+      {
+        "type": "category",
+        "label": "Architecture",
+        "items": [
+          "orc8r/version-1.4.X-architecture_overview",
+          "orc8r/version-1.4.X-architecture_modularity",
+          "orc8r/version-1.4.X-architecture_security"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Deploy Orchestrator",
+        "items": [
+          "orc8r/version-1.4.X-deploy_intro",
+          "orc8r/version-1.4.X-deploy_build",
+          "orc8r/version-1.4.X-deploy_install",
+          "orc8r/version-1.4.X-deploy_faq"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Upgrade Orchestrator",
+        "items": [
+          "orc8r/version-1.4.X-upgrade_intro",
+          "orc8r/version-1.4.X-upgrade_1_4",
+          "orc8r/version-1.4.X-upgrade_1_3",
+          "orc8r/version-1.4.X-upgrade_1_2",
+          "orc8r/version-1.4.X-upgrade_1_1"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "Development",
+        "items": [
+          "orc8r/version-1.4.X-dev_security",
+          "orc8r/version-1.4.X-dev_testing_tips",
+          "orc8r/version-1.4.X-dev_minikube_deployment"
+        ]
+      }
+    ],
+    "NMS": [
+      {
+        "type": "category",
+        "label": "NMS Usage",
+        "items": [
+          "nms/version-1.4.X-setup",
+          "nms/version-1.4.X-overview",
+          "nms/version-1.4.X-dashboard",
+          "nms/version-1.4.X-equipment",
+          "nms/version-1.4.X-network",
+          "nms/version-1.4.X-subscriber",
+          "nms/version-1.4.X-traffic",
+          "nms/version-1.4.X-metrics",
+          "nms/version-1.4.X-alerts",
+          "nms/version-1.4.X-tips_and_tricks"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "NMS Development",
+        "items": [
+          "nms/version-1.4.X-developer"
+        ]
+      }
+    ],
+    "Access Gateway": [
+      {
+        "type": "category",
+        "label": "Deploy AGWs",
+        "items": [
+          "lte/version-1.4.X-setup_deb",
+          "lte/version-1.4.X-config_agw",
+          "lte/version-1.4.X-enodebd",
+          "lte/version-1.4.X-config_apn",
+          "lte/version-1.4.X-ha_setup",
+          "lte/version-1.4.X-agw_140_upgrade",
+          "lte/version-1.4.X-agw_130_upgrade",
+          "lte/version-1.4.X-agw_120_upgrade",
+          "lte/version-1.4.X-agw_110_upgrade"
+        ]
+      },
+      {
+        "type": "category",
+        "label": "AGW Development",
+        "items": [
+          "lte/version-1.4.X-tr069",
+          "lte/version-1.4.X-s1ap_tests",
+          "lte/version-1.4.X-dev_notes",
+          "lte/version-1.4.X-eventd"
+        ]
+      }
+    ],
+    "Feature Guides": [
+      "howtos/version-1.4.X-ue_metering",
+      "howtos/version-1.4.X-config_agw_bridged",
+      "howtos/version-1.4.X-thanos",
+      "howtos/version-1.4.X-call_tracing",
+      "howtos/version-1.4.X-events_monitoring",
+      "howtos/version-1.4.X-he_api"
+    ],
+    "Debugging Tools": [
+      "debugging_tools/version-1.4.X-show_tech"
+    ],
+    "Federation Gateway": [
+      {
+        "type": "category",
+        "label": "Deploy FeG",
+        "items": [
+          "feg/version-1.4.X-deploy_intro",
+          "feg/version-1.4.X-deploy_build",
+          "feg/version-1.4.X-deploy_install",
+          "feg/version-1.4.X-federated_FWA_setup_guide"
+        ]
+      }
+    ],
+    "Contribute": [
+      "contributing/version-1.4.X-contribute_onboarding",
+      "contributing/version-1.4.X-contribute_workflow",
+      "contributing/version-1.4.X-contribute_conventions",
+      "contributing/version-1.4.X-contribute_codeowners"
+    ],
+    "FAQ": [
+      "faq/version-1.4.X-faq_magma"
+    ],
+    "Proposals": [
+      "proposals/version-1.4.X-p001_vpn_config_from_api",
+      "proposals/version-1.4.X-p002_scaled_prometheus_pipeline",
+      "proposals/version-1.4.X-p003_qos_enforcement",
+      "proposals/version-1.4.X-p004_fua_restrict_feature",
+      "proposals/version-1.4.X-p005_call_tracing",
+      "proposals/version-1.4.X-p007_header_enrichment",
+      "proposals/version-1.4.X-p008_apn_correction",
+      "proposals/version-1.4.X-p009_nms_mariadb_migration"
+    ]
+  }
+}
