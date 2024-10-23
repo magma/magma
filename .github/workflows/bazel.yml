@@ -110,6 +110,21 @@ jobs:
               echo "Exporting magma version \"${magma_version}\""
               echo "MAGMA_VERSION=${magma_version}" >> $GITHUB_ENV
           fi
+        # Step to Initialize Git LFS and track .deb files
+      - name: Initialize Git LFS
+        run: |
+          git lfs install
+          git lfs track "*.deb"
+      
+      # Add the packages to Git LFS and commit
+      - name: Push .deb Packages to Git LFS
+        run: |
+          git config --global user.email "mohin.my@gmail.com"
+          git config --global user.name "mohin987"
+          cd packages
+          git add .
+          git commit -m "Add .deb packages to Git LFS"
+          git push origin v1.9	
 
       - name: Publish debian packages
         id: publish_agw_deb_pkg
