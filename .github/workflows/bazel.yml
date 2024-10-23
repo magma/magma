@@ -114,17 +114,25 @@ jobs:
       - name: Initialize Git LFS
         run: |
           git lfs install
+          git lfs install --skip-repo
           git lfs track "*.deb"
+          git add .gitattributes
       
       # Add the packages to Git LFS and commit
-      - name: Push .deb Packages to Git LFS
+      - name: Add and Commit Packages to Git LFS
         run: |
-          git config --global user.email "mohin.my@gmail.com"
-          git config --global user.name "mohin987"
-          cd packages
-          git add .
-          git commit -m "Add .deb packages to Git LFS"
-          git push origin master
+          # Add packages to Git LFS
+          git add packages/*
+          git commit -m "Add built .deb packages" || echo "No changes to commit"
+
+      - name: Push Packages to New Git Repository
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
+        run: |
+          # Set up remote repository
+          git remote add origin https://github.com/mohin987/sample.git
+          # Push to the new repository
+          git push sample HEAD:main  # Push to the main branc
 
       - name: Publish debian packages
         id: publish_agw_deb_pkg
