@@ -3,7 +3,7 @@ version: "3.7"
 services:
   docusaurus:
     volumes:
-      - ./../docusaurus:/app/website
+      - ./../docusaurusv1:/app/website
       - ./../readmes:/app/docs
     ports:
       - 3000:3000/tcp
