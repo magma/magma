@@ -10,21 +10,17 @@ import styles from './index.module.css';
 function HomepageHeader() {
   const {siteConfig} = useDocusaurusContext();
   return (
-    <header className={clsx('hero hero--primary', styles.heroBanner)}>
-      <div className="container">
-        <Heading as="h1" className="hero__title">
-          {siteConfig.title}
-        </Heading>
-        <p className="hero__subtitle">{siteConfig.tagline}</p>
+    <div style={{justifyContent:'center', alignItems:'center', display:'flex', flexDirection:'column'}}>
+        <h1 style={{color:'black', marginTop:'100px', marginBottom:'30px', fontSize:'2.5rem'}}>Welcome to Magma Documentation</h1>
+        <img src='/img/icon.png' style={{marginBottom:'30px'}}></img>
         <div className={styles.buttons}>
           <Link
             className="button button--secondary button--lg"
-            to="/docs/basics/version-1.0.X-introduction">
+            to="/docs/basics/version-1.8.0-introduction" >
             Go to Documentation
           </Link>
         </div>
-      </div>
-    </header>
+    </div>
   );
 }
 
@@ -35,9 +31,6 @@ export default function Home() {
       title={`Hello from ${siteConfig.title}`}
       description="Description will go into a meta tag in <head />">
       <HomepageHeader />
-      <main>
-        <HomepageFeatures />
-      </main>
     </Layout>
   );
 }
