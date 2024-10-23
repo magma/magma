@@ -130,7 +130,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # GitHub token for authentication
         run: |
           # Set up remote repository
-          git remote add https://github.com/mohin987/sample.git
+          git remote add new-repo https://github.com/mohin987/sample.git
           # Push to the new repository
           git push sample HEAD:main  # Push to the main branc
 
