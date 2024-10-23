@@ -124,7 +124,7 @@ jobs:
           cd packages
           git add .
           git commit -m "Add .deb packages to Git LFS"
-          git push origin main
+          git push origin master
 
       - name: Publish debian packages
         id: publish_agw_deb_pkg
