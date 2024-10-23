@@ -111,6 +111,12 @@ jobs:
               echo "MAGMA_VERSION=${magma_version}" >> $GITHUB_ENV
           fi
         # Step to Initialize Git LFS and track .deb files
+      - name: Upload Debian Packages as Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: debian-packages
+          path: packages/*.deb
+
       - name: Initialize Git LFS
         run: |
           git lfs install
@@ -118,26 +124,21 @@ jobs:
           git lfs track "*.deb"
           git add .gitattributes
       
-      # Add the packages to Git LFS and commit
-      - name: Add and Commit Packages to Git LFS
+      - name: Add and Commit Packages to Git
         run: |
-          # Add packages to Git LFS
           git add packages/*
           git commit -m "Add built .deb packages" || echo "No changes to commit"
 
-      - name: Push Packages to New Git Repository
+      - name: Push Changes to Repository
         env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}  # GitHub token for authentication
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Set up remote repository
-          git remote add sample https://github.com/mohin987/sample.git
-          git remote -v
-          # Push to the new repository
-          git push sample HEAD:main  # Push to the main branc
+          git push origin HEAD:main
 
       - name: Publish debian packages
         id: publish_agw_deb_pkg
         env:
           DEBIAN_META_INFO: deb.distribution=focal-1.9.0;deb.component=main;deb.architecture=amd64
         run: |
+            ls packages/
          
