@@ -28,6 +28,7 @@ from magma.db_service.models import (
     DBCbsd,
     DBCbsdState,
     DBGrant,
+    DBGrantState,
     DBRequest,
     DBRequestType,
 )
@@ -91,6 +92,10 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
     def setUp(self):
         super().setUp()
         DBInitializer(SessionManager(self.engine)).initialize()
+        grant_states = self.session.query(DBGrantState).all()
+        self.grant_states_map = {gs.name: gs.id for gs in grant_states}
+        cbsd_states = self.session.query(DBCbsdState).all()
+        self.cbsd_states_map = {cs.name: cs.id for cs in cbsd_states}
 
     @parameterized.expand([
         (REGISTRATION_REQ,),
@@ -466,12 +471,13 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         processor.process_response(db_requests, response, self.session)
         self.session.commit()
 
-    @staticmethod
-    def _get_response_processor(req_type):
+    def _get_response_processor(self, req_type):
         return ResponseDBProcessor(
             request_response[req_type],
             process_responses_func=processor_strategies[req_type]["process_responses"],
             fluentd_client=FluentdClient(),
+            grant_states_map=self.grant_states_map,
+            cbsd_states_map=self.cbsd_states_map,
         )
 
     def _verify_processed_requests_were_deleted(self):
