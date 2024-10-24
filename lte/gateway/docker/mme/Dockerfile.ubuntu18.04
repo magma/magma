@@ -85,6 +85,7 @@ RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
      git clone https://liblfds.org/git/liblfds && \
      git clone https://gitea.osmocom.org/cellular-infrastructure/libgtpnl && \
      git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
+     git clone https://github.com/mouse07410/asn1c.git && \
      git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
      git clone https://github.com/nlohmann/json.git
 
@@ -207,8 +208,8 @@ RUN cd libgtpnl && \
 
 #####  asn1c
 RUN cd asn1c && \
-    # Moved git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
-    git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
+    # Moved git clone https://github.com/mouse07410/asn1c.git && \
+    git checkout ebed802 && \
     autoreconf -iv && \
     ./configure && \
     make -j`nproc` && \
