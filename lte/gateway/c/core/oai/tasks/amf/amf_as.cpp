@@ -149,7 +149,8 @@ static status_code_e amf_as_establish_req(amf_as_establish_t* msg,
     }
   }
 
-  if ((msg->nas_msg->data[1] != 0x0) && (msg->nas_msg->data[9] == 0x5c)) {
+  if ((blength(msg->nas_msg) > 9) && (msg->nas_msg->data[1] != 0x0) &&
+      (msg->nas_msg->data[9] == 0x5c)) {
     for (int i = 0, j = 7; j < blength(msg->nas_msg); i++, j++) {
       msg->nas_msg->data[i] = msg->nas_msg->data[j];
     }

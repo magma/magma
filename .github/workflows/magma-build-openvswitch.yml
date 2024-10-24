@@ -36,7 +36,7 @@ on:
     inputs:
       distribution:
         description: Distribution to set?
-        default: 'focal-ci'
+        default: 'focal-1.9.0'
         required: true
 
 jobs:
@@ -46,7 +46,7 @@ jobs:
       MAGMA_ROOT: ${{ github.workspace }}
       DEST: ${{ github.workspace }}/deb_packages
       repository: magma-packages-test
-      distribution: ${{ inputs.distribution || 'focal-ci' }}
+      distribution: ${{ inputs.distribution || 'focal-1.9.0' }}
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
 
@@ -64,7 +64,7 @@ jobs:
 
       - name: Verify distribution
         run: |
-          if [ ${{ env.distribution }} != 'focal-ci' ] && [[ ! ${{ env.distribution }} =~ ^focal-1\.[0-9]+\.[0-9]+$ ]]; then
+          if [ ${{ env.distribution }} != 'focal-1.9.0' ] && [[ ! ${{ env.distribution }} =~ ^focal-1\.[0-9]+\.[0-9]+$ ]]; then
               echo "You have chosen 'distribution' ${{ env.distribution }} as input."
               echo "ERROR: Distribution name format check fails. Only focal-1.x.y is allowed. Abort!"
               exit 1

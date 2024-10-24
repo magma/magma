@@ -121,7 +121,7 @@ ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts
 
 # Add the magma apt repo
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main" > /etc/apt/sources.list.d/magma.list
 
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -

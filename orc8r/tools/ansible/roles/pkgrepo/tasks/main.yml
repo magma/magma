@@ -33,7 +33,7 @@
 
 - name: Configuring the registry in sources.list.d
   ansible.builtin.apt_repository:
-    repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main
+    repo: deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main
     filename: magma
     state: present
     update_cache: true

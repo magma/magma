@@ -31,7 +31,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BAZEL_CACHE_PLAIN_IMAGE: "ghcr.io/magma/magma/bazel-cache-plain:latest"
+  BAZEL_CACHE_PLAIN_IMAGE: "ghcr.io/magma/magma/bazel-cache-plain:sha-cd68e2b@sha256:2f7270c96f53be1dcf1a28847f916c0ee447c50f1ac2ad0fec976d34750e1e1d"
 
 jobs:
   path_filter:
