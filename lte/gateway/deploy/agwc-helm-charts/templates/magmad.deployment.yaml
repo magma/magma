@@ -37,7 +37,7 @@ spec:
         - name: snowflake-file
           hostPath:
             path: /etc/snowflake
-            type: File
+            type: FileOrCreate
         - name: profile-file
           hostPath:
             path: /etc/profile
@@ -49,10 +49,9 @@ spec:
 {{- define "magmad.container" -}}
 name: magmad
 args:
-  - /usr/bin/env
-  - python3
-  - -m
-  - magma.magmad.main
+  - sh
+  - -c
+  - /usr/bin/env python3 /usr/local/bin/generate_oai_config.py && /usr/bin/env python3 -m magma.magmad.main
 image: "{{ .Values.image.repository }}/agw_gateway_python{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
 volumeMounts:
   - mountPath: /etc/magma

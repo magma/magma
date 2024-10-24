@@ -1,0 +1,111 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# tasks for agw master node
+- name: Include vars
+  include_vars:
+    file: all.yaml
+
+- name: Install Kubectl
+  apt:
+    name: kubectl=1.29.*
+    state: present
+    force: yes
+
+- name: Create an Empty file for Kubeadm configuring
+  copy:
+    content: ""
+    dest: /etc/kubernetes/kubeadm-config.yaml
+    force: no
+
+- name: Configure container runtime
+  blockinfile:
+    path: /etc/kubernetes/kubeadm-config.yaml
+    block: |
+      kind: ClusterConfiguration
+      apiVersion: kubeadm.k8s.io/v1beta3
+      networking:
+        podSubnet: "10.244.0.0/16"
+      ---
+      kind: KubeletConfiguration
+      apiVersion: kubelet.config.k8s.io/v1beta1
+      runtimeRequestTimeout: "15m"
+      cgroupDriver: "systemd"
+      systemReserved:
+        cpu: 100m
+        memory: 350M
+      kubeReserved:
+        cpu: 100m
+        memory: 50M
+      enforceNodeAllocatable:
+      - pods
+
+- name: Initialize the cluster
+  shell: kubeadm init --config /etc/kubernetes/kubeadm-config.yaml >> cluster_initialized.log
+  args:
+    chdir: /home/{{ kube_admin_username }}
+    creates: cluster_initialized.log
+
+- name: Create .kube directory
+  become_user: "{{ kube_admin_username }}"
+  file:
+    path: $HOME/.kube
+    state: directory
+    mode: 0755
+
+- name: Copy admin.conf to User's kube config
+  become: yes
+  copy:
+    src: /etc/kubernetes/admin.conf
+    dest: /home/{{ kube_admin_username }}/.kube/config
+    remote_src: yes
+    mode: 0600
+    owner: "{{ kube_admin_username }}"
+
+- name: Install Pod Network
+  become: yes
+  become_user: "{{ kube_admin_username }}"
+  shell: kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml >> pod_network_setup.log
+  args:
+    chdir: $HOME
+    creates: pod_network_setup.log
+
+- name: Retrieve Join Command
+  become: yes
+  become_user: "{{ kube_admin_username }}"
+  shell: kubeadm token create --print-join-command
+  changed_when: False
+  register: join_command_raw
+
+- name: Set Join Command
+  set_fact:
+    join_command: "{{ join_command_raw.stdout_lines[0] }}"
+
+# - name: Untaint the control-plane node in order to schedule pods
+#   tags: single_node
+#   become: yes
+#   become_user: "{{ kube_admin_username }}"
+#   shell: kubectl taint nodes magma-base-vm node-role.kubernetes.io/control-plane-
+#   ignore_errors: true
+
+- name: Download Helm command line tool
+  ansible.builtin.uri:
+    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    return_content: true
+  register: helm_installer
+
+- name: Install Helm
+  ansible.builtin.command:
+    cmd: bash
+    stdin: "{{ helm_installer.content }}"
+    creates: /usr/local/bin/helm
+  environment:
+    DESIRED_VERSION: "{{ helm_version | default('') }}"
