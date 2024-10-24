@@ -132,7 +132,7 @@ RUN apt-get update && apt-get install -y \
   openvswitch-datapath-dkms \
   openvswitch-common \
   openvswitch-switch \
-  td-agent-bit \
+  td-agent-bit=1.7.8 \
   wireguard \
   && rm -rf /var/lib/apt/lists/*
 
