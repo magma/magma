@@ -73,6 +73,9 @@ message APNConfiguration {
   }
   // resource is gateway-specific guidance for serving the APN
   APNResource resource = 7;
+
+  // is this the default APN?
+  bool is_default = 8;
 }
 
 // APN MODELS 2.0

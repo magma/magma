@@ -38,5 +38,5 @@ Position is elected via majority vote from the TSC. Last until earliest of:
 - In the event of disagreements within the TSC, codeowners, or community on whether bylaws and norms were followed, or whether the set of bylaws and norms are reasonable, escalation routes first through the Governance Board, then finally to LinuxFoundation when necessary
 - TSC chair election to align with calendar year
 - Phase-adjustment: TSC 1-year terms to be phased such that, at a uniform turnover rate, full turnover would not occur in less than 6 months. E.g., if the TSC had 6 members, phase the term end-dates out by 1 month each
-- TSC votes are held in the magma-tsc-voting@lists.magmacore.org mailing list
+- TSC votes are held in the `magma-tsc-voting@lists.magmacore.org` mailing list
 - Codeowner votes are held in `#governance-codeowners-private` via the Accord bot

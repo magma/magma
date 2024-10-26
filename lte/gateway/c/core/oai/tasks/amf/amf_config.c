@@ -65,7 +65,7 @@ void nas5g_config_init(nas5g_config_t* nas_conf) {
   nas_conf->force_reject_tau = true;
   nas_conf->force_reject_sr = true;
   nas_conf->disable_esm_information = false;
-  nas_conf->enable_IMS_VoPS_3GPP = false;
+  nas_conf->enable_IMS_VoPS_3GPP = true;
 }
 
 /***************************************************************************

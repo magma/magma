@@ -16,6 +16,7 @@ package action_generator
 import (
 	"time"
 
+	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/sas"
 	"magma/dp/cloud/go/services/dp/storage"
 )
@@ -30,8 +31,8 @@ type RNG interface {
 	Int() int
 }
 
-func (a *ActionGenerator) GenerateActions(cbsds []*storage.DetailedCbsd, now time.Time) []Action {
-	actions := make([]Action, 0, len(cbsds))
+func (a *ActionGenerator) GenerateActions(cbsds []*storage.DetailedCbsd, now time.Time) []action.Action {
+	actions := make([]action.Action, 0, len(cbsds))
 	for _, cbsd := range cbsds {
 		g := a.getPerCbsdMessageGenerator(cbsd, now)
 		actions = append(actions, g.generateActions(cbsd)...)

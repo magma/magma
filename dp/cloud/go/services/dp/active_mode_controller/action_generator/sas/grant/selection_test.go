@@ -18,6 +18,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	action_pkg "magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/action"
 	"magma/dp/cloud/go/services/dp/active_mode_controller/action_generator/sas/grant"
 	"magma/dp/cloud/go/services/dp/storage"
 	"magma/dp/cloud/go/services/dp/storage/db"
@@ -160,6 +161,76 @@ func TestProcessGrants(t *testing.T) {
 				Add:  &stubGrantProcessor{action: add},
 			}
 			actual := grant.ProcessGrants[grantData](tt.cbsd, tt.grants, p, 0)
+			assert.Equal(t, tt.expected, actual)
+		})
+	}
+}
+
+func TestRemoveIdleGrants(t *testing.T) {
+	testData := []struct {
+		name     string
+		cbsd     *storage.DetailedCbsd
+		expected []action_pkg.Action
+	}{{
+		name: "Should do nothing when no idle grants",
+		cbsd: &storage.DetailedCbsd{
+			Cbsd: &storage.DBCbsd{},
+			Grants: []*storage.DetailedGrant{{
+				GrantState: &storage.DBGrantState{Name: db.MakeString("granted")},
+				Grant:      &storage.DBGrant{Id: db.MakeInt(1)},
+			}},
+		},
+		expected: nil,
+	}, {
+		name: "Should delete idle grant without affecting frequencies",
+		cbsd: &storage.DetailedCbsd{
+			Cbsd: &storage.DBCbsd{},
+			Grants: []*storage.DetailedGrant{{
+				GrantState: &storage.DBGrantState{Name: db.MakeString("idle")},
+				Grant: &storage.DBGrant{
+					Id:              db.MakeInt(1),
+					LowFrequencyHz:  db.MakeInt(3590e6),
+					HighFrequencyHz: db.MakeInt(3610e6),
+				}}},
+		},
+		expected: []action_pkg.Action{&action_pkg.DeleteGrant{Id: 1}},
+	}, {
+		name: "Should delete idle grant without affecting frequencies",
+		cbsd: &storage.DetailedCbsd{
+			Cbsd: &storage.DBCbsd{AvailableFrequencies: []uint32{0, 0, 0, 0}},
+			Grants: []*storage.DetailedGrant{{
+				GrantState: &storage.DBGrantState{Name: db.MakeString("idle")},
+				Grant:      &storage.DBGrant{Id: db.MakeInt(1)}},
+			}},
+		expected: []action_pkg.Action{&action_pkg.DeleteGrant{Id: 1}},
+	}, {
+		name: "Should delete idle grant and update frequencies",
+		cbsd: &storage.DetailedCbsd{
+			Cbsd: &storage.DBCbsd{
+				Id:                   db.MakeInt(1),
+				AvailableFrequencies: []uint32{0b1111, 0b110, 0b1100, 0b1010},
+			},
+			Grants: []*storage.DetailedGrant{{
+				GrantState: &storage.DBGrantState{Name: db.MakeString("idle")},
+				Grant: &storage.DBGrant{
+					Id:              db.MakeInt(1),
+					LowFrequencyHz:  db.MakeInt(35625e5),
+					HighFrequencyHz: db.MakeInt(35675e5),
+				}},
+			},
+		},
+		expected: []action_pkg.Action{&action_pkg.UpdateCbsd{
+			Data: &storage.DBCbsd{
+				Id:                   db.MakeInt(1),
+				AvailableFrequencies: []uint32{0b0111, 0b110, 0b1100, 0b1010},
+			},
+			Mask: db.NewIncludeMask("available_frequencies"),
+		}, &action_pkg.DeleteGrant{Id: 1}},
+	},
+	}
+	for _, tt := range testData {
+		t.Run(tt.name, func(t *testing.T) {
+			actual := grant.RemoveIdleGrants(tt.cbsd)
 			assert.Equal(t, tt.expected, actual)
 		})
 	}

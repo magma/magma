@@ -32,6 +32,7 @@ const (
 	defaultQoSPriorityLevel           = 15
 	defaultQoSPreemptionCapability    = true
 	defaultQoSPreemptionVulnerability = false
+	defaultIsDefault                  = false
 )
 
 var DefaultAPNVal []byte
@@ -47,6 +48,7 @@ var defaultAPN = &ApnConfiguration{
 		PreemptionVulnerability: swag.Bool(defaultQoSPreemptionVulnerability),
 		PriorityLevel:           swag.Uint32(defaultQoSPriorityLevel),
 	},
+	IsDefault: swag.Bool(defaultIsDefault),
 }
 
 func init() {
@@ -61,6 +63,9 @@ type ApnConfiguration struct {
 	// qos profile
 	// Required: true
 	QosProfile *QosProfile `json:"qos_profile"`
+
+	// is default
+	IsDefault *bool `json:"is_default,omitempty"`
 }
 
 func (m *ApnConfiguration) MarshalBinary() ([]byte, error) {
@@ -91,7 +96,7 @@ func (m *ApnConfiguration) MustMarshalBinary() []byte {
 }
 
 func (m *ApnConfiguration) String() string {
-	return fmt.Sprintf("{Ambr: %v, QosProfile: %v}", m.Ambr, m.QosProfile)
+	return fmt.Sprintf("{Ambr: %v, QosProfile: %v, IsDefault: %v}", m.Ambr, m.QosProfile, m.IsDefault)
 }
 
 type AggregatedMaximumBitrate struct {
