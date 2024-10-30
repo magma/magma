@@ -358,17 +358,12 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
   if (ue_ref == NULL) return;
 
   amf_ue_ngap_id_t amf_ue_ngap_id = ue_ref->amf_ue_ngap_id;
-  gNB_ref = ngap_state_get_gnb(state, ue_ref->sctp_assoc_id);
-
-  // Updating number of UE
-  gNB_ref->nb_ue_associated--;
 
   ue_ref->ng_ue_state = NGAP_UE_INVALID_STATE;
 
   hash_table_ts_t* state_ue_ht = get_ngap_ue_state();
   hashtable_ts_free(state_ue_ht, ue_ref->comp_ngap_id);
   hashtable_ts_free(&state->amfid2associd, amf_ue_ngap_id);
-  hashtable_uint64_ts_remove(&gNB_ref->ue_id_coll, amf_ue_ngap_id);
 
   imsi64_t imsi64 = INVALID_IMSI64;
   ngap_imsi_map_t* ngap_imsi_map = get_ngap_imsi_map();
@@ -377,6 +372,20 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
                           (const hash_key_t)amf_ue_ngap_id, &imsi64);
 
   delete_ngap_ue_state(imsi64);
+
+  gNB_ref = ngap_state_get_gnb(state, ue_ref->sctp_assoc_id);
+
+  // prevent a crash if the gNB_ref is NULL
+  if (gNB_ref == NULL) {
+    OAILOG_ERROR(LOG_NGAP, "gNB not found for sctp_assoc_id %d\n",
+                 ue_ref->sctp_assoc_id);
+    return;
+  }
+
+  // Updating number of UE
+  gNB_ref->nb_ue_associated--;
+
+  hashtable_uint64_ts_remove(&gNB_ref->ue_id_coll, amf_ue_ngap_id);
 
   if (!gNB_ref->nb_ue_associated) {
     if (gNB_ref->ng_state == NGAP_RESETING) {
