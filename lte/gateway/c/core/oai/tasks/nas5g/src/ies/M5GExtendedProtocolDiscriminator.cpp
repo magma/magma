@@ -15,8 +15,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-ExtendedProtocolDiscriminatorMsg::ExtendedProtocolDiscriminatorMsg(){};
-ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg(){};
+ExtendedProtocolDiscriminatorMsg::ExtendedProtocolDiscriminatorMsg() {};
+ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg() {};
 
 // Decode ExtendedProtocolDiscriminator IE
 int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(

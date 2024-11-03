@@ -23,8 +23,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-EAPMessageMsg::EAPMessageMsg(){};
-EAPMessageMsg::~EAPMessageMsg(){};
+EAPMessageMsg::EAPMessageMsg() {};
+EAPMessageMsg::~EAPMessageMsg() {};
 
 // Decode EAP Message
 int EAPMessageMsg::DecodeEAPMessageMsg(EAPMessageMsg* eap_message, uint8_t iei,

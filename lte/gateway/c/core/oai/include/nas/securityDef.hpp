@@ -70,7 +70,7 @@ Description Contains global security definitions
 #define AUTH_KGNB_SIZE AUTH_KASME_SIZE /* gNodeB security key   */
 
 /* "Separation bit" of AMF field */
-#define AUTH_AMF_SEPARATION_BIT(a) ((a)&0x80)
+#define AUTH_AMF_SEPARATION_BIT(a) ((a) & 0x80)
 /*
  * --------------------------------------------------------------------------
  * EPS NAS security context handled by EPS Mobility Management sublayer in
