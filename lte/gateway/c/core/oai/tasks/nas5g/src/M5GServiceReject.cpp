@@ -22,8 +22,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-ServiceRejectMsg::ServiceRejectMsg(){};
-ServiceRejectMsg::~ServiceRejectMsg(){};
+ServiceRejectMsg::ServiceRejectMsg() {};
+ServiceRejectMsg::~ServiceRejectMsg() {};
 
 // Decoding Service Reject Message and its IEs
 int ServiceRejectMsg::DecodeServiceRejectMsg(ServiceRejectMsg* svc_rej,

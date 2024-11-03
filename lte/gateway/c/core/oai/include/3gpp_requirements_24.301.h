@@ -271,7 +271,7 @@ then process the challenge             \ information as normal."*/
 //- after sending the AUTHENTICATION FAILURE message with the EMM cause #20 "MAC
 // failure" the timer T3418 expires;
 //- the UE detects any combination of the authentication failures: EMM causes
-//#20 "MAC failure" and #21 "synch failure", during three consecutive
+// #20 "MAC failure" and #21 "synch failure", during three consecutive
 // authentication challenges. The authentication challenges shall be considered
 // as consecutive only, if the authentication challenges causing the second and
 // third authentication failure are received by the UE, while the timer T3418 or
@@ -462,19 +462,19 @@ subclause 5.4.2.5)."*/
       procedure;"
 #define R10_5_4_3_2__2_BRIEF "SMC initiation, reset DL NAS count, use SC"
 
-//#define R10_5_4_3_2__3 "NAS security mode control initiation by the network
-//    The MME shall reset the downlink NAS COUNT counter and use it to integrity
-//    protect the initial SECURITY MODE COMMAND message if the security mode
-//    control procedure is initiated:
-//    - upon receipt of TRACKING AREA UPDATE REQUEST message including a GPRS
-//    ciphering key sequence
-//      number IE, if the MME wishes to create a mapped EPS security context
-//      (i.e. the type of security context flag is set to \"mapped security
-//      context\" in the NAS key set identifier IE included in the SECURITY MODE
-//      COMMAND message)."
+// #define R10_5_4_3_2__3 "NAS security mode control initiation by the network
+//     The MME shall reset the downlink NAS COUNT counter and use it to
+//     integrity protect the initial SECURITY MODE COMMAND message if the
+//     security mode control procedure is initiated:
+//     - upon receipt of TRACKING AREA UPDATE REQUEST message including a GPRS
+//     ciphering key sequence
+//       number IE, if the MME wishes to create a mapped EPS security context
+//       (i.e. the type of security context flag is set to \"mapped security
+//       context\" in the NAS key set identifier IE included in the SECURITY
+//       MODE COMMAND message)."
 
 // Done for KASME (not K'ASME) but have to trace it
-//#define R10_5_4_3_2__4 "NAS security mode control initiation by the network
+// #define R10_5_4_3_2__4 "NAS security mode control initiation by the network
 //    The MME shall send the SECURITY MODE COMMAND message unciphered, but shall
 //    integrity protect the message with the NAS integrity key based on K ASME
 //    or mapped K' ASME indicated by the eKSI included in the message. The MME
@@ -740,12 +740,12 @@ subclause 5.4.2.5)."*/
     an attach type set to \"EPS emergency attach\"."
 #define R10_5_5_1__1_BRIEF ""
 
-//#define R10_5_5_1__2 "Attach procedure - General
-//    With a successful attach procedure, a context is established for the UE in
-//    the MME, and a default bearer is established between the UE and the PDN
-//    GW, thus enabling always-on IP connectivity to the UE. The network may
-//    also initiate the activation of dedicated bearers as part of the attach
-//    procedure."
+// #define R10_5_5_1__2 "Attach procedure - General
+//     With a successful attach procedure, a context is established for the UE
+//     in the MME, and a default bearer is established between the UE and the
+//     PDN GW, thus enabling always-on IP connectivity to the UE. The network
+//     may also initiate the activation of dedicated bearers as part of the
+//     attach procedure."
 
 //...
 
@@ -759,20 +759,20 @@ subclause 5.4.2.5)."*/
 #define R10_5_5_1_2_3__1_BRIEF \
   "EMM common procedure initiation during attach procedure"
 
-//#define R10_5_5_1_2_3__2 "Attach procedure - EMM common procedure initiation
-//    If the network receives an ATTACH REQUEST message containing the Old GUTI
-//    type IE and the EPS mobile identity IE with type of identity indicating
-//    \"GUTI\", and the network does not follow the use of the most significant
-//    bit of the <MME group id> as specified in 3GPP TS 23.003 [2],
-//    subclause 2.8.2.2.2, the network shall use the Old GUTI type IE to
-//    determine whether the mobile identity included in the EPS mobile identity
-//    IE is a native GUTI or a mapped GUTI."
+// #define R10_5_5_1_2_3__2 "Attach procedure - EMM common procedure initiation
+//     If the network receives an ATTACH REQUEST message containing the Old GUTI
+//     type IE and the EPS mobile identity IE with type of identity indicating
+//     \"GUTI\", and the network does not follow the use of the most significant
+//     bit of the <MME group id> as specified in 3GPP TS 23.003 [2],
+//     subclause 2.8.2.2.2, the network shall use the Old GUTI type IE to
+//     determine whether the mobile identity included in the EPS mobile identity
+//     IE is a native GUTI or a mapped GUTI."
 
-//#define R10_5_5_1_2_3__3 "Attach procedure - EMM common procedure initiation
-//    During an attach for emergency bearer services, the MME may choose to skip
-//    the authentication procedure even if no EPS security context is available
-//    and proceed directly to the execution of the security mode control
-//    procedure as specified in subclause 5.4.3."
+// #define R10_5_5_1_2_3__3 "Attach procedure - EMM common procedure initiation
+//     During an attach for emergency bearer services, the MME may choose to
+//     skip the authentication procedure even if no EPS security context is
+//     available and proceed directly to the execution of the security mode
+//     control procedure as specified in subclause 5.4.3."
 
 //------------------------------
 
@@ -1062,13 +1062,13 @@ subclause 5.4.2.5)."*/
 // TAU
 //-----------------------------------------------------------------------------------------------------------------------
 
-//#define R10_5_5_3_2_3__1 "EMM common procedure initiation
-//    If the network receives a TRACKING AREA UPDATE REQUEST message containing
-//    the Old GUTI type IE, and the network does not follow the use of the most
-//    significant bit of the <MME group id> to distinguish the node type as
-//    specified in 3GPP TS 23.003 [2], subclause 2.8.2.2.2, the network shall
-//    use the Old GUTI type IE to determine whether the mobile identity included
-//    in the Old GUTI IE is a native GUTI or a mapped GUTI."
+// #define R10_5_5_3_2_3__1 "EMM common procedure initiation
+//     If the network receives a TRACKING AREA UPDATE REQUEST message containing
+//     the Old GUTI type IE, and the network does not follow the use of the most
+//     significant bit of the <MME group id> to distinguish the node type as
+//     specified in 3GPP TS 23.003 [2], subclause 2.8.2.2.2, the network shall
+//     use the Old GUTI type IE to determine whether the mobile identity
+//     included in the Old GUTI IE is a native GUTI or a mapped GUTI."
 
 #define R10_5_5_3_2_3__2 \
   "EMM common procedure initiation                                                               \
@@ -1076,28 +1076,28 @@ subclause 5.4.2.5)."*/
     authentication and security mode control procedures."
 #define R10_5_5_3_2_3__2_BRIEF ""
 
-//#define R10_5_5_3_2_3__3 "EMM common procedure initiation
-//    The MME may be configured to skip the authentication procedure even if no
-//    EPS security context is available and proceed directly to the execution of
-//    the security mode control procedure as specified in subclause 5.4.3,
-//    during a tracking area updating procedure for a UE that has only a PDN
-//    connection for emergency bearer services.""
+// #define R10_5_5_3_2_3__3 "EMM common procedure initiation
+//     The MME may be configured to skip the authentication procedure even if no
+//     EPS security context is available and proceed directly to the execution
+//     of the security mode control procedure as specified in subclause 5.4.3,
+//     during a tracking area updating procedure for a UE that has only a PDN
+//     connection for emergency bearer services.""
 
-//#define R10_5_5_3_2_3__4 "EMM common procedure initiation
-//    The MME shall not initiate an EMM authentication procedure before
-//    completion of the tracking area updating procedure, if the following
-//    conditions apply: a) the UE initiated the tracking area updating procedure
-//    after handover or inter-system handover to S1 mode; b) the target cell is
-//    a shared network cell; and
-//        -the UE has provided its GUTI in the Old GUTI IE or the Additional
-//        GUTI IE in the TRACKING AREA
-//         UPDATE REQUEST message, and the PLMN identity included in the GUTI is
-//         different from the selected PLMN identity of the target cell; or
-//        -the UE has mapped the P-TMSI and RAI into the Old GUTI IE and not
-//        included an Additional GUTI IE in
-//         the TRACKING AREA UPDATE REQUEST message, and the PLMN identity
-//         included in the RAI is different from the selected PLMN identity of
-//         the target cell."
+// #define R10_5_5_3_2_3__4 "EMM common procedure initiation
+//     The MME shall not initiate an EMM authentication procedure before
+//     completion of the tracking area updating procedure, if the following
+//     conditions apply: a) the UE initiated the tracking area updating
+//     procedure after handover or inter-system handover to S1 mode; b) the
+//     target cell is a shared network cell; and
+//         -the UE has provided its GUTI in the Old GUTI IE or the Additional
+//         GUTI IE in the TRACKING AREA
+//          UPDATE REQUEST message, and the PLMN identity included in the GUTI
+//          is different from the selected PLMN identity of the target cell; or
+//         -the UE has mapped the P-TMSI and RAI into the Old GUTI IE and not
+//         included an Additional GUTI IE in
+//          the TRACKING AREA UPDATE REQUEST message, and the PLMN identity
+//          included in the RAI is different from the selected PLMN identity of
+//          the target cell."
 
 //------------------------------
 
@@ -1145,356 +1145,368 @@ subclause 5.4.2.5)."*/
     use it for the downlink transfer of signalling and user data."
 #define R10_5_5_3_2_4__4_BRIEF ""
 
-//#define R10_5_5_3_2_4__5 "Normal and periodic tracking area updating procedure
-// accepted by the network
-//    If an EPS bearer context status IE is included in the TRACKING AREA UPDATE
-//    REQUEST message, the MME shall deactivate all those EPS bearer contexts
-//    locally (without peer-to-peer signalling between the MME and the UE) which
-//    are active on the network side, but are indicated by the UE as being
-//    inactive. If a default EPS bearer context is marked as inactive in the EPS
-//    bearer context status IE included in the TRACKING AREA UPDATE REQUEST
-//    message, and this default bearer is not associated with the last PDN of
-//    the user in the MME, the MME shall locally deactivate all EPS bearer
-//    contexts associated to the PDN connection with the default EPS bearer
-//    context without peer-to-peer ESM signalling to the UE."
+// #define R10_5_5_3_2_4__5 "Normal and periodic tracking area updating
+// procedure
+//  accepted by the network
+//     If an EPS bearer context status IE is included in the TRACKING AREA
+//     UPDATE REQUEST message, the MME shall deactivate all those EPS bearer
+//     contexts locally (without peer-to-peer signalling between the MME and the
+//     UE) which are active on the network side, but are indicated by the UE as
+//     being inactive. If a default EPS bearer context is marked as inactive in
+//     the EPS bearer context status IE included in the TRACKING AREA UPDATE
+//     REQUEST message, and this default bearer is not associated with the last
+//     PDN of the user in the MME, the MME shall locally deactivate all EPS
+//     bearer contexts associated to the PDN connection with the default EPS
+//     bearer context without peer-to-peer ESM signalling to the UE."
 
-//#define R10_5_5_3_2_4__6 "Normal and periodic tracking area updating procedure
-// accepted by the network
-//    If the EPS bearer context status IE is included in the TRACKING AREA
-//    UPDATE REQUEST, the MME shall include an EPS bearer context status IE in
-//    the TRACKING AREA UPDATE ACCEPT message, indicating which EPS bearer
-//    contexts are active in the MME."
+// #define R10_5_5_3_2_4__6 "Normal and periodic tracking area updating
+// procedure
+//  accepted by the network
+//     If the EPS bearer context status IE is included in the TRACKING AREA
+//     UPDATE REQUEST, the MME shall include an EPS bearer context status IE in
+//     the TRACKING AREA UPDATE ACCEPT message, indicating which EPS bearer
+//     contexts are active in the MME."
 
-//#define R10_5_5_3_2_4__7 "Normal and periodic tracking area updating procedure
-// accepted by the network
-//    If the EPS update type IE included in the TRACKING AREA UPDATE REQUEST
-//    message indicates \"periodic updating\", and the UE was previously
-//    successfully attached for EPS and non-EPS services, subject to operator
-//    policies the MME should allocate a TAI list that does not span more than
-//    one location area."
+// #define R10_5_5_3_2_4__7 "Normal and periodic tracking area updating
+// procedure
+//  accepted by the network
+//     If the EPS update type IE included in the TRACKING AREA UPDATE REQUEST
+//     message indicates \"periodic updating\", and the UE was previously
+//     successfully attached for EPS and non-EPS services, subject to operator
+//     policies the MME should allocate a TAI list that does not span more than
+//     one location area."
 
-//#define R10_5_5_3_2_4__8 "Normal and periodic tracking area updating procedure
-// accepted by the network
-//    If the TRACKING AREA UPDATE ACCEPT message contains T3412 extended value
-//    IE, then the UE shall use the T3412 extended value IE as periodic tracking
-//    area update timer (T3412). If the TRACKING AREA UPDATE ACCEPT contains
-//    T3412 value IE, but not T3412 extended value IE, then the UE shall use
-//    value in T3412 value IE as periodic tracking area update timer (T3412). If
-//    neither T3412 value IE nor T3412 extended value IE is included, the UE
-//    shall use the value currently stored, e.g. from a prior ATTACH ACCEPT or
-//    TRACKING AREA UPDATE ACCEPT message."
+// #define R10_5_5_3_2_4__8 "Normal and periodic tracking area updating
+// procedure
+//  accepted by the network
+//     If the TRACKING AREA UPDATE ACCEPT message contains T3412 extended value
+//     IE, then the UE shall use the T3412 extended value IE as periodic
+//     tracking area update timer (T3412). If the TRACKING AREA UPDATE ACCEPT
+//     contains T3412 value IE, but not T3412 extended value IE, then the UE
+//     shall use value in T3412 value IE as periodic tracking area update timer
+//     (T3412). If neither T3412 value IE nor T3412 extended value IE is
+//     included, the UE shall use the value currently stored, e.g. from a prior
+//     ATTACH ACCEPT or TRACKING AREA UPDATE ACCEPT message."
 
-//#define R10_5_5_3_2_4__9 "Normal and periodic tracking area updating procedure
-// accepted by the network
-//    Also during the tracking area updating procedure without "active" flag, if
-//    the MME has deactivated EPS bearer context(s) locally for any reason, the
-//    MME shall inform the UE of the deactivated EPS bearer context(s) by
-//    including the EPS bearer context status IE in the TRACKING AREA UPDATE
-//    ACCEPT message."
+// #define R10_5_5_3_2_4__9 "Normal and periodic tracking area updating
+// procedure
+//  accepted by the network
+//     Also during the tracking area updating procedure without "active" flag,
+//     if the MME has deactivated EPS bearer context(s) locally for any reason,
+//     the MME shall inform the UE of the deactivated EPS bearer context(s) by
+//     including the EPS bearer context status IE in the TRACKING AREA UPDATE
+//     ACCEPT message."
 
-//#define R10_5_5_3_2_4__10 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    If due to regional subscription restrictions or access restrictions the UE
-//    is not allowed to access the TA, but it has a PDN connection for emergency
-//    bearer services established, the MME may accept the TRACKING AREA UPDATE
-//    REQUEST message and deactivate all non-emergency EPS bearer contexts by
-//    initiating an EPS bearer context deactivation procedure when the TAU is
-//    initiated in EMM-CONNECTED mode. When the TAU is initiated in EMM- IDLE
-//    mode, the MME locally deactivates all non-emergency EPS bearer contexts
-//    and informs the UE via the EPS bearer context status IE in the TRACKING
-//    AREA UPDATE ACCEPT message. The MME shall not deactivate the emergency EPS
-//    bearer contexts. The network shall consider the UE to be attached for
-//    emergency bearer services only and shall indicate in the EPS update result
-//    IE in the TRACKING AREA UPDATE ACCEPT message that ISR is not activated."
+// #define R10_5_5_3_2_4__10 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     If due to regional subscription restrictions or access restrictions the
+//     UE is not allowed to access the TA, but it has a PDN connection for
+//     emergency bearer services established, the MME may accept the TRACKING
+//     AREA UPDATE REQUEST message and deactivate all non-emergency EPS bearer
+//     contexts by initiating an EPS bearer context deactivation procedure when
+//     the TAU is initiated in EMM-CONNECTED mode. When the TAU is initiated in
+//     EMM- IDLE mode, the MME locally deactivates all non-emergency EPS bearer
+//     contexts and informs the UE via the EPS bearer context status IE in the
+//     TRACKING AREA UPDATE ACCEPT message. The MME shall not deactivate the
+//     emergency EPS bearer contexts. The network shall consider the UE to be
+//     attached for emergency bearer services only and shall indicate in the EPS
+//     update result IE in the TRACKING AREA UPDATE ACCEPT message that ISR is
+//     not activated."
 
-//#define R10_5_5_3_2_4__11 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    If a TRACKING AREA UPDATE REQUEST message is received from a UE with a
-//    LIPA PDN connection, and if:
-//    - a GW Transport Layer Address IE value identifying a L-GW is provided by
-//    the lower layer together with the TRACKING AREA UPDATE REQUEST message,
-//    and the P-GW address included in the EPS bearer context of the LIPA PDN
-//    Connection is different from the provided GW Transport Layer Address IE
-//    value (see 3GPP TS 36.413 [36]); or
-//    - no GW Transport Layer Address is provided together with the tracking
-//    area update request by the lower layer, then the MME locally deactivates
-//    all EPS bearer contexts associated with the LIPA PDN connection. If active
-//    EPS bearer contexts remain for the UE and the TRACKING AREA UPDATE REQUEST
-//    request message is accepted, the MME informs the UE via the EPS bearer
-//    context status IE in the TRACKING AREA UPDATE ACCEPT message that EPS
-//    bearer contexts were locally deactivated."
+// #define R10_5_5_3_2_4__11 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     If a TRACKING AREA UPDATE REQUEST message is received from a UE with a
+//     LIPA PDN connection, and if:
+//     - a GW Transport Layer Address IE value identifying a L-GW is provided by
+//     the lower layer together with the TRACKING AREA UPDATE REQUEST message,
+//     and the P-GW address included in the EPS bearer context of the LIPA PDN
+//     Connection is different from the provided GW Transport Layer Address IE
+//     value (see 3GPP TS 36.413 [36]); or
+//     - no GW Transport Layer Address is provided together with the tracking
+//     area update request by the lower layer, then the MME locally deactivates
+//     all EPS bearer contexts associated with the LIPA PDN connection. If
+//     active EPS bearer contexts remain for the UE and the TRACKING AREA UPDATE
+//     REQUEST request message is accepted, the MME informs the UE via the EPS
+//     bearer context status IE in the TRACKING AREA UPDATE ACCEPT message that
+//     EPS bearer contexts were locally deactivated."
 
-//#define R10_5_5_3_2_4__12 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    For a shared network, the TAIs included in the TAI list can contain
-//    different PLMN identities. The MME indicates the selected core network
-//    operator PLMN identity to the UE in the GUTI (see 3GPP TS 23.251 [8B])."
+// #define R10_5_5_3_2_4__12 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     For a shared network, the TAIs included in the TAI list can contain
+//     different PLMN identities. The MME indicates the selected core network
+//     operator PLMN identity to the UE in the GUTI (see 3GPP TS 23.251 [8B])."
 
-//#define R10_5_5_3_2_4__13 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    If the "active" flag is included in the TRACKING AREA UPDATE REQUEST
-//    message, the MME shall re-establish the radio and S1 bearers for all
-//    active EPS bearer contexts."
+// #define R10_5_5_3_2_4__13 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     If the "active" flag is included in the TRACKING AREA UPDATE REQUEST
+//     message, the MME shall re-establish the radio and S1 bearers for all
+//     active EPS bearer contexts."
 
-//#define R10_5_5_3_2_4__14 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    If the "active" flag is not included in the TRACKING AREA UPDATE REQUEST
-//    message, the MME may also re- establish the radio and S1 bearers for all
-//    active EPS bearer contexts due to downlink pending data or downlink
-//    pending signalling."
+// #define R10_5_5_3_2_4__14 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     If the "active" flag is not included in the TRACKING AREA UPDATE REQUEST
+//     message, the MME may also re- establish the radio and S1 bearers for all
+//     active EPS bearer contexts due to downlink pending data or downlink
+//     pending signalling."
 
-//#define R10_5_5_3_2_4__15 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    Upon receiving a TRACKING AREA UPDATE ACCEPT message, the UE shall stop
-//    timer T3430, reset the tracking area updating attempt counter, enter state
-//    EMM-REGISTERED and set the EPS update status to EU1 UPDATED. If the
-//    message contains a GUTI, the UE shall use this GUTI as new temporary
-//    identity for EPS services and shall store the new GUTI. If no GUTI was
-//    included by the MME in the TRACKING AREA UPDATE ACCEPT message, the old
-//    GUTI shall be used. If the UE receives a new TAI list in the TRACKING AREA
-//    UPDATE ACCEPT message, the UE shall consider the new TAI list as valid and
-//    the old TAI list as invalid; otherwise, the UE shall consider the old TAI
-//    list as valid."
+// #define R10_5_5_3_2_4__15 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     Upon receiving a TRACKING AREA UPDATE ACCEPT message, the UE shall stop
+//     timer T3430, reset the tracking area updating attempt counter, enter
+//     state EMM-REGISTERED and set the EPS update status to EU1 UPDATED. If the
+//     message contains a GUTI, the UE shall use this GUTI as new temporary
+//     identity for EPS services and shall store the new GUTI. If no GUTI was
+//     included by the MME in the TRACKING AREA UPDATE ACCEPT message, the old
+//     GUTI shall be used. If the UE receives a new TAI list in the TRACKING
+//     AREA UPDATE ACCEPT message, the UE shall consider the new TAI list as
+//     valid and the old TAI list as invalid; otherwise, the UE shall consider
+//     the old TAI list as valid."
 
-//#define R10_5_5_3_2_4__16 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    If the UE had initiated the tracking area updating procedure in EMM-IDLE
-//    mode to perform an inter-system change from A/Gb mode or Iu mode to S1
-//    mode and the nonce UE was included in the TRACKING AREA UPDATE REQUEST
-//    message, the UE shall delete the nonce UE upon receipt of the TRACKING
-//    AREA UPDATE ACCEPT message."
+// #define R10_5_5_3_2_4__16 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     If the UE had initiated the tracking area updating procedure in EMM-IDLE
+//     mode to perform an inter-system change from A/Gb mode or Iu mode to S1
+//     mode and the nonce UE was included in the TRACKING AREA UPDATE REQUEST
+//     message, the UE shall delete the nonce UE upon receipt of the TRACKING
+//     AREA UPDATE ACCEPT message."
 
-//#define R10_5_5_3_2_4__17 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    If an EPS bearer context status IE is included in the TRACKING AREA UPDATE
-//    ACCEPT message, the UE shall deactivate all those EPS bearers contexts
-//    locally (without peer-to-peer signalling between the UE and the MME) which
-//    are active in the UE, but are indicated by the MME as being inactive. If a
-//    default EPS bearer context is marked as inactive in the EPS bearer context
-//    status IE included in the TRACKING AREA UPDATE ACCEPT message, and this
-//    default bearer is not associated with the last PDN in the UE, the UE shall
-//    locally deactivate all EPS bearer contexts associated to the PDN
-//    connection with the default EPS bearer context without peer-to-peer ESM
-//    signalling to the MME. If only the PDN connection for emergency bearer
-//    services remains established, the UE shall consider itself attached for
-//    emergency bearer services only."
+// #define R10_5_5_3_2_4__17 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     If an EPS bearer context status IE is included in the TRACKING AREA
+//     UPDATE ACCEPT message, the UE shall deactivate all those EPS bearers
+//     contexts locally (without peer-to-peer signalling between the UE and the
+//     MME) which are active in the UE, but are indicated by the MME as being
+//     inactive. If a default EPS bearer context is marked as inactive in the
+//     EPS bearer context status IE included in the TRACKING AREA UPDATE ACCEPT
+//     message, and this default bearer is not associated with the last PDN in
+//     the UE, the UE shall locally deactivate all EPS bearer contexts
+//     associated to the PDN connection with the default EPS bearer context
+//     without peer-to-peer ESM signalling to the MME. If only the PDN
+//     connection for emergency bearer services remains established, the UE
+//     shall consider itself attached for emergency bearer services only."
 
-//#define R10_5_5_3_2_4__18 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    The MME may also include of list of equivalent PLMNs in the TRACKING AREA
-//    UPDATE ACCEPT message. Each entry in the list contains a PLMN code
-//    (MCC+MNC). The UE shall store the list as provided by the network, and if
-//    there is no PDN connection for emergency bearer services established, the
-//    UE shall remove from the list any PLMN code that is already in the list of
-//    forbidden PLMNs. If there is a PDN connection for emergency bearer
-//    services established, the UE shall remove from the list of equivalent
-//    PLMNs any PLMN code present in the list of forbidden PLMNs when the PDN
-//    connection for emergency bearer services is released. In addition, the UE
-//    shall add to the stored list the PLMN code of the registered PLMN that
-//    sent the list. The UE shall replace the stored list on each receipt of the
-//    TRACKING AREA UPDATE ACCEPT message. If the TRACKING AREA UPDATE ACCEPT
-//    message does not contain a list, then the UE shall delete the stored
-//    list."
+// #define R10_5_5_3_2_4__18 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     The MME may also include of list of equivalent PLMNs in the TRACKING AREA
+//     UPDATE ACCEPT message. Each entry in the list contains a PLMN code
+//     (MCC+MNC). The UE shall store the list as provided by the network, and if
+//     there is no PDN connection for emergency bearer services established, the
+//     UE shall remove from the list any PLMN code that is already in the list
+//     of forbidden PLMNs. If there is a PDN connection for emergency bearer
+//     services established, the UE shall remove from the list of equivalent
+//     PLMNs any PLMN code present in the list of forbidden PLMNs when the PDN
+//     connection for emergency bearer services is released. In addition, the UE
+//     shall add to the stored list the PLMN code of the registered PLMN that
+//     sent the list. The UE shall replace the stored list on each receipt of
+//     the TRACKING AREA UPDATE ACCEPT message. If the TRACKING AREA UPDATE
+//     ACCEPT message does not contain a list, then the UE shall delete the
+//     stored list."
 
-//#define R10_5_5_3_2_4__19 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    The network may also indicate in the EPS update result IE in the TRACKING
-//    AREA UPDATE ACCEPT message that ISR is active. If the UE is attached for
-//    emergency bearer services, the network shall indicate in the EPS update
-//    result IE in the TRACKING AREA UPDATE ACCEPT message that ISR is not
-//    activated. If the TRACKING AREA UPDATE ACCEPT message contains: i) no
-//    indication that ISR is activated, the UE shall set the TIN to "GUTI"; ii)
-//    an indication that ISR is activated, then:
-//      - if the UE is required to perform routing area updating for IMS voice
-//      termination as specified in
-//        3GPP TS 24.008 [13], annex P.5, the UE shall set the TIN to "GUTI";
-//      - if the UE had initiated the tracking area updating procedure due to a
-//      change in UE network capability or
-//        change in DRX parameters, the UE shall set the TIN to "GUTI"; or
-//      - the UE shall regard a previously assigned P-TMSI and RAI as valid and
-//      registered with the network. If the
-//        TIN currently indicates "P-TMSI" and the periodic routing area update
-//        timer T3312 is running, the UE shall set the TIN to "RAT-related
-//        TMSI". If the TIN currently indicates "P-TMSI" and the periodic
-//        routing area update timer T3312 has already expired, the UE shall set
-//        the TIN to "GUTI"."
+// #define R10_5_5_3_2_4__19 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     The network may also indicate in the EPS update result IE in the TRACKING
+//     AREA UPDATE ACCEPT message that ISR is active. If the UE is attached for
+//     emergency bearer services, the network shall indicate in the EPS update
+//     result IE in the TRACKING AREA UPDATE ACCEPT message that ISR is not
+//     activated. If the TRACKING AREA UPDATE ACCEPT message contains: i) no
+//     indication that ISR is activated, the UE shall set the TIN to "GUTI"; ii)
+//     an indication that ISR is activated, then:
+//       - if the UE is required to perform routing area updating for IMS voice
+//       termination as specified in
+//         3GPP TS 24.008 [13], annex P.5, the UE shall set the TIN to "GUTI";
+//       - if the UE had initiated the tracking area updating procedure due to a
+//       change in UE network capability or
+//         change in DRX parameters, the UE shall set the TIN to "GUTI"; or
+//       - the UE shall regard a previously assigned P-TMSI and RAI as valid and
+//       registered with the network. If the
+//         TIN currently indicates "P-TMSI" and the periodic routing area update
+//         timer T3312 is running, the UE shall set the TIN to "RAT-related
+//         TMSI". If the TIN currently indicates "P-TMSI" and the periodic
+//         routing area update timer T3312 has already expired, the UE shall set
+//         the TIN to "GUTI"."
 
-//#define R10_5_5_3_2_4__20 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    The network informs the UE about the support of specific features, such as
-//    IMS voice over PS session, location services (EPC-LCS, CS-LCS) or
-//    emergency bearer services, in the EPS network feature support information
-//    element. In a UE with IMS voice over PS capability, the IMS voice over PS
-//    session indicator and the emergency bearer services indicator shall be
-//    provided to the upper layers. The upper layers take the IMS voice over PS
-//    session indicator into account as specified in 3GPP TS 23.221 [8A],
-//    subclause 7.2a and subclause 7.2b, when selecting the access domain for
-//    voice sessions or calls. When initiating an emergency call, the upper
-//    layers also take the emergency bearer services indicator into account for
-//    the access domain selection. When the UE determines via the IMS voice over
-//    PS session indicator that the network does not support IMS voice over PS
-//    sessions in S1 mode, then the UE shall not locally release any persistent
-//    EPS bearer context. When the UE determines via the emergency bearer
-//    services indicator that the network does not support emergency bearer
-//    services in S1 mode, then the UE shall not locally release any emergency
-//    EPS bearer context if there is a radio bearer associated with that
-//    context. In a UE with LCS capability, location services indicators
-//    (EPC-LCS, CS-LCS) shall be provided to the upper layers. When MO-LR
-//    procedure is triggered by the UE's application, those indicators are taken
-//    into account as specified in 3GPP TS 24.171 [13C]."
+// #define R10_5_5_3_2_4__20 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     The network informs the UE about the support of specific features, such
+//     as IMS voice over PS session, location services (EPC-LCS, CS-LCS) or
+//     emergency bearer services, in the EPS network feature support information
+//     element. In a UE with IMS voice over PS capability, the IMS voice over PS
+//     session indicator and the emergency bearer services indicator shall be
+//     provided to the upper layers. The upper layers take the IMS voice over PS
+//     session indicator into account as specified in 3GPP TS 23.221 [8A],
+//     subclause 7.2a and subclause 7.2b, when selecting the access domain for
+//     voice sessions or calls. When initiating an emergency call, the upper
+//     layers also take the emergency bearer services indicator into account for
+//     the access domain selection. When the UE determines via the IMS voice
+//     over PS session indicator that the network does not support IMS voice
+//     over PS sessions in S1 mode, then the UE shall not locally release any
+//     persistent EPS bearer context. When the UE determines via the emergency
+//     bearer services indicator that the network does not support emergency
+//     bearer services in S1 mode, then the UE shall not locally release any
+//     emergency EPS bearer context if there is a radio bearer associated with
+//     that context. In a UE with LCS capability, location services indicators
+//     (EPC-LCS, CS-LCS) shall be provided to the upper layers. When MO-LR
+//     procedure is triggered by the UE's application, those indicators are
+//     taken into account as specified in 3GPP TS 24.171 [13C]."
 
-//#define R10_5_5_3_2_4__21 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    If the UE has initiated the tracking area updating procedure due to manual
-//    CSG selection and receives a TRACKING AREA UPDATE ACCEPT message, and the
-//    UE sent the TRACKING AREA UPDATE REQUEST message in a CSG cell, the UE
-//    shall check if the CSG ID and associated PLMN identity of the cell where
-//    the UE has sent the TRACKING AREA UPDATE REQUEST message are contained in
-//    the Allowed CSG list. If not, the UE shall add that CSG ID and associated
-//    PLMN identity to the Allowed CSG list and the UE may add the HNB Name (if
-//    provided by lower layers) to the Allowed CSG list if the HNB Name is
-//    present in neither the Operator CSG list nor the Allowed CSG list."
+// #define R10_5_5_3_2_4__21 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     If the UE has initiated the tracking area updating procedure due to
+//     manual CSG selection and receives a TRACKING AREA UPDATE ACCEPT message,
+//     and the UE sent the TRACKING AREA UPDATE REQUEST message in a CSG cell,
+//     the UE shall check if the CSG ID and associated PLMN identity of the cell
+//     where the UE has sent the TRACKING AREA UPDATE REQUEST message are
+//     contained in the Allowed CSG list. If not, the UE shall add that CSG ID
+//     and associated PLMN identity to the Allowed CSG list and the UE may add
+//     the HNB Name (if provided by lower layers) to the Allowed CSG list if the
+//     HNB Name is present in neither the Operator CSG list nor the Allowed CSG
+//     list."
 
-//#define R10_5_5_3_2_4__22 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    If the TRACKING AREA UPDATE ACCEPT message contained a GUTI, the UE shall
-//    return a TRACKING AREA UPDATE COMPLETE message to the MME to acknowledge
-//    the received GUTI."
+// #define R10_5_5_3_2_4__22 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     If the TRACKING AREA UPDATE ACCEPT message contained a GUTI, the UE shall
+//     return a TRACKING AREA UPDATE COMPLETE message to the MME to acknowledge
+//     the received GUTI."
 
-//#define R10_5_5_3_2_4__23 "Normal and periodic tracking area updating
-// procedure accepted by the network
-//    Upon receiving a TRACKING AREA UPDATE COMPLETE message, the MME shall stop
-//    timer T3450, and shall consider the GUTI sent in the TRACKING AREA UPDATE
-//    ACCEPT message as valid."
+// #define R10_5_5_3_2_4__23 "Normal and periodic tracking area updating
+//  procedure accepted by the network
+//     Upon receiving a TRACKING AREA UPDATE COMPLETE message, the MME shall
+//     stop timer T3450, and shall consider the GUTI sent in the TRACKING AREA
+//     UPDATE ACCEPT message as valid."
 
 //...
 
 //------------------------------
 
-//#define R10_5_5_3_2_5__1 "Normal and periodic tracking area updating procedure
-// not accepted by the network
-//    If the tracking area updating cannot be accepted by the network, the MME
-//    sends a TRACKING AREA UPDATE REJECT message to the UE including an
-//    appropriate EMM cause value."
+// #define R10_5_5_3_2_5__1 "Normal and periodic tracking area updating
+// procedure
+//  not accepted by the network
+//     If the tracking area updating cannot be accepted by the network, the MME
+//     sends a TRACKING AREA UPDATE REJECT message to the UE including an
+//     appropriate EMM cause value."
 
-//#define R10_5_5_3_2_5__2 "Normal and periodic tracking area updating procedure
-// not accepted by the network
-//    If the MME locally deactivates EPS bearer contexts for the UE (see
-//    subclause 5.5.3.2.4) and no active EPS bearer contexts remain for the UE,
-//    the MME shall send the TRACKING AREA UPDATE REJECT message including the
-//    EMM cause value #10 "Implicitly detached"."
+// #define R10_5_5_3_2_5__2 "Normal and periodic tracking area updating
+// procedure
+//  not accepted by the network
+//     If the MME locally deactivates EPS bearer contexts for the UE (see
+//     subclause 5.5.3.2.4) and no active EPS bearer contexts remain for the UE,
+//     the MME shall send the TRACKING AREA UPDATE REJECT message including the
+//     EMM cause value #10 "Implicitly detached"."
 
-//#define R10_5_5_3_2_5__3 "Normal and periodic tracking area updating procedure
-// not accepted by the network
-//    If the tracking area update request is rejected due to general NAS level
-//    mobility management congestion control, the network shall set the EMM
-//    cause value to #22 "congestion" and assign a back-off timer T3346."
+// #define R10_5_5_3_2_5__3 "Normal and periodic tracking area updating
+// procedure
+//  not accepted by the network
+//     If the tracking area update request is rejected due to general NAS level
+//     mobility management congestion control, the network shall set the EMM
+//     cause value to #22 "congestion" and assign a back-off timer T3346."
 
-//#define R10_5_5_3_2_5__4 "Normal and periodic tracking area updating procedure
-// not accepted by the network
-//    Upon receiving the TRACKING AREA UPDATE REJECT message, the UE shall stop
-//    timer T3430, stop any transmission of user data, and take the following
-//    actions depending on the EMM cause value received. #3 (Illegal UE); or #6
-//    (Illegal ME);
-//      The UE shall set the EPS update status to EU3 ROAMING NOT ALLOWED (and
-//      shall store it according to subclause 5.1.3.3) and shall delete any
-//      GUTI, last visited registered TAI, TAI list and eKSI. The UE shall
-//      consider the USIM as invalid for EPS services until switching off or the
-//      UICC containing the USIM is removed. The UE shall delete the list of
-//      equivalent PLMNs and shall enter the state EMM-DEREGISTERED. If A/Gb
-//      mode or Iu mode is supported by the UE, the UE shall handle the GMM
-//      parameters GMM state, GPRS update status, P-TMSI, P-TMSI signature, RAI
-//      and GPRS ciphering key sequence number and the MM parameters update
-//      status, TMSI, LAI and ciphering key sequence number as specified in 3GPP
-//      TS 24.008 [13] for the case when the normal routing area updating
-//      procedure is rejected with the GMM cause with the same value. The USIM
-//      shall be considered as invalid also for non-EPS services until switching
-//      off or the UICC containing the USIM is removed.
-//    NOTE 1: The possibility to configure a UE so that the radio transceiver
-//    for a specific radio access technology is not
-//      active, although it is implemented in the UE, is out of scope of the
-//      present specification.
-//    #7 (EPS services not allowed);
-//      The UE shall set the EPS update status to EU3 ROAMING NOT ALLOWED (and
-//      shall store it according to subclause 5.1.3.3) and shall delete any
-//      GUTI, last visited registered TAI, TAI list and eKSI. The UE shall
-//      consider the USIM as invalid for EPS services until switching off or the
-//      UICC containing the USIM is removed. The UE shall delete the list of
-//      equivalent PLMNs and shall enter the state EMM-DEREGISTERED. If the EPS
-//      update type is "periodic updating", a UE in CS/PS mode 1 or CS/PS mode 2
-//      of operation is still IMSI attached for non-EPS services. The UE shall
-//      select GERAN or UTRAN radio access technology and proceed with
-//      appropriate MM specific procedure according to the MM service state. The
-//      UE shall not reselect E-UTRAN radio access technology until switching
-//      off or the UICC containing the USIM is removed.
-// ...
+// #define R10_5_5_3_2_5__4 "Normal and periodic tracking area updating
+// procedure
+//  not accepted by the network
+//     Upon receiving the TRACKING AREA UPDATE REJECT message, the UE shall stop
+//     timer T3430, stop any transmission of user data, and take the following
+//     actions depending on the EMM cause value received. #3 (Illegal UE); or #6
+//     (Illegal ME);
+//       The UE shall set the EPS update status to EU3 ROAMING NOT ALLOWED (and
+//       shall store it according to subclause 5.1.3.3) and shall delete any
+//       GUTI, last visited registered TAI, TAI list and eKSI. The UE shall
+//       consider the USIM as invalid for EPS services until switching off or
+//       the UICC containing the USIM is removed. The UE shall delete the list
+//       of equivalent PLMNs and shall enter the state EMM-DEREGISTERED. If A/Gb
+//       mode or Iu mode is supported by the UE, the UE shall handle the GMM
+//       parameters GMM state, GPRS update status, P-TMSI, P-TMSI signature, RAI
+//       and GPRS ciphering key sequence number and the MM parameters update
+//       status, TMSI, LAI and ciphering key sequence number as specified in
+//       3GPP TS 24.008 [13] for the case when the normal routing area updating
+//       procedure is rejected with the GMM cause with the same value. The USIM
+//       shall be considered as invalid also for non-EPS services until
+//       switching off or the UICC containing the USIM is removed.
+//     NOTE 1: The possibility to configure a UE so that the radio transceiver
+//     for a specific radio access technology is not
+//       active, although it is implemented in the UE, is out of scope of the
+//       present specification.
+//     #7 (EPS services not allowed);
+//       The UE shall set the EPS update status to EU3 ROAMING NOT ALLOWED (and
+//       shall store it according to subclause 5.1.3.3) and shall delete any
+//       GUTI, last visited registered TAI, TAI list and eKSI. The UE shall
+//       consider the USIM as invalid for EPS services until switching off or
+//       the UICC containing the USIM is removed. The UE shall delete the list
+//       of equivalent PLMNs and shall enter the state EMM-DEREGISTERED. If the
+//       EPS update type is "periodic updating", a UE in CS/PS mode 1 or CS/PS
+//       mode 2 of operation is still IMSI attached for non-EPS services. The UE
+//       shall select GERAN or UTRAN radio access technology and proceed with
+//       appropriate MM specific procedure according to the MM service state.
+//       The UE shall not reselect E-UTRAN radio access technology until
+//       switching off or the UICC containing the USIM is removed.
+//  ...
 
 //------------------------------
 
-//#define R10_5_5_3_2_7_a "Abnormal cases on the network side
-//    If a lower layer failure occurs before the message TRACKING AREA UPDATE
-//    COMPLETE has been received from the UE and a GUTI has been assigned, the
-//    network shall abort the procedure and shall consider both, the old and new
-//    GUTI as valid until the old GUTI can be considered as invalid by the
-//    network (see subclause 5.4.1.4). During this period the network may use
-//    the identification procedure followed by a GUTI reallocation procedure if
-//    the old GUTI is used by the UE in a subsequent message. The network may
-//    page with IMSI if paging with old and new S-TMSI fails. Paging with IMSI
-//    causes the UE to re-attach as described in subclause 5.6.2.2.2."
+// #define R10_5_5_3_2_7_a "Abnormal cases on the network side
+//     If a lower layer failure occurs before the message TRACKING AREA UPDATE
+//     COMPLETE has been received from the UE and a GUTI has been assigned, the
+//     network shall abort the procedure and shall consider both, the old and
+//     new GUTI as valid until the old GUTI can be considered as invalid by the
+//     network (see subclause 5.4.1.4). During this period the network may use
+//     the identification procedure followed by a GUTI reallocation procedure if
+//     the old GUTI is used by the UE in a subsequent message. The network may
+//     page with IMSI if paging with old and new S-TMSI fails. Paging with IMSI
+//     causes the UE to re-attach as described in subclause 5.6.2.2.2."
 
-//#define R10_5_5_3_2_7_b "Abnormal cases on the network side
-//    Protocol error
-//    If the TRACKING AREA UPDATE REQUEST message has been received with a
-//    protocol error, the network shall return a TRACKING AREA UPDATE REJECT
-//    message with one of the following EMM cause values: #96: invalid mandatory
-//    information element error; #99: information element non-existent or not
-//    implemented; #100: conditional IE error; or #111: protocol error,
-//    unspecified."
+// #define R10_5_5_3_2_7_b "Abnormal cases on the network side
+//     Protocol error
+//     If the TRACKING AREA UPDATE REQUEST message has been received with a
+//     protocol error, the network shall return a TRACKING AREA UPDATE REJECT
+//     message with one of the following EMM cause values: #96: invalid
+//     mandatory information element error; #99: information element
+//     non-existent or not implemented; #100: conditional IE error; or #111:
+//     protocol error, unspecified."
 
-//#define R10_5_5_3_2_7_c "Abnormal cases on the network side
-//    T3450 time-out
-//    On the first expiry of the timer, the network shall retransmit the
-//    TRACKING AREA UPDATE ACCEPT message and shall reset and restart timer
-//    T3450. The retransmission is performed four times, i.e. on the fifth
-//    expiry of timer T3450, the tracking area updating procedure is aborted.
-//    Both, the old and the new GUTI shall be considered as valid until the old
-//    GUTI can be considered as invalid by the network (see subclause 5.4.1.4).
-//    During this period the network acts as described for case a above."
+// #define R10_5_5_3_2_7_c "Abnormal cases on the network side
+//     T3450 time-out
+//     On the first expiry of the timer, the network shall retransmit the
+//     TRACKING AREA UPDATE ACCEPT message and shall reset and restart timer
+//     T3450. The retransmission is performed four times, i.e. on the fifth
+//     expiry of timer T3450, the tracking area updating procedure is aborted.
+//     Both, the old and the new GUTI shall be considered as valid until the old
+//     GUTI can be considered as invalid by the network (see subclause 5.4.1.4).
+//     During this period the network acts as described for case a above."
 
-//#define R10_5_5_3_2_7_d "Abnormal cases on the network side
-//    TRACKING AREA UPDATE REQUEST received after the TRACKING AREA UPDATE
-//    ACCEPT message has been sent and before the TRACKING AREA UPDATE COMPLETE
-//    message is received
-//    - If one or more of the information elements in the TRACKING AREA UPDATE
-//    REQUEST message differ from the ones received within the previous TRACKING
-//    AREA UPDATE REQUEST message, the previously initiated tracking area
-//    updating procedure shall be aborted if the TRACKING AREA UPDATE COMPLETE
-//    message has not been received and the new tracking area updating procedure
-//    shall be progressed; or
-//    - if the information elements do not differ, then the TRACKING AREA UPDATE
-//    ACCEPT message shall be resent and the timer T3450 shall be restarted if
-//    an TRACKING AREA UPDATE COMPLETE message is expected. In that case, the
-//    retransmission counter related to T3450 is not incremented."
+// #define R10_5_5_3_2_7_d "Abnormal cases on the network side
+//     TRACKING AREA UPDATE REQUEST received after the TRACKING AREA UPDATE
+//     ACCEPT message has been sent and before the TRACKING AREA UPDATE COMPLETE
+//     message is received
+//     - If one or more of the information elements in the TRACKING AREA UPDATE
+//     REQUEST message differ from the ones received within the previous
+//     TRACKING AREA UPDATE REQUEST message, the previously initiated tracking
+//     area updating procedure shall be aborted if the TRACKING AREA UPDATE
+//     COMPLETE message has not been received and the new tracking area updating
+//     procedure shall be progressed; or
+//     - if the information elements do not differ, then the TRACKING AREA
+//     UPDATE ACCEPT message shall be resent and the timer T3450 shall be
+//     restarted if an TRACKING AREA UPDATE COMPLETE message is expected. In
+//     that case, the retransmission counter related to T3450 is not
+//     incremented."
 
-//#define R10_5_5_3_2_7_e "Abnormal cases on the network side
-//    More than one TRACKING AREA UPDATE REQUEST received and no TRACKING AREA
-//    UPDATE ACCEPT or TRACKING AREA UPDATE REJECT message has been sent
-//    - If one or more of the information elements in the TRACKING AREA UPDATE
-//    REQUEST message differs from the ones received within the previous
-//    TRACKING AREA UPDATE REQUEST message, the previously initiated tracking
-//    area updating procedure shall be aborted and the new tracking area
-//    updating procedure shall be progressed;
-//    - if the information elements do not differ, then the network shall
-//    continue with the previous tracking area updating procedure and shall not
-//    treat any further this TRACKING AREA UPDATE REQUEST message.
+// #define R10_5_5_3_2_7_e "Abnormal cases on the network side
+//     More than one TRACKING AREA UPDATE REQUEST received and no TRACKING AREA
+//     UPDATE ACCEPT or TRACKING AREA UPDATE REJECT message has been sent
+//     - If one or more of the information elements in the TRACKING AREA UPDATE
+//     REQUEST message differs from the ones received within the previous
+//     TRACKING AREA UPDATE REQUEST message, the previously initiated tracking
+//     area updating procedure shall be aborted and the new tracking area
+//     updating procedure shall be progressed;
+//     - if the information elements do not differ, then the network shall
+//     continue with the previous tracking area updating procedure and shall not
+//     treat any further this TRACKING AREA UPDATE REQUEST message.
 
-//#define R10_5_5_3_2_7_f "Abnormal cases on the network side
-//    Lower layers indication of non-delivered NAS PDU due to handover
-//    If the TRACKING AREA UPDATE ACCEPT message or TRACKING AREA UPDATE REJECT
-//    message could not be delivered due to handover then the MME shall
-//    retransmit the TRACKING AREA UPDATE ACCEPT message or TRACKING AREA UPDATE
-//    REJECT message if the failure of handover procedure is reported by the
-//    lower layer and the S1 signalling connection exists.
+// #define R10_5_5_3_2_7_f "Abnormal cases on the network side
+//     Lower layers indication of non-delivered NAS PDU due to handover
+//     If the TRACKING AREA UPDATE ACCEPT message or TRACKING AREA UPDATE REJECT
+//     message could not be delivered due to handover then the MME shall
+//     retransmit the TRACKING AREA UPDATE ACCEPT message or TRACKING AREA
+//     UPDATE REJECT message if the failure of handover procedure is reported by
+//     the lower layer and the S1 signalling connection exists.
 #define R10_9_9_3_7_1__1 \
   "Detach type information element - Type of detach                    \
     All other values are interpreted as 'combined EPS/IMSI detach' in this version of the     \

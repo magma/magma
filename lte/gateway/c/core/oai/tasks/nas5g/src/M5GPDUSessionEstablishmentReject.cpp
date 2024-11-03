@@ -21,8 +21,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-PDUSessionEstablishmentRejectMsg::PDUSessionEstablishmentRejectMsg(){};
-PDUSessionEstablishmentRejectMsg::~PDUSessionEstablishmentRejectMsg(){};
+PDUSessionEstablishmentRejectMsg::PDUSessionEstablishmentRejectMsg() {};
+PDUSessionEstablishmentRejectMsg::~PDUSessionEstablishmentRejectMsg() {};
 
 // Decode PDUSessionEstablishmentReject Message and its IEs
 int PDUSessionEstablishmentRejectMsg::DecodePDUSessionEstablishmentRejectMsg(

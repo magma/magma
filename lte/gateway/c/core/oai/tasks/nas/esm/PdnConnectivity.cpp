@@ -145,9 +145,9 @@ status_code_e esm_proc_pdn_connectivity_request(
       "PDN connectivity request :pti= %d PDN type = %s, APN = %s pdn addr = %s "
       "pdn id %d for (ue_id = %u)\n",
       pti,
-      (pdn_type == ESM_PDN_TYPE_IPV4)
-          ? "IPv4"
-          : (pdn_type == ESM_PDN_TYPE_IPV6) ? "IPv6" : "IPv4v6",
+      (pdn_type == ESM_PDN_TYPE_IPV4)   ? "IPv4"
+      : (pdn_type == ESM_PDN_TYPE_IPV6) ? "IPv6"
+                                        : "IPv4v6",
       (apn) ? (char*)bdata(apn) : "null",
       (pdn_addr) ? (char*)bdata(pdn_addr) : "null", pdn_cid, ue_id);
 
@@ -338,11 +338,9 @@ static status_code_e pdn_connectivity_create(
       "%d, IP address = %s "
       "PDN id %d (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       pti, bdata(apn), pdn_type,
-      (pdn_type == ESM_PDN_TYPE_IPV4)
-          ? esm_data_get_ipv4_addr(pdn_addr)
-          : (pdn_type == ESM_PDN_TYPE_IPV6)
-                ? esm_data_get_ipv6_addr(pdn_addr)
-                : esm_data_get_ipv4v6_addr(pdn_addr),
+      (pdn_type == ESM_PDN_TYPE_IPV4)   ? esm_data_get_ipv4_addr(pdn_addr)
+      : (pdn_type == ESM_PDN_TYPE_IPV6) ? esm_data_get_ipv6_addr(pdn_addr)
+                                        : esm_data_get_ipv4v6_addr(pdn_addr),
       pdn_cid, ue_mm_context->mme_ue_s1ap_id);
 
   if (!ue_mm_context->pdn_contexts[pdn_cid]) {

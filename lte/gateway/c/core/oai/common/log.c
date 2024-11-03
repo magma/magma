@@ -150,8 +150,7 @@ typedef struct oai_log_s {
   log_level_t log_level[MAX_LOG_PROTOS]; /*!< \brief Loglevel id of each client
                                             (protocol/layer) */
   int log_level2syslog[MAX_LOG_LEVEL];
-  log_message_number_t
-      log_message_number; /*!< \brief Counter of log message        */
+  log_message_number_t log_message_number; /*!< \brief Counter of log message */
   hash_table_ts_t*
       thread_context_htbl; /*!< \brief Container for log_thread_ctxt_t */
   int max_threads;         /*!< \brief Maximum number of log threads */

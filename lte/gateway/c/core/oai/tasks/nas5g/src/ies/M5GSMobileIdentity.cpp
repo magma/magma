@@ -25,20 +25,20 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-M5GSMobileIdentityMsg::M5GSMobileIdentityMsg(){};
-M5GSMobileIdentityMsg::~M5GSMobileIdentityMsg(){};
-GutiM5GSMobileIdentity::GutiM5GSMobileIdentity(){};
-GutiM5GSMobileIdentity::~GutiM5GSMobileIdentity(){};
-ImeiM5GSMobileIdentity::ImeiM5GSMobileIdentity(){};
-ImeiM5GSMobileIdentity::~ImeiM5GSMobileIdentity(){};
-ImsiM5GSMobileIdentity::ImsiM5GSMobileIdentity(){};
-ImsiM5GSMobileIdentity::~ImsiM5GSMobileIdentity(){};
-SuciM5GSMobileIdentity::SuciM5GSMobileIdentity(){};
-SuciM5GSMobileIdentity::~SuciM5GSMobileIdentity(){};
-TmsiM5GSMobileIdentity::TmsiM5GSMobileIdentity(){};
-TmsiM5GSMobileIdentity::~TmsiM5GSMobileIdentity(){};
-M5GSMobileIdentityIe::M5GSMobileIdentityIe(){};
-M5GSMobileIdentityIe::~M5GSMobileIdentityIe(){};
+M5GSMobileIdentityMsg::M5GSMobileIdentityMsg() {};
+M5GSMobileIdentityMsg::~M5GSMobileIdentityMsg() {};
+GutiM5GSMobileIdentity::GutiM5GSMobileIdentity() {};
+GutiM5GSMobileIdentity::~GutiM5GSMobileIdentity() {};
+ImeiM5GSMobileIdentity::ImeiM5GSMobileIdentity() {};
+ImeiM5GSMobileIdentity::~ImeiM5GSMobileIdentity() {};
+ImsiM5GSMobileIdentity::ImsiM5GSMobileIdentity() {};
+ImsiM5GSMobileIdentity::~ImsiM5GSMobileIdentity() {};
+SuciM5GSMobileIdentity::SuciM5GSMobileIdentity() {};
+SuciM5GSMobileIdentity::~SuciM5GSMobileIdentity() {};
+TmsiM5GSMobileIdentity::TmsiM5GSMobileIdentity() {};
+TmsiM5GSMobileIdentity::~TmsiM5GSMobileIdentity() {};
+M5GSMobileIdentityIe::M5GSMobileIdentityIe() {};
+M5GSMobileIdentityIe::~M5GSMobileIdentityIe() {};
 
 // Decode GutiMobileIdentity IE Message
 int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(

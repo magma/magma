@@ -21,8 +21,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-PDUSessionReleaseRequestMsg::PDUSessionReleaseRequestMsg(){};
-PDUSessionReleaseRequestMsg::~PDUSessionReleaseRequestMsg(){};
+PDUSessionReleaseRequestMsg::PDUSessionReleaseRequestMsg() {};
+PDUSessionReleaseRequestMsg::~PDUSessionReleaseRequestMsg() {};
 
 // Decode PDUSessionReleaseRequest Message and its IEs
 int PDUSessionReleaseRequestMsg::DecodePDUSessionReleaseRequestMsg(

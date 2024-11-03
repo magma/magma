@@ -53,7 +53,7 @@ namespace magma5g {
 #define AUTH_NEXT_HOP_SIZE AUTH_KASME_SIZE /* Next Hop security parameter*/
 
 /* "Separation bit" of AMF field */
-#define AUTH_AMF_SEPARATION_BIT(a) ((a)&0x80)
+#define AUTH_AMF_SEPARATION_BIT(a) ((a) & 0x80)
 /*
  * --------------------------------------------------------------------------
  * 5G CN NAS security context handled by 5G CN Mobility Management sublayer in

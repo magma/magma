@@ -22,8 +22,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-ULNASTransportMsg::ULNASTransportMsg(){};
-ULNASTransportMsg::~ULNASTransportMsg(){};
+ULNASTransportMsg::ULNASTransportMsg() {};
+ULNASTransportMsg::~ULNASTransportMsg() {};
 
 // Decode ULNASTransport Message and its IEs
 int ULNASTransportMsg::DecodeULNASTransportMsg(

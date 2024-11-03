@@ -33,7 +33,7 @@ typedef timer_arg_t TimerArgType;
 class MmeUeContext {
  private:
   std::map<int, TimerArgType> mme_app_timers;
-  MmeUeContext() : mme_app_timers(){};
+  MmeUeContext() : mme_app_timers() {};
 
  public:
   static MmeUeContext& Instance() {

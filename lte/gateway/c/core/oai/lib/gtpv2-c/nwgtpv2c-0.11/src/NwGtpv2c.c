@@ -103,7 +103,7 @@ typedef struct {
   nw_gtpv2c_timeout_info_t** pHeap;
 } NwGtpv2cTmrMinHeapT;
 
-#define NW_HEAP_PARENT_INDEX(__child) (((__child)-1) / 2)
+#define NW_HEAP_PARENT_INDEX(__child) (((__child) - 1) / 2)
 
 NwGtpv2cTmrMinHeapT* nwGtpv2cTmrMinHeapNew(int maxSize) {
   NwGtpv2cTmrMinHeapT* thiz =

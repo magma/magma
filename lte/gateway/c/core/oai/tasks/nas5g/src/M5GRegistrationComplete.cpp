@@ -21,8 +21,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-RegistrationCompleteMsg::RegistrationCompleteMsg(){};
-RegistrationCompleteMsg::~RegistrationCompleteMsg(){};
+RegistrationCompleteMsg::RegistrationCompleteMsg() {};
+RegistrationCompleteMsg::~RegistrationCompleteMsg() {};
 
 // Decoding Registration Complete Message and its IEs
 int RegistrationCompleteMsg::DecodeRegistrationCompleteMsg(
