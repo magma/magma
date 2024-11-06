@@ -20,24 +20,20 @@ SecurityHeaderTypeMsg::SecurityHeaderTypeMsg(){};
 SecurityHeaderTypeMsg::~SecurityHeaderTypeMsg(){};
 
 // Decode SecurityHeaderType IE
-int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
-    SecurityHeaderTypeMsg* sec_header_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(uint8_t iei,
+                                                       uint8_t* buffer,
+                                                       uint32_t len) {
   int decoded = 0;
-
-  sec_header_type->sec_hdr = *(buffer)&0xf;
-  decoded++;
+  this->sec_hdr = *(buffer + decoded++) & 0xf;
   return (decoded);
 };
 
 // Encode SecurityHeaderType IE
-int SecurityHeaderTypeMsg::EncodeSecurityHeaderTypeMsg(
-    SecurityHeaderTypeMsg* sec_header_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int SecurityHeaderTypeMsg::EncodeSecurityHeaderTypeMsg(uint8_t iei,
+                                                       uint8_t* buffer,
+                                                       uint32_t len) {
   int encoded = 0;
-
-  *(buffer) = sec_header_type->sec_hdr & 0xf;
-  encoded++;
+  *(buffer + encoded++) = this->sec_hdr & 0xf;
   return (encoded);
 };
 }  // namespace magma5g

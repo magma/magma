@@ -28,10 +28,8 @@ class SecurityModeCompleteMsg {
 
   SecurityModeCompleteMsg();
   ~SecurityModeCompleteMsg();
-  int DecodeSecurityModeCompleteMsg(SecurityModeCompleteMsg* sec_mode_complete,
-                                    uint8_t* buffer, uint32_t len);
-  int EncodeSecurityModeCompleteMsg(SecurityModeCompleteMsg* sec_mode_complete,
-                                    uint8_t* buffer, uint32_t len);
+  int DecodeSecurityModeCompleteMsg(uint8_t* buffer, uint32_t len);
+  int EncodeSecurityModeCompleteMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

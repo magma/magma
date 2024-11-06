@@ -21,23 +21,18 @@ ServiceTypeMsg::ServiceTypeMsg(){};
 ServiceTypeMsg::~ServiceTypeMsg(){};
 
 // Decode ServiceType IE
-int ServiceTypeMsg::DecodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
-                                         uint8_t* buffer, uint32_t len) {
+int ServiceTypeMsg::DecodeServiceTypeMsg(uint8_t iei, uint8_t* buffer,
+                                         uint32_t len) {
   int decoded = 0;
-
-  svc_type->service_type_value = ((*buffer & 0xf0) >> 4);
-
+  this->service_type_value = ((*buffer & 0xf0) >> 4);
   return (decoded);
 };
 
 // Encode ServiceType IE
-int ServiceTypeMsg::EncodeServiceTypeMsg(ServiceTypeMsg* svc_type, uint8_t iei,
-                                         uint8_t* buffer, uint32_t len) {
+int ServiceTypeMsg::EncodeServiceTypeMsg(uint8_t iei, uint8_t* buffer,
+                                         uint32_t len) {
   int encoded = 0;
-
-  *buffer = svc_type->service_type_value & 0x0f;
-  encoded++;
-
+  *(buffer + encoded++) = this->service_type_value & 0x0f;
   return (encoded);
 };
 }  // namespace magma5g

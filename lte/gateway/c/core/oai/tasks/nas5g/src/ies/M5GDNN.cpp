@@ -29,18 +29,17 @@ DNNMsg::DNNMsg(){};
 DNNMsg::~DNNMsg(){};
 
 // Decode DNN Message
-int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
-                         uint32_t len) {
+int DNNMsg::DecodeDNNMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
-    DECODE_U8(buffer + decoded, dnn_message->iei, decoded);
+    DECODE_U8(buffer + decoded, this->iei, decoded);
     CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
   }
   DECODE_U8(buffer + decoded, ielen, decoded);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
-  dnn_message->len = ielen;
+  this->len = ielen;
   uint8_t dnn_length = 0;
   uint8_t dnn_len = 0;
   DECODE_U8(buffer + decoded, dnn_len, decoded);
@@ -53,17 +52,17 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
     return -1;
   }
 
-  memcpy(dnn_message->dnn, buffer + decoded, dnn_len);
+  memcpy(this->dnn, buffer + decoded, dnn_len);
   dnn_length += dnn_len;
   decoded = decoded + dnn_len;
 
   while (dnn_length + 1 < ielen) {
     dnn_len = 0;
-    memcpy(dnn_message->dnn + dnn_length, ".", 1);
+    memcpy(this->dnn + dnn_length, ".", 1);
     DECODE_U8(buffer + decoded, dnn_len, decoded);
     dnn_length = dnn_length + 1;
 
-    memcpy(dnn_message->dnn + dnn_length, buffer + decoded, dnn_len);
+    memcpy(this->dnn + dnn_length, buffer + decoded, dnn_len);
 
     decoded = decoded + dnn_len;
     dnn_length += dnn_len;
@@ -72,32 +71,30 @@ int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
 }
 
 // Encode DNN Message
-int DNNMsg::EncodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,
-                         uint32_t len) {
+int DNNMsg::EncodeDNNMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, DNN_MIN_LENGTH, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char)dnn_message->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)this->iei);
     ENCODE_U8(buffer, iei, encoded);
   }
 
-  ENCODE_U8(buffer + encoded, dnn_message->len, encoded);
+  ENCODE_U8(buffer + encoded, this->len, encoded);
   uint8_t dnn_length = 0;
-  while (dnn_length < dnn_message->len - 1) {
+  while (dnn_length < this->len - 1) {
     uint8_t dnn_len = 0;
-    for (int i = dnn_length; (memcmp(dnn_message->dnn + i, ".", 1) != 0) &&
-                             i < dnn_message->len - 1;
-         i++) {
+    for (int i = dnn_length;
+         (memcmp(this->dnn + i, ".", 1) != 0) && i < this->len - 1; i++) {
       ++dnn_len;
     }
     ENCODE_U8(buffer + encoded, dnn_len, encoded);
 
-    memcpy(buffer + encoded, dnn_message->dnn + dnn_length, dnn_len);
-    if (dnn_len + dnn_length < dnn_message->len - 1) {
-      if (memcmp(dnn_message->dnn + dnn_length + dnn_len, ".", 1) == 0)
+    memcpy(buffer + encoded, this->dnn + dnn_length, dnn_len);
+    if (dnn_len + dnn_length < this->len - 1) {
+      if (memcmp(this->dnn + dnn_length + dnn_len, ".", 1) == 0)
         dnn_length = dnn_length + 1;
     }
     dnn_length = dnn_length + dnn_len;

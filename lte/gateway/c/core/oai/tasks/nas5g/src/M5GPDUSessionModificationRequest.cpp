@@ -29,7 +29,6 @@ PDUSessionModificationRequestMsg::~PDUSessionModificationRequestMsg(){};
 
 // Decode PDUSessionModificationRequest Message and its IEs
 int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
-    PDUSessionModificationRequestMsg* pdu_session_modif_request,
     uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -38,35 +37,27 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
 
   OAILOG_DEBUG(LOG_NAS5G, "DecodePDUSessionModificationRequestMessage");
 
-  if ((decoded_result =
-           pdu_session_modif_request->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_session_modif_request->extended_protocol_discriminator,
-                   0, buffer + decoded, len - decoded)) < 0) {
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0) {
+    return decoded_result;
+  } else {
+    decoded += decoded_result;
+  }
+  if ((decoded_result = this->pdu_session_identity.DecodePDUSessionIdentityMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
   if ((decoded_result =
-           pdu_session_modif_request->pdu_session_identity
-               .DecodePDUSessionIdentityMsg(
-                   &pdu_session_modif_request->pdu_session_identity, 0,
-                   buffer + decoded, len - decoded)) < 0) {
+           this->pti.DecodePTIMsg(0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
-  if ((decoded_result = pdu_session_modif_request->pti.DecodePTIMsg(
-           &pdu_session_modif_request->pti, 0, buffer + decoded,
-           len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
-  }
-  if ((decoded_result =
-           pdu_session_modif_request->message_type.DecodeMessageTypeMsg(
-               &pdu_session_modif_request->message_type, 0, buffer + decoded,
-               len - decoded)) < 0) {
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
@@ -76,10 +67,8 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
 
     switch (ie_type) {
       case M5GSM_CAUSE: {
-        if ((decoded_result =
-                 pdu_session_modif_request->cause.DecodeM5GSMCauseMsg(
-                     &pdu_session_modif_request->cause, M5GSM_CAUSE,
-                     buffer + decoded, len - decoded)) < 0) {
+        if ((decoded_result = this->cause.DecodeM5GSMCauseMsg(
+                 M5GSM_CAUSE, buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
         } else {
           decoded += decoded_result;
@@ -88,11 +77,11 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
       case PDU_SESSION_QOS_RULES_IE_TYPE: {
         QOSRulesMsg qosRules;
         if ((decoded_result = qosRules.DecodeQOSRulesMsg(
-                 &qosRules, PDU_SESSION_QOS_RULES_IE_TYPE, buffer + decoded,
+                 PDU_SESSION_QOS_RULES_IE_TYPE, buffer + decoded,
                  len - decoded)) < 0) {
           return decoded_result;
         } else {
-          pdu_session_modif_request->authqosrules.push_back(qosRules);
+          this->authqosrules.push_back(qosRules);
           decoded += decoded_result;
         }
       } break;
@@ -101,19 +90,17 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
         decoded += 3;
         M5GQosFlowDescription flowDes;
         if ((decoded_result = flowDes.DecodeM5GQosFlowDescription(
-                 &flowDes, buffer + decoded, len - decoded)) < 0) {
+                 buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
         } else {
-          pdu_session_modif_request->authqosflowdescriptors.push_back(flowDes);
+          this->authqosflowdescriptors.push_back(flowDes);
           decoded += decoded_result;
         }
       } break;
       case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE: {
         if ((decoded_result =
-                 pdu_session_modif_request->extprotocolconfigurationoptions
+                 this->extprotocolconfigurationoptions
                      .DecodeProtocolConfigurationOptions(
-                         &pdu_session_modif_request
-                              ->extprotocolconfigurationoptions,
                          REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE,
                          buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
@@ -130,7 +117,6 @@ int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(
 
 // Encode PDUSessionModificationRequest Message and its IEs
 int PDUSessionModificationRequestMsg::EncodePDUSessionModificationRequestMsg(
-    PDUSessionModificationRequestMsg* pdu_session_modif_request,
     uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
@@ -139,67 +125,53 @@ int PDUSessionModificationRequestMsg::EncodePDUSessionModificationRequestMsg(
       buffer, PDU_SESSION_MODIFICATION_REQ_MIN_LEN, len);
 
   OAILOG_DEBUG(LOG_NAS5G, "EncodePDUSessionModificationRequestMessage");
-  if ((encoded_result =
-           pdu_session_modif_request->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_session_modif_request->extended_protocol_discriminator,
-                   0, buffer + encoded, len - encoded)) < 0) {
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->pdu_session_identity.EncodePDUSessionIdentityMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
   if ((encoded_result =
-           pdu_session_modif_request->pdu_session_identity
-               .EncodePDUSessionIdentityMsg(
-                   &pdu_session_modif_request->pdu_session_identity, 0,
-                   buffer + encoded, len - encoded)) < 0) {
+           this->pti.EncodePTIMsg(0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_session_modif_request->pti.EncodePTIMsg(
-           &pdu_session_modif_request->pti, 0, buffer + encoded,
-           len - encoded)) < 0) {
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result =
-           pdu_session_modif_request->message_type.EncodeMessageTypeMsg(
-               &pdu_session_modif_request->message_type, 0, buffer + encoded,
-               len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if (pdu_session_modif_request->cause.iei) {
-    if ((encoded_result = pdu_session_modif_request->cause.EncodeM5GSMCauseMsg(
-             &pdu_session_modif_request->cause, 0, buffer + encoded,
-             len - encoded)) < 0) {
+  if (this->cause.iei) {
+    if ((encoded_result = this->cause.EncodeM5GSMCauseMsg(0, buffer + encoded,
+                                                          len - encoded)) < 0) {
       return encoded_result;
     } else {
       encoded += encoded_result;
     }
   }
-  for (uint8_t i = 0; i < pdu_session_modif_request->authqosrules.size(); i++) {
-    if ((encoded_result =
-             pdu_session_modif_request->authqosrules[i].EncodeQOSRulesMsg(
-                 &pdu_session_modif_request->authqosrules[i],
-                 PDU_SESSION_QOS_RULES_IE_TYPE, buffer + encoded,
-                 len - encoded)) < 0) {
+  for (uint8_t i = 0; i < this->authqosrules.size(); i++) {
+    if ((encoded_result = this->authqosrules[i].EncodeQOSRulesMsg(
+             PDU_SESSION_QOS_RULES_IE_TYPE, buffer + encoded, len - encoded)) <
+        0) {
       return encoded_result;
     } else {
       encoded += encoded_result;
     }
   }
-  pdu_session_modif_request->authqosrules.clear();
-  for (uint8_t i = 0;
-       i < pdu_session_modif_request->authqosflowdescriptors.size(); i++) {
+  this->authqosrules.clear();
+  for (uint8_t i = 0; i < this->authqosflowdescriptors.size(); i++) {
     if ((encoded_result =
-             pdu_session_modif_request->authqosflowdescriptors[i]
-                 .EncodeM5GQosFlowDescription(
-                     &pdu_session_modif_request->authqosflowdescriptors[i],
-                     buffer + encoded + 3, len - encoded)) < 0) {
+             this->authqosflowdescriptors[i].EncodeM5GQosFlowDescription(
+                 buffer + encoded + 3, len - encoded)) < 0) {
       return encoded_result;
     } else {
       qos_flow_des_encoded += encoded_result;
@@ -208,11 +180,10 @@ int PDUSessionModificationRequestMsg::EncodePDUSessionModificationRequestMsg(
 
   if (qos_flow_des_encoded) {
     // iei
-    *(buffer + encoded) = 0x79;
-    encoded++;
+    *(buffer + encoded++) = 0x79;
     IES_ENCODE_U16(buffer, encoded, qos_flow_des_encoded);
     encoded += qos_flow_des_encoded;
-    pdu_session_modif_request->authqosflowdescriptors.clear();
+    this->authqosflowdescriptors.clear();
   }
 
   return encoded;

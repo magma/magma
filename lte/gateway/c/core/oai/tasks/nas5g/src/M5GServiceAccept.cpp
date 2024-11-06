@@ -25,52 +25,46 @@ ServiceAcceptMsg::ServiceAcceptMsg(){};
 ServiceAcceptMsg::~ServiceAcceptMsg(){};
 
 // Decoding Service Accept Message and its IEs
-int ServiceAcceptMsg::DecodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
-                                             uint8_t* buffer, uint32_t len) {
+int ServiceAcceptMsg::DecodeServiceAcceptMsg(uint8_t* buffer, uint32_t len) {
   return 0;
 }
 
 // Encoding Service Accept Message and its IEs
-int ServiceAcceptMsg::EncodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,
-                                             uint8_t* buffer, uint32_t len) {
+int ServiceAcceptMsg::EncodeServiceAcceptMsg(uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, SERVICE_ACCEPT_MINIMUM_LENGTH,
                                        len);
 
-  if ((encoded_result = svc_acpt->extended_protocol_discriminator
+  if ((encoded_result = this->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
-                                &svc_acpt->extended_protocol_discriminator, 0,
-                                buffer + encoded, len - encoded)) < 0)
+                                0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_acpt->spare_half_octet.EncodeSpareHalfOctetMsg(
-           &svc_acpt->spare_half_octet, 0, buffer + encoded, len - encoded)) <
-      0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_acpt->sec_header_type.EncodeSecurityHeaderTypeMsg(
-           &svc_acpt->sec_header_type, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_acpt->message_type.EncodeMessageTypeMsg(
-           &svc_acpt->message_type, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_acpt->pdu_session_status.EncodePDUSessionStatus(
-           &svc_acpt->pdu_session_status, 0, buffer + encoded, len - encoded)) <
-      0)
+  if ((encoded_result = this->pdu_session_status.EncodePDUSessionStatus(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_acpt->pdu_re_activation_status
-                            .EncodePDUSessionReActivationResult(
-                                &svc_acpt->pdu_re_activation_status, 0,
-                                buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result =
+           this->pdu_re_activation_status.EncodePDUSessionReActivationResult(
+               0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

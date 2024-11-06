@@ -27,8 +27,7 @@ PDUSessionModificationComplete::PDUSessionModificationComplete() {}
 PDUSessionModificationComplete::~PDUSessionModificationComplete() {}
 
 int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
-    PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
@@ -36,32 +35,27 @@ int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
       buffer, PDU_SESSION_MODIFICATION_COMPLETE_MIN_LEN, len);
 
   OAILOG_DEBUG(LOG_NAS5G, "EncodePDUSessionModificationComplete");
-  if ((encoded_result =
-           pdu_sess_mod_com->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_sess_mod_com->extended_protocol_discriminator, 0,
-                   buffer + encoded, len - encoded)) < 0) {
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->pdu_session_identity.EncodePDUSessionIdentityMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
   if ((encoded_result =
-           pdu_sess_mod_com->pdu_session_identity.EncodePDUSessionIdentityMsg(
-               &pdu_sess_mod_com->pdu_session_identity, 0, buffer + encoded,
-               len - encoded)) < 0) {
+           this->pti.EncodePTIMsg(0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_sess_mod_com->pti.EncodePTIMsg(
-           &pdu_sess_mod_com->pti, 0, buffer + encoded, len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if ((encoded_result = pdu_sess_mod_com->message_type.EncodeMessageTypeMsg(
-           &pdu_sess_mod_com->message_type, 0, buffer + encoded,
-           len - encoded)) < 0) {
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
@@ -71,8 +65,7 @@ int PDUSessionModificationComplete::EncodePDUSessionModificationComplete(
 }
 
 int PDUSessionModificationComplete::DecodePDUSessionModificationComplete(
-    PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   uint32_t decoded_result = 0;
 
@@ -80,32 +73,27 @@ int PDUSessionModificationComplete::DecodePDUSessionModificationComplete(
       buffer, PDU_SESSION_MODIFICATION_COMPLETE_MIN_LEN, len);
 
   OAILOG_DEBUG(LOG_NAS5G, "DecodePDUSessionModificationComplete");
-  if ((decoded_result =
-           pdu_sess_mod_com->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_sess_mod_com->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0) {
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0) {
+    return decoded_result;
+  } else {
+    decoded += decoded_result;
+  }
+  if ((decoded_result = this->pdu_session_identity.DecodePDUSessionIdentityMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
   if ((decoded_result =
-           pdu_sess_mod_com->pdu_session_identity.DecodePDUSessionIdentityMsg(
-               &pdu_sess_mod_com->pdu_session_identity, 0, buffer + decoded,
-               len - decoded)) < 0) {
+           this->pti.DecodePTIMsg(0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
-  if ((decoded_result = pdu_sess_mod_com->pti.DecodePTIMsg(
-           &pdu_sess_mod_com->pti, 0, buffer + decoded, len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
-  }
-  if ((decoded_result = pdu_sess_mod_com->message_type.DecodeMessageTypeMsg(
-           &pdu_sess_mod_com->message_type, 0, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;

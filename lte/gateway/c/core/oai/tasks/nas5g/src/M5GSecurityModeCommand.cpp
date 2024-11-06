@@ -25,8 +25,8 @@ SecurityModeCommandMsg::SecurityModeCommandMsg(){};
 SecurityModeCommandMsg::~SecurityModeCommandMsg(){};
 
 // Decode SecurityModeCommand Message and its IEs
-int SecurityModeCommandMsg::DecodeSecurityModeCommandMsg(
-    SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len) {
+int SecurityModeCommandMsg::DecodeSecurityModeCommandMsg(uint8_t* buffer,
+                                                         uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -34,59 +34,45 @@ int SecurityModeCommandMsg::DecodeSecurityModeCommandMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_COMMAND_MINIMUM_LENGTH, len);
 
-  if ((decoded_result =
-           sec_mode_command->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &sec_mode_command->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->nas_sec_algorithms.DecodeNASSecurityAlgorithmsMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
   if ((decoded_result =
-           sec_mode_command->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &sec_mode_command->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0)
+           this->nas_key_set_identifier.DecodeNASKeySetIdentifierMsg(
+               0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           sec_mode_command->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &sec_mode_command->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result = sec_mode_command->message_type.DecodeMessageTypeMsg(
-           &sec_mode_command->message_type, 0, buffer + decoded,
-           len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           sec_mode_command->nas_sec_algorithms.DecodeNASSecurityAlgorithmsMsg(
-               &sec_mode_command->nas_sec_algorithms, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           sec_mode_command->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &sec_mode_command->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result = sec_mode_command->nas_key_set_identifier
-                            .DecodeNASKeySetIdentifierMsg(
-                                &sec_mode_command->nas_key_set_identifier, 0,
-                                buffer + decoded, len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           sec_mode_command->ue_sec_capability.DecodeUESecurityCapabilityMsg(
-               &sec_mode_command->ue_sec_capability, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->ue_sec_capability.DecodeUESecurityCapabilityMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -95,8 +81,8 @@ int SecurityModeCommandMsg::DecodeSecurityModeCommandMsg(
 }
 
 // Encode Security Mode Command Message and its IEs
-int SecurityModeCommandMsg::EncodeSecurityModeCommandMsg(
-    SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer, uint32_t len) {
+int SecurityModeCommandMsg::EncodeSecurityModeCommandMsg(uint8_t* buffer,
+                                                         uint32_t len) {
   uint32_t encoded = 0;
 
   int encoded_result = 0;
@@ -106,65 +92,50 @@ int SecurityModeCommandMsg::EncodeSecurityModeCommandMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, SECURITY_MODE_COMMAND_MINIMUM_LENGTH, len);
 
-  if ((encoded_result =
-           sec_mode_command->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &sec_mode_command->extended_protocol_discriminator, 0,
-                   buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->nas_sec_algorithms.EncodeNASSecurityAlgorithmsMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
   if ((encoded_result =
-           sec_mode_command->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &sec_mode_command->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0)
+           this->nas_key_set_identifier.EncodeNASKeySetIdentifierMsg(
+               0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           sec_mode_command->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &sec_mode_command->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->ue_sec_capability.EncodeUESecurityCapabilityMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = sec_mode_command->message_type.EncodeMessageTypeMsg(
-           &sec_mode_command->message_type, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           sec_mode_command->nas_sec_algorithms.EncodeNASSecurityAlgorithmsMsg(
-               &sec_mode_command->nas_sec_algorithms, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           sec_mode_command->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &sec_mode_command->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result = sec_mode_command->nas_key_set_identifier
-                            .EncodeNASKeySetIdentifierMsg(
-                                &sec_mode_command->nas_key_set_identifier, 0,
-                                buffer + encoded, len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           sec_mode_command->ue_sec_capability.EncodeUESecurityCapabilityMsg(
-               &sec_mode_command->ue_sec_capability, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result = sec_mode_command->imeisv_request.EncodeImeisvRequestMsg(
-           &sec_mode_command->imeisv_request, 0, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->imeisv_request.EncodeImeisvRequestMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

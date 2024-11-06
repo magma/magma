@@ -19,24 +19,18 @@ M5GSIdentityTypeMsg::M5GSIdentityTypeMsg(){};
 M5GSIdentityTypeMsg::~M5GSIdentityTypeMsg(){};
 
 // Decode M5GSIdentityType IE
-int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(
-    M5GSIdentityTypeMsg* m5gs_identity_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(uint8_t iei, uint8_t* buffer,
+                                                   uint32_t len) {
   uint8_t decoded = 0;
-
-  m5gs_identity_type->toi = *(buffer + decoded) & 0x7;
-  decoded++;
+  this->toi = *(buffer + decoded++) & 0x7;
   return (decoded);
 };
 
 // Encode M5GSIdentityType IE
-int M5GSIdentityTypeMsg::EncodeM5GSIdentityTypeMsg(
-    M5GSIdentityTypeMsg* m5gs_identity_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GSIdentityTypeMsg::EncodeM5GSIdentityTypeMsg(uint8_t iei, uint8_t* buffer,
+                                                   uint32_t len) {
   int encoded = 0;
-
-  *(buffer + encoded) = (m5gs_identity_type->toi) & 0x7;
-  encoded++;
+  *(buffer + encoded++) = (this->toi) & 0x7;
   return (encoded);
 };
 }  // namespace magma5g

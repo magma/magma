@@ -33,12 +33,8 @@ class DeRegistrationRequestUEInitMsg {
   NASKeySetIdentifierMsg nas_key_set_identifier;
   M5GSMobileIdentityMsg m5gs_mobile_identity;
 #define DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH 3
-  int DecodeDeRegistrationRequestUEInitMsg(
-      DeRegistrationRequestUEInitMsg* de_reg_req_ue, uint8_t* buffer,
-      uint32_t len);
-  int EncodeDeRegistrationRequestUEInitMsg(
-      DeRegistrationRequestUEInitMsg* de_reg_req_ue, uint8_t* buffer,
-      uint32_t len);
+  int DecodeDeRegistrationRequestUEInitMsg(uint8_t* buffer, uint32_t len);
+  int EncodeDeRegistrationRequestUEInitMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

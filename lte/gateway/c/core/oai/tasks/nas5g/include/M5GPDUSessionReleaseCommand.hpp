@@ -30,11 +30,7 @@ class PDUSessionReleaseCommandMsg {
 
   PDUSessionReleaseCommandMsg();
   ~PDUSessionReleaseCommandMsg();
-  int DecodePDUSessionReleaseCommandMsg(
-      PDUSessionReleaseCommandMsg* pdu_session_release_command, uint8_t* buffer,
-      uint32_t len);
-  int EncodePDUSessionReleaseCommandMsg(
-      PDUSessionReleaseCommandMsg* pdu_session_release_command, uint8_t* buffer,
-      uint32_t len);
+  int DecodePDUSessionReleaseCommandMsg(uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionReleaseCommandMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

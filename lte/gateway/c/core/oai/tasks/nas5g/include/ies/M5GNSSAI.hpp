@@ -28,10 +28,8 @@ class NSSAIMsg {
 
   NSSAIMsg();
   ~NSSAIMsg();
-  int EncodeNSSAIMsg(NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer,
-                     uint32_t len);
-  int DecodeNSSAIMsg(NSSAIMsg* nssai, uint8_t iei, uint8_t* buffer,
-                     uint32_t len);
+  int EncodeNSSAIMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeNSSAIMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 
 class NSSAIMsgList {
@@ -42,7 +40,6 @@ class NSSAIMsgList {
 
   NSSAIMsgList();
   ~NSSAIMsgList();
-  int EncodeNSSAIMsgList(NSSAIMsgList* allowed_nssai, uint8_t iei,
-                         uint8_t* buffer, uint32_t len);
+  int EncodeNSSAIMsgList(uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

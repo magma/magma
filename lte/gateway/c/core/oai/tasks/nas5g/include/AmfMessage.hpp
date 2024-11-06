@@ -10,6 +10,7 @@
  */
 
 #pragma once
+#include <cstring>
 #include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationAccept.hpp"
@@ -66,6 +67,12 @@ union MMsg_u {
   PDUSessionModificationCommand pdu_sess_mod_cmd;
   MMsg_u();
   ~MMsg_u();
+  MMsg_u& operator=(const MMsg_u& other) {
+    /** TODO: implement a copy mechanism that takes into account each subtype to
+     * avoid copying invalid pointers */
+    if (this != &other) memcpy(this, &other, sizeof(MMsg_u));
+    return *this;
+  }
 };
 
 // Amf NAS Msg Class
@@ -76,13 +83,18 @@ class AmfMsg {
 
   AmfMsg();
   ~AmfMsg();
-  int M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
-  int M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
-  int AmfMsgDecodeHeaderMsg(AmfMsgHeader_s* header, uint8_t* buffer,
-                            uint32_t len);
-  int AmfMsgEncodeHeaderMsg(AmfMsgHeader_s* header, uint8_t* buffer,
-                            uint32_t len);
-  int AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
-  int AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
+  int M5gNasMessageEncodeMsg(uint8_t* buffer, uint32_t len);
+  int M5gNasMessageDecodeMsg(uint8_t* buffer, uint32_t len);
+  int AmfMsgDecodeHeaderMsg(uint8_t* buffer, uint32_t len);
+  int AmfMsgEncodeHeaderMsg(uint8_t* buffer, uint32_t len);
+  int AmfMsgDecodeMsg(uint8_t* buffer, uint32_t len);
+  int AmfMsgEncodeMsg(uint8_t* buffer, uint32_t len);
+  AmfMsg& operator=(const AmfMsg& other) {
+    if (this != &other) {
+      this->header = other.header;
+      this->msg = other.msg;
+    }
+    return *this;
+  }
 };
 }  // namespace magma5g

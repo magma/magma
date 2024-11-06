@@ -26,35 +26,26 @@ namespace magma5g {
 GPRSTimer2Msg::GPRSTimer2Msg(){};
 GPRSTimer2Msg::~GPRSTimer2Msg(){};
 
-int GPRSTimer2Msg::DecodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int GPRSTimer2Msg::DecodeGPRSTimer2Msg(uint8_t iei, uint8_t* buffer,
+                                       uint32_t len) {
   int decoded = 0;
   if (iei > 0) {
-    gprstimer->iei = *buffer;
-    decoded++;
-
-    gprstimer->len = *(buffer + decoded);
-    decoded++;
-
-    gprstimer->timervalue = *(buffer + decoded);
-    decoded++;
+    this->iei = *(buffer + decoded++);
+    this->len = *(buffer + decoded++);
+    this->timervalue = *(buffer + decoded++);
   }
 
   return decoded;
 };
 
-int GPRSTimer2Msg::EncodeGPRSTimer2Msg(GPRSTimer2Msg* gprstimer, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int GPRSTimer2Msg::EncodeGPRSTimer2Msg(uint8_t iei, uint8_t* buffer,
+                                       uint32_t len) {
   uint32_t encoded = 0;
 
   if (iei > 0) {
-    *buffer = iei;
-    encoded++;
-
-    *(buffer + encoded) = gprstimer->len;
-    encoded++;
-    *(buffer + encoded) = gprstimer->timervalue;
-    encoded++;
+    *(buffer + encoded++) = iei;
+    *(buffer + encoded++) = this->len;
+    *(buffer + encoded++) = this->timervalue;
   }
 
   return encoded;

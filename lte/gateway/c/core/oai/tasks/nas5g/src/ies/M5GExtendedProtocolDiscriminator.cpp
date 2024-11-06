@@ -20,25 +20,17 @@ ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg(){};
 
 // Decode ExtendedProtocolDiscriminator IE
 int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(
-    ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
     uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
-
-  extended_protocol_discriminator->extended_proto_discriminator =
-      *(buffer + decoded);
-  decoded++;
+  this->extended_proto_discriminator = *(buffer + decoded++);
   return (decoded);
 };
 
 // Encode ExtendedProtocolDiscriminator IE
 int ExtendedProtocolDiscriminatorMsg::EncodeExtendedProtocolDiscriminatorMsg(
-    ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
     uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
-
-  *(buffer + encoded) =
-      extended_protocol_discriminator->extended_proto_discriminator;
-  encoded++;
+  *(buffer + encoded++) = this->extended_proto_discriminator;
   return (encoded);
 };
 }  // namespace magma5g

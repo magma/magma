@@ -25,8 +25,7 @@ bool decode_registration_request_msg(RegistrationRequestMsg* reg_request,
   uint8_t* decode_reg_buffer =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
-  if (reg_request->DecodeRegistrationRequestMsg(reg_request, decode_reg_buffer,
-                                                len) < 0) {
+  if (reg_request->DecodeRegistrationRequestMsg(decode_reg_buffer, len) < 0) {
     decode_success = false;
   }
 
@@ -40,8 +39,7 @@ bool encode_registration_reject_msg(RegistrationRejectMsg* reg_reject,
   uint8_t* encode_reg_buffer =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
-  if (reg_reject->EncodeRegistrationRejectMsg(reg_reject, encode_reg_buffer,
-                                              len) < 0) {
+  if (reg_reject->EncodeRegistrationRejectMsg(encode_reg_buffer, len) < 0) {
     encode_success = false;
   }
 
@@ -55,8 +53,7 @@ bool decode_registration_reject_msg(RegistrationRejectMsg* reg_reject,
   uint8_t* decode_reg_buffer =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
-  if (reg_reject->DecodeRegistrationRejectMsg(reg_reject, decode_reg_buffer,
-                                              len) < 0) {
+  if (reg_reject->DecodeRegistrationRejectMsg(decode_reg_buffer, len) < 0) {
     decode_success = false;
   }
 

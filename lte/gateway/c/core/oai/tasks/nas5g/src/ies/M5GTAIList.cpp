@@ -25,43 +25,32 @@ TAIListMsg::TAIListMsg(){};
 
 TAIListMsg::~TAIListMsg(){};
 
-int TAIListMsg::EncodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
-                                 uint8_t* buffer, uint32_t len) {
+int TAIListMsg::EncodeTAIListMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char)TAIList->iei);
-    *buffer = iei;
-    encoded++;
+    CHECK_IEI_ENCODER(iei, (unsigned char)this->iei);
+    *(buffer + encoded++) = iei;
   }
-  *(buffer + encoded) = TAIList->len;
-  encoded++;
+  *(buffer + encoded++) = this->len;
 
-  *(buffer + encoded) = 0x00 | ((TAIList->list_type & 0x03) << 5) |
-                        (TAIList->num_elements & 0x1f);
-  encoded++;
-  *(buffer + encoded) =
-      0x00 | ((TAIList->mcc_digit2 & 0x0f) << 4) | (TAIList->mcc_digit1 & 0x0f);
-  encoded++;
-  *(buffer + encoded) =
-      0x00 | ((TAIList->mnc_digit3 & 0x0f) << 4) | (TAIList->mcc_digit3 & 0x0f);
-  encoded++;
-  *(buffer + encoded) =
-      0x00 | ((TAIList->mnc_digit2 & 0x0f) << 4) | (TAIList->mnc_digit1 & 0x0f);
-  encoded++;
+  *(buffer + encoded++) =
+      0x00 | ((this->list_type & 0x03) << 5) | (this->num_elements & 0x1f);
+  *(buffer + encoded++) =
+      0x00 | ((this->mcc_digit2 & 0x0f) << 4) | (this->mcc_digit1 & 0x0f);
+  *(buffer + encoded++) =
+      0x00 | ((this->mnc_digit3 & 0x0f) << 4) | (this->mcc_digit3 & 0x0f);
+  *(buffer + encoded++) =
+      0x00 | ((this->mnc_digit2 & 0x0f) << 4) | (this->mnc_digit1 & 0x0f);
 
-  *(buffer + encoded) = TAIList->tac[0];
-  encoded++;
-  *(buffer + encoded) = TAIList->tac[1];
-  encoded++;
-  *(buffer + encoded) = TAIList->tac[2];
-  encoded++;
+  *(buffer + encoded++) = this->tac[0];
+  *(buffer + encoded++) = this->tac[1];
+  *(buffer + encoded++) = this->tac[2];
 
   return (encoded);
 }
 
-int TAIListMsg::DecodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
-                                 uint8_t* buffer, uint32_t len) {
+int TAIListMsg::DecodeTAIListMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   return 0;
 }
 

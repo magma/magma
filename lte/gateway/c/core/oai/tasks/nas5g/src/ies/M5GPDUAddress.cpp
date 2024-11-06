@@ -29,44 +29,44 @@ PDUAddressMsg::PDUAddressMsg(){};
 PDUAddressMsg::~PDUAddressMsg(){};
 
 // Decode PDUAddress IE
-int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int PDUAddressMsg::DecodePDUAddressMsg(uint8_t iei, uint8_t* buffer,
+                                       uint32_t len) {
   uint8_t decoded = 0;
   // CHECKING IEI
   if (iei > 0) {
-    IES_DECODE_U8(buffer, decoded, pdu_address->iei);
-    CHECK_IEI_DECODER(iei, (unsigned char)pdu_address->iei);
+    IES_DECODE_U8(buffer, decoded, this->iei);
+    CHECK_IEI_DECODER(iei, (unsigned char)this->iei);
   }
 
-  IES_DECODE_U8(buffer, decoded, pdu_address->length);
+  IES_DECODE_U8(buffer, decoded, this->length);
 
-  pdu_address->type_val = *(buffer + decoded) && 0x07;
-  memset(pdu_address->address_info, 0, sizeof(pdu_address->address_info));
+  this->type_val = *(buffer + decoded) && 0x07;
+  memset(this->address_info, 0, sizeof(this->address_info));
   decoded++;
-  memcpy(buffer + decoded, pdu_address->address_info, pdu_address->length - 1);
-  decoded += pdu_address->length - 1;
+  memcpy(buffer + decoded, this->address_info, this->length - 1);
+  decoded += this->length - 1;
 
   return (decoded);
 };
 
 // Encode PDUAddress IE
-int PDUAddressMsg::EncodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int PDUAddressMsg::EncodePDUAddressMsg(uint8_t iei, uint8_t* buffer,
+                                       uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
   if (iei > 0) {
-    pdu_address->iei = iei;
-    CHECK_IEI_DECODER(iei, (unsigned char)pdu_address->iei);
+    this->iei = iei;
+    CHECK_IEI_DECODER(iei, (unsigned char)this->iei);
     *(buffer + encoded) = iei;
     encoded++;
   }
 
   // Sizeof type_val + address length
-  IES_ENCODE_U8(buffer, encoded, sizeof(uint8_t) + pdu_address->length);
-  IES_ENCODE_U8(buffer, encoded, (0x00 | (pdu_address->type_val & 0x07)));
-  memcpy(buffer + encoded, pdu_address->address_info, pdu_address->length);
-  encoded = encoded + pdu_address->length;
+  IES_ENCODE_U8(buffer, encoded, sizeof(uint8_t) + this->length);
+  IES_ENCODE_U8(buffer, encoded, (0x00 | (this->type_val & 0x07)));
+  memcpy(buffer + encoded, this->address_info, this->length);
+  encoded = encoded + this->length;
 
   return (encoded);
 };

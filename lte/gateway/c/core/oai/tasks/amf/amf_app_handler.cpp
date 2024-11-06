@@ -51,7 +51,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 extern amf_config_t amf_config;
-extern amf_config_t amf_config;
+
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 static int pdu_session_resource_modification_t3591_handler(zloop_t* loop,
@@ -553,8 +553,6 @@ static int amf_smf_session_update_pti_proc(
  * Establishment Accept Message to UE*/
 status_code_e amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
-  DLNASTransportMsg encode_msg;
-  memset(&encode_msg, 0, sizeof(encode_msg));
   ue_m5gmm_context_s* ue_context = nullptr;
   std::shared_ptr<smf_context_t> smf_ctx;
   amf_smf_t amf_smf_msg;
@@ -1049,7 +1047,7 @@ status_code_e amf_app_handle_pdu_session_accept(
   bdestroy(smf_msg->msg.pdu_session_estab_accept.authorized_qosflowdescriptors);
 
   return RETURNok;
-}  // namespace magma5g
+}
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
 void amf_app_handle_resource_setup_response(
@@ -1729,6 +1727,7 @@ void amf_app_handle_initial_context_setup_rsp(
         &amf_app_desc_p->amf_ue_contexts, ue_context, M5GCM_CONNECTED);
   }
 }
+
 using grpc::Status;
 status_code_e amf_app_handle_pdu_session_failure(
     itti_n11_create_pdu_session_failure_t* pdu_session_failure) {
@@ -1756,9 +1755,9 @@ status_code_e amf_app_handle_pdu_session_failure(
 
   if (pdu_session_failure->error_code ==
       static_cast<uint8_t>(grpc::StatusCode::ALREADY_EXISTS)) {
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        "failure response due to duplicate PDU session,releasing existing PDU");
+    OAILOG_DEBUG(LOG_AMF_APP,
+                 "failure response due to duplicate PDU session,releasing "
+                 "existing PDU");
     amf_smf_release_t smf_message = {};
 
     smf_message.pdu_session_id = smf_context->smf_proc_data.pdu_session_id;
@@ -2004,11 +2003,11 @@ static int pdu_session_resource_modification_t3591_handler(zloop_t* loop,
         pdu_session_resource_modification_t3591_handler, id);
   } else {
     /* Abort the registration procedure */
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "T3591: Maximum retires:%d, for PDU_SESSION_MODIFICATION_REQUEST done "
-        "hence Abort the pdu sesssion modification procedure\n",
-        smf_ctx->retransmission_count);
+    OAILOG_ERROR(LOG_AMF_APP,
+                 "T3591: Maximum retires:%d, for "
+                 "PDU_SESSION_MODIFICATION_REQUEST done "
+                 "hence Abort the pdu sesssion modification procedure\n",
+                 smf_ctx->retransmission_count);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }

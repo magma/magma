@@ -150,7 +150,7 @@ int amf_send_pdusession_reject(SmfMsg* reject_req, uint8_t session_id,
   reject_req->header.message_type =
       static_cast<uint8_t>(M5GMessageType::PDU_SESSION_ESTABLISHMENT_REJECT);
   reject_req->msg.pdu_session_estab_reject.m5gsm_cause.cause_value = cause;
-  rc = reject_req->SmfMsgEncodeMsg(reject_req, buffer, 5);
+  rc = reject_req->SmfMsgEncodeMsg(buffer, 5);
   if (rc > 0) {
     // TODO: Send the message to AS for nas encode
     // and forward to NGAP. Nagetive scenario.

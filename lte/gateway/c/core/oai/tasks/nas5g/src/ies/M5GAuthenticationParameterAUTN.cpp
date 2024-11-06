@@ -28,8 +28,7 @@ AuthenticationParameterAUTNMsg::~AuthenticationParameterAUTNMsg(){};
 
 // Decode AuthenticationParameterAUTN IE
 int AuthenticationParameterAUTNMsg::DecodeAuthenticationParameterAUTNMsg(
-    AuthenticationParameterAUTNMsg* autn, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
   /*** Not Implemented, Will be supported POST MVC ***/
   return (decoded);
@@ -37,8 +36,7 @@ int AuthenticationParameterAUTNMsg::DecodeAuthenticationParameterAUTNMsg(
 
 // Encode AuthenticationParameterAUTN IE
 int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
-    AuthenticationParameterAUTNMsg* autn, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -46,14 +44,14 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AUTN_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char)iei, autn->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, this->iei);
     *buffer = iei;
     encoded++;
   }
 
   lenPtr = (uint8_t*)(buffer + encoded);
   encoded++;
-  memcpy(buffer + encoded, autn->AUTN, AUTN_MAX_LEN);
+  memcpy(buffer + encoded, this->AUTN, AUTN_MAX_LEN);
   encoded = encoded + AUTN_MAX_LEN;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 

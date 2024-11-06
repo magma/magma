@@ -27,16 +27,14 @@ ABBAMsg::ABBAMsg(){};
 ABBAMsg::~ABBAMsg(){};
 
 // Decode ABBA Message IE
-int ABBAMsg::DecodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
-                           uint32_t len) {
+int ABBAMsg::DecodeABBAMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
   /*** Not Implemented, Will be supported POST MVC ***/
   return (decoded);
 };
 
 // Encode ABBA Message IE
-int ABBAMsg::EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
-                           uint32_t len) {
+int ABBAMsg::EncodeABBAMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -44,14 +42,12 @@ int ABBAMsg::EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, ABBA_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char)iei, abba->iei);
-    *buffer = iei;
-    encoded++;
+    CHECK_IEI_ENCODER((unsigned char)iei, this->iei);
+    *(buffer + encoded++) = iei;
   }
 
-  lenPtr = buffer + encoded;
-  encoded++;
-  memcpy(buffer + encoded, abba->contents, ABBA_MIN_LEN);
+  lenPtr = (buffer + encoded++);
+  memcpy(buffer + encoded, this->contents, ABBA_MIN_LEN);
   encoded = encoded + ABBA_MIN_LEN;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 

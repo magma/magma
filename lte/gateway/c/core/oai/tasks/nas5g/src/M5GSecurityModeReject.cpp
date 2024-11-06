@@ -25,44 +25,36 @@ SecurityModeRejectMsg::SecurityModeRejectMsg(){};
 SecurityModeRejectMsg::~SecurityModeRejectMsg(){};
 
 // Decoding Security Mode Reject Message and its IEs
-int SecurityModeRejectMsg::DecodeSecurityModeRejectMsg(
-    SecurityModeRejectMsg* sec_mode_reject, uint8_t* buffer, uint32_t len) {
+int SecurityModeRejectMsg::DecodeSecurityModeRejectMsg(uint8_t* buffer,
+                                                       uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_REJECT_MINIMUM_LENGTH, len);
 
-  if ((decoded_result =
-           sec_mode_reject->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &sec_mode_reject->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           sec_mode_reject->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &sec_mode_reject->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           sec_mode_reject->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &sec_mode_reject->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = sec_mode_reject->message_type.DecodeMessageTypeMsg(
-           &sec_mode_reject->message_type, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = sec_mode_reject->m5gmm_cause.DecodeM5GMMCauseMsg(
-           &sec_mode_reject->m5gmm_cause, 0, buffer + decoded, len - decoded)) <
-      0)
+  if ((decoded_result = this->m5gmm_cause.DecodeM5GMMCauseMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -71,44 +63,36 @@ int SecurityModeRejectMsg::DecodeSecurityModeRejectMsg(
 }
 
 // Encoding Security Mode Reject Message and its IEs
-int SecurityModeRejectMsg::EncodeSecurityModeRejectMsg(
-    SecurityModeRejectMsg* sec_mode_reject, uint8_t* buffer, uint32_t len) {
+int SecurityModeRejectMsg::EncodeSecurityModeRejectMsg(uint8_t* buffer,
+                                                       uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, SECURITY_MODE_REJECT_MINIMUM_LENGTH, len);
 
-  if ((encoded_result =
-           sec_mode_reject->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &sec_mode_reject->extended_protocol_discriminator, 0,
-                   buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           sec_mode_reject->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &sec_mode_reject->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           sec_mode_reject->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &sec_mode_reject->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = sec_mode_reject->message_type.EncodeMessageTypeMsg(
-           &sec_mode_reject->message_type, 0, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = sec_mode_reject->m5gmm_cause.EncodeM5GMMCauseMsg(
-           &sec_mode_reject->m5gmm_cause, 0, buffer + encoded, len - encoded)) <
-      0)
+  if ((encoded_result = this->m5gmm_cause.EncodeM5GMMCauseMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

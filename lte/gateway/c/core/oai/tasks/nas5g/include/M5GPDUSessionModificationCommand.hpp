@@ -45,11 +45,7 @@ class PDUSessionModificationCommand {
   PDUSessionModificationCommand();
   ~PDUSessionModificationCommand();
 
-  int EncodePDUSessionModificationCommand(
-      PDUSessionModificationCommand* pdu_sess_mod_com, uint8_t* buffer,
-      uint32_t len);
-  int DecodePDUSessionModificationCommand(
-      PDUSessionModificationCommand* pdu_sess_mod_com, uint8_t* buffer,
-      uint32_t len);
+  int EncodePDUSessionModificationCommand(uint8_t* buffer, uint32_t len);
+  int DecodePDUSessionModificationCommand(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

@@ -22,10 +22,8 @@ class PDUSessionIdentityMsg {
 
   PDUSessionIdentityMsg();
   ~PDUSessionIdentityMsg();
-  int EncodePDUSessionIdentityMsg(PDUSessionIdentityMsg* pdu_session_id,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodePDUSessionIdentityMsg(PDUSessionIdentityMsg* pdu_session_id,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionIdentityMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodePDUSessionIdentityMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
   void copy(const PDUSessionIdentityMsg& p) {
     iei = p.iei;
     pdu_session_id = p.pdu_session_id;

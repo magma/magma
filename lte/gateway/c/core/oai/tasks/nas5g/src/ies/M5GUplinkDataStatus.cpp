@@ -20,41 +20,28 @@ namespace magma5g {
 M5GUplinkDataStatus::M5GUplinkDataStatus(){};
 M5GUplinkDataStatus::~M5GUplinkDataStatus(){};
 
-int M5GUplinkDataStatus::EncodeUplinkDataStatus(
-    M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GUplinkDataStatus::EncodeUplinkDataStatus(uint8_t iei, uint8_t* buffer,
+                                                uint32_t len) {
   int encoded = 0;
-  if (uplinkDataStatus->iei) {
-    *(buffer + encoded) = uplinkDataStatus->iei;
-    encoded++;
-    *(buffer + encoded) = uplinkDataStatus->len;
-    encoded++;
-    *(buffer + encoded) = (uint8_t)(uplinkDataStatus->uplinkDataStatus & 0xFF);
-    encoded++;
-    *(buffer + encoded) =
-        (uint8_t)(((uplinkDataStatus->uplinkDataStatus >> 8) & 0xFF));
-    encoded++;
+  if (this->iei) {
+    *(buffer + encoded++) = this->iei;
+    *(buffer + encoded++) = this->len;
+    *(buffer + encoded++) = (uint8_t)(this->uplinkDataStatus & 0xFF);
+    *(buffer + encoded++) = (uint8_t)(((this->uplinkDataStatus >> 8) & 0xFF));
   }
 
   return encoded;
 }
 
-int M5GUplinkDataStatus::DecodeUplinkDataStatus(
-    M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GUplinkDataStatus::DecodeUplinkDataStatus(uint8_t iei, uint8_t* buffer,
+                                                uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
-    uplinkDataStatus->iei = *buffer;
-    decoded++;
-
-    uplinkDataStatus->len = *(buffer + decoded);
-    decoded++;
-
-    uplinkDataStatus->uplinkDataStatus = *(buffer + decoded);
-    decoded++;
-    uplinkDataStatus->uplinkDataStatus |= (*(buffer + decoded) << 8);
-    decoded++;
+    this->iei = *(buffer + decoded++);
+    this->len = *(buffer + decoded++);
+    this->uplinkDataStatus = *(buffer + decoded++);
+    this->uplinkDataStatus |= (*(buffer + decoded++) << 8);
   }
 
   return decoded;

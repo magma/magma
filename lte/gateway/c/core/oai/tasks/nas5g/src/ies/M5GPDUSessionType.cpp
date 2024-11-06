@@ -28,36 +28,33 @@ PDUSessionTypeMsg::PDUSessionTypeMsg(){};
 PDUSessionTypeMsg::~PDUSessionTypeMsg(){};
 
 // Decode PDUSessionType IE
-int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(
-    PDUSessionTypeMsg* pdu_session_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(uint8_t iei, uint8_t* buffer,
+                                               uint32_t len) {
   int decoded = 0;
 
   // Store the IEI Information
   if (iei > 0) {
-    pdu_session_type->iei = (*buffer & 0xf0) >> 4;
+    this->iei = (*buffer & 0xf0) >> 4;
     decoded++;
   }
 
-  pdu_session_type->type_val = (*buffer & 0x07);
+  this->type_val = (*buffer & 0x07);
 
   return (decoded);
 };
 
 // Encode PDUSessionType IE
-int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(
-    PDUSessionTypeMsg* pdu_session_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int PDUSessionTypeMsg::EncodePDUSessionTypeMsg(uint8_t iei, uint8_t* buffer,
+                                               uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
   if (iei > 0) {
-    *buffer = (pdu_session_type->iei & 0x0f) << 4;
-    CHECK_IEI_ENCODER((uint8_t)iei,
-                      (uint8_t)((pdu_session_type->iei & 0x0f) << 4));
+    *buffer = (this->iei & 0x0f) << 4;
+    CHECK_IEI_ENCODER((uint8_t)iei, (uint8_t)((this->iei & 0x0f) << 4));
   }
 
-  *buffer = 0x00 | (*buffer & 0xf0) | (pdu_session_type->type_val & 0x07);
+  *buffer = 0x00 | (*buffer & 0xf0) | (this->type_val & 0x07);
   encoded++;
 
   return (encoded);

@@ -27,8 +27,7 @@ PDUSessionEstablishmentAcceptMsg::~PDUSessionEstablishmentAcceptMsg(){};
 
 // Decode PDUSessionEstablishmentAccept Message and its IEs
 int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
-    PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   uint8_t type_len = sizeof(uint8_t);
@@ -37,55 +36,45 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
 
-  if ((decoded_result =
-           pdu_session_estab_accept->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_session_estab_accept->extended_protocol_discriminator,
-                   0, buffer + decoded, len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
-  }
-
-  if ((decoded_result = pdu_session_estab_accept->pdu_session_identity
-                            .DecodePDUSessionIdentityMsg(
-                                &pdu_session_estab_accept->pdu_session_identity,
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
                                 0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
 
-  if ((decoded_result = pdu_session_estab_accept->pti.DecodePTIMsg(
-           &pdu_session_estab_accept->pti, 0, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decoded_result = this->pdu_session_identity.DecodePDUSessionIdentityMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
 
   if ((decoded_result =
-           pdu_session_estab_accept->message_type.DecodeMessageTypeMsg(
-               &pdu_session_estab_accept->message_type, 0, buffer + decoded,
-               len - decoded)) < 0) {
+           this->pti.DecodePTIMsg(0, buffer + decoded, len - decoded)) < 0) {
+    return decoded_result;
+  } else {
+    decoded += decoded_result;
+  }
+
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
 
   {
-    if ((decoded_result = pdu_session_estab_accept->ssc_mode.DecodeSSCModeMsg(
-             &pdu_session_estab_accept->ssc_mode, 0, buffer + decoded,
-             len - decoded)) < 0) {
+    if ((decoded_result = this->ssc_mode.DecodeSSCModeMsg(0, buffer + decoded,
+                                                          len - decoded)) < 0) {
       return decoded_result;
     } else {
       decoded += decoded_result;
     }
 
-    if ((decoded_result =
-             pdu_session_estab_accept->pdu_session_type.DecodePDUSessionTypeMsg(
-                 &pdu_session_estab_accept->pdu_session_type, 0,
-                 buffer + decoded, len - decoded)) < 0) {
+    if ((decoded_result = this->pdu_session_type.DecodePDUSessionTypeMsg(
+             0, buffer + decoded, len - decoded)) < 0) {
       return decoded_result;
     } else {
       decoded += decoded_result;
@@ -97,14 +86,12 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
   {
     uint16_t length = 0;
     IES_DECODE_U16(buffer, decoded, length);
-    pdu_session_estab_accept->authorized_qosrules = blk2bstr(buffer, length);
+    this->authorized_qosrules = blk2bstr(buffer, length);
     decoded += length;
   }
 
-  if ((decoded_result =
-           pdu_session_estab_accept->session_ambr.DecodeSessionAMBRMsg(
-               &pdu_session_estab_accept->session_ambr, 0, buffer + decoded,
-               len - decoded)) < 0) {
+  if ((decoded_result = this->session_ambr.DecodeSessionAMBRMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
@@ -118,11 +105,9 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
 
     switch (static_cast<M5GIei>(type)) {
       case M5GIei::PDU_ADDRESS:
-        if ((decoded_result =
-                 pdu_session_estab_accept->pdu_address.DecodePDUAddressMsg(
-                     &pdu_session_estab_accept->pdu_address,
-                     static_cast<uint8_t>(M5GIei::PDU_ADDRESS),
-                     buffer + decoded, len - decoded)) < 0) {
+        if ((decoded_result = this->pdu_address.DecodePDUAddressMsg(
+                 static_cast<uint8_t>(M5GIei::PDU_ADDRESS), buffer + decoded,
+                 len - decoded)) < 0) {
           return decoded_result;
         } else {
           decoded += decoded_result;
@@ -130,8 +115,7 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
         break;
 
       case M5GIei::S_NSSAI:
-        if ((decoded_result = pdu_session_estab_accept->nssai.DecodeNSSAIMsg(
-                 &pdu_session_estab_accept->nssai,
+        if ((decoded_result = this->nssai.DecodeNSSAIMsg(
                  static_cast<uint8_t>(M5GIei::S_NSSAI), buffer + decoded,
                  len - decoded)) < 0) {
           return decoded_result;
@@ -148,10 +132,9 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
         decoded += (length_len + decoded_result);
         break;
       case M5GIei::DNN:
-        if ((decoded_result = pdu_session_estab_accept->dnn.DecodeDNNMsg(
-                 &pdu_session_estab_accept->dnn,
-                 static_cast<uint8_t>(M5GIei::DNN), buffer + decoded,
-                 len - decoded)) < 0) {
+        if ((decoded_result =
+                 this->dnn.DecodeDNNMsg(static_cast<uint8_t>(M5GIei::DNN),
+                                        buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
         } else {
           decoded += decoded_result;
@@ -159,10 +142,8 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
         break;
       case M5GIei::EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS:
         if ((decoded_result =
-                 pdu_session_estab_accept->protocolconfigurationoptions
+                 this->protocolconfigurationoptions
                      .DecodeProtocolConfigurationOptions(
-                         &pdu_session_estab_accept
-                              ->protocolconfigurationoptions,
                          static_cast<uint8_t>(
                              M5GIei::EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS),
                          buffer + decoded, len - decoded)) < 0) {
@@ -185,123 +166,101 @@ int PDUSessionEstablishmentAcceptMsg::DecodePDUSessionEstablishmentAcceptMsg(
 
 // Encode PDUSessionEstablishmentAccept Message and its IEs
 int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
-    PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        PDU_SESSION_ESTABLISH_ACPT_MIN_LEN, len);
 
-  if ((encoded_result =
-           pdu_session_estab_accept->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_session_estab_accept->extended_protocol_discriminator,
-                   0, buffer + encoded, len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if ((encoded_result = pdu_session_estab_accept->pdu_session_identity
-                            .EncodePDUSessionIdentityMsg(
-                                &pdu_session_estab_accept->pdu_session_identity,
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
                                 0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_session_estab_accept->pti.EncodePTIMsg(
-           &pdu_session_estab_accept->pti, 0, buffer + encoded,
-           len - encoded)) < 0) {
+  if ((encoded_result = this->pdu_session_identity.EncodePDUSessionIdentityMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
   if ((encoded_result =
-           pdu_session_estab_accept->message_type.EncodeMessageTypeMsg(
-               &pdu_session_estab_accept->message_type, 0, buffer + encoded,
-               len - encoded)) < 0) {
+           this->pti.EncodePTIMsg(0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_session_estab_accept->ssc_mode.EncodeSSCModeMsg(
-           &pdu_session_estab_accept->ssc_mode, 0, buffer + encoded,
-           len - encoded)) < 0) {
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result =
-           pdu_session_estab_accept->pdu_session_type.EncodePDUSessionTypeMsg(
-               &pdu_session_estab_accept->pdu_session_type, 0, buffer + encoded,
-               len - encoded)) < 0) {
+  if ((encoded_result = this->ssc_mode.EncodeSSCModeMsg(0, buffer + encoded,
+                                                        len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->pdu_session_type.EncodePDUSessionTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
 
-  if (blength(pdu_session_estab_accept->authorized_qosrules)) {
+  if (blength(this->authorized_qosrules)) {
     // Encode the IE of Authorized QoS Rules
     // Encode the length of the IE
-    IES_ENCODE_U16(buffer, encoded,
-                   blength(pdu_session_estab_accept->authorized_qosrules));
+    IES_ENCODE_U16(buffer, encoded, blength(this->authorized_qosrules));
 
-    memcpy(buffer + encoded,
-           pdu_session_estab_accept->authorized_qosrules->data,
-           blength(pdu_session_estab_accept->authorized_qosrules));
+    memcpy(buffer + encoded, this->authorized_qosrules->data,
+           blength(this->authorized_qosrules));
 
-    encoded += blength(pdu_session_estab_accept->authorized_qosrules);
+    encoded += blength(this->authorized_qosrules);
   }
 
-  if ((encoded_result =
-           pdu_session_estab_accept->session_ambr.EncodeSessionAMBRMsg(
-               &pdu_session_estab_accept->session_ambr, 0, buffer + encoded,
-               len - encoded)) < 0) {
+  if ((encoded_result = this->session_ambr.EncodeSessionAMBRMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result =
-           pdu_session_estab_accept->pdu_address.EncodePDUAddressMsg(
-               &pdu_session_estab_accept->pdu_address,
-               static_cast<uint8_t>(M5GIei::PDU_ADDRESS), buffer + encoded,
-               len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-
-  if ((encoded_result = pdu_session_estab_accept->nssai.EncodeNSSAIMsg(
-           &pdu_session_estab_accept->nssai,
-           static_cast<uint8_t>(M5GIei::S_NSSAI), buffer + encoded,
+  if ((encoded_result = this->pdu_address.EncodePDUAddressMsg(
+           static_cast<uint8_t>(M5GIei::PDU_ADDRESS), buffer + encoded,
            len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
 
-  if (blength(pdu_session_estab_accept->authorized_qosflowdescriptors)) {
+  if ((encoded_result =
+           this->nssai.EncodeNSSAIMsg(static_cast<uint8_t>(M5GIei::S_NSSAI),
+                                      buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+
+  if (blength(this->authorized_qosflowdescriptors)) {
     // Encode the IE of Authorized QOS Flow descriptions
-    *(buffer + encoded) = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
-    encoded++;
+    *(buffer + encoded++) = PDU_SESSION_QOS_FLOW_DESC_IE_TYPE;
 
     // Encode the length of the IE
-    IES_ENCODE_U16(
-        buffer, encoded,
-        blength(pdu_session_estab_accept->authorized_qosflowdescriptors));
+    IES_ENCODE_U16(buffer, encoded,
+                   blength(this->authorized_qosflowdescriptors));
 
-    memcpy(buffer + encoded,
-           pdu_session_estab_accept->authorized_qosflowdescriptors->data,
-           blength(pdu_session_estab_accept->authorized_qosflowdescriptors));
+    memcpy(buffer + encoded, this->authorized_qosflowdescriptors->data,
+           blength(this->authorized_qosflowdescriptors));
 
-    encoded += blength(pdu_session_estab_accept->authorized_qosflowdescriptors);
+    encoded += blength(this->authorized_qosflowdescriptors);
   }
 
   if ((encoded_result =
-           pdu_session_estab_accept->protocolconfigurationoptions
+           this->protocolconfigurationoptions
                .EncodeProtocolConfigurationOptions(
-                   &pdu_session_estab_accept->protocolconfigurationoptions,
                    static_cast<uint8_t>(
                        M5GIei::EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS),
                    buffer + encoded, len - encoded)) < 0) {
@@ -309,10 +268,10 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
   } else {
     encoded += encoded_result;
   }
-  if (pdu_session_estab_accept->dnn.dnn[0]) {
-    if ((encoded_result = pdu_session_estab_accept->dnn.EncodeDNNMsg(
-             &pdu_session_estab_accept->dnn, static_cast<uint8_t>(M5GIei::DNN),
-             buffer + encoded, len - encoded)) < 0) {
+  if (this->dnn.dnn[0]) {
+    if ((encoded_result =
+             this->dnn.EncodeDNNMsg(static_cast<uint8_t>(M5GIei::DNN),
+                                    buffer + encoded, len - encoded)) < 0) {
       return encoded_result;
     } else {
       encoded += encoded_result;

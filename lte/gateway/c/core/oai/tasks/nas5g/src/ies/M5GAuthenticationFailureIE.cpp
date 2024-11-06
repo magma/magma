@@ -27,22 +27,18 @@ M5GAuthenticationFailureIE::~M5GAuthenticationFailureIE(){};
 
 // Decode 5GMMCause IE
 int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(
-    M5GAuthenticationFailureIE* m5g_auth_failure_ie, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
   uint8_t ielen = 0;
 
   if (iei > 0) {
-    m5g_auth_failure_ie->iei = *(buffer + decoded);
-    CHECK_IEI_DECODER((unsigned char)iei, m5g_auth_failure_ie->iei);
-    decoded++;
+    this->iei = *(buffer + decoded++);
+    CHECK_IEI_DECODER((unsigned char)iei, this->iei);
   }
 
-  ielen = *(buffer + decoded);
-  decoded++;
+  ielen = *(buffer + decoded++);
 
-  m5g_auth_failure_ie->authentication_failure_info =
-      blk2bstr(buffer + decoded, ielen);
+  this->authentication_failure_info = blk2bstr(buffer + decoded, ielen);
 
   decoded += ielen;
 

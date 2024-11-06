@@ -21,9 +21,17 @@ class SecurityHeaderTypeMsg {
 
   SecurityHeaderTypeMsg();
   ~SecurityHeaderTypeMsg();
-  int EncodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg* sec_header_type,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg* sec_header_type,
-                                  uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeSecurityHeaderTypeMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeSecurityHeaderTypeMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
+  bool operator==(const SecurityHeaderTypeMsg& other) {
+    return sec_hdr == other.sec_hdr;
+  }
+  bool operator!=(const SecurityHeaderTypeMsg& other) {
+    return !(*this == other);
+  }
+  SecurityHeaderTypeMsg& operator=(const SecurityHeaderTypeMsg& other) {
+    this->sec_hdr = other.sec_hdr;
+    return *this;
+  }
 };
 }  // namespace magma5g

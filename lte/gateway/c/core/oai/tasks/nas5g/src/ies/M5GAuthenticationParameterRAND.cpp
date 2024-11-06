@@ -28,8 +28,7 @@ AuthenticationParameterRANDMsg::~AuthenticationParameterRANDMsg(){};
 
 // Decode AuthenticationParameterRAND IE
 int AuthenticationParameterRANDMsg::DecodeAuthenticationParameterRANDMsg(
-    AuthenticationParameterRANDMsg* rand, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
   /*** Not Implemented, Will be supported POST MVC ***/
   return (decoded);
@@ -37,20 +36,19 @@ int AuthenticationParameterRANDMsg::DecodeAuthenticationParameterRANDMsg(
 
 // Encode AuthenticationParameterRAND IE
 int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
-    AuthenticationParameterRANDMsg* rand, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, RAND_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char)iei, rand->iei);
+    CHECK_IEI_ENCODER((unsigned char)iei, this->iei);
     *buffer = iei;
     encoded++;
   }
 
-  memcpy(buffer + encoded, rand->rand_val, RAND_MAX_LEN);
+  memcpy(buffer + encoded, this->rand_val, RAND_MAX_LEN);
   encoded = encoded + RAND_MAX_LEN;
 
   return (encoded);

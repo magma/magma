@@ -27,9 +27,7 @@ PDUSessionModificationCommandReject::PDUSessionModificationCommandReject() {}
 PDUSessionModificationCommandReject::~PDUSessionModificationCommandReject() {}
 
 int PDUSessionModificationCommandReject::
-    EncodePDUSessionModificationCommandReject(
-        PDUSessionModificationCommandReject* pdu_sess_mod_comd_rej,
-        uint8_t* buffer, uint32_t len) {
+    EncodePDUSessionModificationCommandReject(uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
@@ -37,41 +35,33 @@ int PDUSessionModificationCommandReject::
       buffer, PDU_SESSION_MODIFICATION_COMMAND_REJECT_MIN_LEN, len);
 
   OAILOG_DEBUG(LOG_NAS5G, "EncodePDUSessionModificationCommandReject");
-  if ((encoded_result =
-           pdu_sess_mod_comd_rej->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_sess_mod_comd_rej->extended_protocol_discriminator, 0,
-                   buffer + encoded, len - encoded)) < 0) {
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_sess_mod_comd_rej->pdu_session_identity
-                            .EncodePDUSessionIdentityMsg(
-                                &pdu_sess_mod_comd_rej->pdu_session_identity, 0,
-                                buffer + encoded, len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if ((encoded_result = pdu_sess_mod_comd_rej->pti.EncodePTIMsg(
-           &pdu_sess_mod_comd_rej->pti, 0, buffer + encoded, len - encoded)) <
-      0) {
+  if ((encoded_result = this->pdu_session_identity.EncodePDUSessionIdentityMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
   if ((encoded_result =
-           pdu_sess_mod_comd_rej->message_type.EncodeMessageTypeMsg(
-               &pdu_sess_mod_comd_rej->message_type, 0, buffer + encoded,
-               len - encoded)) < 0) {
+           this->pti.EncodePTIMsg(0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_sess_mod_comd_rej->cause.EncodeM5GSMCauseMsg(
-           &pdu_sess_mod_comd_rej->cause, M5GSM_CAUSE, buffer + encoded,
-           len - encoded)) < 0) {
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->cause.EncodeM5GSMCauseMsg(
+           M5GSM_CAUSE, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
@@ -81,9 +71,7 @@ int PDUSessionModificationCommandReject::
 }
 
 int PDUSessionModificationCommandReject::
-    DecodePDUSessionModificationCommandReject(
-        PDUSessionModificationCommandReject* pdu_sess_mod_comd_rej,
-        uint8_t* buffer, uint32_t len) {
+    DecodePDUSessionModificationCommandReject(uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   uint32_t decoded_result = 0;
 
@@ -91,50 +79,41 @@ int PDUSessionModificationCommandReject::
       buffer, PDU_SESSION_MODIFICATION_COMMAND_REJECT_MIN_LEN, len);
 
   OAILOG_DEBUG(LOG_NAS5G, "DecodePDUSessionModificationCommandReject : ");
-  if ((decoded_result =
-           pdu_sess_mod_comd_rej->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_sess_mod_comd_rej->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0) {
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
-  if ((decoded_result = pdu_sess_mod_comd_rej->pdu_session_identity
-                            .DecodePDUSessionIdentityMsg(
-                                &pdu_sess_mod_comd_rej->pdu_session_identity, 0,
-                                buffer + decoded, len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
-  }
-  if ((decoded_result = pdu_sess_mod_comd_rej->pti.DecodePTIMsg(
-           &pdu_sess_mod_comd_rej->pti, 0, buffer + decoded, len - decoded)) <
-      0) {
+  if ((decoded_result = this->pdu_session_identity.DecodePDUSessionIdentityMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
   if ((decoded_result =
-           pdu_sess_mod_comd_rej->message_type.DecodeMessageTypeMsg(
-               &pdu_sess_mod_comd_rej->message_type, 0, buffer + decoded,
-               len - decoded)) < 0) {
+           this->pti.DecodePTIMsg(0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
-  if ((decoded_result = pdu_sess_mod_comd_rej->cause.DecodeM5GSMCauseMsg(
-           &pdu_sess_mod_comd_rej->cause, M5GSM_CAUSE, buffer + decoded,
-           len - decoded)) < 0) {
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
+    return decoded_result;
+  } else {
+    decoded += decoded_result;
+  }
+  if ((decoded_result = this->cause.DecodeM5GSMCauseMsg(
+           M5GSM_CAUSE, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
   if (decoded < len) {
     if ((decoded_result =
-             pdu_sess_mod_comd_rej->extProtocolconfigurationoptions
+             this->extProtocolconfigurationoptions
                  .DecodeProtocolConfigurationOptions(
-                     &pdu_sess_mod_comd_rej->extProtocolconfigurationoptions,
                      REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE,
                      buffer + decoded, len - decoded)) < 0) {
       return decoded_result;

@@ -26,8 +26,7 @@ namespace magma5g {
 ImeisvRequestMsg::ImeisvRequestMsg(){};
 ImeisvRequestMsg::~ImeisvRequestMsg(){};
 
-int ImeisvRequestMsg::DecodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
-                                             uint8_t iei, uint8_t* buffer,
+int ImeisvRequestMsg::DecodeImeisvRequestMsg(uint8_t iei, uint8_t* buffer,
                                              uint32_t len) {
   int decoded = 0;
 
@@ -38,20 +37,18 @@ int ImeisvRequestMsg::DecodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
     CHECK_IEI_DECODER((unsigned char)(*buffer & 0xf0), iei);
   }
 
-  imeisv_request->spare = (*(buffer + decoded) >> 7) & 0x1;
-  imeisv_request->imeisv_request = (*(buffer + decoded) >> 4) & 0x7;
+  this->spare = (*(buffer + decoded) >> 7) & 0x1;
+  this->imeisv_request = (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
   return decoded;
 };
 
-int ImeisvRequestMsg::EncodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
-                                             uint8_t iei, uint8_t* buffer,
+int ImeisvRequestMsg::EncodeImeisvRequestMsg(uint8_t iei, uint8_t* buffer,
                                              uint32_t len) {
   uint32_t encoded = 0;
 
-  *(buffer + encoded) = 0xe0 | (imeisv_request->spare & 0x1) << 3 |
-                        (imeisv_request->imeisv_request & 0x7);
-  encoded++;
+  *(buffer + encoded++) =
+      0xe0 | (this->spare & 0x1) << 3 | (this->imeisv_request & 0x7);
 
   return encoded;
 };

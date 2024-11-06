@@ -24,11 +24,9 @@ class AuthenticationParameterAUTNMsg {
 
   AuthenticationParameterAUTNMsg();
   ~AuthenticationParameterAUTNMsg();
-  int EncodeAuthenticationParameterAUTNMsg(
-      AuthenticationParameterAUTNMsg* auth_parameter_autn, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
-  int DecodeAuthenticationParameterAUTNMsg(
-      AuthenticationParameterAUTNMsg* auth_parameter_autn, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationParameterAUTNMsg(uint8_t iei, uint8_t* buffer,
+                                           uint32_t len);
+  int DecodeAuthenticationParameterAUTNMsg(uint8_t iei, uint8_t* buffer,
+                                           uint32_t len);
 };
 }  // namespace magma5g

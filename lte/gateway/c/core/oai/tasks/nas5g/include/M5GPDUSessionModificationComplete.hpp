@@ -32,11 +32,7 @@ class PDUSessionModificationComplete {
   ProtocolConfigurationOptions extProtocolconfigurationoptions;
   PDUSessionModificationComplete();
   ~PDUSessionModificationComplete();
-  int DecodePDUSessionModificationComplete(
-      PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
-      uint32_t len);
-  int EncodePDUSessionModificationComplete(
-      PDUSessionModificationComplete* pdu_sess_mod_com, uint8_t* buffer,
-      uint32_t len);
+  int DecodePDUSessionModificationComplete(uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionModificationComplete(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

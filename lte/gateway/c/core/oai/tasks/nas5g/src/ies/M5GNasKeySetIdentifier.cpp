@@ -27,9 +27,9 @@ NASKeySetIdentifierMsg::NASKeySetIdentifierMsg(){};
 NASKeySetIdentifierMsg::~NASKeySetIdentifierMsg(){};
 
 // Decode NASKeySetIdentifier IE
-int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
-    NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(uint8_t iei,
+                                                         uint8_t* buffer,
+                                                         uint32_t len) {
   int decoded = 0;
 
   // Checking IEI and pointer
@@ -40,17 +40,15 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
     CHECK_IEI_DECODER((unsigned char)(*buffer & 0xf0), iei);
   }
 
-  nas_key_set_identifier->tsc = (*(buffer + decoded) >> 7) & 0x1;
-  nas_key_set_identifier->nas_key_set_identifier =
-      (*(buffer + decoded) >> 4) & 0x7;
-  decoded++;
+  this->tsc = (*(buffer + decoded) >> 7) & 0x1;
+  this->nas_key_set_identifier = (*(buffer + decoded++) >> 4) & 0x7;
   return decoded;
 };
 
 // Encode NASKeySetIdentifier IE
-int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
-    NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(uint8_t iei,
+                                                         uint8_t* buffer,
+                                                         uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -58,14 +56,12 @@ int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
                                        NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char)iei, nas_key_set_identifier->iei);
-    *buffer = iei;
-    encoded++;
+    CHECK_IEI_ENCODER((unsigned char)iei, this->iei);
+    *(buffer + encoded++) = iei;
   }
 
-  *(buffer + encoded) = 0x00 | (nas_key_set_identifier->tsc & 0x1) << 3 |
-                        (nas_key_set_identifier->nas_key_set_identifier & 0x7);
-  encoded++;
+  *(buffer + encoded++) =
+      0x00 | (this->tsc & 0x1) << 3 | (this->nas_key_set_identifier & 0x7);
 
   return encoded;
 };

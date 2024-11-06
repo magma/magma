@@ -41,8 +41,9 @@ M5GSMobileIdentityIe::M5GSMobileIdentityIe(){};
 M5GSMobileIdentityIe::~M5GSMobileIdentityIe(){};
 
 // Decode GutiMobileIdentity IE Message
-int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
-    GutiM5GSMobileIdentity* guti, uint8_t* buffer, uint8_t ielen) {
+int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(uint8_t* buffer,
+                                                       uint8_t ielen) {
+  GutiM5GSMobileIdentity* guti = &this->mobile_identity.guti;
   int decoded = 0;
   uint16_t setid;
 
@@ -56,13 +57,13 @@ int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
 
   guti->odd_even = (*(buffer + decoded) >> 3) & 0x1;
   guti->type_of_identity = *(buffer + decoded) & 0x7;
+  decoded++;
 
   if (guti->type_of_identity != M5GSMobileIdentityMsg_GUTI) {
     OAILOG_ERROR(LOG_NAS5G, "Error: %d", TLV_VALUE_DOESNT_MATCH);
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
-  decoded++;
   guti->mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
   guti->mcc_digit1 = *(buffer + decoded) & 0xf;
   decoded++;
@@ -72,28 +73,23 @@ int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
   guti->mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
   guti->mnc_digit1 = *(buffer + decoded) & 0xf;
   decoded++;
-  guti->amf_regionid = *(buffer + decoded);
-  decoded++;
-  setid = *(buffer + decoded);
-  decoded++;
+  guti->amf_regionid = *(buffer + decoded++);
+  setid = *(buffer + decoded++);
   guti->amf_setid =
       0x0000 | ((setid & 0xff) << 2) | ((*(buffer + decoded) >> 6) & 0x3);
   guti->amf_pointer = *(buffer + decoded) & 0x3f;
   decoded++;
-  guti->tmsi1 = *(buffer + decoded);
-  decoded++;
-  guti->tmsi2 = *(buffer + decoded);
-  decoded++;
-  guti->tmsi3 = *(buffer + decoded);
-  decoded++;
-  guti->tmsi4 = *(buffer + decoded);
-  decoded++;
+  guti->tmsi1 = *(buffer + decoded++);
+  guti->tmsi2 = *(buffer + decoded++);
+  guti->tmsi3 = *(buffer + decoded++);
+  guti->tmsi4 = *(buffer + decoded++);
   return (decoded);
 }
 
 // Decode ImeiMobileIdentity IE
-int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
-    ImeiM5GSMobileIdentity* imei, uint8_t* buffer, uint8_t ielen) {
+int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(uint8_t* buffer,
+                                                       uint8_t ielen) {
+  ImeiM5GSMobileIdentity* imei = &this->mobile_identity.imei;
   int decoded = 0;
 
   imei->identity_digit1 = (*(buffer + decoded) >> 4) & 0xf;
@@ -105,13 +101,13 @@ int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
 
   imei->odd_even = (*(buffer + decoded) >> 3) & 0x1;
   imei->type_of_identity = *(buffer + decoded) & 0x7;
+  decoded++;
 
   if (imei->type_of_identity != M5GSMobileIdentityMsg_IMEI) {
     OAILOG_ERROR(LOG_NAS5G, "Error : %d", TLV_VALUE_DOESNT_MATCH);
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
-  decoded++;
   imei->identity_digit3 = (*(buffer + decoded) >> 4) & 0xf;
   imei->identity_digit2 = *(buffer + decoded) & 0xf;
   decoded++;
@@ -120,8 +116,9 @@ int M5GSMobileIdentityMsg::DecodeImeiMobileIdentityMsg(
 };
 
 // Decode ImsiMobileIdentity IE
-int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
-    ImsiM5GSMobileIdentity* imsi, uint8_t* buffer, uint8_t ielen) {
+int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(uint8_t* buffer,
+                                                       uint8_t ielen) {
+  ImsiM5GSMobileIdentity* imsi = &this->mobile_identity.imsi;
   int decoded = 0;
   /* 5GS mobile identity comprises of
      1  byte  for spare bits, supi format and type of identity
@@ -140,13 +137,13 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
   imsi->supi_format = (*(buffer + decoded) >> 4) & 0x7;
   imsi->spare1 = (*(buffer + decoded) >> 3) & 0x1;
   imsi->type_of_identity = *(buffer + decoded) & 0x7;
+  decoded++;
 
   if (imsi->type_of_identity != M5GSMobileIdentityMsg_SUCI_IMSI) {
     OAILOG_ERROR(LOG_NAS5G, "Error : %d", TLV_VALUE_DOESNT_MATCH);
     return (TLV_VALUE_DOESNT_MATCH);
   }
 
-  decoded++;
   imsi->mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
   imsi->mcc_digit1 = *(buffer + decoded) & 0xf;
   decoded++;
@@ -179,8 +176,7 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
   imsi->spare3 = (*(buffer + decoded) >> 4) & 0x1;
   imsi->protect_schm_id = *(buffer + decoded) & 0xf;
   decoded++;
-  imsi->home_nw_id = *(buffer + decoded);
-  decoded++;
+  imsi->home_nw_id = *(buffer + decoded++);
 
   memcpy(&imsi->scheme_output, buffer + decoded, ielen - decoded);
 
@@ -236,32 +232,33 @@ int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
 
 // Will be supported POST MVC
 // Decode SuciMobileIdentity IE
-int M5GSMobileIdentityMsg::DecodeSuciMobileIdentityMsg(
-    SuciM5GSMobileIdentity* suci, uint8_t* buffer, uint8_t ielen) {
+int M5GSMobileIdentityMsg::DecodeSuciMobileIdentityMsg(uint8_t* buffer,
+                                                       uint8_t ielen) {
+  SuciM5GSMobileIdentity* suci = &this->mobile_identity.suci;
   int decoded = 0;
 
   suci->spare2 = (*(buffer + decoded) >> 7) & 0x1;
   suci->supi_format = (*(buffer + decoded) >> 4) & 0x7;
   suci->spare1 = (*(buffer + decoded) >> 3) & 0x1;
   suci->type_of_identity = *(buffer + decoded) & 0x7;
+  decoded++;
 
   if (suci->type_of_identity != M5GSMobileIdentityMsg_IMEISV) {
     OAILOG_ERROR(LOG_NAS5G, "TLV_VALUE_DOESNT_MATCH error");
     return (TLV_VALUE_DOESNT_MATCH);
   }
-  decoded++;
 
   // Will be supported POST MVC
-  suci->suci_nai = *(buffer + decoded);
-  decoded++;
+  suci->suci_nai = *(buffer + decoded++);
   decoded++;
 
   return (decoded);
 };
 
 // Decode TmsiMobileIdentity IE
-int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
-    TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer, uint8_t ielen) {
+int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(uint8_t* buffer,
+                                                       uint8_t ielen) {
+  TmsiM5GSMobileIdentity* tmsi = &this->mobile_identity.tmsi;
   int decoded = 0;
 
   tmsi->spare = (*(buffer + decoded) >> 4) & 0xf;
@@ -274,16 +271,15 @@ int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
 
   tmsi->odd_even = (*(buffer + decoded) >> 3) & 0x1;
   tmsi->type_of_identity = *(buffer + decoded) & 0x7;
+  decoded++;
 
   if (tmsi->type_of_identity != M5GSMobileIdentityMsg_TMSI) {
     OAILOG_ERROR(LOG_NAS5G, "Error : %d",
                  static_cast<int>(TLV_VALUE_DOESNT_MATCH));
     return (TLV_VALUE_DOESNT_MATCH);
   }
-  decoded++;
   uint8_t setid;
-  setid = *(buffer + decoded);
-  decoded++;
+  setid = *(buffer + decoded++);
   tmsi->amf_setid =
       0x0000 | ((setid & 0xff) << 2) | ((*(buffer + decoded) >> 6) & 0x3);
   tmsi->amf_pointer = *(buffer + decoded) & 0x3f;
@@ -294,16 +290,15 @@ int M5GSMobileIdentityMsg::DecodeTmsiMobileIdentityMsg(
 };
 
 // Decode M5GSMobileIdentity IE
-int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
-    M5GSMobileIdentityMsg* mg5smobile_identity, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(uint8_t iei,
+                                                       uint8_t* buffer,
+                                                       uint32_t len) {
   int decoded_rc = TLV_VALUE_DOESNT_MATCH;
   int decoded = 0;
   uint16_t ielen = 0;
 
   if (iei > 0) {
-    CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
-    decoded++;
+    CHECK_IEI_DECODER(iei, (unsigned char)*(buffer + decoded++));
   }
 
   IES_DECODE_U16(buffer, decoded, ielen);
@@ -311,20 +306,15 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
   unsigned char type_of_identity = *(buffer + decoded) & 0x7;
 
   if (type_of_identity == M5GSMobileIdentityMsg_IMEISV) {
-    decoded_rc = DecodeSuciMobileIdentityMsg(
-        &mg5smobile_identity->mobile_identity.suci, buffer, ielen);
+    decoded_rc = DecodeSuciMobileIdentityMsg(buffer, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_GUTI) {
-    decoded_rc = DecodeGutiMobileIdentityMsg(
-        &mg5smobile_identity->mobile_identity.guti, buffer + decoded, ielen);
+    decoded_rc = DecodeGutiMobileIdentityMsg(buffer + decoded, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_IMEI) {
-    decoded_rc = DecodeImeiMobileIdentityMsg(
-        &mg5smobile_identity->mobile_identity.imei, buffer + decoded, ielen);
+    decoded_rc = DecodeImeiMobileIdentityMsg(buffer + decoded, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_TMSI) {
-    decoded_rc = DecodeTmsiMobileIdentityMsg(
-        &mg5smobile_identity->mobile_identity.tmsi, buffer + decoded, ielen);
+    decoded_rc = DecodeTmsiMobileIdentityMsg(buffer + decoded, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_SUCI_IMSI) {
-    decoded_rc = DecodeImsiMobileIdentityMsg(
-        &mg5smobile_identity->mobile_identity.imsi, buffer + decoded, ielen);
+    decoded_rc = DecodeImsiMobileIdentityMsg(buffer + decoded, ielen);
   } else if (type_of_identity == M5GSMobileIdentityMsg_NO_IDENTITY) {
     decoded_rc = 1;
   }
@@ -336,88 +326,68 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
 };
 
 // Encode GutiMobileIdentity IE
-int M5GSMobileIdentityMsg::EncodeGutiMobileIdentityMsg(
-    GutiM5GSMobileIdentity* guti, uint8_t* buffer) {
+int M5GSMobileIdentityMsg::EncodeGutiMobileIdentityMsg(uint8_t* buffer) {
+  GutiM5GSMobileIdentity* guti = &this->mobile_identity.guti;
   uint32_t encoded = 0;
 
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0xf0 | ((guti->odd_even & 0x01) << 3) | (guti->type_of_identity & 0x7);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((guti->mcc_digit2 & 0x0f) << 4) | (guti->mcc_digit1 & 0x0f);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((guti->mnc_digit3 & 0x0f) << 4) | (guti->mcc_digit3 & 0x0f);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((guti->mnc_digit2 & 0x0f) << 4) | (guti->mnc_digit1 & 0x0f);
-  encoded++;
-  *(buffer + encoded) = 0x00 | guti->amf_regionid;
-  encoded++;
-  *(buffer + encoded) = 0x00 | ((guti->amf_setid >> 2) & 0xFF);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) = 0x00 | guti->amf_regionid;
+  *(buffer + encoded++) = 0x00 | ((guti->amf_setid >> 2) & 0xFF);
+  *(buffer + encoded++) =
       0x00 | ((guti->amf_setid & 0xF3) << 6) | (guti->amf_pointer & 0x3f);
-  encoded++;
-  *(buffer + encoded) = 0x00 | guti->tmsi1;
-  encoded++;
-  *(buffer + encoded) = 0x00 | guti->tmsi2;
-  encoded++;
-  *(buffer + encoded) = 0x00 | guti->tmsi3;
-  encoded++;
-  *(buffer + encoded) = 0x00 | guti->tmsi4;
-  encoded++;
+  *(buffer + encoded++) = 0x00 | guti->tmsi1;
+  *(buffer + encoded++) = 0x00 | guti->tmsi2;
+  *(buffer + encoded++) = 0x00 | guti->tmsi3;
+  *(buffer + encoded++) = 0x00 | guti->tmsi4;
 
   return encoded;
 };
 
 // Will be supported POST MVC
 // Encode ImeiMobileIdentity IE
-int M5GSMobileIdentityMsg::EncodeImeiMobileIdentityMsg(
-    ImeiM5GSMobileIdentity* imei, uint8_t* buffer) {
+int M5GSMobileIdentityMsg::EncodeImeiMobileIdentityMsg(uint8_t* buffer) {
+  ImeiM5GSMobileIdentity* imei = &this->mobile_identity.imei;
   uint32_t encoded = 0;
 
-  *(buffer + encoded) = 0x00 | ((imei->identity_digit1 & 0xf0) << 4) |
-                        ((imei->odd_even & 0x1) << 3) |
-                        (imei->type_of_identity & 0x7);
-  encoded++;
-  *(buffer + encoded) = 0x00 | ((imei->identity_digit2 & 0xf0) << 4) |
-                        (imei->identity_digit3 & 0x0f);
-  encoded++;
+  *(buffer + encoded++) = 0x00 | ((imei->identity_digit1 & 0xf0) << 4) |
+                          ((imei->odd_even & 0x1) << 3) |
+                          (imei->type_of_identity & 0x7);
+  *(buffer + encoded++) = 0x00 | ((imei->identity_digit2 & 0xf0) << 4) |
+                          (imei->identity_digit3 & 0x0f);
 
   return encoded;
 };
 
 // Will be supported POST MVC
 // Encode ImsiMobileIdentity IE
-int M5GSMobileIdentityMsg::EncodeImsiMobileIdentityMsg(
-    ImsiM5GSMobileIdentity* imsi, uint8_t* buffer) {
+int M5GSMobileIdentityMsg::EncodeImsiMobileIdentityMsg(uint8_t* buffer) {
+  ImsiM5GSMobileIdentity* imsi = &this->mobile_identity.imsi;
   uint32_t encoded = 0;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((imsi->spare2 & 0x80) << 7) | ((imsi->supi_format & 0x07) << 4) |
       ((imsi->spare1 & 0x01) << 3) | (imsi->type_of_identity & 0x7);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((imsi->mcc_digit2 & 0x0f) << 4) | (imsi->mcc_digit1 & 0x0f);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((imsi->mnc_digit3 & 0x0f) << 4) | (imsi->mcc_digit3 & 0x0f);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((imsi->mnc_digit2 & 0x0f) << 4) | (imsi->mnc_digit1 & 0x0f);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((imsi->rout_ind_digit_2) << 4) | (imsi->rout_ind_digit_1);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((imsi->rout_ind_digit_3) << 4) | (imsi->rout_ind_digit_4);
-  encoded++;
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((imsi->spare6 & 0x01) << 7) | ((imsi->spare5 & 0x01) << 6) |
       ((imsi->spare4 & 0x01) << 5) | ((imsi->spare3 & 0x01) << 4) |
       (imsi->protect_schm_id & 0x0f);
-  *(buffer + encoded) = imsi->home_nw_id;
-  encoded++;
+  *(buffer + encoded++) = imsi->home_nw_id;
 
   memcpy(buffer + encoded, &imsi->scheme_output, imsi->scheme_len);
   encoded = encoded + imsi->scheme_len;
@@ -426,16 +396,14 @@ int M5GSMobileIdentityMsg::EncodeImsiMobileIdentityMsg(
 };
 
 // Will be supported POST MVC
-int M5GSMobileIdentityMsg::EncodeTmsiMobileIdentityMsg(
-    TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer) {
+int M5GSMobileIdentityMsg::EncodeTmsiMobileIdentityMsg(uint8_t* buffer) {
+  TmsiM5GSMobileIdentity* tmsi = &this->mobile_identity.tmsi;
   uint32_t encoded = 0;
 
-  *(buffer + encoded) = 0x00 | ((tmsi->spare & 0x0f) << 4) |
-                        ((tmsi->odd_even & 0x01) << 3) |
-                        (tmsi->type_of_identity & 0x7);
-  encoded++;
-  *(buffer + encoded) = 0x00 | tmsi->amf_setid;
-  encoded++;
+  *(buffer + encoded++) = 0x00 | ((tmsi->spare & 0x0f) << 4) |
+                          ((tmsi->odd_even & 0x01) << 3) |
+                          (tmsi->type_of_identity & 0x7);
+  *(buffer + encoded++) = 0x00 | tmsi->amf_setid;
   *(buffer + encoded) = 0x00 | ((tmsi->amf_setid & 0xc0) << 6);
   *(buffer + encoded) = 0x00 | (tmsi->amf_pointer & 0x3f);
   encoded++;
@@ -443,23 +411,22 @@ int M5GSMobileIdentityMsg::EncodeTmsiMobileIdentityMsg(
 };
 
 // Encode SuciMobileIdentity IE
-int M5GSMobileIdentityMsg::EncodeSuciMobileIdentityMsg(
-    SuciM5GSMobileIdentity* suci, uint8_t* buffer) {
+int M5GSMobileIdentityMsg::EncodeSuciMobileIdentityMsg(uint8_t* buffer) {
+  SuciM5GSMobileIdentity* suci = &this->mobile_identity.suci;
   uint32_t encoded = 0;
 
-  *(buffer + encoded) =
+  *(buffer + encoded++) =
       0x00 | ((suci->spare2 & 0x80) << 7) | ((suci->supi_format & 0x07) << 4) |
       ((suci->spare1 & 0x01) << 3) | (suci->type_of_identity & 0x7);
-  encoded++;
   suci->suci_nai.assign((const char*)(buffer + encoded), suci->suci_nai.size());
 
   return encoded;
 };
 
 // Encode M5GSMobileIdentity IE
-int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(
-    M5GSMobileIdentityMsg* m5gs_mobile_identity, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(uint8_t iei,
+                                                       uint8_t* buffer,
+                                                       uint32_t len) {
   uint16_t* lenPtr;
   int encoded_rc = TLV_VALUE_DOESNT_MATCH;
   uint32_t encoded = 0;
@@ -467,32 +434,24 @@ int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, MOBILE_IDENTITY_MIN_LENGTH, len);
 
-  if (m5gs_mobile_identity->iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char)iei, m5gs_mobile_identity->iei);
-    *buffer = iei;
-    encoded++;
-  } else
-    return 0;
+  if (this->iei <= 0) return 0;
+
+  CHECK_IEI_ENCODER((unsigned char)iei, this->iei);
+  *(buffer + encoded++) = iei;
 
   lenPtr = (uint16_t*)(buffer + encoded);
   encoded += 2;
-  m5gs_mobile_identity->toi =
-      m5gs_mobile_identity->mobile_identity.guti.type_of_identity;
-  if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_SUCI_IMSI) {
-    encoded_rc = EncodeImsiMobileIdentityMsg(
-        &m5gs_mobile_identity->mobile_identity.imsi, buffer + encoded);
-  } else if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_IMEI) {
-    encoded_rc = EncodeImeiMobileIdentityMsg(
-        &m5gs_mobile_identity->mobile_identity.imei, buffer + encoded);
-  } else if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_GUTI) {
-    encoded_rc = EncodeGutiMobileIdentityMsg(
-        &m5gs_mobile_identity->mobile_identity.guti, buffer + encoded);
-  } else if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_TMSI) {
-    encoded_rc = EncodeTmsiMobileIdentityMsg(
-        &m5gs_mobile_identity->mobile_identity.tmsi, buffer + encoded);
-  } else if (m5gs_mobile_identity->toi == M5GSMobileIdentityMsg_IMEISV) {
-    encoded_rc = EncodeSuciMobileIdentityMsg(
-        &m5gs_mobile_identity->mobile_identity.suci, buffer + encoded);
+  this->toi = this->mobile_identity.guti.type_of_identity;
+  if (this->toi == M5GSMobileIdentityMsg_SUCI_IMSI) {
+    encoded_rc = EncodeImsiMobileIdentityMsg(buffer + encoded);
+  } else if (this->toi == M5GSMobileIdentityMsg_IMEI) {
+    encoded_rc = EncodeImeiMobileIdentityMsg(buffer + encoded);
+  } else if (this->toi == M5GSMobileIdentityMsg_GUTI) {
+    encoded_rc = EncodeGutiMobileIdentityMsg(buffer + encoded);
+  } else if (this->toi == M5GSMobileIdentityMsg_TMSI) {
+    encoded_rc = EncodeTmsiMobileIdentityMsg(buffer + encoded);
+  } else if (this->toi == M5GSMobileIdentityMsg_IMEISV) {
+    encoded_rc = EncodeSuciMobileIdentityMsg(buffer + encoded);
   }
 
   if (encoded_rc < 0) {

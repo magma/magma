@@ -29,10 +29,8 @@ class RegistrationCompleteMsg {
 
   RegistrationCompleteMsg();
   ~RegistrationCompleteMsg();
-  int DecodeRegistrationCompleteMsg(RegistrationCompleteMsg* reg_complete,
-                                    uint8_t* buffer, uint32_t len);
-  int EncodeRegistrationCompleteMsg(RegistrationCompleteMsg* reg_complete,
-                                    uint8_t* buffer, uint32_t len);
+  int DecodeRegistrationCompleteMsg(uint8_t* buffer, uint32_t len);
+  int EncodeRegistrationCompleteMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

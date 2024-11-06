@@ -45,11 +45,7 @@ class PDUSessionModificationCommandReject {
 
   PDUSessionModificationCommandReject();
   ~PDUSessionModificationCommandReject();
-  int DecodePDUSessionModificationCommandReject(
-      PDUSessionModificationCommandReject* pdu_sess_mod_comd_rej,
-      uint8_t* buffer, uint32_t len);
-  int EncodePDUSessionModificationCommandReject(
-      PDUSessionModificationCommandReject* pdu_sess_mod_comd_rej,
-      uint8_t* buffer, uint32_t len);
+  int DecodePDUSessionModificationCommandReject(uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionModificationCommandReject(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

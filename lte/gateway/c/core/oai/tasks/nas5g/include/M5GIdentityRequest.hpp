@@ -30,10 +30,8 @@ class IdentityRequestMsg {
 
   IdentityRequestMsg();
   ~IdentityRequestMsg();
-  int DecodeIdentityRequestMsg(IdentityRequestMsg* identity_request,
-                               uint8_t* buffer, uint32_t len);
-  int EncodeIdentityRequestMsg(IdentityRequestMsg* identity_request,
-                               uint8_t* buffer, uint32_t len);
+  int DecodeIdentityRequestMsg(uint8_t* buffer, uint32_t len);
+  int EncodeIdentityRequestMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

@@ -44,11 +44,9 @@ class NASSecurityAlgorithmsMsg {
   M5GNasSecurityAlgorithms M5GNasSecurityAlgorithms_;
   NASSecurityAlgorithmsMsg();
   ~NASSecurityAlgorithmsMsg();
-  int EncodeNASSecurityAlgorithmsMsg(
-      NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
-  int DecodeNASSecurityAlgorithmsMsg(
-      NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int EncodeNASSecurityAlgorithmsMsg(uint8_t iei, uint8_t* buffer,
+                                     uint32_t len);
+  int DecodeNASSecurityAlgorithmsMsg(uint8_t iei, uint8_t* buffer,
+                                     uint32_t len);
 };
 }  // namespace magma5g

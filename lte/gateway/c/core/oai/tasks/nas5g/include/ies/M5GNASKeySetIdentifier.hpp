@@ -23,11 +23,7 @@ class NASKeySetIdentifierMsg {
 
   NASKeySetIdentifierMsg();
   ~NASKeySetIdentifierMsg();
-  int EncodeNASKeySetIdentifierMsg(
-      NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
-  int DecodeNASKeySetIdentifierMsg(
-      NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int EncodeNASKeySetIdentifierMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeNASKeySetIdentifierMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

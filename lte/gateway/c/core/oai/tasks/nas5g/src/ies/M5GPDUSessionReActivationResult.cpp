@@ -21,44 +21,27 @@ M5GPDUSessionReActivationResult::M5GPDUSessionReActivationResult(){};
 M5GPDUSessionReActivationResult::~M5GPDUSessionReActivationResult(){};
 
 int M5GPDUSessionReActivationResult::EncodePDUSessionReActivationResult(
-    M5GPDUSessionReActivationResult* pduSessionReActivationStatus, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
-  if (pduSessionReActivationStatus->iei) {
-    *(buffer + encoded) = pduSessionReActivationStatus->iei;
-    encoded++;
-    *(buffer + encoded) = pduSessionReActivationStatus->len;
-    encoded++;
-    *(buffer + encoded) =
-        (pduSessionReActivationStatus->pduSessionReActivationResult & 0xFF);
-    encoded++;
-    *(buffer + encoded) =
-        ((pduSessionReActivationStatus->pduSessionReActivationResult >> 8) &
-         0xFF);
-    encoded++;
+  if (this->iei) {
+    *(buffer + encoded++) = this->iei;
+    *(buffer + encoded++) = this->len;
+    *(buffer + encoded++) = (this->pduSessionReActivationResult & 0xFF);
+    *(buffer + encoded++) = ((this->pduSessionReActivationResult >> 8) & 0xFF);
   }
 
   return encoded;
 }
 
 int M5GPDUSessionReActivationResult::DecodePDUSessionReActivationResult(
-    M5GPDUSessionReActivationResult* pduSessionReActivationStatus, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
-    pduSessionReActivationStatus->iei = *buffer;
-    decoded++;
-
-    pduSessionReActivationStatus->len = *(buffer + decoded);
-    decoded++;
-
-    pduSessionReActivationStatus->pduSessionReActivationResult =
-        *(buffer + decoded);
-    decoded++;
-    pduSessionReActivationStatus->pduSessionReActivationResult |=
-        (*(buffer + decoded) << 8);
-    decoded++;
+    this->iei = *(buffer + decoded++);
+    this->len = *(buffer + decoded++);
+    this->pduSessionReActivationResult = *(buffer + decoded++);
+    this->pduSessionReActivationResult |= (*(buffer + decoded++) << 8);
   }
 
   return decoded;

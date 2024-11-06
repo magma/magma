@@ -23,8 +23,8 @@ bool decode_auth_failure_decode_msg(AuthenticationFailureMsg* auth_fail_request,
   uint8_t* decode_auth_fail_buffer =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
-  if (auth_fail_request->DecodeAuthenticationFailureMsg(
-          auth_fail_request, decode_auth_fail_buffer, len) < 0) {
+  if (auth_fail_request->DecodeAuthenticationFailureMsg(decode_auth_fail_buffer,
+                                                        len) < 0) {
     decode_success = false;
   }
 

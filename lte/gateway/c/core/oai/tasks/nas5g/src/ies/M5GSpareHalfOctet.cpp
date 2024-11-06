@@ -16,26 +16,22 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-SpareHalfOctetMsg::SpareHalfOctetMsg(){};
+SpareHalfOctetMsg::SpareHalfOctetMsg() { this->spare = 0; };
 SpareHalfOctetMsg::~SpareHalfOctetMsg(){};
 
 // Decode SpareHalfOctet IE
-int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(
-    SpareHalfOctetMsg* spare_half_octet, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(uint8_t iei, uint8_t* buffer,
+                                               uint32_t len) {
   int decoded = 0;
-
-  spare_half_octet->spare = (*buffer & 0xf0) >> 4;
+  this->spare = (*buffer & 0xf0) >> 4;
   return (decoded);
 };
 
 // Encode SpareHalfOctet IE
-int SpareHalfOctetMsg::EncodeSpareHalfOctetMsg(
-    SpareHalfOctetMsg* spare_half_octet, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int SpareHalfOctetMsg::EncodeSpareHalfOctetMsg(uint8_t iei, uint8_t* buffer,
+                                               uint32_t len) {
   int encoded = 0;
-
-  *(buffer) = 0x00 | (spare_half_octet->spare & 0xf) << 4;
+  *(buffer) = 0x00 | (this->spare & 0xf) << 4;
   return (encoded);
 };
 }  // namespace magma5g

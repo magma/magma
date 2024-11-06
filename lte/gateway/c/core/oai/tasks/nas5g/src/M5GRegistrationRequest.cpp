@@ -26,8 +26,8 @@ RegistrationRequestMsg::RegistrationRequestMsg(){};
 RegistrationRequestMsg::~RegistrationRequestMsg(){};
 
 // Decode RegistrationRequest Message and its IEs
-int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
-    RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len) {
+int RegistrationRequestMsg::DecodeRegistrationRequestMsg(uint8_t* buffer,
+                                                         uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   uint8_t type_len = 0;
@@ -36,49 +36,40 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, REGISTRATION_REQUEST_MINIMUM_LENGTH, len);
 
-  if ((decoded_result = reg_request->extended_protocol_discriminator
+  if ((decoded_result = this->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
-                                &reg_request->extended_protocol_discriminator,
                                 0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = reg_request->spare_half_octet.DecodeSpareHalfOctetMsg(
-           &reg_request->spare_half_octet, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->m5gs_reg_type.DecodeM5GSRegistrationTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
   if ((decoded_result =
-           reg_request->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &reg_request->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
+           this->nas_key_set_identifier.DecodeNASKeySetIdentifierMsg(
+               0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = reg_request->message_type.DecodeMessageTypeMsg(
-           &reg_request->message_type, 0, buffer + decoded, len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           reg_request->m5gs_reg_type.DecodeM5GSRegistrationTypeMsg(
-               &reg_request->m5gs_reg_type, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           reg_request->nas_key_set_identifier.DecodeNASKeySetIdentifierMsg(
-               &reg_request->nas_key_set_identifier, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           reg_request->m5gs_mobile_identity.DecodeM5GSMobileIdentityMsg(
-               &reg_request->m5gs_mobile_identity, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->m5gs_mobile_identity.DecodeM5GSMobileIdentityMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -91,11 +82,9 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
 
     switch (type) {
       case REGISTRATION_REQUEST_UE_SECURITY_CAPABILITY_TYPE:
-        decoded_result =
-            reg_request->ue_sec_capability.DecodeUESecurityCapabilityMsg(
-                &reg_request->ue_sec_capability,
-                REGISTRATION_REQUEST_UE_SECURITY_CAPABILITY_TYPE,
-                buffer + decoded, len - decoded);
+        decoded_result = this->ue_sec_capability.DecodeUESecurityCapabilityMsg(
+            REGISTRATION_REQUEST_UE_SECURITY_CAPABILITY_TYPE, buffer + decoded,
+            len - decoded);
         if (decoded_result < 0) {
           return decoded_result;
         }
@@ -154,8 +143,8 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
 
 // Will be supported POST MVC
 // Encode Registration Request Message and its IEs
-int RegistrationRequestMsg::EncodeRegistrationRequestMsg(
-    RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len) {
+int RegistrationRequestMsg::EncodeRegistrationRequestMsg(uint8_t* buffer,
+                                                         uint32_t len) {
   uint32_t encoded = 0;
   // Will be supported POST MVC
   return encoded;

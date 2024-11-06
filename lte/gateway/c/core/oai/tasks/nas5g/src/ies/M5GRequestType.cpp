@@ -28,33 +28,31 @@ RequestType::RequestType() {}
 RequestType::~RequestType() {}
 
 // Decode RequestType IE
-int RequestType::DecodeRequestType(RequestType* reqest_type, uint8_t iei,
-                                   uint8_t* buffer, uint32_t len) {
+int RequestType::DecodeRequestType(uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   // Store the IEI Information
   if (iei > 0) {
-    reqest_type->iei = (*buffer & 0xf0) >> 4;
+    this->iei = (*buffer & 0xf0) >> 4;
     decoded++;
   }
 
-  reqest_type->type_val = (*buffer & 0x07);
+  this->type_val = (*buffer & 0x07);
 
   return (decoded);
 }
 
 // Encode RequestType IE
-int RequestType::EncodeRequestType(RequestType* reqest_type, uint8_t iei,
-                                   uint8_t* buffer, uint32_t len) {
+int RequestType::EncodeRequestType(uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
   if (iei > 0) {
-    *buffer = (reqest_type->iei & 0x0f) << 4;
-    CHECK_IEI_ENCODER((uint8_t)iei, (uint8_t)((reqest_type->iei & 0x0f) << 4));
+    *buffer = (this->iei & 0x0f) << 4;
+    CHECK_IEI_ENCODER((uint8_t)iei, (uint8_t)((this->iei & 0x0f) << 4));
   }
 
-  *buffer = 0x00 | (*buffer & 0xf0) | (reqest_type->type_val & 0x07);
+  *buffer = 0x00 | (*buffer & 0xf0) | (this->type_val & 0x07);
   encoded++;
 
   return (encoded);

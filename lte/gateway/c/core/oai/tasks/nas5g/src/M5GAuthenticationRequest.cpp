@@ -26,16 +26,16 @@ AuthenticationRequestMsg::AuthenticationRequestMsg(){};
 AuthenticationRequestMsg::~AuthenticationRequestMsg(){};
 
 // Decode AuthenticationRequest Messsage
-int AuthenticationRequestMsg::DecodeAuthenticationRequestMsg(
-    AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len) {
+int AuthenticationRequestMsg::DecodeAuthenticationRequestMsg(uint8_t* buffer,
+                                                             uint32_t len) {
   uint32_t decoded = 0;
   /*** Not Implemented, will be supported POST MVC ***/
   return decoded;
 };
 
 // Encode AuthenticationRequest Messsage
-int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(
-    AuthenticationRequestMsg* auth_request, uint8_t* buffer, uint32_t len) {
+int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(uint8_t* buffer,
+                                                             uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
 
@@ -44,56 +44,46 @@ int AuthenticationRequestMsg::EncodeAuthenticationRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_REQUEST_MINIMUM_LENGTH, len);
 
-  if ((encoded_result = auth_request->extended_protocol_discriminator
+  if ((encoded_result = this->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
-                                &auth_request->extended_protocol_discriminator,
                                 0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = auth_request->spare_half_octet.EncodeSpareHalfOctetMsg(
-           &auth_request->spare_half_octet, 0, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
   if ((encoded_result =
-           auth_request->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &auth_request->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result = auth_request->message_type.EncodeMessageTypeMsg(
-           &auth_request->message_type, 0, buffer + encoded, len - encoded)) <
-      0)
+           this->nas_key_set_identifier.EncodeNASKeySetIdentifierMsg(
+               0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
   if ((encoded_result =
-           auth_request->nas_key_set_identifier.EncodeNASKeySetIdentifierMsg(
-               &auth_request->nas_key_set_identifier, 0, buffer + encoded,
-               len - encoded)) < 0)
+           this->abba.EncodeABBAMsg(0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = auth_request->abba.EncodeABBAMsg(
-           &auth_request->abba, 0, buffer + encoded, len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           auth_request->auth_rand.EncodeAuthenticationParameterRANDMsg(
-               &auth_request->auth_rand, AUTH_PARAM_RAND, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->auth_rand.EncodeAuthenticationParameterRANDMsg(
+           AUTH_PARAM_RAND, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
 
-  if ((encoded_result =
-           auth_request->auth_autn.EncodeAuthenticationParameterAUTNMsg(
-               &auth_request->auth_autn, AUTH_PARAM_AUTN, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->auth_autn.EncodeAuthenticationParameterAUTNMsg(
+           AUTH_PARAM_AUTN, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

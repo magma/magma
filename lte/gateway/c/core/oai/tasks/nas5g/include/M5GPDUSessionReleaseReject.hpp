@@ -30,12 +30,8 @@ class PDUSessionReleaseRejectMsg {
 
   PDUSessionReleaseRejectMsg();
   ~PDUSessionReleaseRejectMsg();
-  int DecodePDUSessionReleaseRejectMsg(
-      PDUSessionReleaseRejectMsg* pdu_session_release_reject, uint8_t* buffer,
-      uint32_t len);
-  int EncodePDUSessionReleaseRejectMsg(
-      PDUSessionReleaseRejectMsg* pdu_session_release_reject, uint8_t* buffer,
-      uint32_t len);
+  int DecodePDUSessionReleaseRejectMsg(uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionReleaseRejectMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

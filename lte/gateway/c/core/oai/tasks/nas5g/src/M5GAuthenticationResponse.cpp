@@ -26,43 +26,37 @@ AuthenticationResponseMsg::AuthenticationResponseMsg(){};
 AuthenticationResponseMsg::~AuthenticationResponseMsg(){};
 
 // Decode AuthenticationResponse Messsage
-int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(
-    AuthenticationResponseMsg* auth_response, uint8_t* buffer, uint32_t len) {
+int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(uint8_t* buffer,
+                                                               uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_RESPONSE_MINIMUM_LENGTH, len);
 
-  if ((decoded_result = auth_response->extended_protocol_discriminator
+  if ((decoded_result = this->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
-                                &auth_response->extended_protocol_discriminator,
                                 0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = auth_response->spare_half_octet.DecodeSpareHalfOctetMsg(
-           &auth_response->spare_half_octet, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           auth_response->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &auth_response->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = auth_response->message_type.DecodeMessageTypeMsg(
-           &auth_response->message_type, 0, buffer + decoded, len - decoded)) <
-      0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = auth_response->autn_response_parameter
+  if ((decoded_result = this->autn_response_parameter
                             .DecodeAuthenticationResponseParameterMsg(
-                                &auth_response->autn_response_parameter,
                                 AUTH_RESPONSE_PARAMETER, buffer + decoded,
                                 len - decoded)) < 0)
     return decoded_result;
@@ -73,8 +67,8 @@ int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(
 };
 
 // Encode AuthenticationResponse Messsage
-int AuthenticationResponseMsg::EncodeAuthenticationResponseMsg(
-    AuthenticationResponseMsg* auth_response, uint8_t* buffer, uint32_t len) {
+int AuthenticationResponseMsg::EncodeAuthenticationResponseMsg(uint8_t* buffer,
+                                                               uint32_t len) {
   uint32_t encoded = 0;
   // Not Implemented, Will be supported POST MVC
   return encoded;
