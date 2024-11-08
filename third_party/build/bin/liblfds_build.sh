@@ -45,9 +45,23 @@ fi
 mkdir ${WORK_DIR}
 cd ${WORK_DIR}
 
-git clone https://liblfds.org/git/liblfds
-# Maybe want to edit a persistent copy...
-# rsync -ravP --delete "${SCRIPT_DIR}/liblfds/" liblfds/
+# Attempt to clone the repository with error handling
+REPO_URL="https://liblfds.org/git/liblfds"
+RETRIES=3
+for attempt in $(seq 1 $RETRIES); do
+  echo "Attempting to clone repository (attempt $attempt/$RETRIES)..."
+  if git clone "$REPO_URL"; then
+    echo "Repository cloned successfully."
+    break
+  else
+    echo "Error: Failed to clone repository. Attempt $attempt of $RETRIES."
+    if [ $attempt -eq $RETRIES ]; then
+      echo "Error: Could not clone repository after $RETRIES attempts. Exiting..."
+      exit 1
+    fi
+    sleep 2  # Wait before retrying
+  fi
+done
 
 cd liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake
 
