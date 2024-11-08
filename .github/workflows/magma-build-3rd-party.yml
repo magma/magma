@@ -71,7 +71,7 @@ jobs:
           - libsystemd-dev
           - getenvoy-envoy
           - td-agent-bit
-          - libczmq-dev
+          - libczmq-de
 
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
