@@ -72,12 +72,23 @@ if [ ! -f ./bin/liblfds_build.sh ]; then
 fi
 chmod +x ./bin/liblfds_build.sh
 
-# Run the build script and capture output in a log
-./bin/liblfds_build.sh > liblfds_build_output.log 2>&1
-if [ $? -ne 0 ]; then
-  echo "Error: liblfds_build.sh failed. Check liblfds_build_output.log for details."
-  exit 1
-fi
+# Run the build script with retry logic and log output
+RETRIES=3
+for attempt in $(seq 1 $RETRIES); do
+  echo "Running liblfds_build.sh (attempt $attempt/$RETRIES)..."
+  ./bin/liblfds_build.sh > liblfds_build_output.log 2>&1
+  if [ $? -eq 0 ]; then
+    echo "liblfds_build.sh executed successfully."
+    break
+  else
+    echo "Error: liblfds_build.sh failed. Attempt $attempt of $RETRIES. Check liblfds_build_output.log for details."
+    if [ $attempt -eq $RETRIES ]; then
+      echo "Error: liblfds_build.sh failed after $RETRIES attempts. Exiting..."
+      exit 1
+    fi
+    sleep 2  # Wait before retrying
+  fi
+done
 
 LIB_DIR=/usr/local/lib
 INC_DIR=/usr/local/include
@@ -108,3 +119,4 @@ fpm \
     --package ${BUILD_PATH} \
     --description 'Lock-free data structure library' \
     -C ${WORK_DIR}/install
+
