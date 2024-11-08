@@ -14,8 +14,8 @@
 # Generate the debian package from source for liblfds7.1.0
 # Example output:
 #   liblfds710_7.1.0-0_amd64.deb
+set -ex  # Enable debugging output to show each command being executed
 
-set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 
@@ -28,8 +28,7 @@ if_subcommand_exec
 
 WORK_DIR=/tmp/build-${PKGNAME}
 
-# The resulting package is placed in $OUTPUT_DIR
-# or in the cwd.
+# The resulting package is placed in $OUTPUT_DIR or in the cwd.
 if [ -z "$1" ]; then
   OUTPUT_DIR=`pwd`
 else
@@ -40,35 +39,51 @@ else
   fi
 fi
 
-# build from source
+# Build from source
 if [ -d ${WORK_DIR} ]; then
   rm -rf ${WORK_DIR}
 fi
 mkdir ${WORK_DIR}
 cd ${WORK_DIR}
 
+echo "Cloning the repository..."
 git clone https://liblfds.org/git/liblfds
-# maybe want to edit a persistent copy...
-# rsync -ravP --delete "${SCRIPT_DIR}/liblfds/" liblfds/
+if [ $? -ne 0 ]; then
+  echo "Error: Git clone failed. Exiting..."
+  exit 1
+fi
 
 cd liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake
+
+echo "Running 'make so_vanilla'..."
 make so_vanilla
+if [ $? -ne 0 ]; then
+  echo "Error: 'make so_vanilla' failed. Exiting..."
+  exit 1
+fi
+
 LIB_DIR=/usr/local/lib
 INC_DIR=/usr/local/include
 mkdir -p ${WORK_DIR}/install$INC_DIR
 mkdir -p ${WORK_DIR}/install$LIB_DIR
 
-make INSINCDIR="${WORK_DIR}/install/${INC_DIR}" INSLIBDIR="${WORK_DIR}/install/${LIB_DIR}" so_install 
+echo "Running 'make so_install'..."
+make INSINCDIR="${WORK_DIR}/install/${INC_DIR}" INSLIBDIR="${WORK_DIR}/install/${LIB_DIR}" so_install
+if [ $? -ne 0 ]; then
+  echo "Error: 'make so_install' failed. Exiting..."
+  exit 1
+fi
 
-# packaging
+# Packaging
 PKGFILE="$(pkgfilename)"
 BUILD_PATH=${OUTPUT_DIR}/${PKGFILE}
 
-# remove old packages
+# Remove old packages
 if [ -f ${BUILD_PATH} ]; then
   rm ${BUILD_PATH}
 fi
 
+echo "Running 'fpm' to create the package..."
 fpm \
     -s dir \
     -t ${PKGFMT} \
@@ -82,3 +97,7 @@ fpm \
     --package ${BUILD_PATH} \
     --description 'Lock-free data structure library' \
     -C ${WORK_DIR}/install
+if [ $? -ne 0 ]; then
+  echo "Error: 'fpm' command failed. Exiting..."
+  exit 1
+fi
