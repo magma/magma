@@ -15,7 +15,7 @@ set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "$SCRIPT_DIR/../lib/util.sh"
 
-PKGNAME=td-agent-bit-dev
+PKGNAME=td-agent-bit
 WORK_DIR=/tmp/build-${PKGNAME}
 
 if_subcommand_exec
