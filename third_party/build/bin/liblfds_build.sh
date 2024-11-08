@@ -14,8 +14,7 @@
 # Generate the debian package from source for liblfds7.1.0
 # Example output:
 #   liblfds710_7.1.0-0_amd64.deb
-set -ex
-
+set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 
@@ -30,7 +29,7 @@ WORK_DIR=/tmp/build-${PKGNAME}
 
 # The resulting package is placed in $OUTPUT_DIR or in the cwd.
 if [ -z "$1" ]; then
-  OUTPUT_DIR=`pwd`
+  OUTPUT_DIR=$(pwd)
 else
   OUTPUT_DIR=$1
   if [ ! -d "$OUTPUT_DIR" ]; then
@@ -46,36 +45,23 @@ fi
 mkdir ${WORK_DIR}
 cd ${WORK_DIR}
 
-echo "Cloning the repository..."
 git clone https://liblfds.org/git/liblfds
-if [ $? -ne 0 ]; then
-  echo "Error: Git clone failed. Exiting..."
-  exit 1
-fi
-echo "Git clone successful"
+# Maybe want to edit a persistent copy...
+# rsync -ravP --delete "${SCRIPT_DIR}/liblfds/" liblfds/
 
 cd liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake
 
-# Ensure that the build script exists and is executable
+# Check if liblfds_build.sh exists and make it executable
 if [ ! -f ./bin/liblfds_build.sh ]; then
-  echo "Error: liblfds_build.sh script not found. Exiting..."
+  echo "Error: liblfds_build.sh script not found in ./bin directory."
   exit 1
 fi
-
 chmod +x ./bin/liblfds_build.sh
 
-# Attempt to run the build script manually for debugging
-echo "Running build script manually for debugging..."
-./bin/liblfds_build.sh
+# Run the build script and capture output in a log
+./bin/liblfds_build.sh > liblfds_build_output.log 2>&1
 if [ $? -ne 0 ]; then
-  echo "Error: 'liblfds_build.sh' failed. Exiting..."
-  exit 1
-fi
-
-echo "Running 'make so_vanilla'..."
-make so_vanilla
-if [ $? -ne 0 ]; then
-  echo "Error: 'make so_vanilla' failed. Exiting..."
+  echo "Error: liblfds_build.sh failed. Check liblfds_build_output.log for details."
   exit 1
 fi
 
@@ -84,12 +70,7 @@ INC_DIR=/usr/local/include
 mkdir -p ${WORK_DIR}/install$INC_DIR
 mkdir -p ${WORK_DIR}/install$LIB_DIR
 
-echo "Running 'make so_install'..."
-make INSINCDIR="${WORK_DIR}/install/${INC_DIR}" INSLIBDIR="${WORK_DIR}/install/${LIB_DIR}" so_install
-if [ $? -ne 0 ]; then
-  echo "Error: 'make so_install' failed. Exiting..."
-  exit 1
-fi
+make INSINCDIR="${WORK_DIR}/install/${INC_DIR}" INSLIBDIR="${WORK_DIR}/install/${LIB_DIR}" so_install 
 
 # Packaging
 PKGFILE="$(pkgfilename)"
@@ -100,7 +81,6 @@ if [ -f ${BUILD_PATH} ]; then
   rm ${BUILD_PATH}
 fi
 
-echo "Running 'fpm' to create the package..."
 fpm \
     -s dir \
     -t ${PKGFMT} \
@@ -114,7 +94,3 @@ fpm \
     --package ${BUILD_PATH} \
     --description 'Lock-free data structure library' \
     -C ${WORK_DIR}/install
-if [ $? -ne 0 ]; then
-  echo "Error: 'fpm' command failed. Exiting..."
-  exit 1
-fi
