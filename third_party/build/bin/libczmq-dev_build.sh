@@ -18,16 +18,19 @@ PKGNAME=libczmq-dev
 WORK_DIR=/tmp/build-${PKGNAME}
 
 function buildrequires() {
-  echo  comerr-dev cppzmq-dev fontconfig-config fonts-dejavu-core icu-devtools krb5-multidev libabsl20220623 libaom3 libavif15 libbrotli1 \
-        libbsd-dev libbsd0 libc-dev-bin libc-devtools libc6-dev libcrypt-dev libdav1d6 libde265-0 libdeflate0 libexpat1 libfontconfig1 libfreetype6 \
-        libgav1-1 libgd3 libgssrpc4 libheif1 libicu-dev libicu72 libjbig0 libjpeg62-turbo libkadm5clnt-mit12 libkadm5srv-mit12 \
-        libkdb5-10 libkrb5-dev liblerc4 libmd-dev libnorm-dev libnorm1 libnsl-dev libnsl2 libnspr4 libnspr4-dev libnss3 libnss3-dev libnuma1 \
-        libpgm-5.3-0 libpgm-dev libpng16-16 librav1e0 libsodium-dev libsodium23 libsqlite3-0 libsvtav1enc1 libtiff6 libtirpc-common libtirpc-dev \
-        libtirpc3 libwebp7 libx11-6 libx11-data libx265-199 libxau6 libxcb1 libxdmcp6 libxml2 libxml2-dev libxpm4 libyuv0 libzmq3-dev libzmq5 \
+  # Replace or remove packages that are unavailable in Ubuntu Focal
+  echo  comerr-dev cppzmq-dev fontconfig-config fonts-dejavu-core icu-devtools krb5-multidev libaom3 libbrotli1 \
+        libbsd-dev libc-dev-bin libc-devtools libc6-dev libcrypt-dev libde265-0 libdeflate0 libexpat1 libfontconfig1 libfreetype6 \
+        libgd3 libgssrpc4 libicu-dev libicu66 libjpeg62-turbo libkrb5-dev libmd-dev libnorm-dev libnorm1 libnspr4 libnspr4-dev \
+        libnss3 libnss3-dev libnuma1 libpgm-dev libpng16-16 libsodium-dev libsodium23 libsqlite3-0 libtiff5 libtirpc-dev libtirpc3 \
+        libx11-6 libx11-data libxau6 libxcb1 libxdmcp6 libxml2 libxml2-dev libzmq3-dev libzmq5 \
         linux-libc-dev manpages manpages-dev rpcsvc-proto uuid-dev
 }
 
 if_subcommand_exec
+
+# Ensure the package list is updated
+apt-get update || echo "Warning: apt-get update failed, continuing with cached package list..."
 
 if [ -d "$WORK_DIR" ]; then
   rm -rf "$WORK_DIR"
@@ -35,6 +38,13 @@ fi
 mkdir "$WORK_DIR"
 cd "$WORK_DIR"
 
+# Download necessary .deb files for libczmq if not available in apt repositories
 wget https://ftp.debian.org/debian/pool/main/c/czmq/libczmq-dev_4.2.1-1_amd64.deb
 wget http://ftp.us.debian.org/debian/pool/main/c/czmq/libczmq4_4.2.1-1_amd64.deb
-sudo dpkg -i ./*.deb || sudo apt-get install -f -y
+
+# Install downloaded packages and handle any missing dependencies automatically
+dpkg -i libczmq4_4.2.1-1_amd64.deb libczmq-dev_4.2.1-1_amd64.deb || \
+  (apt-get install -f -y && dpkg -i libczmq4_4.2.1-1_amd64.deb libczmq-dev_4.2.1-1_amd64.deb)
+
+# Re-run apt-get install to fix any other dependency issues if needed
+apt-get install -y libnspr4-dev libnss3-dev || echo "Some dependencies might still be unavailable, check specific requirements."
