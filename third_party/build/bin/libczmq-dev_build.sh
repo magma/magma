@@ -10,12 +10,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-PKGNAME=libczmq-dev
-WORK_DIR=/tmp/build-${PKGNAME}
+
 set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "$SCRIPT_DIR/../lib/util.sh"
-
+PKGNAME=libczmq-dev
+WORK_DIR=/tmp/build-${PKGNAME}
 
 function buildrequires() {
   echo  comerr-dev cppzmq-dev fontconfig-config fonts-dejavu-core icu-devtools krb5-multidev libabsl20220623 libaom3 libavif15 libbrotli1 \
@@ -37,3 +37,4 @@ cd "$WORK_DIR"
 
 wget https://ftp.debian.org/debian/pool/main/c/czmq/libczmq-dev_4.2.1-1_amd64.deb
 wget http://ftp.us.debian.org/debian/pool/main/c/czmq/libczmq4_4.2.1-1_amd64.deb
+sudo dpkg -i ./*.deb || sudo apt-get install -f -y
