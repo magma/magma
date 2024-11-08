@@ -14,7 +14,7 @@
 # Generate the debian package from source for liblfds7.1.0
 # Example output:
 #   liblfds710_7.1.0-0_amd64.deb
-set -ex  # Enable debugging output to show each command being executed
+set -ex
 
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
@@ -52,8 +52,25 @@ if [ $? -ne 0 ]; then
   echo "Error: Git clone failed. Exiting..."
   exit 1
 fi
+echo "Git clone successful"
 
 cd liblfds/liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake
+
+# Ensure that the build script exists and is executable
+if [ ! -f ./bin/liblfds_build.sh ]; then
+  echo "Error: liblfds_build.sh script not found. Exiting..."
+  exit 1
+fi
+
+chmod +x ./bin/liblfds_build.sh
+
+# Attempt to run the build script manually for debugging
+echo "Running build script manually for debugging..."
+./bin/liblfds_build.sh
+if [ $? -ne 0 ]; then
+  echo "Error: 'liblfds_build.sh' failed. Exiting..."
+  exit 1
+fi
 
 echo "Running 'make so_vanilla'..."
 make so_vanilla
