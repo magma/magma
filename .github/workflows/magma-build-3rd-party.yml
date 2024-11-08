@@ -83,7 +83,8 @@ jobs:
         working-directory: ${{ env.build-directory }}
         run: |
           sudo apt-get update
-          sudo apt-get install --yes --allow-downgrades ./*.deb
+          #sudo apt-get install --yes --allow-downgrades ./*.deb
+          sudo dpkg -i ./*.deb || sudo apt-get install -f -y
 
       - name: Verify distribution
         run: |
