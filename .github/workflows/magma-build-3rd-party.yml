@@ -19,6 +19,7 @@ on:
     branches:
       - master
       - 'v1.*'
+      - packages
     paths:
       - third_party/**
       - .github/workflows/magma-build-3rd-party.yml
