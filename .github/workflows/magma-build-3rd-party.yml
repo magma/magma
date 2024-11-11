@@ -84,7 +84,7 @@ jobs:
 
       - name: Test installability of the debian package built
         if: ${{ matrix.dependency != 'libczmq-dev' && matrix.dependency != 'libsystemd-dev' && matrix.dependency != 'getenvoy-envoy' && matrix.dependency != 'td-agent-bit' }}
-              working-directory: ${{ env.build-directory }}
+        working-directory: ${{ env.build-directory }}
         run: |
           sudo apt-get update
           sudo apt-get install --yes --allow-downgrades ./*.deb
