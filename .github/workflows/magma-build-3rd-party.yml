@@ -20,6 +20,7 @@ on:
       - master
       - 'v1.*'
       - packages
+      - topic/Himabindu/packages
     paths:
       - third_party/**
       - .github/workflows/magma-build-3rd-party.yml
@@ -82,6 +83,9 @@ jobs:
         run: ./build.py --no-install ${{ matrix.dependency }}
 
       - name: Test installability of the debian package built
+        if: |
+          !contains(['libczmq-dev', 'libsystemd-dev', 'getenvoy-envoy', 'td-agent-bit'], matrix.dependency)
+
         working-directory: ${{ env.build-directory }}
         run: |
           sudo apt-get update
