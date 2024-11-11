@@ -19,6 +19,7 @@ on:
     branches:
       - master
       - 'v1.*'
+      - packages
     paths:
       - third_party/**
       - .github/workflows/magma-build-3rd-party.yml
@@ -68,6 +69,10 @@ jobs:
           - prometheus-cpp
           - ryu
           - sentry-native
+          - libczmq-dev
+          - libsystemd-dev
+          - getenvoy-envoy
+          - td-agent-bit 
 
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
