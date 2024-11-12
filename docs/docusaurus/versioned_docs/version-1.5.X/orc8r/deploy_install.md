@@ -192,7 +192,7 @@ file in the same directory as your root Terraform module. To access the
 K8s cluster, either set your KUBECONFIG environment variable to point to this
 file or pull this file into your default kubeconfig file at `~/.kube/config`.
 
-For example, with the [`realpath`](https://linux.die.net/man/1/realpath) utility
+For example, with the `realpath` utility
 installed, you can set the kubeconfig with
 
 ```bash

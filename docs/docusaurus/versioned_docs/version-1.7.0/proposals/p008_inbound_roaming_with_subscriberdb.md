@@ -12,7 +12,7 @@ original_id: p008_inbound_roaming_with_SubscriberDb
 *Feedback requested from: @emakeev, @kozat, @pbshelar*\
 *Last Updated: 03/14/2021*
 
-> *Note:* for more detailed description check [DetailedDesign](https://docs.google.com/document/d/11m6VF4Grg0yPjjhoXdxJ-kVhvxrbW6Lk0iIue3d-814) and [Epic](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3277)
+> *Note:* for more detailed description check DetailedDesign `https://docs.google.com/document/d/11m6VF4Grg0yPjjhoXdxJ-kVhvxrbW6Lk0iIue3d-814` and [Epic](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3277)
 
 ## Summary
 
@@ -132,4 +132,4 @@ production environment that implements VPN between remote and local network.
 - Testing on TeraVM and HCore: during all phases
 - SIT: April 2021
 
-> *Note:* for more detailed description check [DetailedDesign](https://docs.google.com/document/d/11m6VF4Grg0yPjjhoXdxJ-kVhvxrbW6Lk0iIue3d-814) and [Epic](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3277)
+> *Note:* for more detailed description check DetailedDesign `https://docs.google.com/document/d/11m6VF4Grg0yPjjhoXdxJ-kVhvxrbW6Lk0iIue3d-814` and [Epic](https://app.zenhub.com/workspaces/magma-5fac75d3e2cd890011f1677a/issues/magma/magma/3277)

@@ -9,6 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@python_deps//:requirements.bzl", "requirement")
 load("@rules_python//python:defs.bzl", "py_library")
 
 py_library(
@@ -19,6 +20,7 @@ py_library(
         ":base",
         ":onready",
         "//lte/gateway/python/magma/subscriberdb:sid",
+        requirement("psutil"),
     ],
 )
 

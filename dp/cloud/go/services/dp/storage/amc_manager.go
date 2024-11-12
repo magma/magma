@@ -39,6 +39,7 @@ type AmcManager interface {
 	CreateRequest(sq.BaseRunner, *MutableRequest) error
 	DeleteCbsd(sq.BaseRunner, *DBCbsd) error
 	UpdateCbsd(sq.BaseRunner, *DBCbsd, db.FieldMask) error
+	DeleteGrant(runner sq.BaseRunner, grant *DBGrant) error
 }
 
 type MutableRequest struct {
@@ -128,6 +129,10 @@ func (m *amcManager) UpdateCbsd(tx sq.BaseRunner, cbsd *DBCbsd, mask db.FieldMas
 func (m *amcManager) GetState(tx sq.BaseRunner) ([]*DetailedCbsd, error) {
 	runner := m.getQueryRunner(tx)
 	return runner.getState()
+}
+
+func (m *amcManager) DeleteGrant(tx sq.BaseRunner, grant *DBGrant) error {
+	return nil
 }
 
 func notNull(fields ...string) sq.Sqlizer {

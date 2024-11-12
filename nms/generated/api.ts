@@ -341,6 +341,12 @@ export interface ApnConfiguration {
      */
     'ambr': AggregatedMaximumBitrate;
     /**
+     * Is this the default APN?
+     * @type {boolean}
+     * @memberof ApnConfiguration
+     */
+    'is_default'?: boolean;
+    /**
      * Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
      * @type {number}
      * @memberof ApnConfiguration

@@ -39,6 +39,7 @@ const apns = {
         preemption_vulnerability: false,
         priority_level: 15,
       },
+      is_default: false,
     },
     apn_name: 'apn_0',
   },
@@ -54,6 +55,7 @@ const apns = {
         preemption_vulnerability: false,
         priority_level: 15,
       },
+      is_default: false,
     },
     apn_name: 'apn_1',
   },
@@ -187,6 +189,7 @@ describe('<TrafficDashboard />', () => {
     const newApn = {
       apn_configuration: {
         ambr: {max_bandwidth_dl: 1000000, max_bandwidth_ul: 1000000},
+        is_default: false,
         pdn_type: 1,
         qos_profile: {
           class_id: 9,
@@ -247,6 +250,7 @@ describe('<TrafficDashboard />', () => {
     const newApn = {
       apn_configuration: {
         ambr: {max_bandwidth_dl: 1000000, max_bandwidth_ul: 1000000},
+        is_default: false,
         pdn_type: 0,
         qos_profile: {
           class_id: 8,

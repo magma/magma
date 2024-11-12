@@ -17,7 +17,13 @@ interface Query {
   [key: string]: undefined | string | Array<string> | Query | Array<Query>;
 }
 
-type AsyncHandler<P, ResBody, ReqBody, ReqQuery, Locals> = (
+type AsyncHandler<
+  P,
+  ResBody,
+  ReqBody,
+  ReqQuery,
+  Locals extends Record<string, any>
+> = (
   req: Request<P, ResBody, ReqBody, ReqQuery, Locals>,
   res: Response<ResBody, Locals>,
   next: NextFunction,

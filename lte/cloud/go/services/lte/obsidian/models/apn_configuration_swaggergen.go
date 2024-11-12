@@ -24,6 +24,9 @@ type ApnConfiguration struct {
 	// Required: true
 	Ambr *AggregatedMaximumBitrate `json:"ambr"`
 
+	// Is this the default APN?
+	IsDefault *bool `json:"is_default,omitempty"`
+
 	// Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
 	// Enum: [0 1 2 3]
 	PdnType uint32 `json:"pdn_type,omitempty"`
