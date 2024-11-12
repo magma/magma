@@ -174,6 +174,9 @@
       "lte/debug_user_control_plane": {
         "title": "User Control Plane trace CLI"
       },
+      "lte/deploy_agw_using_juju": {
+        "title": "Deploy AGW using Juju"
+      },
       "lte/deploy_config_agw": {
         "title": "Configure AGW"
       },
@@ -516,6 +519,30 @@
       },
       "resources/ref_useful_links": {
         "title": "Useful Links"
+      },
+      "tutorials/00_overview": {
+        "title": "Overview"
+      },
+      "tutorials/01_getting_started": {
+        "title": "1. Getting Started"
+      },
+      "tutorials/02_deploying_magma_orchestrator": {
+        "title": "2. Deploying Magma Orchestrator"
+      },
+      "tutorials/03_deploying_magma_agw": {
+        "title": "3. Deploying Magma Access Gateway"
+      },
+      "tutorials/04_integrating_agw_with_orc8r": {
+        "title": "4. Integrating Magma Access Gateway with Magma Orchestrator"
+      },
+      "tutorials/05_deploying_the_radio_simulator": {
+        "title": "5. Deploying the radio simulator"
+      },
+      "tutorials/06_simulating_user_traffic": {
+        "title": "6. Simulating user traffic"
+      },
+      "tutorials/06_destroying_the_env": {
+        "title": "7. Destroying the environment"
       },
       "version-1.0.0/basics/version-1.0.0-introduction": {
         "title": "Introduction"
@@ -2003,6 +2030,9 @@
       "version-1.8.0/lte/version-1.8.0-build_install_magma_pkg_in_agw": {
         "title": "Build and install a magma package in AGW"
       },
+      "version-1.8.0/lte/version-1.8.0-deploy_agw_using_juju": {
+        "title": "Deploy AGW using Juju"
+      },
       "version-1.8.0/lte/version-1.8.0-deploy_install_docker": {
         "title": "Install Docker AGW"
       },
@@ -2074,6 +2104,30 @@
       },
       "version-1.8.0/proposals/version-1.8.0-p014_proposal_process": {
         "title": "Magma Proposals"
+      },
+      "version-1.8.0/tutorials/version-1.8.0-00_overview": {
+        "title": "Overview"
+      },
+      "version-1.8.0/tutorials/version-1.8.0-01_getting_started": {
+        "title": "1. Getting Started"
+      },
+      "version-1.8.0/tutorials/version-1.8.0-02_deploying_magma_orchestrator": {
+        "title": "2. Deploying Magma Orchestrator"
+      },
+      "version-1.8.0/tutorials/version-1.8.0-03_deploying_magma_agw": {
+        "title": "3. Deploying Magma Access Gateway"
+      },
+      "version-1.8.0/tutorials/version-1.8.0-04_integrating_agw_with_orc8r": {
+        "title": "4. Integrating Magma Access Gateway with Magma Orchestrator"
+      },
+      "version-1.8.0/tutorials/version-1.8.0-05_deploying_the_radio_simulator": {
+        "title": "5. Deploying the radio simulator"
+      },
+      "version-1.8.0/tutorials/version-1.8.0-06_simulating_user_traffic": {
+        "title": "6. Simulating user traffic"
+      },
+      "version-1.8.0/tutorials/version-1.8.0-06_destroying_the_env": {
+        "title": "7. Destroying the environment"
       }
     },
     "links": {
@@ -2086,6 +2140,7 @@
     },
     "categories": {
       "Getting Started": "Getting Started",
+      "Tutorials": "Tutorials",
       "Usage": "Usage",
       "Architecture": "Architecture",
       "Deploy": "Deploy",

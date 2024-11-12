@@ -1,41 +1,76 @@
-See the [Contributor Guide](https://github.com/magma/magma/wiki/Contributor-Guide/)
-for information on developer onboarding, workflow, contribution conventions,
-presubmit checks and more.
+# Contributing
 
-Please read also the [DCO](./DCO.md) for details regarding regarding the
-sign-off rules for a contribution.
+Potential new contributors, welcome.
 
-1. **TSC Responsibilities**
-    1. As outlined in the [Magma Technical Charter](https://github.com/magma/magma/blob/master/Magma_Technical_Charter_Final_1-26-2021.docx.pdf), the TSC will be responsible for all aspects of oversight relating to the Project, which may include:
-        1. coordinating the technical direction of the Project;
-        2. approving project or system proposals (including, but not limited to, incubation, deprecation, and changes to a sub-project’s scope);
-        3. organizing sub-projects and removing sub-projects;
-        4. creating sub-committees or working groups to focus on cross-project technical issues and requirements;
-        5. appointing representatives to work with other open source or open standards communities;
-        6. establishing community norms, workflows, issuing releases, and security issue reporting policies;
-        7. approving and implementing policies and processes for contributing (to be published in the CONTRIBUTING file) and coordinating with the series manager of the Project (as provided for in the Series Agreement, the “Series Manager”) to resolve matters or concerns that may arise as set forth in Section 7 of this Charter;
-        8. discussions, seeking consensus, and where necessary, voting on technical matters relating to the code base that affect multiple projects; and
-        9. coordinating any marketing, events, or communications regarding the Project.
-    2. Allocations recommendations to the Linux Foundation as per approved budgets.
+- Up-to-date information about getting started is in [the Contributor Guide on our wiki](https://github.com/magma/magma/wiki/Contributor-Guide/). Look there for developer onboarding, workflow, contribution conventions, presubmit checks and more.
 
-2. **TSC Voting Members**
-    1. The TSC will be composed of seven (7) members.
-    2. Each TSC member will be elected to a one year term.
-        1. If a TSC member is inactive, the other TSC members have the authority to vote the inactive member off the TSC with a two thirds vote.
-        2. In the case that a TSC member resigns or is removed, a special election to fill the open seat would occur following the same election process outlined in section 3.
-    3.There will be an annual election to determine the composition of the TSC.
-    4. Employees from the same organization/company should not hold more than one TSC seat.
+- For detailed technical questions use [Github Discussions](https://github.com/magma/magma/discussions). For real-time conversations use [the Magmacore Slack](https://magmacore.slack.com).
 
-3. **TSC Elections**
-    1. **Candidate Eligibility**
-        1. Current TSC members and active contributors are eligible to run for a voting seat on the TSC.
-        2. Candidates may self-nominate or be nominated by an individual who is qualified as a TSC voter as defined in Section 3.b.ii.
-    2. **Voter Eligibility**
-        1. Any individual who has contributed to a Magma repo in the twelve months prior to the election is eligible to vote and run for a voting seat in the TSC election.
-        2. Contributions include, but are not limited to, opening PRs, reviewing and commenting on PRs, opening and commenting on issues, writing design docs, commenting on design docs, participating in mailing list or Slack discussions and participating in working groups.
-        3. Each election cycle, an initial set of voters will be identified through automated reporting. Any individual who has at least 20 measurable contributions in the last 12 months will be automatically added to the eligible voter list.
-        4. If a community member has contributed over the past year but is not captured in automated reporting, they will be able to submit an eligibility form to the current TSC who will then determine whether this member will be eligible.
-    3. **Election Method and Tools**
-        1. If the number of candidates is equal to or less than the number of TSC seats available to be elected, the candidates shall be approved after the nomination period has closed.
-        2. If there are more Qualified Nominees than open TSC seats available for election, all eligible voters shall elect the TSC members using a time-limited [Condorcet ranking method](https://www.opavote.com/methods/condorcet-voting).
-        3. Elections may be run via [OpaVote](https://www.opavote.com/).
+- Please read also the [DCO](./DCO.md) for details regarding regarding the sign-off rules for a contribution.
+
+## Charter Updates
+
+[The Magma Technical Charter](https://github.com/magma/magma/blob/master/Magma_Technical_Charter_Final_1-26-2021.docx.pdf) defines initial parameters for governance and allows for modifications to be made via this document. Procedures in this document therefore supercede those in the charter except where charter provisions disallow them. We use the convention that the entirety of Section N here replaces the entirety of Section N there; if there is no Section N here, the original Section N is unchanged.
+
+### 2. Technical Steering Committee
+
+a. The Technical Steering Committee (the “TSC”) will be responsible for all technical oversight of the open source Project.
+
+b. Membership in the TSC is by vote of the Committers and Contributors of the project.
+
+&nbsp;&nbsp;&nbsp;&nbsp;i. There may be as few as three TSC members and as many as five. If active membership falls below a quorum, its powers and responsibilities are assumed by the Governing Board.
+
+&nbsp;&nbsp;&nbsp;&nbsp;ii. A TSC member who attends no TSC meetings in a month is removed, unless they have a genuine excuse or had a proxy attend on their behalf. They will be notified and have two weeks to respond. On removal there will be a special election to fill their seat.
+
+c. The Project Committers may choose an alternative approach for determining the voting members of the TSC, and any such alternative approach will be documented in the CONTRIBUTING file.  Any meetings of the Technical Steering Committee are intended to be open to the public, and can be conducted electronically, via teleconference, or in person.
+
+d. TSC projects generally will involve Contributors and Committers. The TSC may adopt or modify roles so long as the roles are documented in the CONTRIBUTING file. Unless otherwise documented:
+
+&nbsp;&nbsp;&nbsp;&nbsp;i. Contributors include anyone in the technical community that contributes code, documentation, or other technical artifacts to the Project; or who joins at least five TSC meetings.
+
+&nbsp;&nbsp;&nbsp;&nbsp;ii. Committers are Contributors who have earned the ability to modify ("commit") source code, documentation or other technical artifacts in a project’s repository; and
+
+&nbsp;&nbsp;&nbsp;&nbsp;iii. A Contributor may become a Committer by a majority approval of the existing Committers. A Committer may be removed by a majority approval of the other existing Committers.
+
+d. Participation in the Project through becoming a Contributor and Committer is open to anyone so long as they abide by the terms of this Charter.
+
+e. The TSC may (1) establish work flow procedures for the submission, approval, and closure/archiving of projects, (2) set requirements for the promotion of Contributors to Committer status, as applicable, and (3) amend, adjust, refine and/or eliminate the roles of Contributors, and Committers, and create new roles, and publicly document any TSC roles, as it sees fit.
+
+f. The TSC may elect a TSC Chair from among its membership, who will preside over meetings of the TSC and will serve until the earlier of: (1) the Chair’s resignation; or (2) the Chair’s replacement by the TSC (either by majority vote or through an election process approved by the TSC); or (3) a term of (1) year.
+
+g. Responsibilities: The TSC will be responsible for all aspects of oversight relating to the Project, which may include:
+
+&nbsp;&nbsp;&nbsp;&nbsp;i. coordinating the technical direction of the Project;
+
+&nbsp;&nbsp;&nbsp;&nbsp;ii. approving project or system proposals (including, but not limited to, incubation, deprecation, and changes to a sub-project’s scope);
+
+&nbsp;&nbsp;&nbsp;&nbsp;iii. organizing sub-projects and removing sub-projects;
+
+&nbsp;&nbsp;&nbsp;&nbsp;iv. creating sub-committees or working groups to focus on cross-project technical issues and requirements;
+
+&nbsp;&nbsp;&nbsp;&nbsp;v. appointing representatives to work with other open source or open standards communities;
+
+&nbsp;&nbsp;&nbsp;&nbsp;vi. establishing community norms, workflows, issuing releases, and security issue reporting policies;
+
+&nbsp;&nbsp;&nbsp;&nbsp;vii. approving and implementing policies and processes for contributing (to be published in the CONTRIBUTING file) and coordinating with the series manager of the Project (as provided for in the Series Agreement, the "Series Manager") to resolve matters or concerns that may arise as set forth in Section 8 of this Charter;
+
+&nbsp;&nbsp;&nbsp;&nbsp;viii. discussions, seeking consensus, and where necessary, voting on technical matters relating to the code base that affect multiple projects; and
+
+&nbsp;&nbsp;&nbsp;&nbsp;ix. coordinating any marketing, events, or communications regarding the Project.
+
+i. The TSC Chair, or another TSC member so designated by the TSC, will serve as the primary communication contact between the Project and the Magma Core Foundation Fund Governing Board of the Linux Foundation ("Governing Board").
+
+### 3. TSC Voting
+
+a. While the Project aims to operate as a consensus-based community, if any TSC decision requires a vote to move the Project forward, the voting members of the TSC will vote on a one vote per voting member basis.
+
+b. Quorum for TSC votes is three voters.
+
+c. A motion is carried by simple majority of votes cast within two weeks of the time voting opened or the time a quorum was reached, whichever comes later.
+
+d. Every vote should have a Github issue. It might be a dedicated issue only for the vote, or some other. The issue should have the text "vote" somewhere (for findability). Any community member can record the issue. If the vote is taken on the TSC call, we will transcribe the votes in GitHub.
+
+e. The +1 vote of the proposer and seconder are assumed. They do not have to restate their vote.
+
+f. Abstention from voting does not count towards quorum.
+
