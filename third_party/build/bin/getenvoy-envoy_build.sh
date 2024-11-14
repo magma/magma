@@ -24,4 +24,6 @@ fi
 mkdir "$WORK_DIR"
 cd "$WORK_DIR"
 
-wget https://apt.envoyproxy.io/pool/main/e/envoy-1.28/envoy-1.28_1.28.0_amd64.deb
+wget -O getenvoy-envoy-dev-1.28_1.28.0_amd64.deb  https://apt.envoyproxy.io/pool/main/e/envoy-1.28/envoy-1.28_1.28.0_amd64.deb
+
+cp getenvoy-envoy-dev-1.28_1.28.0_amd64.deb $SCRIPT_DIR/../
