@@ -187,7 +187,7 @@ int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
     encoded += encoded_result;
   }
 
-  if ((uint32_t)this->pdu_session_type.type_val) {
+  if (static_cast<uint32_t>(this->pdu_session_type.type_val)) {
     if ((encoded_result = this->pdu_session_type.EncodePDUSessionTypeMsg(
              REQUEST_PDU_SESSION_TYPE_TYPE, buffer + encoded, len - encoded)) <
         0) {
@@ -197,7 +197,7 @@ int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
     }
   }
 
-  if ((uint32_t)this->ssc_mode.mode_val) {
+  if (static_cast<uint32_t>(this->ssc_mode.mode_val)) {
     if ((encoded_result = this->ssc_mode.EncodeSSCModeMsg(
              REQUEST_SSC_MODE_TYPE, buffer + encoded, len - encoded)) < 0) {
       return encoded_result;

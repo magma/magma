@@ -222,8 +222,8 @@ int nas5g_message_decode(const unsigned char* const buffer,
  **            Others:  None                                               **
  **                                                                        **
  ***************************************************************************/
-int nas5g_message_encode(unsigned char* buffer,
-                         const amf_nas_message_t* const msg, uint32_t length,
+int nas5g_message_encode(unsigned char* buffer, const amf_nas_message_t* msg,
+                         uint32_t length,
                          amf_security_context_t* amf_security_context) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int bytes = 0;
@@ -266,7 +266,7 @@ int nas5g_message_encode(unsigned char* buffer,
           amf_security_context->direction_encode, amf_security_context);
 
       // Set the message authentication code of the NAS message
-      *(uint32_t*)(buffer + sizeof(uint16_t)) = htonl(mac);
+      *reinterpret_cast<uint32_t*>(buffer + sizeof(uint16_t)) = htonl(mac);
     }
     if (amf_security_context) {
       /*
@@ -366,9 +366,8 @@ int nas5g_message_encode(unsigned char* buffer,
  **                                                                        **
  ***************************************************************************/
 int nas5g_message_header_decode(const unsigned char* const buffer,
-                                amf_msg_header* const header,
-                                const uint32_t length,
-                                amf_nas_message_decode_status_t* const status,
+                                amf_msg_header* header, const uint32_t length,
+                                amf_nas_message_decode_status_t* status,
                                 bool* const is_sr) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int size = 0;
@@ -456,13 +455,15 @@ static int _nas5g_message_plain_decode(const unsigned char* buffer,
                                        uint32_t length) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int bytes = TLV_PROTOCOL_NOT_SUPPORTED;
-  AmfMsg* amf_msg = (AmfMsg*)&msg->amf;
+  AmfMsg* amf_msg = reinterpret_cast<AmfMsg*>(&msg->amf);
+  /** TODO: Use only one the AmfMsg implementations & remove the typecast. */
   if (header->extended_protocol_discriminator ==
       M5GS_MOBILITY_MANAGEMENT_MESSAGE) {
     /*
      * Decode Mobility Management L3
      */
-    bytes = amf_msg->M5gNasMessageDecodeMsg((uint8_t*)buffer, length);
+    bytes =
+        amf_msg->M5gNasMessageDecodeMsg(const_cast<uint8_t*>(buffer), length);
   } else {
     /*
      * Discard L3 messages with not supported protocol discriminator
@@ -981,8 +982,9 @@ static uint32_t _nas5g_message_get_mac(
                    "%x.%x.%x.%x(%u) for "
                    "length "
                    "%" PRIu32 "direction %d, count %d\n",
-                   mac[0], mac[1], mac[2], mac[3], *((uint32_t*)&mac), length,
-                   direction, count);
+                   mac[0], mac[1], mac[2], mac[3],
+                   *(reinterpret_cast<uint32_t*>(&mac)), length, direction,
+                   count);
       mac32 = (uint32_t*)&mac;
       OAILOG_FUNC_RETURN(LOG_AMF_APP, ntohl(*mac32));
     } break;

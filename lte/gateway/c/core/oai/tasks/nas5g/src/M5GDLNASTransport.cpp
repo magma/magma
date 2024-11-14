@@ -39,7 +39,7 @@ DLNASTransportMsg::DLNASTransportMsg() {
   this->pdu_session_identity.pdu_session_id = 0;
   this->m5gmm_cause.m5gmm_cause = 0;
   this->m5gmm_cause.iei = 0;
-};
+}
 DLNASTransportMsg::~DLNASTransportMsg(){};
 
 // Decode DLNASTransport Message and its IEs
