@@ -26,8 +26,7 @@ ULNASTransportMsg::ULNASTransportMsg(){};
 ULNASTransportMsg::~ULNASTransportMsg(){};
 
 // Decode ULNASTransport Message and its IEs
-int ULNASTransportMsg::DecodeULNASTransportMsg(
-    ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len) {
+int ULNASTransportMsg::DecodeULNASTransportMsg(uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   uint8_t type_len = 0;
@@ -37,50 +36,40 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, UL_NAS_TRANSPORT_MINIMUM_LENGTH,
                                        len);
 
-  if ((decoded_result =
-           ul_nas_transport->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &ul_nas_transport->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
 
   if ((decoded_result =
-           ul_nas_transport->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &ul_nas_transport->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0)
+           this->payload_container_type.DecodePayloadContainerTypeMsg(
+               0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
 
-  if ((decoded_result =
-           ul_nas_transport->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &ul_nas_transport->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-
-  if ((decoded_result = ul_nas_transport->message_type.DecodeMessageTypeMsg(
-           &ul_nas_transport->message_type, 0, buffer + decoded,
-           len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-
-  if ((decoded_result = ul_nas_transport->payload_container_type
-                            .DecodePayloadContainerTypeMsg(
-                                &ul_nas_transport->payload_container_type, 0,
-                                buffer + decoded, len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-
-  if ((decoded_result =
-           ul_nas_transport->payload_container.DecodePayloadContainerMsg(
-               &ul_nas_transport->payload_container, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->payload_container.DecodePayloadContainerMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -93,8 +82,7 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
 
     switch (static_cast<M5GIei>(type)) {
       case M5GIei::REQUEST_TYPE: {
-        if ((decoded_result = ul_nas_transport->request_type.DecodeRequestType(
-                 &ul_nas_transport->request_type,
+        if ((decoded_result = this->request_type.DecodeRequestType(
                  static_cast<uint8_t>(M5GIei::REQUEST_TYPE), buffer + decoded,
                  len - decoded)) < 0) {
           return decoded_result;
@@ -114,17 +102,16 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
         decoded += decoded_result;
         break;
       case M5GIei::DNN:
-        if ((decoded_result = ul_nas_transport->dnn.DecodeDNNMsg(
-                 &ul_nas_transport->dnn, static_cast<uint8_t>(M5GIei::DNN),
-                 buffer + decoded, len - decoded)) < 0) {
+        if ((decoded_result =
+                 this->dnn.DecodeDNNMsg(static_cast<uint8_t>(M5GIei::DNN),
+                                        buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
         } else {
           decoded += decoded_result;
         }
         break;
       case M5GIei::S_NSSAI:
-        if ((decoded_result = ul_nas_transport->nssai.DecodeNSSAIMsg(
-                 &ul_nas_transport->nssai,
+        if ((decoded_result = this->nssai.DecodeNSSAIMsg(
                  static_cast<uint8_t>(M5GIei::S_NSSAI), buffer + decoded,
                  len - decoded)) < 0) {
           return decoded_result;
@@ -154,8 +141,7 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
 }
 
 // Encode DL NAS Transport Message and its IEs
-int ULNASTransportMsg::EncodeULNASTransportMsg(
-    ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len) {
+int ULNASTransportMsg::EncodeULNASTransportMsg(uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   int encoded_result = 0;
@@ -165,59 +151,46 @@ int ULNASTransportMsg::EncodeULNASTransportMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, UL_NAS_TRANSPORT_MINIMUM_LENGTH,
                                        len);
 
-  if ((encoded_result =
-           ul_nas_transport->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &ul_nas_transport->extended_protocol_discriminator, 0,
-                   buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
   if ((encoded_result =
-           ul_nas_transport->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &ul_nas_transport->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0)
+           this->payload_container_type.EncodePayloadContainerTypeMsg(
+               0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           ul_nas_transport->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &ul_nas_transport->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result = ul_nas_transport->message_type.EncodeMessageTypeMsg(
-           &ul_nas_transport->message_type, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           ul_nas_transport->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &ul_nas_transport->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result = ul_nas_transport->payload_container_type
-                            .EncodePayloadContainerTypeMsg(
-                                &ul_nas_transport->payload_container_type, 0,
-                                buffer + encoded, len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           ul_nas_transport->payload_container.EncodePayloadContainerMsg(
-               &ul_nas_transport->payload_container, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->payload_container.EncodePayloadContainerMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
 
-  if ((uint32_t)ul_nas_transport->request_type.type_val) {
-    if ((encoded_result = ul_nas_transport->request_type.EncodeRequestType(
-             &ul_nas_transport->request_type,
+  if ((uint32_t)this->request_type.type_val) {
+    if ((encoded_result = this->request_type.EncodeRequestType(
              static_cast<uint8_t>(M5GIei::REQUEST_TYPE), buffer + encoded,
              len - encoded)) < 0) {
       return encoded_result;
@@ -226,20 +199,20 @@ int ULNASTransportMsg::EncodeULNASTransportMsg(
     }
   }
 
-  if ((uint32_t)ul_nas_transport->dnn.len) {
-    if ((encoded_result = ul_nas_transport->dnn.EncodeDNNMsg(
-             &ul_nas_transport->dnn, static_cast<uint8_t>(M5GIei::DNN),
-             buffer + encoded, len - encoded)) < 0) {
+  if ((uint32_t)this->dnn.len) {
+    if ((encoded_result =
+             this->dnn.EncodeDNNMsg(static_cast<uint8_t>(M5GIei::DNN),
+                                    buffer + encoded, len - encoded)) < 0) {
       return encoded_result;
     } else {
       encoded += encoded_result;
     }
   }
 
-  if ((uint32_t)ul_nas_transport->nssai.len) {
-    if ((encoded_result = ul_nas_transport->nssai.EncodeNSSAIMsg(
-             &ul_nas_transport->nssai, static_cast<uint8_t>(M5GIei::S_NSSAI),
-             buffer + encoded, len - encoded)) < 0) {
+  if ((uint32_t)this->nssai.len) {
+    if ((encoded_result =
+             this->nssai.EncodeNSSAIMsg(static_cast<uint8_t>(M5GIei::S_NSSAI),
+                                        buffer + encoded, len - encoded)) < 0) {
       return encoded_result;
     } else {
       encoded += encoded_result;

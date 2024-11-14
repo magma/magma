@@ -24,11 +24,9 @@ class AuthenticationParameterRANDMsg {
 
   AuthenticationParameterRANDMsg();
   ~AuthenticationParameterRANDMsg();
-  int EncodeAuthenticationParameterRANDMsg(
-      AuthenticationParameterRANDMsg* auth_parameter_rand, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
-  int DecodeAuthenticationParameterRANDMsg(
-      AuthenticationParameterRANDMsg* auth_parameter_rand, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationParameterRANDMsg(uint8_t iei, uint8_t* buffer,
+                                           uint32_t len);
+  int DecodeAuthenticationParameterRANDMsg(uint8_t iei, uint8_t* buffer,
+                                           uint32_t len);
 };
 }  // namespace magma5g

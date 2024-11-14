@@ -28,37 +28,35 @@ namespace magma5g {
 NetworkFeatureSupportMsg::NetworkFeatureSupportMsg() {}
 NetworkFeatureSupportMsg::~NetworkFeatureSupportMsg() {}
 
-int NetworkFeatureSupportMsg::DecodeNetworkFeatureSupportMsg(
-    NetworkFeatureSupportMsg* networkfeature, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int NetworkFeatureSupportMsg::DecodeNetworkFeatureSupportMsg(uint8_t iei,
+                                                             uint8_t* buffer,
+                                                             uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
-    networkfeature->iei = *buffer;
-    decoded++;
+    this->iei = *(buffer + decoded++);
   }
-  networkfeature->len = *(buffer + decoded);
+  this->len = *(buffer + decoded++);
+
+  this->MPSI = (*(buffer + decoded) >> 7) & 0x01;
+  this->IWK_N26 = (*(buffer + decoded) >> 6) & 0x01;
+  this->EMF = (*(buffer + decoded) >> 4) & 0x03;
+  this->EMC = (*(buffer + decoded) >> 2) & 0x03;
+  this->IMS_VoPS_N3GPP = (*(buffer + decoded) >> 1) & 0x01;
+  this->IMS_VoPS_3GPP = *(buffer + decoded) & 0x01;
   decoded++;
 
-  networkfeature->MPSI = (*(buffer + decoded) >> 7) & 0x01;
-  networkfeature->IWK_N26 = (*(buffer + decoded) >> 6) & 0x01;
-  networkfeature->EMF = (*(buffer + decoded) >> 4) & 0x03;
-  networkfeature->EMC = (*(buffer + decoded) >> 2) & 0x03;
-  networkfeature->IMS_VoPS_N3GPP = (*(buffer + decoded) >> 1) & 0x01;
-  networkfeature->IMS_VoPS_3GPP = *(buffer + decoded) & 0x01;
-  decoded++;
-
-  networkfeature->MCSI = (*(buffer + decoded) >> 1) & 0x01;
-  networkfeature->EMCN3 = (*(buffer + decoded)) & 0x01;
+  this->MCSI = (*(buffer + decoded) >> 1) & 0x01;
+  this->EMCN3 = (*(buffer + decoded)) & 0x01;
   decoded++;
 
   return decoded;
 }
 
-int NetworkFeatureSupportMsg::EncodeNetworkFeatureSupportMsg(
-    NetworkFeatureSupportMsg* networkfeature, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int NetworkFeatureSupportMsg::EncodeNetworkFeatureSupportMsg(uint8_t iei,
+                                                             uint8_t* buffer,
+                                                             uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -66,23 +64,17 @@ int NetworkFeatureSupportMsg::EncodeNetworkFeatureSupportMsg(
                                        len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char)networkfeature->iei);
-    *buffer = iei;
-    encoded++;
+    CHECK_IEI_ENCODER(iei, (unsigned char)this->iei);
+    *(buffer + encoded++) = iei;
   }
 
-  *(buffer + encoded) = networkfeature->len;
-  encoded++;
-  *(buffer + encoded) = 0x00 | ((networkfeature->MPSI & 0x01) << 7) |
-                        ((networkfeature->IWK_N26 & 0x01) << 6) |
-                        ((networkfeature->EMF & 0x03) << 4) |
-                        ((networkfeature->EMC & 0x03) << 2) |
-                        ((networkfeature->IMS_VoPS_N3GPP & 0x01) << 1) |
-                        (networkfeature->IMS_VoPS_3GPP & 0x01);
-  encoded++;
-  *(buffer + encoded) = 0x00 | ((networkfeature->MCSI & 0x01) << 1) |
-                        (networkfeature->EMCN3 & 0x01);
-  encoded++;
+  *(buffer + encoded++) = this->len;
+  *(buffer + encoded++) =
+      0x00 | ((this->MPSI & 0x01) << 7) | ((this->IWK_N26 & 0x01) << 6) |
+      ((this->EMF & 0x03) << 4) | ((this->EMC & 0x03) << 2) |
+      ((this->IMS_VoPS_N3GPP & 0x01) << 1) | (this->IMS_VoPS_3GPP & 0x01);
+  *(buffer + encoded++) =
+      0x00 | ((this->MCSI & 0x01) << 1) | (this->EMCN3 & 0x01);
   return encoded;
 }
 

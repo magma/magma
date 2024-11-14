@@ -25,8 +25,7 @@ class M5GAuthenticationFailureIE {
 
   M5GAuthenticationFailureIE();
   ~M5GAuthenticationFailureIE();
-  int DecodeM5GAuthenticationFailureIE(
-      M5GAuthenticationFailureIE* m5g_auth_failure_ie, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int DecodeM5GAuthenticationFailureIE(uint8_t iei, uint8_t* buffer,
+                                       uint32_t len);
 };
 }  // namespace magma5g

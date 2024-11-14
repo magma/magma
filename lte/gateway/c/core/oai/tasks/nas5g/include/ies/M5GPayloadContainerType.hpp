@@ -21,11 +21,7 @@ class PayloadContainerTypeMsg {
 
   PayloadContainerTypeMsg();
   ~PayloadContainerTypeMsg();
-  int EncodePayloadContainerTypeMsg(
-      PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
-  int DecodePayloadContainerTypeMsg(
-      PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int EncodePayloadContainerTypeMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodePayloadContainerTypeMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

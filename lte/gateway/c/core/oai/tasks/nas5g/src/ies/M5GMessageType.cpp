@@ -20,24 +20,18 @@ MessageTypeMsg::MessageTypeMsg(){};
 MessageTypeMsg::~MessageTypeMsg(){};
 
 // Decode MessageType IE
-int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,
-                                         uint8_t iei, uint8_t* buffer,
+int MessageTypeMsg::DecodeMessageTypeMsg(uint8_t iei, uint8_t* buffer,
                                          uint32_t len) {
   uint8_t decoded = 0;
-
-  message_type->msg_type = *(buffer + decoded);
-  decoded++;
+  this->msg_type = *(buffer + decoded++);
   return (decoded);
 };
 
 // Encode MessageType IE
-int MessageTypeMsg::EncodeMessageTypeMsg(MessageTypeMsg* message_type,
-                                         uint8_t iei, uint8_t* buffer,
+int MessageTypeMsg::EncodeMessageTypeMsg(uint8_t iei, uint8_t* buffer,
                                          uint32_t len) {
   uint8_t encoded = 0;
-
-  *(buffer + encoded) = message_type->msg_type;
-  encoded++;
+  *(buffer + encoded++) = this->msg_type;
   return (encoded);
 };
 }  // namespace magma5g

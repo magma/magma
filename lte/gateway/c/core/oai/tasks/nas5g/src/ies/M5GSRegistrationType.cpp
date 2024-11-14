@@ -28,9 +28,9 @@ M5GSRegistrationTypeMsg::M5GSRegistrationTypeMsg(){};
 M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg(){};
 
 // Decode M5GSRegistrationType Message
-int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
-    M5GSRegistrationTypeMsg* m5gs_reg_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(uint8_t iei,
+                                                           uint8_t* buffer,
+                                                           uint32_t len) {
   int decoded = 0;
 
   // CHECKING IEI
@@ -38,15 +38,15 @@ int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
     CHECK_IEI_DECODER((*buffer & 0xf0), iei);
   }
 
-  m5gs_reg_type->FOR = (*(buffer + decoded) >> 3) & 0x1;
-  m5gs_reg_type->type_val = *(buffer + decoded) & 0x7;
+  this->FOR = (*(buffer + decoded) >> 3) & 0x1;
+  this->type_val = *(buffer + decoded) & 0x7;
   return decoded;
 };
 
 // Encode M5GSRegistrationType Message
-int M5GSRegistrationTypeMsg::EncodeM5GSRegistrationTypeMsg(
-    M5GSRegistrationTypeMsg* m5gs_reg_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GSRegistrationTypeMsg::EncodeM5GSRegistrationTypeMsg(uint8_t iei,
+                                                           uint8_t* buffer,
+                                                           uint32_t len) {
   // Will be supported POST MVC
   return 0;
 };

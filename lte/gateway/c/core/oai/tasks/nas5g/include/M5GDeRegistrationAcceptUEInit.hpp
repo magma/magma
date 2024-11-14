@@ -27,12 +27,8 @@ class DeRegistrationAcceptUEInitMsg {
   SpareHalfOctetMsg spare_half_octet;
   MessageTypeMsg message_type;
 #define DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH 3
-  int DecodeDeRegistrationAcceptUEInitMsg(
-      DeRegistrationAcceptUEInitMsg* de_reg_accept_ue, uint8_t* buffer,
-      uint32_t len);
-  int EncodeDeRegistrationAcceptUEInitMsg(
-      DeRegistrationAcceptUEInitMsg* de_reg_accept_ue, uint8_t* buffer,
-      uint32_t len);
+  int DecodeDeRegistrationAcceptUEInitMsg(uint8_t* buffer, uint32_t len);
+  int EncodeDeRegistrationAcceptUEInitMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

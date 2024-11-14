@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+#include <cstring>
 #include <sstream>
 #ifdef __cplusplus
 extern "C" {
@@ -21,14 +22,28 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/emm_data.hpp"
 
 namespace magma5g {
-DLNASTransportMsg::DLNASTransportMsg(){};
+DLNASTransportMsg::DLNASTransportMsg() {
+  memset(this, 0, sizeof(DLNASTransportMsg));
+  this->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  this->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  this->spare_half_octet.spare = 0x00;
+  this->message_type.msg_type = (uint8_t)M5GMessageType::DLNASTRANSPORT;
+  this->payload_container_type.iei = 0;
+  this->payload_container_type.type_val = 0;  // 1;  // N1_SM_INFO;
+  this->pdu_session_identity.iei = (uint8_t)M5GIei::PDU_SESSION_IDENTITY_2;
+  this->pdu_session_identity.pdu_session_id = 0;
+  this->m5gmm_cause.m5gmm_cause = 0;
+  this->m5gmm_cause.iei = 0;
+}
 DLNASTransportMsg::~DLNASTransportMsg(){};
 
 // Decode DLNASTransport Message and its IEs
-int DLNASTransportMsg::DecodeDLNASTransportMsg(
-    DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len) {
+int DLNASTransportMsg::DecodeDLNASTransportMsg(uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -36,58 +51,46 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH,
                                        len);
 
-  if ((decoded_result =
-           dl_nas_transport->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &dl_nas_transport->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0) {
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0) {
+    return decoded_result;
+  } else {
+    decoded += decoded_result;
+  }
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
+    return decoded_result;
+  } else {
+    decoded += decoded_result;
+  }
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
+    return decoded_result;
+  } else {
+    decoded += decoded_result;
+  }
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
+    return decoded_result;
+  } else {
+    decoded += decoded_result;
+  }
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
   if ((decoded_result =
-           dl_nas_transport->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &dl_nas_transport->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0) {
+           this->payload_container_type.DecodePayloadContainerTypeMsg(
+               0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
   }
-  if ((decoded_result =
-           dl_nas_transport->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &dl_nas_transport->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
-  }
-  if ((decoded_result = dl_nas_transport->message_type.DecodeMessageTypeMsg(
-           &dl_nas_transport->message_type, 0, buffer + decoded,
-           len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
-  }
-  if ((decoded_result =
-           dl_nas_transport->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &dl_nas_transport->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
-  }
-  if ((decoded_result = dl_nas_transport->payload_container_type
-                            .DecodePayloadContainerTypeMsg(
-                                &dl_nas_transport->payload_container_type, 0,
-                                buffer + decoded, len - decoded)) < 0) {
-    return decoded_result;
-  } else {
-    decoded += decoded_result;
-  }
-  if ((decoded_result =
-           dl_nas_transport->payload_container.DecodePayloadContainerMsg(
-               &dl_nas_transport->payload_container, 0, buffer + decoded,
-               len - decoded)) < 0) {
+  if ((decoded_result = this->payload_container.DecodePayloadContainerMsg(
+           0, buffer + decoded, len - decoded)) < 0) {
     return decoded_result;
   } else {
     decoded += decoded_result;
@@ -101,8 +104,7 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
 
     switch (static_cast<M5GIei>(type)) {
       case M5GIei::M5GMM_CAUSE: {
-        if ((decoded_result = dl_nas_transport->m5gmm_cause.DecodeM5GMMCauseMsg(
-                 &dl_nas_transport->m5gmm_cause,
+        if ((decoded_result = this->m5gmm_cause.DecodeM5GMMCauseMsg(
                  static_cast<uint8_t>(M5GIei::M5GMM_CAUSE), buffer + decoded,
                  len - decoded)) < 0) {
           return decoded_result;
@@ -113,11 +115,9 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
       }
       case M5GIei::PDU_SESSION_IDENTITY_2: {
         if ((decoded_result =
-                 dl_nas_transport->pdu_session_identity
-                     .DecodePDUSessionIdentityMsg(
-                         &dl_nas_transport->pdu_session_identity,
-                         static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2),
-                         buffer + decoded, len - decoded)) < 0) {
+                 this->pdu_session_identity.DecodePDUSessionIdentityMsg(
+                     static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2),
+                     buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
         } else {
           decoded += decoded_result;
@@ -139,8 +139,7 @@ int DLNASTransportMsg::DecodeDLNASTransportMsg(
 }
 
 // Encode DL NAS Transport Message and its IEs
-int DLNASTransportMsg::EncodeDLNASTransportMsg(
-    DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len) {
+int DLNASTransportMsg::EncodeDLNASTransportMsg(uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   int encoded_result = 0;
@@ -150,66 +149,53 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH,
                                        len);
 
-  if ((encoded_result =
-           dl_nas_transport->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &dl_nas_transport->extended_protocol_discriminator, 0,
-                   buffer + encoded, len - encoded)) < 0) {
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
   if ((encoded_result =
-           dl_nas_transport->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &dl_nas_transport->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0) {
+           this->payload_container_type.EncodePayloadContainerTypeMsg(
+               0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result =
-           dl_nas_transport->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &dl_nas_transport->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0) {
+  if ((encoded_result = this->payload_container.EncodePayloadContainerMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = dl_nas_transport->message_type.EncodeMessageTypeMsg(
-           &dl_nas_transport->message_type, 0, buffer + encoded,
-           len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if ((encoded_result =
-           dl_nas_transport->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &dl_nas_transport->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if ((encoded_result = dl_nas_transport->payload_container_type
-                            .EncodePayloadContainerTypeMsg(
-                                &dl_nas_transport->payload_container_type, 0,
-                                buffer + encoded, len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if ((encoded_result =
-           dl_nas_transport->payload_container.EncodePayloadContainerMsg(
-               &dl_nas_transport->payload_container, 0, buffer + encoded,
-               len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if (dl_nas_transport->pdu_session_identity.pdu_session_id) {
+  if (this->pdu_session_identity.pdu_session_id) {
     if ((encoded_result =
-             dl_nas_transport->pdu_session_identity.EncodePDUSessionIdentityMsg(
-                 &dl_nas_transport->pdu_session_identity,
+             this->pdu_session_identity.EncodePDUSessionIdentityMsg(
                  static_cast<uint8_t>(M5GIei::PDU_SESSION_IDENTITY_2),
                  buffer + encoded, len - encoded)) < 0) {
       return encoded_result;
@@ -218,9 +204,8 @@ int DLNASTransportMsg::EncodeDLNASTransportMsg(
     }
   }
 
-  if (dl_nas_transport->m5gmm_cause.m5gmm_cause) {
-    if ((encoded_result = dl_nas_transport->m5gmm_cause.EncodeM5GMMCauseMsg(
-             &dl_nas_transport->m5gmm_cause,
+  if (this->m5gmm_cause.m5gmm_cause) {
+    if ((encoded_result = this->m5gmm_cause.EncodeM5GMMCauseMsg(
              static_cast<uint8_t>(M5GIei::M5GMM_CAUSE), buffer + encoded,
              len - encoded)) < 0) {
       return encoded_result;

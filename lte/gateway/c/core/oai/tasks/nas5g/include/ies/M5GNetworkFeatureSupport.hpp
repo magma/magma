@@ -30,12 +30,10 @@ class NetworkFeatureSupportMsg {
   NetworkFeatureSupportMsg();
   ~NetworkFeatureSupportMsg();
 
-  int EncodeNetworkFeatureSupportMsg(NetworkFeatureSupportMsg* networkfeature,
-                                     uint8_t iei, uint8_t* buffer,
+  int EncodeNetworkFeatureSupportMsg(uint8_t iei, uint8_t* buffer,
                                      uint32_t len);
 
-  int DecodeNetworkFeatureSupportMsg(NetworkFeatureSupportMsg* networkfeature,
-                                     uint8_t iei, uint8_t* buffer,
+  int DecodeNetworkFeatureSupportMsg(uint8_t iei, uint8_t* buffer,
                                      uint32_t len);
 };
 }  // namespace magma5g

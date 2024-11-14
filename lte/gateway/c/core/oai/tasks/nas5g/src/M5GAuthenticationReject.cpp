@@ -25,35 +25,31 @@ AuthenticationRejectMsg::AuthenticationRejectMsg(){};
 AuthenticationRejectMsg::~AuthenticationRejectMsg(){};
 
 // Decoding Authentication Reject Message and its IEs
-int AuthenticationRejectMsg::DecodeAuthenticationRejectMsg(
-    AuthenticationRejectMsg* auth_reject, uint8_t* buffer, uint32_t len) {
+int AuthenticationRejectMsg::DecodeAuthenticationRejectMsg(uint8_t* buffer,
+                                                           uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
 
-  if ((decoded_result = auth_reject->extended_protocol_discriminator
+  if ((decoded_result = this->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
-                                &auth_reject->extended_protocol_discriminator,
                                 0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = auth_reject->spare_half_octet.DecodeSpareHalfOctetMsg(
-           &auth_reject->spare_half_octet, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           auth_reject->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &auth_reject->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = auth_reject->message_type.DecodeMessageTypeMsg(
-           &auth_reject->message_type, 0, buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -62,35 +58,31 @@ int AuthenticationRejectMsg::DecodeAuthenticationRejectMsg(
 }
 
 // Encoding Authentication Reject Message and its IEs
-int AuthenticationRejectMsg::EncodeAuthenticationRejectMsg(
-    AuthenticationRejectMsg* auth_reject, uint8_t* buffer, uint32_t len) {
+int AuthenticationRejectMsg::EncodeAuthenticationRejectMsg(uint8_t* buffer,
+                                                           uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_REJECT_MINIMUM_LENGTH, len);
 
-  if ((encoded_result = auth_reject->extended_protocol_discriminator
+  if ((encoded_result = this->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
-                                &auth_reject->extended_protocol_discriminator,
                                 0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = auth_reject->spare_half_octet.EncodeSpareHalfOctetMsg(
-           &auth_reject->spare_half_octet, 0, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           auth_reject->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &auth_reject->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = auth_reject->message_type.EncodeMessageTypeMsg(
-           &auth_reject->message_type, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

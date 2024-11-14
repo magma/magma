@@ -21,20 +21,24 @@ class ExtendedProtocolDiscriminatorMsg {
 
   ExtendedProtocolDiscriminatorMsg();
   ~ExtendedProtocolDiscriminatorMsg();
-  int EncodeExtendedProtocolDiscriminatorMsg(
-      ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeExtendedProtocolDiscriminatorMsg(
-      ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeExtendedProtocolDiscriminatorMsg(uint8_t iei, uint8_t* buffer,
+                                             uint32_t len);
+  int DecodeExtendedProtocolDiscriminatorMsg(uint8_t iei, uint8_t* buffer,
+                                             uint32_t len);
   void copy(const ExtendedProtocolDiscriminatorMsg& e) {
     extended_proto_discriminator = e.extended_proto_discriminator;
   }
-  bool isEqual(const ExtendedProtocolDiscriminatorMsg& e) {
-    if (extended_proto_discriminator == e.extended_proto_discriminator) {
-      return true;
-    }
-    return false;
+  bool isEqual(const ExtendedProtocolDiscriminatorMsg& e) { return *this == e; }
+  bool operator==(const ExtendedProtocolDiscriminatorMsg& other) {
+    return extended_proto_discriminator == other.extended_proto_discriminator;
+  }
+  bool operator!=(const ExtendedProtocolDiscriminatorMsg& other) {
+    return !(*this == other);
+  }
+  ExtendedProtocolDiscriminatorMsg& operator=(
+      const ExtendedProtocolDiscriminatorMsg& other) {
+    this->extended_proto_discriminator = other.extended_proto_discriminator;
+    return *this;
   }
 };
 }  // namespace magma5g

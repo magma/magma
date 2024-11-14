@@ -9,17 +9,6 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
-#include <cstdint>
-#include <cstring>
-#ifdef __cplusplus
-extern "C" {
-#endif
-#include "lte/gateway/c/core/oai/common/log.h"
-#ifdef __cplusplus
-}
-#endif
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GProtocolConfigurationOptions.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
@@ -28,38 +17,9 @@ namespace magma5g {
 ProtocolConfigurationOptions::ProtocolConfigurationOptions() {}
 ProtocolConfigurationOptions::~ProtocolConfigurationOptions() {}
 
-int decode_bstring(bstring* bstr, const uint16_t pdulen,
-                   const uint8_t* const buffer, const uint32_t buflen) {
-  if (buflen < pdulen) {
-    return TLV_BUFFER_TOO_SHORT;
-  }
-
-  if ((bstr) && (buffer)) {
-    *bstr = blk2bstr(buffer, pdulen);
-    return pdulen;
-  } else {
-    return TLV_BUFFER_TOO_SHORT;
-  }
-}
-
-int encode_bstring(const_bstring const str, uint8_t* const buffer,
-                   const uint32_t buflen) {
-  if (str) {
-    if (blength(str) > 0) {
-      CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, blength(str), buflen);
-      memcpy((void*)buffer, (void*)str->data, blength(str));
-      return blength(str);
-    } else {
-      return 0;
-    }
-  } else {
-    return 0;
-  }
-}
-
 int ProtocolConfigurationOptions::m5g_decode_protocol_configuration_options(
-    protocol_configuration_options_t* pco, const uint8_t* const buffer,
-    const uint32_t len) {
+    const uint8_t* const buffer, const uint32_t len) {
+  protocol_configuration_options_t* pco = &this->pco;
   int decoded = 0;
   int decode_result = 0;
 
@@ -74,8 +34,7 @@ int ProtocolConfigurationOptions::m5g_decode_protocol_configuration_options(
     return TLV_VALUE_DOESNT_MATCH;
   }
 
-  pco->configuration_protocol = (*(buffer + decoded) >> 1) & 0x7;
-  decoded++;
+  pco->configuration_protocol = (*(buffer + decoded++) >> 1) & 0x7;
   pco->num_protocol_or_container_id = 0;
 
   while (3 <= ((int32_t)len - (int32_t)decoded)) {
@@ -113,8 +72,7 @@ int ProtocolConfigurationOptions::m5g_decode_protocol_configuration_options(
 
 // Decode Protocol Configuration Options IE
 int ProtocolConfigurationOptions::DecodeProtocolConfigurationOptions(
-    ProtocolConfigurationOptions* protocolconfigurationoptions, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
   int decoded2 = 0;
   uint16_t ielen = 0;
@@ -126,8 +84,8 @@ int ProtocolConfigurationOptions::DecodeProtocolConfigurationOptions(
   DECODE_U16(buffer + decoded, ielen, decoded);
   CHECK_LENGTH_DECODER(len - decoded, ielen);
 
-  decoded2 = m5g_decode_protocol_configuration_options(
-      &(protocolconfigurationoptions->pco), buffer + decoded, (uint32_t)ielen);
+  decoded2 = m5g_decode_protocol_configuration_options(buffer + decoded,
+                                                       (uint32_t)ielen);
   if (decoded2 < 0) return decoded2;
   if (decoded2 != ielen) return -1;
 
@@ -135,23 +93,22 @@ int ProtocolConfigurationOptions::DecodeProtocolConfigurationOptions(
 };
 
 int ProtocolConfigurationOptions::m5g_encode_protocol_configuration_options(
-    const protocol_configuration_options_t* const pco, uint8_t* buffer,
-    const uint32_t len) {
+    uint8_t* buffer, const uint32_t len) {
+  protocol_configuration_options_t* pco = &this->pco;
+
   uint8_t num_protocol_or_container_id = 0;
   uint32_t encoded = 0;
   int encode_result = 0;
 
-  *(buffer + encoded) = 0x00 | (1 << 7) | (pco->configuration_protocol & 0x7);
-  encoded++;
+  *(buffer + encoded++) = 0x00 | (1 << 7) | (pco->configuration_protocol & 0x7);
 
   while (num_protocol_or_container_id < pco->num_protocol_or_container_id) {
     ENCODE_U16(buffer + encoded,
                pco->protocol_or_container_ids[num_protocol_or_container_id].id,
                encoded);
 
-    *(buffer + encoded) =
+    *(buffer + encoded++) =
         pco->protocol_or_container_ids[num_protocol_or_container_id].length;
-    encoded++;
 
     if ((encode_result = encode_bstring(
              pco->protocol_or_container_ids[num_protocol_or_container_id]
@@ -167,22 +124,20 @@ int ProtocolConfigurationOptions::m5g_encode_protocol_configuration_options(
 }
 
 int ProtocolConfigurationOptions::EncodeProtocolConfigurationOptions(
-    ProtocolConfigurationOptions* protocolconfigurationoptions, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t* lenPtr = NULL;
   uint16_t pco_len = 0;
   uint32_t encoded = 0;
 
   if (iei) {
-    *buffer = REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE;
-    encoded++;
+    *(buffer + encoded++) =
+        REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE;
   }
 
   lenPtr = (buffer + encoded);
 
   pco_len = m5g_encode_protocol_configuration_options(
-      &(protocolconfigurationoptions->pco), buffer + encoded + sizeof(uint16_t),
-      len - encoded);
+      buffer + encoded + sizeof(uint16_t), len - encoded);
 
   if (iei) {
     ENCODE_U16(lenPtr, pco_len, encoded);

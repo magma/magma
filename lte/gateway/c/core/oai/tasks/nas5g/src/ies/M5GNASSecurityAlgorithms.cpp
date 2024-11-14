@@ -26,9 +26,9 @@ NASSecurityAlgorithmsMsg::NASSecurityAlgorithmsMsg(){};
 NASSecurityAlgorithmsMsg::~NASSecurityAlgorithmsMsg(){};
 
 // Decode NASSecurityAlgorithms IE
-int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
-    NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(uint8_t iei,
+                                                             uint8_t* buffer,
+                                                             uint32_t len) {
   uint8_t decoded = 0;
 
   // Checking IEI
@@ -37,16 +37,16 @@ int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
     decoded++;
   }
 
-  nas_sec_algorithms->tca = (*(buffer + decoded) >> 4) & 0x7;
-  nas_sec_algorithms->tia = *(buffer + decoded) & 0x7;
+  this->tca = (*(buffer + decoded) >> 4) & 0x7;
+  this->tia = *(buffer + decoded) & 0x7;
   decoded++;
   return (decoded);
 };
 
 // Encode NASSecurityAlgorithms IE
-int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
-    NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(uint8_t iei,
+                                                             uint8_t* buffer,
+                                                             uint32_t len) {
   int encoded = 0;
 
   // Checking IEI and pointer
@@ -54,14 +54,11 @@ int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
       buffer, NAS_SECURITY_ALGORITHMS_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
-    *buffer = iei;
-    encoded++;
+    *(buffer + encoded++) = iei;
   }
 
-  *(buffer + encoded) = 0x00 | ((nas_sec_algorithms->tca & 0x7) << 4) |
-                        (nas_sec_algorithms->tia & 0x7);
+  *(buffer + encoded++) = 0x00 | ((this->tca & 0x7) << 4) | (this->tia & 0x7);
 
-  encoded++;
   return (encoded);
 };
 }  // namespace magma5g

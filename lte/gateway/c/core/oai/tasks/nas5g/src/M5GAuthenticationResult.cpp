@@ -26,54 +26,48 @@ AuthenticationResultMsg::AuthenticationResultMsg(){};
 AuthenticationResultMsg::~AuthenticationResultMsg(){};
 
 // Decode Authentication Result Message and its IEs
-int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
-    AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len) {
+int AuthenticationResultMsg::DecodeAuthenticationResultMsg(uint8_t* buffer,
+                                                           uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, AUTHENTICATION_RESULT_MINIMUM_LENGTH, len);
 
-  if ((decoded_result = auth_result->extended_protocol_discriminator
+  if ((decoded_result = this->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
-                                &auth_result->extended_protocol_discriminator,
                                 0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = auth_result->spare_half_octet.DecodeSpareHalfOctetMsg(
-           &auth_result->spare_half_octet, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
   if ((decoded_result =
-           auth_result->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &auth_result->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
+           this->nas_key_set_identifier.DecodeNASKeySetIdentifierMsg(
+               0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = auth_result->message_type.DecodeMessageTypeMsg(
-           &auth_result->message_type, 0, buffer + decoded, len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result = auth_result->spare_half_octet.DecodeSpareHalfOctetMsg(
-           &auth_result->spare_half_octet, 0, buffer + decoded,
-           len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           auth_result->nas_key_set_identifier.DecodeNASKeySetIdentifierMsg(
-               &auth_result->nas_key_set_identifier, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result = auth_result->eap_message.DecodeEAPMessageMsg(
-           &auth_result->eap_message, 0, buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->eap_message.DecodeEAPMessageMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -81,8 +75,8 @@ int AuthenticationResultMsg::DecodeAuthenticationResultMsg(
 };
 
 // Encode Authentication Result Message and its IEs
-int AuthenticationResultMsg::EncodeAuthenticationResultMsg(
-    AuthenticationResultMsg* auth_result, uint8_t* buffer, uint32_t len) {
+int AuthenticationResultMsg::EncodeAuthenticationResultMsg(uint8_t* buffer,
+                                                           uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
 
@@ -91,44 +85,38 @@ int AuthenticationResultMsg::EncodeAuthenticationResultMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, AUTHENTICATION_RESULT_MINIMUM_LENGTH, len);
 
-  if ((encoded_result = auth_result->extended_protocol_discriminator
+  if ((encoded_result = this->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
-                                &auth_result->extended_protocol_discriminator,
                                 0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = auth_result->spare_half_octet.EncodeSpareHalfOctetMsg(
-           &auth_result->spare_half_octet, 0, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           auth_result->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &auth_result->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = auth_result->message_type.EncodeMessageTypeMsg(
-           &auth_result->message_type, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = auth_result->spare_half_octet.EncodeSpareHalfOctetMsg(
-           &auth_result->spare_half_octet, 0, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   if ((encoded_result =
-           auth_result->nas_key_set_identifier.EncodeNASKeySetIdentifierMsg(
-               &auth_result->nas_key_set_identifier, 0, buffer + encoded,
-               len - encoded)) < 0)
+           this->nas_key_set_identifier.EncodeNASKeySetIdentifierMsg(
+               0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = auth_result->eap_message.EncodeEAPMessageMsg(
-           &auth_result->eap_message, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->eap_message.EncodeEAPMessageMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

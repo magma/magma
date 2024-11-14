@@ -26,8 +26,8 @@ namespace magma5g {
 GPRSTimer3Msg::GPRSTimer3Msg(){};
 GPRSTimer3Msg::~GPRSTimer3Msg(){};
 
-int GPRSTimer3Msg::DecodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int GPRSTimer3Msg::DecodeGPRSTimer3Msg(uint8_t iei, uint8_t* buffer,
+                                       uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
@@ -35,14 +35,14 @@ int GPRSTimer3Msg::DecodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
     decoded++;
   }
 
-  gprstimer->unit = (*(buffer + decoded) >> 5) & 0x7;
-  gprstimer->timervalue = *(buffer + decoded) & 0x1f;
+  this->unit = (*(buffer + decoded) >> 5) & 0x7;
+  this->timervalue = *(buffer + decoded) & 0x1f;
   decoded++;
   return decoded;
 };
 
-int GPRSTimer3Msg::EncodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
-                                       uint8_t* buffer, uint32_t len) {
+int GPRSTimer3Msg::EncodeGPRSTimer3Msg(uint8_t iei, uint8_t* buffer,
+                                       uint32_t len) {
   uint32_t encoded = 0;
 
   /*
@@ -51,15 +51,12 @@ int GPRSTimer3Msg::EncodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, GPRS_TIMER3_MINIMUM_LENGTH, len);
 
   if (iei > 0) {
-    *buffer = iei;
-    encoded++;
+    *(buffer + encoded++) = iei;
   }
 
-  *(buffer + encoded) = gprstimer->len;
-  encoded++;
-  *(buffer + encoded) =
-      0x00 | ((gprstimer->unit & 0x7) << 5) | (gprstimer->timervalue & 0x1f);
-  encoded++;
+  *(buffer + encoded++) = this->len;
+  *(buffer + encoded++) =
+      0x00 | ((this->unit & 0x7) << 5) | (this->timervalue & 0x1f);
   return encoded;
 };
 

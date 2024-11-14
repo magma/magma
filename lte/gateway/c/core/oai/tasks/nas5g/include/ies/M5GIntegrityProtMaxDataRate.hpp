@@ -22,12 +22,10 @@ class IntegrityProtMaxDataRateMsg {
 
   IntegrityProtMaxDataRateMsg();
   ~IntegrityProtMaxDataRateMsg();
-  int EncodeIntegrityProtMaxDataRateMsg(
-      IntegrityProtMaxDataRateMsg* integrity_prot_max_data_rate, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
-  int DecodeIntegrityProtMaxDataRateMsg(
-      IntegrityProtMaxDataRateMsg* integrity_prot_max_data_rate, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int EncodeIntegrityProtMaxDataRateMsg(uint8_t iei, uint8_t* buffer,
+                                        uint32_t len);
+  int DecodeIntegrityProtMaxDataRateMsg(uint8_t iei, uint8_t* buffer,
+                                        uint32_t len);
 
   void copy(const IntegrityProtMaxDataRateMsg& i) {
     max_uplink = i.max_uplink;

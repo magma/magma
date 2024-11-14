@@ -1,8 +1,25 @@
 #pragma once
 #include <arpa/inet.h>
+#include <iostream>
+#include <cstring>
+#include <sstream>
+#include <cstdint>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/TLVDecoder.h"
+#include "lte/gateway/c/core/oai/common/TLVEncoder.h"
+#ifdef __cplusplus
+}
+#endif
+
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 // AMF_TEST scheme output  nibbles needs to be reversed
 #define REV_NIBBLE(bUFFER, sIZE)                                         \

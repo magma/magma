@@ -26,42 +26,39 @@ ServiceRejectMsg::ServiceRejectMsg(){};
 ServiceRejectMsg::~ServiceRejectMsg(){};
 
 // Decoding Service Reject Message and its IEs
-int ServiceRejectMsg::DecodeServiceRejectMsg(ServiceRejectMsg* svc_rej,
-                                             uint8_t* buffer, uint32_t len) {
+int ServiceRejectMsg::DecodeServiceRejectMsg(uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
-  if ((decoded_result = svc_rej->extended_protocol_discriminator
+  if ((decoded_result = this->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
-                                &svc_rej->extended_protocol_discriminator, 0,
-                                buffer + decoded, len - decoded)) < 0)
+                                0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = svc_rej->spare_half_octet.DecodeSpareHalfOctetMsg(
-           &svc_rej->spare_half_octet, 0, buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = svc_rej->sec_header_type.DecodeSecurityHeaderTypeMsg(
-           &svc_rej->sec_header_type, 0, buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = svc_rej->message_type.DecodeMessageTypeMsg(
-           &svc_rej->message_type, 0, buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = svc_rej->cause.DecodeM5GMMCauseMsg(
-           &svc_rej->cause, 0, buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->cause.DecodeM5GMMCauseMsg(0, buffer + decoded,
+                                                        len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
   if (decoded < len) {
-    if ((decoded_result = svc_rej->pdu_session_status.DecodePDUSessionStatus(
-             &svc_rej->pdu_session_status, PDU_SESSION_STATUS, buffer + decoded,
-             len - decoded)) < 0)
+    if ((decoded_result = this->pdu_session_status.DecodePDUSessionStatus(
+             PDU_SESSION_STATUS, buffer + decoded, len - decoded)) < 0)
       return decoded_result;
     else
       decoded += decoded_result;
@@ -71,48 +68,45 @@ int ServiceRejectMsg::DecodeServiceRejectMsg(ServiceRejectMsg* svc_rej,
 }
 
 // Encoding Service Reject Message and its IEs
-int ServiceRejectMsg::EncodeServiceRejectMsg(ServiceRejectMsg* svc_rej,
-                                             uint8_t* buffer, uint32_t len) {
+int ServiceRejectMsg::EncodeServiceRejectMsg(uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
                                        M5G_SERVICE_REJECT_MINIMUM_LENGTH, len);
 
-  if ((encoded_result = svc_rej->extended_protocol_discriminator
+  if ((encoded_result = this->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
-                                &svc_rej->extended_protocol_discriminator, 0,
-                                buffer + encoded, len - encoded)) < 0)
+                                0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_rej->spare_half_octet.EncodeSpareHalfOctetMsg(
-           &svc_rej->spare_half_octet, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_rej->sec_header_type.EncodeSecurityHeaderTypeMsg(
-           &svc_rej->sec_header_type, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_rej->message_type.EncodeMessageTypeMsg(
-           &svc_rej->message_type, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_rej->cause.EncodeM5GMMCauseMsg(
-           &svc_rej->cause, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->cause.EncodeM5GMMCauseMsg(0, buffer + encoded,
+                                                        len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_rej->pdu_session_status.EncodePDUSessionStatus(
-           &svc_rej->pdu_session_status, 0, buffer + encoded, len - encoded)) <
-      0)
+  if ((encoded_result = this->pdu_session_status.EncodePDUSessionStatus(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = svc_rej->t3346Value.EncodeGPRSTimer2Msg(
-           &svc_rej->t3346Value, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->t3346Value.EncodeGPRSTimer2Msg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

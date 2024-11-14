@@ -19,24 +19,16 @@ PTIMsg::PTIMsg(){};
 PTIMsg::~PTIMsg(){};
 
 // Decode PTI IE
-int PTIMsg::DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
-                         uint32_t len) {
+int PTIMsg::DecodePTIMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
-
-  pti->pti = *(buffer + decoded);
-  decoded++;
-
+  this->pti = *(buffer + decoded++);
   return (decoded);
 };
 
 // Encode PTI IE
-int PTIMsg::EncodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,
-                         uint32_t len) {
+int PTIMsg::EncodePTIMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
-
-  *(buffer + encoded) = pti->pti;
-  encoded++;
-
+  *(buffer + encoded++) = this->pti;
   return (encoded);
 };
 }  // namespace magma5g

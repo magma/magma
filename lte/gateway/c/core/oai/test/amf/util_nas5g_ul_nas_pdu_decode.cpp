@@ -23,8 +23,7 @@ bool decode_ul_nas_transport_msg(ULNASTransportMsg* ul_nas_pdu,
   uint8_t* decode_ul_nas_pdu_buffer =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
-  if (ul_nas_pdu->DecodeULNASTransportMsg(ul_nas_pdu, decode_ul_nas_pdu_buffer,
-                                          len) < 0) {
+  if (ul_nas_pdu->DecodeULNASTransportMsg(decode_ul_nas_pdu_buffer, len) < 0) {
     decode_success = false;
   }
 
@@ -40,7 +39,7 @@ bool decode_ul_nas_deregister_request_msg(
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
   if (ul_nas_pdu->DecodeDeRegistrationRequestUEInitMsg(
-          ul_nas_pdu, decode_ul_nas_dereg_pdu_buffer, len) < 0) {
+          decode_ul_nas_dereg_pdu_buffer, len) < 0) {
     decode_success = false;
   }
 

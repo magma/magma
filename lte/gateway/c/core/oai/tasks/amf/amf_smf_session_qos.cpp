@@ -168,7 +168,7 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
 
       // Convert Authorized qos into bstring
       int encoded_result = qosRuleMsg.EncodeQOSRulesMsgData(
-          &qosRuleMsg, qos_rules_msg_buffer + qos_rules_msg_buf_len,
+          qos_rules_msg_buffer + qos_rules_msg_buf_len,
           QOS_RULES_MSG_BUF_LEN_MAX);
 
       if (encoded_result < 0) {
@@ -248,7 +248,7 @@ int amf_smf_session_api_fill_qos_ie_info(std::shared_ptr<smf_context_t> smf_ctx,
       if (flow_des.numOfParams) {
         // Convert Authorized qos into bstring
         int encoded_result = flow_des.EncodeM5GQosFlowDescription(
-            &flow_des, qos_flow_desc_buffer + qos_flow_desc_buf_len,
+            qos_flow_desc_buffer + qos_flow_desc_buf_len,
             QOS_FLOW_DESC_BUF_LEN_MAX);
 
         if (encoded_result < 0) {

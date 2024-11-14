@@ -25,38 +25,31 @@ SecurityModeCompleteMsg::SecurityModeCompleteMsg(){};
 SecurityModeCompleteMsg::~SecurityModeCompleteMsg(){};
 
 // Decode SecurityModeComplete Message and its IEs
-int SecurityModeCompleteMsg::DecodeSecurityModeCompleteMsg(
-    SecurityModeCompleteMsg* sec_mode_complete, uint8_t* buffer, uint32_t len) {
+int SecurityModeCompleteMsg::DecodeSecurityModeCompleteMsg(uint8_t* buffer,
+                                                           uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, SECURITY_MODE_COMPLETE_MINIMUM_LENGTH, len);
 
-  if ((decoded_result =
-           sec_mode_complete->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &sec_mode_complete->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           sec_mode_complete->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &sec_mode_complete->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           sec_mode_complete->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &sec_mode_complete->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = sec_mode_complete->message_type.DecodeMessageTypeMsg(
-           &sec_mode_complete->message_type, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -65,8 +58,8 @@ int SecurityModeCompleteMsg::DecodeSecurityModeCompleteMsg(
 
 // Will be supported POST MVC
 // Encode Security Mode Complete Message and its IEs
-int SecurityModeCompleteMsg::EncodeSecurityModeCompleteMsg(
-    SecurityModeCompleteMsg* sec_mode_complete, uint8_t* buffer, uint32_t len) {
+int SecurityModeCompleteMsg::EncodeSecurityModeCompleteMsg(uint8_t* buffer,
+                                                           uint32_t len) {
   uint32_t encoded = 0;
 
 #ifdef HANDLE_POST_MVC
@@ -77,22 +70,18 @@ int SecurityModeCompleteMsg::EncodeSecurityModeCompleteMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, SECURITY_MODE_COMPLETE_MINIMUM_LENGTH, len);
 
+  if ((encoded_result = this->EncodeExtendedProtocolDiscriminatorMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->EncodeSecurityHeaderTypeMsg(0, buffer + encoded,
+                                                          len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
   if ((encoded_result =
-           sec_mode_complete->EncodeExtendedProtocolDiscriminatorMsg(
-               sec_mode_complete->extended_protocol_discriminator, 0,
-               buffer + encoded, len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result = sec_mode_complete->EncodeSecurityHeaderTypeMsg(
-           sec_mode_complete->sec_header_type, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result = sec_mode_complete->EncodeMessageTypeMsg(
-           sec_mode_complete->message_type, 0, buffer + encoded,
-           len - encoded)) < 0)
+           this->EncodeMessageTypeMsg(0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

@@ -21,11 +21,9 @@ class M5GMaxNumOfSupportedPacketFilters {
 
   M5GMaxNumOfSupportedPacketFilters();
   ~M5GMaxNumOfSupportedPacketFilters();
-  int EncodeMaxNumOfSupportedPacketFilters(
-      M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
-  int DecodeMaxNumOfSupportedPacketFilters(
-      M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int EncodeMaxNumOfSupportedPacketFilters(uint8_t iei, uint8_t* buffer,
+                                           uint32_t len);
+  int DecodeMaxNumOfSupportedPacketFilters(uint8_t iei, uint8_t* buffer,
+                                           uint32_t len);
 };
 }  // namespace magma5g

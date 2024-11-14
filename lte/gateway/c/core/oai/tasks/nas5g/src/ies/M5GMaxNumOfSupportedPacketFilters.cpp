@@ -21,36 +21,25 @@ M5GMaxNumOfSupportedPacketFilters::M5GMaxNumOfSupportedPacketFilters() {}
 M5GMaxNumOfSupportedPacketFilters::~M5GMaxNumOfSupportedPacketFilters() {}
 
 int M5GMaxNumOfSupportedPacketFilters::EncodeMaxNumOfSupportedPacketFilters(
-    M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
-  if (maxNumOfSuppPktFilters->iei) {
-    *(buffer + encoded) = maxNumOfSuppPktFilters->iei;
-    encoded++;
-    *(buffer + encoded) =
-        (uint8_t)(maxNumOfSuppPktFilters->maxNumOfSuppPktFilters & 0xFF);
-    encoded++;
-    *(buffer + encoded) =
-        (uint8_t)((maxNumOfSuppPktFilters->maxNumOfSuppPktFilters & 0xE0));
-    encoded++;
+  if (this->iei) {
+    *(buffer + encoded++) = this->iei;
+    *(buffer + encoded++) = (uint8_t)(this->maxNumOfSuppPktFilters & 0xFF);
+    *(buffer + encoded++) = (uint8_t)((this->maxNumOfSuppPktFilters & 0xE0));
   }
 
   return encoded;
 }
 
 int M5GMaxNumOfSupportedPacketFilters::DecodeMaxNumOfSupportedPacketFilters(
-    M5GMaxNumOfSupportedPacketFilters* maxNumOfSuppPktFilters, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
   if (iei > 0) {
-    maxNumOfSuppPktFilters->iei = *buffer;
-    decoded++;
+    this->iei = *(buffer + decoded++);
 
-    maxNumOfSuppPktFilters->maxNumOfSuppPktFilters = (*(buffer + decoded) << 8);
-    decoded++;
-    maxNumOfSuppPktFilters->maxNumOfSuppPktFilters |=
-        (*(buffer + decoded) & 0xE0);
-    decoded++;
+    this->maxNumOfSuppPktFilters = (*(buffer + decoded++) << 8);
+    this->maxNumOfSuppPktFilters |= (*(buffer + decoded++) & 0xE0);
   }
 
   return decoded;

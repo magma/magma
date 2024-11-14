@@ -73,10 +73,10 @@ class SmfMsg {
 
   SmfMsg();
   ~SmfMsg();
-  int SmfMsgDecodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer, uint32_t len);
-  int SmfMsgEncodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer, uint32_t len);
-  int SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len);
-  int SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len);
+  int SmfMsgDecodeHeaderMsg(uint8_t* buffer, uint32_t len);
+  int SmfMsgEncodeHeaderMsg(uint8_t* buffer, uint32_t len);
+  int SmfMsgDecodeMsg(uint8_t* buffer, uint32_t len);
+  int SmfMsgEncodeMsg(uint8_t* buffer, uint32_t len);
   void copy(const SmfMsg& s) {
     header.copy(s.header);
     switch (static_cast<M5GMessageType>(s.header.message_type)) {

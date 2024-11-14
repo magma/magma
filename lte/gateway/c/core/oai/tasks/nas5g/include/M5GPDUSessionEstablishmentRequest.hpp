@@ -40,12 +40,8 @@ class PDUSessionEstablishmentRequestMsg {
 
   PDUSessionEstablishmentRequestMsg();
   ~PDUSessionEstablishmentRequestMsg();
-  int DecodePDUSessionEstablishmentRequestMsg(
-      PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
-      uint8_t* buffer, uint32_t len);
-  int EncodePDUSessionEstablishmentRequestMsg(
-      PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
-      uint8_t* buffer, uint32_t len);
+  int DecodePDUSessionEstablishmentRequestMsg(uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionEstablishmentRequestMsg(uint8_t* buffer, uint32_t len);
   void copy(const PDUSessionEstablishmentRequestMsg& p) {
     extended_protocol_discriminator.copy(p.extended_protocol_discriminator);
     pdu_session_identity.copy(p.pdu_session_identity);

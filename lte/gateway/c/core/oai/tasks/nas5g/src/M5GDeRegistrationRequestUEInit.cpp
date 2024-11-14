@@ -27,60 +27,47 @@ DeRegistrationRequestUEInitMsg::~DeRegistrationRequestUEInitMsg(){};
 
 // Decode De Registration Request(UE) Message and its IEs
 int DeRegistrationRequestUEInitMsg::DecodeDeRegistrationRequestUEInitMsg(
-    DeRegistrationRequestUEInitMsg* de_reg_request, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH, len);
 
-  if ((decoded_result =
-           de_reg_request->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &de_reg_request->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->m5gs_de_reg_type.DecodeM5GSDeRegistrationTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
   if ((decoded_result =
-           de_reg_request->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &de_reg_request->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0)
+           this->nas_key_set_identifier.DecodeNASKeySetIdentifierMsg(
+               0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           de_reg_request->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &de_reg_request->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result = de_reg_request->message_type.DecodeMessageTypeMsg(
-           &de_reg_request->message_type, 0, buffer + decoded, len - decoded)) <
-      0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           de_reg_request->m5gs_de_reg_type.DecodeM5GSDeRegistrationTypeMsg(
-               &de_reg_request->m5gs_de_reg_type, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           de_reg_request->nas_key_set_identifier.DecodeNASKeySetIdentifierMsg(
-               &de_reg_request->nas_key_set_identifier, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           de_reg_request->m5gs_mobile_identity.DecodeM5GSMobileIdentityMsg(
-               &de_reg_request->m5gs_mobile_identity, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->m5gs_mobile_identity.DecodeM5GSMobileIdentityMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -89,8 +76,7 @@ int DeRegistrationRequestUEInitMsg::DecodeDeRegistrationRequestUEInitMsg(
 
 // Encode De Registration Request(UE) Message and its IEs
 int DeRegistrationRequestUEInitMsg::EncodeDeRegistrationRequestUEInitMsg(
-    DeRegistrationRequestUEInitMsg* de_reg_request, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
 
@@ -99,52 +85,40 @@ int DeRegistrationRequestUEInitMsg::EncodeDeRegistrationRequestUEInitMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH, len);
 
-  if ((encoded_result =
-           de_reg_request->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &de_reg_request->extended_protocol_discriminator, 0,
-                   buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = this->m5gs_de_reg_type.EncodeM5GSDeRegistrationTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
   if ((encoded_result =
-           de_reg_request->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &de_reg_request->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0)
+           this->nas_key_set_identifier.EncodeNASKeySetIdentifierMsg(
+               0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           de_reg_request->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &de_reg_request->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result = de_reg_request->message_type.EncodeMessageTypeMsg(
-           &de_reg_request->message_type, 0, buffer + encoded, len - encoded)) <
-      0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           de_reg_request->m5gs_de_reg_type.EncodeM5GSDeRegistrationTypeMsg(
-               &de_reg_request->m5gs_de_reg_type, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           de_reg_request->nas_key_set_identifier.EncodeNASKeySetIdentifierMsg(
-               &de_reg_request->nas_key_set_identifier, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encoded_result;
-  else
-    encoded += encoded_result;
-  if ((encoded_result =
-           de_reg_request->m5gs_mobile_identity.EncodeM5GSMobileIdentityMsg(
-               &de_reg_request->m5gs_mobile_identity, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->m5gs_mobile_identity.EncodeM5GSMobileIdentityMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

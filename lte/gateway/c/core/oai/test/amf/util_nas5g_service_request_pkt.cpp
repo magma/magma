@@ -19,16 +19,14 @@ namespace magma5g {
 //  API for testing decode registration request
 bool decode_service_request_msg(ServiceRequestMsg* reg_request,
                                 const uint8_t* buffer, uint32_t len) {
-  bool decode_success = true;
   uint8_t* decode_reg_buffer =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
-  if (reg_request->DecodeServiceRequestMsg(reg_request, decode_reg_buffer,
-                                           len) < 0) {
-    decode_success = false;
+  if (reg_request->DecodeServiceRequestMsg(decode_reg_buffer, len) < 0) {
+    return false;
   }
 
-  return (decode_success);
+  return true;
 }
 
 }  // namespace magma5g

@@ -51,12 +51,8 @@ class PDUSessionEstablishmentAcceptMsg {
 
   PDUSessionEstablishmentAcceptMsg();
   ~PDUSessionEstablishmentAcceptMsg();
-  int DecodePDUSessionEstablishmentAcceptMsg(
-      PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept,
-      uint8_t* buffer, uint32_t len);
-  int EncodePDUSessionEstablishmentAcceptMsg(
-      PDUSessionEstablishmentAcceptMsg* pdu_session_estab_accept,
-      uint8_t* buffer, uint32_t len);
+  int DecodePDUSessionEstablishmentAcceptMsg(uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionEstablishmentAcceptMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

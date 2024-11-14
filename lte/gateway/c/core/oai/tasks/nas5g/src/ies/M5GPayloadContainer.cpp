@@ -27,37 +27,37 @@ namespace magma5g {
 PayloadContainerMsg::PayloadContainerMsg(){};
 PayloadContainerMsg::~PayloadContainerMsg(){};
 
-int PayloadContainerMsg::DecodePayloadContainerMsg(
-    PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int PayloadContainerMsg::DecodePayloadContainerMsg(uint8_t iei, uint8_t* buffer,
+                                                   uint32_t len) {
   int decoded = 0;
   uint32_t ielen = 0;
   IES_DECODE_U16(buffer, decoded, ielen);
-  payload_container->len = ielen;
-  memcpy(&payload_container->contents, buffer + decoded,
-         static_cast<int>(ielen));
+  this->len = ielen;
+  memcpy(&this->contents, buffer + decoded, static_cast<int>(ielen));
 
   // SMF NAS Message Decode
-  decoded += payload_container->smf_msg.SmfMsgDecodeMsg(
-      &payload_container->smf_msg, payload_container->contents,
-      static_cast<int>(ielen));
+  decoded +=
+      this->smf_msg.SmfMsgDecodeMsg(this->contents, static_cast<int>(ielen));
 
   return (decoded);
 };
 
-int PayloadContainerMsg::EncodePayloadContainerMsg(
-    PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int PayloadContainerMsg::EncodePayloadContainerMsg(uint8_t iei, uint8_t* buffer,
+                                                   uint32_t len) {
   int encoded = 0;
   uint32_t ielen = 0;
   int tmp = 0;
 
-  ielen = payload_container->len;
+  /** TODO: consider removing the `this->len` variable */
+  ielen = this->len;
 
   // SMF NAS Message Decode
-  encoded += payload_container->smf_msg.SmfMsgEncodeMsg(
-      &payload_container->smf_msg, payload_container->contents,
-      payload_container->len);
+  encoded +=
+      this->smf_msg.SmfMsgEncodeMsg(this->contents, sizeof(this->contents));
+  if (encoded <= 0) {
+    OAILOG_ERROR(LOG_NAS5G, "SmfMsg Encoding Failed");
+    return (RETURNerror);
+  }
 
   if (static_cast<int>(ielen) != encoded) {
     OAILOG_WARNING(
@@ -67,7 +67,7 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
   }
 
   IES_ENCODE_U16(buffer, tmp, encoded);
-  memcpy(buffer + tmp, payload_container->contents, encoded);
+  memcpy(buffer + tmp, this->contents, encoded);
 
   return (encoded + tmp);
 }

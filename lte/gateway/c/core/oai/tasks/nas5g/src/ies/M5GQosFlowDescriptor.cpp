@@ -26,27 +26,25 @@ namespace magma5g {
 M5GQosFlowDescription::M5GQosFlowDescription() {}
 M5GQosFlowDescription::~M5GQosFlowDescription() {}
 
-int M5GQosFlowDescription::EncodeM5GQosFlowDescription(
-    M5GQosFlowDescription* qosFlowDesc, uint8_t* buffer, uint32_t len) {
+int M5GQosFlowDescription::EncodeM5GQosFlowDescription(uint8_t* buffer,
+                                                       uint32_t len) {
   int encoded = 0;
 
   OAILOG_DEBUG(LOG_NAS5G, " EncodeQosFlowDescriptor : ");
-  *(buffer + encoded) = qosFlowDesc->qfi;
+  *(buffer + encoded++) = this->qfi;
   OAILOG_DEBUG(LOG_NAS5G, "QFI = 0x%X", static_cast<int>(*(buffer + encoded)));
-  encoded++;
 
-  *(buffer + encoded) = qosFlowDesc->operationCode;
+  *(buffer + encoded++) = this->operationCode;
   OAILOG_DEBUG(LOG_NAS5G, "OperationCode = 0x%x",
                static_cast<int>(*(buffer + encoded)));
-  encoded++;
 
-  *(buffer + encoded) = qosFlowDesc->Ebit << 6;
-  *(buffer + encoded) |= qosFlowDesc->numOfParams & 0x3f;
+  *(buffer + encoded) = this->Ebit << 6;
+  *(buffer + encoded) |= this->numOfParams & 0x3f;
   OAILOG_DEBUG(LOG_NAS5G, "NumOfParams = 0X%x",
                static_cast<int>(*(buffer + encoded)));
   encoded++;
-  for (uint8_t i = 0; i < qosFlowDesc->numOfParams; i++) {
-    M5GQosFlowParam* qosParams = &qosFlowDesc->paramList[i];
+  for (uint8_t i = 0; i < this->numOfParams; i++) {
+    M5GQosFlowParam* qosParams = &this->paramList[i];
     encoded +=
         qosParams->EncodeM5GQosFlowParam(qosParams, (buffer + encoded), len);
   }
@@ -54,28 +52,26 @@ int M5GQosFlowDescription::EncodeM5GQosFlowDescription(
   return encoded;
 }
 
-int M5GQosFlowDescription::DecodeM5GQosFlowDescription(
-    M5GQosFlowDescription* qosFlowDesc, uint8_t* buffer, uint32_t len) {
+int M5GQosFlowDescription::DecodeM5GQosFlowDescription(uint8_t* buffer,
+                                                       uint32_t len) {
   int decoded = 0;
 
   OAILOG_DEBUG(LOG_NAS5G, " DecodeQosFlowDescriptor : ");
-  qosFlowDesc->qfi = (*(buffer + decoded)) & 0x3F;
-  OAILOG_DEBUG(LOG_NAS5G, "QFI = 0x%x", static_cast<int>(qosFlowDesc->qfi));
-  decoded++;
-  qosFlowDesc->operationCode = (*(buffer + decoded) & 0xE0);
+  this->qfi = (*(buffer + decoded++)) & 0x3F;
+  OAILOG_DEBUG(LOG_NAS5G, "QFI = 0x%x", static_cast<int>(this->qfi));
+  this->operationCode = (*(buffer + decoded++) & 0xE0);
   OAILOG_DEBUG(LOG_NAS5G, "OperationCode = 0x%x",
-               static_cast<int>(qosFlowDesc->operationCode));
-  decoded++;
-  qosFlowDesc->numOfParams = ((*(buffer + decoded) & 0x3F));
+               static_cast<int>(this->operationCode));
+  this->numOfParams = ((*(buffer + decoded) & 0x3F));
   OAILOG_DEBUG(LOG_NAS5G, "NumOfParams = 0x%x",
-               static_cast<int>(qosFlowDesc->numOfParams));
+               static_cast<int>(this->numOfParams));
 
-  qosFlowDesc->Ebit = ((*(buffer + decoded) & 0x40) >> 6);
-  OAILOG_DEBUG(LOG_NAS5G, "Ebit = 0x%x", static_cast<int>(qosFlowDesc->Ebit));
+  this->Ebit = ((*(buffer + decoded) & 0x40) >> 6);
+  OAILOG_DEBUG(LOG_NAS5G, "Ebit = 0x%x", static_cast<int>(this->Ebit));
   decoded++;
 
-  for (uint8_t i = 0; i < qosFlowDesc->numOfParams; i++) {
-    M5GQosFlowParam* qosParams = &qosFlowDesc->paramList[i];
+  for (uint8_t i = 0; i < this->numOfParams; i++) {
+    M5GQosFlowParam* qosParams = &this->paramList[i];
     decoded +=
         qosParams->DecodeM5GQosFlowParam(qosParams, (buffer + decoded), len);
   }

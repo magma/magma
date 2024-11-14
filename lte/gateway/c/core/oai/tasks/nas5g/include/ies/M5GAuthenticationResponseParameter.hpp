@@ -26,11 +26,9 @@ class AuthenticationResponseParameterMsg {
 
   AuthenticationResponseParameterMsg();
   ~AuthenticationResponseParameterMsg();
-  int EncodeAuthenticationResponseParameterMsg(
-      AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
-  int DecodeAuthenticationResponseParameterMsg(
-      AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+  int EncodeAuthenticationResponseParameterMsg(uint8_t iei, uint8_t* buffer,
+                                               uint32_t len);
+  int DecodeAuthenticationResponseParameterMsg(uint8_t iei, uint8_t* buffer,
+                                               uint32_t len);
 };
 }  // namespace magma5g

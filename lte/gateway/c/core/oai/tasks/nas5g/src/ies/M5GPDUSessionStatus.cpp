@@ -20,41 +20,28 @@ namespace magma5g {
 M5GPDUSessionStatus::M5GPDUSessionStatus(){};
 M5GPDUSessionStatus::~M5GPDUSessionStatus(){};
 
-int M5GPDUSessionStatus::EncodePDUSessionStatus(
-    M5GPDUSessionStatus* pduSessionStatus, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GPDUSessionStatus::EncodePDUSessionStatus(uint8_t iei, uint8_t* buffer,
+                                                uint32_t len) {
   int encoded = 0;
-  if (pduSessionStatus->iei) {
-    *(buffer + encoded) = pduSessionStatus->iei;
-    encoded++;
-    *(buffer + encoded) = pduSessionStatus->len;
-    encoded++;
-    *(buffer + encoded) = (uint8_t)(pduSessionStatus->pduSessionStatus & 0xFF);
-    encoded++;
-    *(buffer + encoded) =
-        (uint8_t)(((pduSessionStatus->pduSessionStatus >> 8) & 0xFF));
-    encoded++;
+  if (this->iei) {
+    *(buffer + encoded++) = this->iei;
+    *(buffer + encoded++) = this->len;
+    *(buffer + encoded++) = (uint8_t)(this->pduSessionStatus & 0xFF);
+    *(buffer + encoded++) = (uint8_t)(((this->pduSessionStatus >> 8) & 0xFF));
   }
 
   return encoded;
 }
 
-int M5GPDUSessionStatus::DecodePDUSessionStatus(
-    M5GPDUSessionStatus* pduSessionStatus, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GPDUSessionStatus::DecodePDUSessionStatus(uint8_t iei, uint8_t* buffer,
+                                                uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
-    pduSessionStatus->iei = *buffer;
-    decoded++;
-
-    pduSessionStatus->len = *(buffer + decoded);
-    decoded++;
-
-    pduSessionStatus->pduSessionStatus = *(buffer + decoded);
-    decoded++;
-    pduSessionStatus->pduSessionStatus |= (*(buffer + decoded) << 8);
-    decoded++;
+    this->iei = *(buffer + decoded++);
+    this->len = *(buffer + decoded++);
+    this->pduSessionStatus = *(buffer + decoded++);
+    this->pduSessionStatus |= (*(buffer + decoded++) << 8);
   }
 
   return decoded;

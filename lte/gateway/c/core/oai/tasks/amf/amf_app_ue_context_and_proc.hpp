@@ -539,6 +539,12 @@ union mobility_msg_u {
   ~mobility_msg_u() {}
 };
 
+/**
+ * TODO: This codebase has redundant implemmentation. It is advised to remove
+ * repeated code, build and test to see the impact on the runtime. AmfMsg
+ * defined in the file `lte/gateway/c/core/oai/tasks/nas5g/src/AmfMessage.cpp`
+ * is the class actually in use, this type (AMFMsg) is being type casted to it.
+ */
 // Procedure for NAS5G encoding and decoding
 class AMFMsg {
  public:
@@ -559,6 +565,7 @@ class AMFMsg {
 // union of plain NAS message
 typedef struct nas_message_plain_s {
   AMFMsg amf; /* 5GMM Mobility Management messages */
+  /** TODO: consider using only one implemmentation of AmfMsg/AMFMsg */
 } nas_message_plain_t;
 
 typedef struct nas_message_security_protected_s {
@@ -887,7 +894,7 @@ int nas5g_message_decode(const unsigned char* const buffer,
 
 int nas5g_message_encode(unsigned char* buffer,
                          const amf_nas_message_t* const msg, uint32_t length,
-                         void* security);
+                         amf_security_context_t* security);
 
 status_code_e amf_registration_run_procedure(amf_context_t* amf_context);
 status_code_e amf_proc_registration_complete(amf_context_t* amf_context);

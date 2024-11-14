@@ -39,10 +39,8 @@ class ULNASTransportMsg {
 
   ULNASTransportMsg();
   ~ULNASTransportMsg();
-  int DecodeULNASTransportMsg(ULNASTransportMsg* ul_nas_transport,
-                              uint8_t* buffer, uint32_t len);
-  int EncodeULNASTransportMsg(ULNASTransportMsg* ul_nas_transport,
-                              uint8_t* buffer, uint32_t len);
+  int DecodeULNASTransportMsg(uint8_t* buffer, uint32_t len);
+  int EncodeULNASTransportMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

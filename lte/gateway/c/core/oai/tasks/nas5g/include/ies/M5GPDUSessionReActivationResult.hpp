@@ -21,11 +21,9 @@ class M5GPDUSessionReActivationResult {
 
   M5GPDUSessionReActivationResult();
   ~M5GPDUSessionReActivationResult();
-  int EncodePDUSessionReActivationResult(
-      M5GPDUSessionReActivationResult* pduSessionReActivationStatus,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodePDUSessionReActivationResult(
-      M5GPDUSessionReActivationResult* pduSessionReActivationStatus,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodePDUSessionReActivationResult(uint8_t iei, uint8_t* buffer,
+                                         uint32_t len);
+  int DecodePDUSessionReActivationResult(uint8_t iei, uint8_t* buffer,
+                                         uint32_t len);
 };
 }  // namespace magma5g

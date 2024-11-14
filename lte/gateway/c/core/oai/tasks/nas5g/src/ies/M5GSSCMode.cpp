@@ -28,41 +28,38 @@ SSCModeMsg::SSCModeMsg(){};
 SSCModeMsg::~SSCModeMsg(){};
 
 // Decode SSCMode IE
-int SSCModeMsg::DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
-                                 uint8_t* buffer, uint32_t len) {
+int SSCModeMsg::DecodeSSCModeMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   // Storing the IEI Information
   if (iei > 0) {
-    ssc_mode->iei = (*buffer & 0xf0) >> 4;
+    this->iei = (*buffer & 0xf0) >> 4;
     decoded++;
   }
 
   if (iei > 0) {
-    ssc_mode->mode_val = (*buffer & 0x07);
+    this->mode_val = (*buffer & 0x07);
   } else {
-    ssc_mode->mode_val = (*buffer >> 4) & 0x07;
+    this->mode_val = (*buffer >> 4) & 0x07;
   }
 
   return decoded;
 };
 
 // Encode SSCMode IE
-int SSCModeMsg::EncodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,
-                                 uint8_t* buffer, uint32_t len) {
+int SSCModeMsg::EncodeSSCModeMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   // CHECKING IEI
   if (iei > 0) {
-    CHECK_IEI_ENCODER((uint8_t)iei,
-                      (uint8_t)(0x00 | (ssc_mode->iei & 0x0f) << 4));
-    *buffer = (ssc_mode->iei & 0x0f) << 4;
+    CHECK_IEI_ENCODER((uint8_t)iei, (uint8_t)(0x00 | (this->iei & 0x0f) << 4));
+    *buffer = (this->iei & 0x0f) << 4;
     encoded++;
   }
   if (iei > 0) {
-    *buffer = 0x00 | (*buffer & 0xf0) | (ssc_mode->mode_val & 0x07);
+    *buffer = 0x00 | (*buffer & 0xf0) | (this->mode_val & 0x07);
   } else {
-    *buffer = 0x00 | (*buffer & 0x0f) | ((ssc_mode->mode_val & 0x07) << 4);
+    *buffer = 0x00 | (*buffer & 0x0f) | ((this->mode_val & 0x07) << 4);
   }
 
   return (encoded);

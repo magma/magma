@@ -21,26 +21,20 @@ PayloadContainerTypeMsg::PayloadContainerTypeMsg(){};
 PayloadContainerTypeMsg::~PayloadContainerTypeMsg(){};
 
 // Decode PayloadContainerType IE
-int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(
-    PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(uint8_t iei,
+                                                           uint8_t* buffer,
+                                                           uint32_t len) {
   int decoded = 0;
-
-  payload_container_type->type_val = (*buffer & 0x0f);
-  decoded++;
-
+  this->type_val = (*(buffer + decoded++) & 0x0f);
   return (decoded);
 };
 
 // Encode PayloadContainerType IE
-int PayloadContainerTypeMsg::EncodePayloadContainerTypeMsg(
-    PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+int PayloadContainerTypeMsg::EncodePayloadContainerTypeMsg(uint8_t iei,
+                                                           uint8_t* buffer,
+                                                           uint32_t len) {
   int encoded = 0;
-
-  *buffer = payload_container_type->type_val & 0x0f;
-  encoded++;
-
+  *(buffer + encoded++) = this->type_val & 0x0f;
   return (encoded);
 };
 }  // namespace magma5g

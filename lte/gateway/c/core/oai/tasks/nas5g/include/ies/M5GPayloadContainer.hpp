@@ -26,10 +26,8 @@ class PayloadContainerMsg {
 
   PayloadContainerMsg();
   ~PayloadContainerMsg();
-  int EncodePayloadContainerMsg(PayloadContainerMsg* payload_container,
-                                uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodePayloadContainerMsg(PayloadContainerMsg* payload_container,
-                                uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodePayloadContainerMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodePayloadContainerMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
   void copy(const PayloadContainerMsg& p) {
     iei = p.iei;
     len = p.len;

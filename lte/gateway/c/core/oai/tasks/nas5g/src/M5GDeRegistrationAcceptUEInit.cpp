@@ -27,37 +27,31 @@ DeRegistrationAcceptUEInitMsg::~DeRegistrationAcceptUEInitMsg(){};
 
 // Decoding De Registration Accept Message and its IEs
 int DeRegistrationAcceptUEInitMsg::DecodeDeRegistrationAcceptUEInitMsg(
-    DeRegistrationAcceptUEInitMsg* de_reg_accept, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH, len);
 
-  if ((decoded_result = de_reg_accept->extended_protocol_discriminator
+  if ((decoded_result = this->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
-                                &de_reg_accept->extended_protocol_discriminator,
                                 0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = de_reg_accept->spare_half_octet.DecodeSpareHalfOctetMsg(
-           &de_reg_accept->spare_half_octet, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           de_reg_accept->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &de_reg_accept->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = de_reg_accept->message_type.DecodeMessageTypeMsg(
-           &de_reg_accept->message_type, 0, buffer + decoded, len - decoded)) <
-      0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -66,8 +60,7 @@ int DeRegistrationAcceptUEInitMsg::DecodeDeRegistrationAcceptUEInitMsg(
 
 // Encoding De Registration Accept Message and its IEs
 int DeRegistrationAcceptUEInitMsg::EncodeDeRegistrationAcceptUEInitMsg(
-    DeRegistrationAcceptUEInitMsg* de_reg_accept, uint8_t* buffer,
-    uint32_t len) {
+    uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
 
@@ -76,29 +69,24 @@ int DeRegistrationAcceptUEInitMsg::EncodeDeRegistrationAcceptUEInitMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH, len);
 
-  if ((encoded_result = de_reg_accept->extended_protocol_discriminator
+  if ((encoded_result = this->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
-                                &de_reg_accept->extended_protocol_discriminator,
                                 0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = de_reg_accept->spare_half_octet.EncodeSpareHalfOctetMsg(
-           &de_reg_accept->spare_half_octet, 0, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           de_reg_accept->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &de_reg_accept->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = de_reg_accept->message_type.EncodeMessageTypeMsg(
-           &de_reg_accept->message_type, 0, buffer + encoded, len - encoded)) <
-      0)
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

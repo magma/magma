@@ -26,41 +26,36 @@ RegistrationAcceptMsg::RegistrationAcceptMsg(){};
 RegistrationAcceptMsg::~RegistrationAcceptMsg(){};
 
 // Decoding Registration Accept Message and its IEs
-int RegistrationAcceptMsg::DecodeRegistrationAcceptMsg(
-    RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len) {
+int RegistrationAcceptMsg::DecodeRegistrationAcceptMsg(uint8_t* buffer,
+                                                       uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        REGISTRATION_ACCEPT_MINIMUM_LENGTH, len);
 
-  if ((decoded_result = reg_accept->extended_protocol_discriminator
+  if ((decoded_result = this->extended_protocol_discriminator
                             .DecodeExtendedProtocolDiscriminatorMsg(
-                                &reg_accept->extended_protocol_discriminator, 0,
-                                buffer + decoded, len - decoded)) < 0)
+                                0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = reg_accept->spare_half_octet.DecodeSpareHalfOctetMsg(
-           &reg_accept->spare_half_octet, 0, buffer + decoded, len - decoded)) <
-      0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = reg_accept->sec_header_type.DecodeSecurityHeaderTypeMsg(
-           &reg_accept->sec_header_type, 0, buffer + decoded, len - decoded)) <
-      0)
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = reg_accept->message_type.DecodeMessageTypeMsg(
-           &reg_accept->message_type, 0, buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           reg_accept->m5gs_reg_result.DecodeM5GSRegistrationResultMsg(
-               &reg_accept->m5gs_reg_result, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->m5gs_reg_result.DecodeM5GSRegistrationResultMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -69,69 +64,61 @@ int RegistrationAcceptMsg::DecodeRegistrationAcceptMsg(
 }
 
 // Encoding Registration Accept Message and its IEs
-int RegistrationAcceptMsg::EncodeRegistrationAcceptMsg(
-    RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len) {
+int RegistrationAcceptMsg::EncodeRegistrationAcceptMsg(uint8_t* buffer,
+                                                       uint32_t len) {
   uint32_t encoded = 0;
   int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
                                        REGISTRATION_ACCEPT_MINIMUM_LENGTH, len);
 
-  if ((encoded_result = reg_accept->extended_protocol_discriminator
+  if ((encoded_result = this->extended_protocol_discriminator
                             .EncodeExtendedProtocolDiscriminatorMsg(
-                                &reg_accept->extended_protocol_discriminator, 0,
-                                buffer + encoded, len - encoded)) < 0)
+                                0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = reg_accept->spare_half_octet.EncodeSpareHalfOctetMsg(
-           &reg_accept->spare_half_octet, 0, buffer + encoded, len - encoded)) <
-      0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = reg_accept->sec_header_type.EncodeSecurityHeaderTypeMsg(
-           &reg_accept->sec_header_type, 0, buffer + encoded, len - encoded)) <
-      0)
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = reg_accept->message_type.EncodeMessageTypeMsg(
-           &reg_accept->message_type, 0, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           reg_accept->m5gs_reg_result.EncodeM5GSRegistrationResultMsg(
-               &reg_accept->m5gs_reg_result, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->m5gs_reg_result.EncodeM5GSRegistrationResultMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = reg_accept->mobile_id.EncodeM5GSMobileIdentityMsg(
-           &reg_accept->mobile_id, 0x77, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->mobile_id.EncodeM5GSMobileIdentityMsg(
+           0x77, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = reg_accept->tai_list.EncodeTAIListMsg(
-           &reg_accept->tai_list, 0x54, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->tai_list.EncodeTAIListMsg(0x54, buffer + encoded,
+                                                        len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = reg_accept->allowed_nssai.EncodeNSSAIMsgList(
-           &reg_accept->allowed_nssai, ALLOWED_NSSAI, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->allowed_nssai.EncodeNSSAIMsgList(
+           ALLOWED_NSSAI, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           reg_accept->network_feature.EncodeNetworkFeatureSupportMsg(
-               &reg_accept->network_feature, 0x21, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->network_feature.EncodeNetworkFeatureSupportMsg(
+           0x21, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = reg_accept->gprs_timer.EncodeGPRSTimer3Msg(
-           &reg_accept->gprs_timer, 0x5E, buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->gprs_timer.EncodeGPRSTimer3Msg(
+           0x5E, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

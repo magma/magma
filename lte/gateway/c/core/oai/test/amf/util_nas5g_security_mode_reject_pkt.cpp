@@ -23,8 +23,8 @@ bool decode_security_mode_reject_msg(SecurityModeRejectMsg* sm_reject,
   uint8_t* decode_security_mode_reject =
       const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(buffer));
 
-  if (sm_reject->DecodeSecurityModeRejectMsg(
-          sm_reject, decode_security_mode_reject, len) < 0) {
+  if (sm_reject->DecodeSecurityModeRejectMsg(decode_security_mode_reject, len) <
+      0) {
     decode_success = false;
   }
 

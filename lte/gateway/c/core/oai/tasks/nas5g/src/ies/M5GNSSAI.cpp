@@ -25,54 +25,53 @@ NSSAIMsg::NSSAIMsg(){};
 
 NSSAIMsg::~NSSAIMsg(){};
 
-int NSSAIMsg::EncodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
-                             uint32_t len) {
+int NSSAIMsg::EncodeNSSAIMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t encoded = 0;
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char)NSSAI->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)this->iei);
     ENCODE_U8(buffer, iei, encoded);
   }
 
-  ENCODE_U8(buffer + encoded, NSSAI->len, encoded);
+  ENCODE_U8(buffer + encoded, this->len, encoded);
 
-  switch (NSSAI->len) {
+  switch (this->len) {
     case 0b00000001:  // SST
-      ENCODE_U8(buffer + encoded, NSSAI->sst, encoded);
+      ENCODE_U8(buffer + encoded, this->sst, encoded);
       break;
     case 0b00000010:  // SST and mapped HPLMN SST
-      ENCODE_U8(buffer + encoded, NSSAI->sst, encoded);
+      ENCODE_U8(buffer + encoded, this->sst, encoded);
 
-      ENCODE_U8(buffer + encoded, NSSAI->hplmn_sst, encoded);
+      ENCODE_U8(buffer + encoded, this->hplmn_sst, encoded);
       break;
     case 0b00000100:  // SST and SD
-      ENCODE_U8(buffer + encoded, NSSAI->sst, encoded);
+      ENCODE_U8(buffer + encoded, this->sst, encoded);
 
-      ENCODE_U8(buffer + encoded, NSSAI->sd[0], encoded);
-      ENCODE_U8(buffer + encoded, NSSAI->sd[1], encoded);
-      ENCODE_U8(buffer + encoded, NSSAI->sd[2], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[0], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[1], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[2], encoded);
       break;
     case 0b00000101:  // SST, SD and mapped HPLMN SST
-      ENCODE_U8(buffer + encoded, NSSAI->sst, encoded);
+      ENCODE_U8(buffer + encoded, this->sst, encoded);
 
-      ENCODE_U8(buffer + encoded, NSSAI->sd[0], encoded);
-      ENCODE_U8(buffer + encoded, NSSAI->sd[1], encoded);
-      ENCODE_U8(buffer + encoded, NSSAI->sd[2], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[0], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[1], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[2], encoded);
 
-      ENCODE_U8(buffer + encoded, NSSAI->hplmn_sst, encoded);
+      ENCODE_U8(buffer + encoded, this->hplmn_sst, encoded);
       break;
     case 0b00001000:  // SST, SD, mapped HPLMN SST and mapped HPLMN SD
-      ENCODE_U8(buffer + encoded, NSSAI->sst, encoded);
+      ENCODE_U8(buffer + encoded, this->sst, encoded);
 
-      ENCODE_U8(buffer + encoded, NSSAI->sd[0], encoded);
-      ENCODE_U8(buffer + encoded, NSSAI->sd[1], encoded);
-      ENCODE_U8(buffer + encoded, NSSAI->sd[2], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[0], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[1], encoded);
+      ENCODE_U8(buffer + encoded, this->sd[2], encoded);
 
-      ENCODE_U8(buffer + encoded, NSSAI->hplmn_sst, encoded);
+      ENCODE_U8(buffer + encoded, this->hplmn_sst, encoded);
 
-      ENCODE_U8(buffer + encoded, NSSAI->hplmn_sd[0], encoded);
-      ENCODE_U8(buffer + encoded, NSSAI->hplmn_sd[1], encoded);
-      ENCODE_U8(buffer + encoded, NSSAI->hplmn_sd[2], encoded);
+      ENCODE_U8(buffer + encoded, this->hplmn_sd[0], encoded);
+      ENCODE_U8(buffer + encoded, this->hplmn_sd[1], encoded);
+      ENCODE_U8(buffer + encoded, this->hplmn_sd[2], encoded);
       break;
     default:  // All other values are reserved
       break;
@@ -80,54 +79,53 @@ int NSSAIMsg::EncodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
   return (encoded);
 };
 
-int NSSAIMsg::DecodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
-                             uint32_t len) {
+int NSSAIMsg::DecodeNSSAIMsg(uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
-    NSSAI->iei = *(buffer + decoded);
+    this->iei = *(buffer + decoded);
     decoded++;
   }
-  DECODE_U8(buffer + decoded, NSSAI->len, decoded);
-  CHECK_LENGTH_DECODER(len - decoded, NSSAI->len);
+  DECODE_U8(buffer + decoded, this->len, decoded);
+  CHECK_LENGTH_DECODER(len - decoded, this->len);
 
-  switch (NSSAI->len) {
+  switch (this->len) {
     case 0b00000001:  // SST
-      DECODE_U8(buffer + decoded, NSSAI->sst, decoded);
+      DECODE_U8(buffer + decoded, this->sst, decoded);
       break;
     case 0b00000010:  // SST and mapped HPLMN SST
-      DECODE_U8(buffer + decoded, NSSAI->sst, decoded);
-      DECODE_U8(buffer + decoded, NSSAI->hplmn_sst, decoded);
+      DECODE_U8(buffer + decoded, this->sst, decoded);
+      DECODE_U8(buffer + decoded, this->hplmn_sst, decoded);
       break;
     case 0b00000100:  // SST and SD
-      DECODE_U8(buffer + decoded, NSSAI->sst, decoded);
+      DECODE_U8(buffer + decoded, this->sst, decoded);
 
-      DECODE_U8(buffer + decoded, NSSAI->sd[0], decoded);
-      DECODE_U8(buffer + decoded, NSSAI->sd[1], decoded);
-      DECODE_U8(buffer + decoded, NSSAI->sd[2], decoded);
+      DECODE_U8(buffer + decoded, this->sd[0], decoded);
+      DECODE_U8(buffer + decoded, this->sd[1], decoded);
+      DECODE_U8(buffer + decoded, this->sd[2], decoded);
       break;
     case 0b00000101:  // SST, SD and mapped HPLMN SST
-      DECODE_U8(buffer + decoded, NSSAI->sst, decoded);
+      DECODE_U8(buffer + decoded, this->sst, decoded);
 
-      DECODE_U8(buffer + decoded, NSSAI->sd[0], decoded);
-      DECODE_U8(buffer + decoded, NSSAI->sd[1], decoded);
-      DECODE_U8(buffer + decoded, NSSAI->sd[2], decoded);
+      DECODE_U8(buffer + decoded, this->sd[0], decoded);
+      DECODE_U8(buffer + decoded, this->sd[1], decoded);
+      DECODE_U8(buffer + decoded, this->sd[2], decoded);
 
-      DECODE_U8(buffer + decoded, NSSAI->hplmn_sst, decoded);
+      DECODE_U8(buffer + decoded, this->hplmn_sst, decoded);
       break;
     case 0b00001000:  // SST, SD, mapped HPLMN SST and mapped HPLMN SD
-      DECODE_U8(buffer + decoded, NSSAI->sst, decoded);
+      DECODE_U8(buffer + decoded, this->sst, decoded);
 
-      DECODE_U8(buffer + decoded, NSSAI->sd[0], decoded);
-      DECODE_U8(buffer + decoded, NSSAI->sd[1], decoded);
-      DECODE_U8(buffer + decoded, NSSAI->sd[2], decoded);
+      DECODE_U8(buffer + decoded, this->sd[0], decoded);
+      DECODE_U8(buffer + decoded, this->sd[1], decoded);
+      DECODE_U8(buffer + decoded, this->sd[2], decoded);
 
-      DECODE_U8(buffer + decoded, NSSAI->hplmn_sst, decoded);
+      DECODE_U8(buffer + decoded, this->hplmn_sst, decoded);
 
-      DECODE_U8(buffer + decoded, NSSAI->hplmn_sd[0], decoded);
-      DECODE_U8(buffer + decoded, NSSAI->hplmn_sd[1], decoded);
-      DECODE_U8(buffer + decoded, NSSAI->hplmn_sd[2], decoded);
+      DECODE_U8(buffer + decoded, this->hplmn_sd[0], decoded);
+      DECODE_U8(buffer + decoded, this->hplmn_sd[1], decoded);
+      DECODE_U8(buffer + decoded, this->hplmn_sd[2], decoded);
       break;
     default:  // All other values are reserved
       break;
@@ -140,19 +138,18 @@ NSSAIMsgList::NSSAIMsgList() {}
 
 NSSAIMsgList::~NSSAIMsgList() {}
 
-int NSSAIMsgList::EncodeNSSAIMsgList(NSSAIMsgList* NSSAI_list, uint8_t iei,
-                                     uint8_t* buffer, uint32_t len) {
+int NSSAIMsgList::EncodeNSSAIMsgList(uint8_t iei, uint8_t* buffer,
+                                     uint32_t len) {
   uint8_t encoded = 0;
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char)NSSAI_list->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char)this->iei);
     ENCODE_U8(buffer, iei, encoded);
   }
 
-  ENCODE_U8(buffer + encoded, NSSAI_list->len, encoded);
+  ENCODE_U8(buffer + encoded, this->len, encoded);
 
-  encoded +=
-      nssai.EncodeNSSAIMsg(&nssai, 0, (buffer + encoded), (len - encoded));
+  encoded += nssai.EncodeNSSAIMsg(0, (buffer + encoded), (len - encoded));
 
   return (encoded);
 };

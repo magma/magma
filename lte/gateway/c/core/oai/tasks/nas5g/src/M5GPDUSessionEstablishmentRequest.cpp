@@ -27,7 +27,6 @@ PDUSessionEstablishmentRequestMsg::~PDUSessionEstablishmentRequestMsg(){};
 
 // Decode PDUSessionEstablishmentRequest Message and its IEs
 int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
-    PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
     uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
@@ -37,40 +36,30 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer,
                                        PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
 
-  if ((decoded_result =
-           pdu_session_estab_request->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_session_estab_request->extended_protocol_discriminator,
-                   0, buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = this->pdu_session_identity.DecodePDUSessionIdentityMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
   if ((decoded_result =
-           pdu_session_estab_request->pdu_session_identity
-               .DecodePDUSessionIdentityMsg(
-                   &pdu_session_estab_request->pdu_session_identity, 0,
-                   buffer + decoded, len - decoded)) < 0)
+           this->pti.DecodePTIMsg(0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = pdu_session_estab_request->pti.DecodePTIMsg(
-           &pdu_session_estab_request->pti, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
   if ((decoded_result =
-           pdu_session_estab_request->message_type.DecodeMessageTypeMsg(
-               &pdu_session_estab_request->message_type, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           pdu_session_estab_request->integrity_prot_max_data_rate
-               .DecodeIntegrityProtMaxDataRateMsg(
-                   &pdu_session_estab_request->integrity_prot_max_data_rate, 0,
-                   buffer + decoded, len - decoded)) < 0)
+           this->integrity_prot_max_data_rate.DecodeIntegrityProtMaxDataRateMsg(
+               0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -83,12 +72,9 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
 
     switch (type) {
       case REQUEST_PDU_SESSION_TYPE_TYPE:
-        if ((decoded_result =
-                 pdu_session_estab_request->pdu_session_type
-                     .DecodePDUSessionTypeMsg(
-                         &pdu_session_estab_request->pdu_session_type,
-                         REQUEST_PDU_SESSION_TYPE_TYPE, buffer + decoded,
-                         len - decoded)) < 0) {
+        if ((decoded_result = this->pdu_session_type.DecodePDUSessionTypeMsg(
+                 REQUEST_PDU_SESSION_TYPE_TYPE, buffer + decoded,
+                 len - decoded)) < 0) {
           return decoded_result;
         } else {
           decoded += decoded_result;
@@ -96,11 +82,8 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
         break;
 
       case REQUEST_SSC_MODE_TYPE:
-        if ((decoded_result =
-                 pdu_session_estab_request->ssc_mode.DecodeSSCModeMsg(
-                     &pdu_session_estab_request->ssc_mode,
-                     REQUEST_SSC_MODE_TYPE, buffer + decoded, len - decoded)) <
-            0) {
+        if ((decoded_result = this->ssc_mode.DecodeSSCModeMsg(
+                 REQUEST_SSC_MODE_TYPE, buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
         } else {
           decoded += decoded_result;
@@ -108,10 +91,8 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
         break;
       case REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE:
         if ((decoded_result =
-                 pdu_session_estab_request->protocolconfigurationoptions
+                 this->protocolconfigurationoptions
                      .DecodeProtocolConfigurationOptions(
-                         &pdu_session_estab_request
-                              ->protocolconfigurationoptions,
                          REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE,
                          buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
@@ -121,9 +102,8 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
         break;
       case MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE:
         if ((decoded_result =
-                 pdu_session_estab_request->maxNumOfSuppPacketFilters
+                 this->maxNumOfSuppPacketFilters
                      .DecodeMaxNumOfSupportedPacketFilters(
-                         &pdu_session_estab_request->maxNumOfSuppPacketFilters,
                          MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE,
                          buffer + decoded, len - decoded)) < 0) {
           return decoded_result;
@@ -162,12 +142,11 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
 
 // Encode PDUSessionEstablishmentRequest Message and its IEs
 int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
-    PDUSessionEstablishmentRequestMsg* pdu_session_estab_request,
     uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
   uint32_t encoded_result = 0;
 
-  if (!pdu_session_estab_request || !buffer || (0 == len)) {
+  if (!buffer || (0 == len)) {
     OAILOG_ERROR(LOG_NAS5G, "Input arguments are not valid");
     return -1;
   }
@@ -175,65 +154,52 @@ int PDUSessionEstablishmentRequestMsg::EncodePDUSessionEstablishmentRequestMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer,
                                        PDU_SESSION_ESTABLISH_REQ_MIN_LEN, len);
 
-  if ((encoded_result =
-           pdu_session_estab_request->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &pdu_session_estab_request->extended_protocol_discriminator,
-                   0, buffer + encoded, len - encoded)) < 0) {
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0) {
+    return encoded_result;
+  } else {
+    encoded += encoded_result;
+  }
+  if ((encoded_result = this->pdu_session_identity.EncodePDUSessionIdentityMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
   if ((encoded_result =
-           pdu_session_estab_request->pdu_session_identity
-               .EncodePDUSessionIdentityMsg(
-                   &pdu_session_estab_request->pdu_session_identity, 0,
-                   buffer + encoded, len - encoded)) < 0) {
+           this->pti.EncodePTIMsg(0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_session_estab_request->pti.EncodePTIMsg(
-           &pdu_session_estab_request->pti, 0, buffer + encoded,
-           len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-  if ((encoded_result =
-           pdu_session_estab_request->message_type.EncodeMessageTypeMsg(
-               &pdu_session_estab_request->message_type, 0, buffer + encoded,
-               len - encoded)) < 0) {
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
   if ((encoded_result =
-           pdu_session_estab_request->integrity_prot_max_data_rate
-               .EncodeIntegrityProtMaxDataRateMsg(
-                   &pdu_session_estab_request->integrity_prot_max_data_rate, 0,
-                   buffer + encoded, len - encoded)) < 0) {
+           this->integrity_prot_max_data_rate.EncodeIntegrityProtMaxDataRateMsg(
+               0, buffer + encoded, len - encoded)) < 0) {
     return encoded_result;
   } else {
     encoded += encoded_result;
   }
 
-  if ((uint32_t)pdu_session_estab_request->pdu_session_type.type_val) {
-    if ((encoded_result = pdu_session_estab_request->pdu_session_type
-                              .EncodePDUSessionTypeMsg(
-                                  &pdu_session_estab_request->pdu_session_type,
-                                  REQUEST_PDU_SESSION_TYPE_TYPE,
-                                  buffer + encoded, len - encoded)) < 0) {
+  if (static_cast<uint32_t>(this->pdu_session_type.type_val)) {
+    if ((encoded_result = this->pdu_session_type.EncodePDUSessionTypeMsg(
+             REQUEST_PDU_SESSION_TYPE_TYPE, buffer + encoded, len - encoded)) <
+        0) {
       return encoded_result;
     } else {
       encoded += encoded_result;
     }
   }
 
-  if ((uint32_t)pdu_session_estab_request->ssc_mode.mode_val) {
-    if ((encoded_result = pdu_session_estab_request->ssc_mode.EncodeSSCModeMsg(
-             &pdu_session_estab_request->ssc_mode, REQUEST_SSC_MODE_TYPE,
-             buffer + encoded, len - encoded)) < 0) {
+  if (static_cast<uint32_t>(this->ssc_mode.mode_val)) {
+    if ((encoded_result = this->ssc_mode.EncodeSSCModeMsg(
+             REQUEST_SSC_MODE_TYPE, buffer + encoded, len - encoded)) < 0) {
       return encoded_result;
     } else {
       encoded += encoded_result;

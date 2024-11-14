@@ -19,26 +19,23 @@ namespace magma5g {
 M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg(){};
 M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg(){};
 
-int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
-    M5GSDeRegistrationTypeMsg* de_reg_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(uint8_t iei,
+                                                               uint8_t* buffer,
+                                                               uint32_t len) {
   uint8_t decoded = 0;
-
-  de_reg_type->switchoff = (*(buffer + decoded) >> 3) & 0x01;
-  de_reg_type->re_reg_required = (*(buffer + decoded) >> 2) & 0x01;
-  de_reg_type->access_type = *(buffer + decoded) & 0x03;
+  this->switchoff = (*(buffer + decoded) >> 3) & 0x01;
+  this->re_reg_required = (*(buffer + decoded) >> 2) & 0x01;
+  this->access_type = *(buffer + decoded) & 0x03;
   return (decoded);
 };
 
-int M5GSDeRegistrationTypeMsg::EncodeM5GSDeRegistrationTypeMsg(
-    M5GSDeRegistrationTypeMsg* de_reg_type, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+int M5GSDeRegistrationTypeMsg::EncodeM5GSDeRegistrationTypeMsg(uint8_t iei,
+                                                               uint8_t* buffer,
+                                                               uint32_t len) {
   uint8_t encoded = 0;
-
-  *(buffer + encoded) = 0x00 | ((de_reg_type->switchoff << 3) & 0x08) |
-                        ((de_reg_type->re_reg_required << 2) & 0x04) |
-                        (de_reg_type->access_type & 0x03);
-  encoded++;
+  *(buffer + encoded++) = 0x00 | ((this->switchoff << 3) & 0x08) |
+                          ((this->re_reg_required << 2) & 0x04) |
+                          (this->access_type & 0x03);
   return (encoded);
 };
 }  // namespace magma5g

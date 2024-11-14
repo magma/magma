@@ -20,27 +20,21 @@ IntegrityProtMaxDataRateMsg::~IntegrityProtMaxDataRateMsg(){};
 
 // Decode IntegrityProtMaxDataRate IE
 int IntegrityProtMaxDataRateMsg::DecodeIntegrityProtMaxDataRateMsg(
-    IntegrityProtMaxDataRateMsg* integrity_prot_max_data_rate, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
 
-  integrity_prot_max_data_rate->max_uplink = *(buffer + decoded);
-  decoded++;
-  integrity_prot_max_data_rate->max_downlink = *(buffer + decoded);
-  decoded++;
+  this->max_uplink = *(buffer + decoded++);
+  this->max_downlink = *(buffer + decoded++);
   return (decoded);
 };
 
 // Encode IntegrityProtMaxDataRate IE
 int IntegrityProtMaxDataRateMsg::EncodeIntegrityProtMaxDataRateMsg(
-    IntegrityProtMaxDataRateMsg* integrity_prot_max_data_rate, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
-  *(buffer + encoded) = integrity_prot_max_data_rate->max_uplink;
-  encoded++;
-  *(buffer + encoded) = integrity_prot_max_data_rate->max_downlink;
-  encoded++;
+  *(buffer + encoded++) = this->max_uplink;
+  *(buffer + encoded++) = this->max_downlink;
   return (encoded);
 };
 }  // namespace magma5g

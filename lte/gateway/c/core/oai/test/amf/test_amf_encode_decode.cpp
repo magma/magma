@@ -9,6 +9,7 @@
  * limitations under the License.
  */
 #include <chrono>
+#include <cstdint>
 #include <thread>
 
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
@@ -25,6 +26,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
 
+#include "lte/gateway/c/core/oai/lib/secu/secu_defs.h"
 #include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include <gtest/gtest.h>
@@ -45,6 +47,25 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowParam.hpp"
+
+#define EXPECT_ARRAY_EQ(TARTYPE, reference, actual, element_count) \
+  {                                                                \
+    TARTYPE* reference_ = static_cast<TARTYPE*>(reference);        \
+    TARTYPE* actual_ = static_cast<TARTYPE*>(actual);              \
+    for (int cmp_i = 0; cmp_i < element_count; cmp_i++) {          \
+      EXPECT_EQ(reference_[cmp_i], actual_[cmp_i])                 \
+          << " on position " << cmp_i;                             \
+    }                                                              \
+  }
+
+#define PRINT_ARRAY(array, element_count)     \
+  {                                           \
+    printf("{");                              \
+    for (int i = 0; i < element_count; i++) { \
+      printf("0x%02x, ", array[i]);           \
+    }                                         \
+    printf("}\n");                            \
+  }
 
 using ::testing::Test;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;
@@ -352,7 +373,6 @@ TEST(test_amf_nas5g_pkt_gen, test_amf_pdu_sess_accept_pco_msg) {
   sm_process_pco_request(pco_req, pco_resp);
 
   pco_len = protocolconfigruartionoption.EncodeProtocolConfigurationOptions(
-      &protocolconfigruartionoption,
       REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE, buffer, buf_len);
 
   EXPECT_EQ(pco_len, 23);
@@ -406,7 +426,6 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
   sm_process_pco_request(pco_req, pco_resp);
 
   pco_len = protocolconfigruartionoption.EncodeProtocolConfigurationOptions(
-      &protocolconfigruartionoption,
       REQUEST_EXTENDED_PROTOCOL_CONFIGURATION_OPTIONS_TYPE, buffer, buf_len);
 
   EXPECT_EQ(pco_len, 11);
@@ -533,8 +552,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_accept_message) {
   service_accept.pdu_session_status.len = 0x02;
   service_accept.pdu_session_status.pduSessionStatus = 0x05;
 
-  EXPECT_NE(service_accept.EncodeServiceAcceptMsg(&service_accept, buffer, 0),
-            0);
+  EXPECT_NE(service_accept.EncodeServiceAcceptMsg(buffer, 0), 0);
 }
 
 TEST(test_amf_nas5g_pkt_process, test_amf_service_accept) {
@@ -662,13 +680,11 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
   service_reject.t3346Value.len = 1;
   service_reject.t3346Value.timervalue = 60;
 
-  encode_res =
-      service_reject.EncodeServiceRejectMsg(&service_reject, buffer, len);
+  encode_res = service_reject.EncodeServiceRejectMsg(buffer, len);
 
   EXPECT_EQ(encode_res, len);
 
-  decode_res = decoded_service_rej.DecodeServiceRejectMsg(&decoded_service_rej,
-                                                          buffer, len);
+  decode_res = decoded_service_rej.DecodeServiceRejectMsg(buffer, len);
 
   EXPECT_EQ(decode_res, len);
 
@@ -690,9 +706,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_service_reject_message) {
 
 TEST(test_dlnastransport, test_dlnastransport) {
   DLNASTransportMsg* dlmsg = nullptr;
-  SmfMsg* smf_msg = nullptr;
   uint32_t bytes = 0;
-  uint32_t container_len = 0;
   bstring buffer;
   amf_nas_message_t msg = {};
 
@@ -774,7 +788,7 @@ TEST(test_dlnastransport, test_dlnastransport) {
   bytes = nas5g_message_encode(buffer->data, &msg, len, nullptr);
   EXPECT_GT(bytes, 0);
 
-  amf_nas_message_t decode_msg = {0};
+  amf_nas_message_t decode_msg = {};
   amf_nas_message_decode_status_t decode_status = {};
   int status = RETURNerror;
   status = nas5g_message_decode(buffer->data, &decode_msg, bytes, nullptr,
@@ -926,8 +940,7 @@ TEST(test_optional_dnn_pdu, test_pdu_session_establish_optional) {
   EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
 
   buffer = bfromcstralloc(len, "\0");
-  bytes = pdu_sess_est_req.EncodeULNASTransportMsg(&pdu_sess_est_req,
-                                                   buffer->data, len);
+  bytes = pdu_sess_est_req.EncodeULNASTransportMsg(buffer->data, len);
   EXPECT_GT(bytes, 0);
   ULNASTransportMsg decode_pdu_sess_est_req = {};
   decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
@@ -982,8 +995,7 @@ TEST(test_optional_dnn_dotted_pdu, test_pdu_session_establish_optional) {
   EXPECT_EQ(memcmp(pdu_sess_est_req.dnn.dnn, dnn, pdu_sess_est_req.dnn.len), 0);
 
   buffer = bfromcstralloc(len, "\0");
-  bytes = pdu_sess_est_req.EncodeULNASTransportMsg(&pdu_sess_est_req,
-                                                   buffer->data, len);
+  bytes = pdu_sess_est_req.EncodeULNASTransportMsg(buffer->data, len);
   EXPECT_GT(bytes, 0);
   ULNASTransportMsg decode_pdu_sess_est_req = {};
   decode_res = decode_ul_nas_transport_msg(&decode_pdu_sess_est_req, pdu, len);
@@ -1144,8 +1156,7 @@ TEST_F(AmfUeContextTestServiceRequestProc, test_amf_service_accept_message) {
   service_accept.pdu_session_status.pduSessionStatus = 0x05;
 
   // Verify nas encoding is successful
-  EXPECT_NE(service_accept.EncodeServiceAcceptMsg(&service_accept, buffer, 0),
-            0);
+  EXPECT_NE(service_accept.EncodeServiceAcceptMsg(buffer, 0), 0);
 
   amf_sap.primitive = AMFAS_ESTABLISH_CNF;
   amf_sap.u.amf_as.u.establish.ue_id = AMF_UE_NGAP_ID;
@@ -1518,8 +1529,7 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
 
   msg_accept_pco =
       &(smf_msg->msg.pdu_session_estab_accept.protocolconfigurationoptions.pco);
-  decode_res =
-      pdu_sess_accept.DecodeDLNASTransportMsg(&pdu_sess_accept, pdu, len);
+  decode_res = pdu_sess_accept.DecodeDLNASTransportMsg(pdu, len);
 
   EXPECT_GT(decode_res, 0);
 
@@ -1540,13 +1550,11 @@ TEST(test_optional_pdu, test_pdu_session_accept_optional) {
             0);
 
   buffer = bfromcstralloc(len, "\0");
-  bytes = pdu_sess_accept.EncodeDLNASTransportMsg(&pdu_sess_accept,
-                                                  buffer->data, len);
+  bytes = pdu_sess_accept.EncodeDLNASTransportMsg(buffer->data, len);
   EXPECT_GT(bytes, 0);
   DLNASTransportMsg decode_pdu_sess_accept;
   memset(&decode_pdu_sess_accept, 0, sizeof(DLNASTransportMsg));
-  decode_res = decode_pdu_sess_accept.DecodeDLNASTransportMsg(
-      &decode_pdu_sess_accept, pdu, len);
+  decode_res = decode_pdu_sess_accept.DecodeDLNASTransportMsg(pdu, len);
 
   smf_msg = &decode_pdu_sess_accept.payload_container.smf_msg;
   EXPECT_GT(decode_res, 0);
@@ -1604,19 +1612,16 @@ TEST(test_protocol_configuration_options, test_protocol_configuration_options) {
 
   msg_accept_pco =
       &(smf_msg->msg.pdu_session_estab_accept.protocolconfigurationoptions.pco);
-  decode_res =
-      pdu_sess_accept.DecodeDLNASTransportMsg(&pdu_sess_accept, pdu, len);
+  decode_res = pdu_sess_accept.DecodeDLNASTransportMsg(pdu, len);
 
   EXPECT_GT(decode_res, 0);
 
   buffer = bfromcstralloc(len, "\0");
-  bytes = pdu_sess_accept.EncodeDLNASTransportMsg(&pdu_sess_accept,
-                                                  buffer->data, len);
+  bytes = pdu_sess_accept.EncodeDLNASTransportMsg(buffer->data, len);
   EXPECT_GT(bytes, 0);
   DLNASTransportMsg decode_pdu_sess_accept;
   memset(&decode_pdu_sess_accept, 0, sizeof(DLNASTransportMsg));
-  decode_res = decode_pdu_sess_accept.DecodeDLNASTransportMsg(
-      &decode_pdu_sess_accept, pdu, len);
+  decode_res = decode_pdu_sess_accept.DecodeDLNASTransportMsg(pdu, len);
   SmfMsg* decode_smf_msg = &decode_pdu_sess_accept.payload_container.smf_msg;
 
   decode_msg_accept_pco = &(decode_smf_msg->msg.pdu_session_estab_accept
@@ -1718,7 +1723,7 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
   uint8_t qos_rules_buffer[4096];
 
   int encoded_result_qos_rules =
-      qosrules.EncodeQOSRulesMsgData(&qosrules, qos_rules_buffer, 4096);
+      qosrules.EncodeQOSRulesMsgData(qos_rules_buffer, 4096);
 
   pdu_sess_mod_cmd.authorized_qosrules =
       blk2bstr(qos_rules_buffer, encoded_result_qos_rules);
@@ -1753,20 +1758,19 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_msg) {
 
   uint8_t qos_flow_desc_buffer[26];
 
-  int encoded_result_qos_flow_desc = authqosFlows.EncodeM5GQosFlowDescription(
-      &authqosFlows, qos_flow_desc_buffer, 26);
+  int encoded_result_qos_flow_desc =
+      authqosFlows.EncodeM5GQosFlowDescription(qos_flow_desc_buffer, 26);
 
   pdu_sess_mod_cmd.authorized_qosflowdescriptors =
       blk2bstr(qos_flow_desc_buffer, encoded_result_qos_flow_desc);
 
   // verify encoding is successful
-  EXPECT_EQ(pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(
-                &pdu_sess_mod_cmd, buffer, len),
+  EXPECT_EQ(pdu_sess_mod_cmd.EncodePDUSessionModificationCommand(buffer, len),
             len);
   // verify decoding is successful
-  EXPECT_EQ(decode_pdu_sess_mod_cmd.DecodePDUSessionModificationCommand(
-                &decode_pdu_sess_mod_cmd, buffer, len),
-            len);
+  EXPECT_EQ(
+      decode_pdu_sess_mod_cmd.DecodePDUSessionModificationCommand(buffer, len),
+      len);
 
   // verify encoded and decoded IE's having same values are not
   EXPECT_EQ(pdu_sess_mod_cmd.extended_protocol_discriminator
@@ -1830,11 +1834,11 @@ TEST(test_pdu_session_modification,
 
   // verify pdu session modification complete message is encoded
   EXPECT_EQ(pdu_sess_mod_com_encoded.EncodePDUSessionModificationComplete(
-                &pdu_sess_mod_com_encoded, buffer, len),
+                buffer, len),
             len);
   // verify pdu session modification complete message is decoded
   EXPECT_EQ(pdu_sess_mod_com_decoded.DecodePDUSessionModificationComplete(
-                &pdu_sess_mod_com_decoded, buffer, len),
+                buffer, len),
             len);
 
   // verify IE's
@@ -1871,12 +1875,12 @@ TEST(test_pdu_session_modification, test_pdu_session_modification_command_rej) {
   // verify pdu session modification complete message is encoded
   EXPECT_EQ(
       pdu_sess_mod_com_rej_encoded.EncodePDUSessionModificationCommandReject(
-          &pdu_sess_mod_com_rej_encoded, buffer, len),
+          buffer, len),
       len);
   // verify pdu session modification complete message is decoded
   EXPECT_EQ(
       pdu_sess_mod_com_rej_decoded.DecodePDUSessionModificationCommandReject(
-          &pdu_sess_mod_com_rej_decoded, buffer, len),
+          buffer, len),
       len);
 
   // verify IE's
@@ -1935,11 +1939,11 @@ TEST(test_qos_rules, test_qos_rules) {
   uint8_t qos_rules_buffer[4096];
 
   int encoded_qos_rules =
-      qosrules.EncodeQOSRulesMsg(&qosrules, iei, qos_rules_buffer, 4096);
+      qosrules.EncodeQOSRulesMsg(iei, qos_rules_buffer, 4096);
   EXPECT_EQ(encoded_qos_rules, 20);
 
-  int decoded_qos_rules = decoded_qosrules.DecodeQOSRulesMsg(
-      &decoded_qosrules, iei, qos_rules_buffer, 4096);
+  int decoded_qos_rules =
+      decoded_qosrules.DecodeQOSRulesMsg(iei, qos_rules_buffer, 4096);
   EXPECT_EQ(decoded_qos_rules, 20);
 
   EXPECT_EQ(qosrules.iei, decoded_qosrules.iei);
@@ -1984,11 +1988,12 @@ TEST(test_network_feature, test_network_feature) {
   uint8_t network_feature_buffer[4096];
 
   int encoded_network_feature = networkfeature.EncodeNetworkFeatureSupportMsg(
-      &networkfeature, iei, network_feature_buffer, 4096);
+      iei, network_feature_buffer, 4096);
   EXPECT_EQ(encoded_network_feature, 4);
 
-  int decoded_network_feature = networkfeature.DecodeNetworkFeatureSupportMsg(
-      &decoded_networkfeature, iei, network_feature_buffer, 4096);
+  int decoded_network_feature =
+      decoded_networkfeature.DecodeNetworkFeatureSupportMsg(
+          iei, network_feature_buffer, 4096);
   EXPECT_EQ(decoded_network_feature, 4);
 
   EXPECT_EQ(networkfeature.iei, decoded_networkfeature.iei);

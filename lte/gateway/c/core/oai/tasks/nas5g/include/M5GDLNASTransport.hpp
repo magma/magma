@@ -10,6 +10,7 @@
 */
 
 #pragma once
+#include <cstring>
 #include <sstream>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GExtendedProtocolDiscriminator.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
@@ -37,10 +38,15 @@ class DLNASTransportMsg {
 
   DLNASTransportMsg();
   ~DLNASTransportMsg();
-  int DecodeDLNASTransportMsg(DLNASTransportMsg* dl_nas_transport,
-                              uint8_t* buffer, uint32_t len);
-  int EncodeDLNASTransportMsg(DLNASTransportMsg* dl_nas_transport,
-                              uint8_t* buffer, uint32_t len);
+  int DecodeDLNASTransportMsg(uint8_t* buffer, uint32_t len);
+  int EncodeDLNASTransportMsg(uint8_t* buffer, uint32_t len);
+
+  DLNASTransportMsg& operator=(const DLNASTransportMsg& other) {
+    if (this != &other) memcpy(this, &other, sizeof(DLNASTransportMsg));
+    return *this;
+    /** TODO: implement a copy mechanism that takes into account each subtype to
+     * avoid copying invalid pointers */
+  }
 };
 }  // namespace magma5g
 

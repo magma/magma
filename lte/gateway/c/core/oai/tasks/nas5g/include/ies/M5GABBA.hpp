@@ -22,7 +22,7 @@ class ABBAMsg {
 
   ABBAMsg();
   ~ABBAMsg();
-  int EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer, uint32_t len);
-  int DecodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int EncodeABBAMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeABBAMsg(uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

@@ -34,9 +34,7 @@ class ServiceRejectMsg {
 
   ServiceRejectMsg();
   ~ServiceRejectMsg();
-  int DecodeServiceRejectMsg(ServiceRejectMsg* service_reject, uint8_t* buffer,
-                             uint32_t len);
-  int EncodeServiceRejectMsg(ServiceRejectMsg* service_reject, uint8_t* buffer,
-                             uint32_t len);
+  int DecodeServiceRejectMsg(uint8_t* buffer, uint32_t len);
+  int EncodeServiceRejectMsg(uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

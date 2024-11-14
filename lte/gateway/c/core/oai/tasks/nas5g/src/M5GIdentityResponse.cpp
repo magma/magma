@@ -25,8 +25,8 @@ IdentityResponseMsg::IdentityResponseMsg(){};
 IdentityResponseMsg::~IdentityResponseMsg(){};
 
 // Decode IdentityResponse Message and its IEs
-int IdentityResponseMsg::DecodeIdentityResponseMsg(
-    IdentityResponseMsg* identity_response, uint8_t* buffer, uint32_t len) {
+int IdentityResponseMsg::DecodeIdentityResponseMsg(uint8_t* buffer,
+                                                   uint32_t len) {
   uint32_t decoded = 0;
   int decoded_result = 0;
 
@@ -34,38 +34,29 @@ int IdentityResponseMsg::DecodeIdentityResponseMsg(
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, IDENTITY_RESPONSE_MINIMUM_LENGTH,
                                        len);
 
-  if ((decoded_result =
-           identity_response->extended_protocol_discriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &identity_response->extended_protocol_discriminator, 0,
-                   buffer + decoded, len - decoded)) < 0)
+  if ((decoded_result = this->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           identity_response->spare_half_octet.DecodeSpareHalfOctetMsg(
-               &identity_response->spare_half_octet, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->spare_half_octet.DecodeSpareHalfOctetMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           identity_response->sec_header_type.DecodeSecurityHeaderTypeMsg(
-               &identity_response->sec_header_type, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result = identity_response->message_type.DecodeMessageTypeMsg(
-           &identity_response->message_type, 0, buffer + decoded,
-           len - decoded)) < 0)
+  if ((decoded_result = this->message_type.DecodeMessageTypeMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           identity_response->m5gs_mobile_identity.DecodeM5GSMobileIdentityMsg(
-               &identity_response->m5gs_mobile_identity, 0, buffer + decoded,
-               len - decoded)) < 0)
+  if ((decoded_result = this->m5gs_mobile_identity.DecodeM5GSMobileIdentityMsg(
+           0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -74,8 +65,8 @@ int IdentityResponseMsg::DecodeIdentityResponseMsg(
 }
 
 // Encode Identity Response Message and its IEs
-int IdentityResponseMsg::EncodeIdentityResponseMsg(
-    IdentityResponseMsg* identity_response, uint8_t* buffer, uint32_t len) {
+int IdentityResponseMsg::EncodeIdentityResponseMsg(uint8_t* buffer,
+                                                   uint32_t len) {
   uint32_t encoded = 0;
 
   int encoded_result = 0;
@@ -85,38 +76,29 @@ int IdentityResponseMsg::EncodeIdentityResponseMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, IDENTITY_RESPONSE_MINIMUM_LENGTH,
                                        len);
 
-  if ((encoded_result =
-           identity_response->extended_protocol_discriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &identity_response->extended_protocol_discriminator, 0,
-                   buffer + encoded, len - encoded)) < 0)
+  if ((encoded_result = this->extended_protocol_discriminator
+                            .EncodeExtendedProtocolDiscriminatorMsg(
+                                0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           identity_response->spare_half_octet.EncodeSpareHalfOctetMsg(
-               &identity_response->spare_half_octet, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->spare_half_octet.EncodeSpareHalfOctetMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           identity_response->sec_header_type.EncodeSecurityHeaderTypeMsg(
-               &identity_response->sec_header_type, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result = identity_response->message_type.EncodeMessageTypeMsg(
-           &identity_response->message_type, 0, buffer + encoded,
-           len - encoded)) < 0)
+  if ((encoded_result = this->message_type.EncodeMessageTypeMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;
-  if ((encoded_result =
-           identity_response->m5gs_mobile_identity.EncodeM5GSMobileIdentityMsg(
-               &identity_response->m5gs_mobile_identity, 0, buffer + encoded,
-               len - encoded)) < 0)
+  if ((encoded_result = this->m5gs_mobile_identity.EncodeM5GSMobileIdentityMsg(
+           0, buffer + encoded, len - encoded)) < 0)
     return encoded_result;
   else
     encoded += encoded_result;

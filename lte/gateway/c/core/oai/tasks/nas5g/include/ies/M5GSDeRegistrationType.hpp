@@ -21,11 +21,9 @@ class M5GSDeRegistrationTypeMsg {
 
   M5GSDeRegistrationTypeMsg();
   ~M5GSDeRegistrationTypeMsg();
-  int DecodeM5GSDeRegistrationTypeMsg(
-      M5GSDeRegistrationTypeMsg* m5gs_de_reg_type, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int EncodeM5GSDeRegistrationTypeMsg(
-      M5GSDeRegistrationTypeMsg* m5gs_de_reg_type, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  int DecodeM5GSDeRegistrationTypeMsg(uint8_t iei, uint8_t* buffer,
+                                      uint32_t len);
+  int EncodeM5GSDeRegistrationTypeMsg(uint8_t iei, uint8_t* buffer,
+                                      uint32_t len);
 };
 }  // namespace magma5g
