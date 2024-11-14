@@ -30,3 +30,5 @@ mkdir "$WORK_DIR"
 cd "$WORK_DIR"
 
 wget https://ftp.debian.org/debian/pool/main/s/systemd/libsystemd-dev_252.30-1~deb12u2_amd64.deb
+
+cp libsystemd-dev_252.30-1~deb12u2_amd64.deb $SCRIPT_DIR/../

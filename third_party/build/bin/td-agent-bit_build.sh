@@ -28,3 +28,5 @@ cd "$WORK_DIR"
 
 wget http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb
 wget https://apt.fluentbit.io/debian/bullseye/pool/main/t/td-agent-bit/td-agent-bit_1.8.11_amd64.deb
+
+cp td-agent-bit_1.8.11_amd64.deb $SCRIPT_DIR/../

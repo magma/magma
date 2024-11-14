@@ -42,6 +42,9 @@ cd "$WORK_DIR"
 wget https://ftp.debian.org/debian/pool/main/c/czmq/libczmq-dev_4.2.1-1_amd64.deb
 wget http://ftp.us.debian.org/debian/pool/main/c/czmq/libczmq4_4.2.1-1_amd64.deb
 
+
+cp libczmq-dev_4.2.1-1_amd64.deb $SCRIPT_DIR/../
+
 # Install downloaded packages and handle any missing dependencies automatically
 dpkg -i libczmq4_4.2.1-1_amd64.deb libczmq-dev_4.2.1-1_amd64.deb || \
   (apt-get install -f -y && dpkg -i libczmq4_4.2.1-1_amd64.deb libczmq-dev_4.2.1-1_amd64.deb)
