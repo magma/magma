@@ -98,6 +98,9 @@
       - openssl
       - dkms
       - uuid-runtime
+      - libsystemd-dev=245.4-4ubuntu3.24
+      - libczmq-dev=4.2.0-2
+
   tags:
     - agwc
     - base
@@ -124,7 +127,8 @@
 
 - name: Set magma package variable
   set_fact:
-    magma_package: "{{ MAGMA_PACKAGE | default('magma=1.8.0*', true) }}"
+    magma_package: "{{ MAGMA_PACKAGE | default('magma=1.9.0*', true) }}"
+
 
 - name: Installing magma from local debian package
   become: true

@@ -65,7 +65,7 @@ INTERFACES=$(ip -br a)
 if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub); then
   # changing intefaces name
   sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
-  sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml
+  sed -i 's/ens3/eth0/g' /etc/netplan/50-cloud-init.yaml
   # changing interface name
   grub-mkconfig -o /boot/grub/grub.cfg
 
@@ -112,8 +112,8 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
   # configuring eth1
   echo "auto eth1
   iface eth1 inet static
-  address 10.0.2.1
-  netmask 255.255.255.0" > "$INTERFACE_DIR"/eth1
+  address 192.100.3.77
+  netmask 255.255.224.0" > "$INTERFACE_DIR"/eth1
 
   # get rid of netplan
   systemctl unmask networking
@@ -194,9 +194,12 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   echo "Generating localhost hostfile for Ansible"
   echo "[magma_deploy]
   127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
+  #Temporary steps to be removed once GPG public key issue has been fixed.
+  echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories
+  echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
 
   # install magma and its dependencies including OVS.
-  su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
+  su - $MAGMA_USER -c "ansible-playbook -e \"use_master=True\" -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
 
   echo "Cleanup temp files"
   cd /root || exit
