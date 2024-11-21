@@ -24,6 +24,5 @@ fi
 mkdir "$WORK_DIR"
 cd "$WORK_DIR"
 
-wget -O getenvoy-envoy-dev-1.28_1.28.0_amd64.deb  https://apt.envoyproxy.io/pool/main/e/envoy-1.28/envoy-1.28_1.28.0_amd64.deb
-
-cp getenvoy-envoy-dev-1.28_1.28.0_amd64.deb $SCRIPT_DIR/../
+wget https://linuxfoundation.jfrog.io/artifactory/magma-packages-test/pool/focal-1.8.0/getenvoy-envoy_1.16.2.p0.ge98e41a-1p71.gbe6132a_amd64.deb
+cp getenvoy-envoy_1.16.2.p0.ge98e41a-1p71.gbe6132a_amd64.deb $SCRIPT_DIR/../
