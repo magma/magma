@@ -39,15 +39,14 @@ mkdir "$WORK_DIR"
 cd "$WORK_DIR"
 
 # Download necessary .deb files for libczmq if not available in apt repositories
-wget https://ftp.debian.org/debian/pool/main/c/czmq/libczmq-dev_4.2.1-1_amd64.deb
-wget http://ftp.us.debian.org/debian/pool/main/c/czmq/libczmq4_4.2.1-1_amd64.deb
+wget https://linuxfoundation.jfrog.io/artifactory/magma-packages-test/pool/focal-1.8.0/libczmq-dev_4.2.0-2_amd64.deb
+wget http://ftp.us.debian.org/debian/pool/main/c/czmq/libczmq4_4.2.0-2_amd64.deb
 
-
-cp libczmq-dev_4.2.1-1_amd64.deb $SCRIPT_DIR/../
+cp libczmq-dev_4.2.0-2_amd64.deb $SCRIPT_DIR/../
 
 # Install downloaded packages and handle any missing dependencies automatically
-dpkg -i libczmq4_4.2.1-1_amd64.deb libczmq-dev_4.2.1-1_amd64.deb || \
-  (apt-get install -f -y && dpkg -i libczmq4_4.2.1-1_amd64.deb libczmq-dev_4.2.1-1_amd64.deb)
+dpkg -i libczmq4_4.2.0-2_amd64.deb libczmq-dev_4.2.0-2_amd64.deb || \
+  (apt-get install -f -y && dpkg -i libczmq4_4.2.0-2_amd64.deb libczmq-dev_4.2.0-2_amd64.deb)
 
 # Re-run apt-get install to fix any other dependency issues if needed
 apt-get install -y libnspr4-dev libnss3-dev || echo "Some dependencies might still be unavailable, check specific requirements."
