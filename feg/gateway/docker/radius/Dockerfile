@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:alpine as builder
+FROM golang:alpine AS builder
 RUN apk add git gcc musl-dev bash protobuf netcat-openbsd
 
 RUN go get -d -u github.com/golang/protobuf/protoc-gen-go

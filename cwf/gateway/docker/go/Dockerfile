@@ -10,7 +10,7 @@
 # limitations under the License.
 
 ARG baseImage="ubuntu:focal"
-FROM ${baseImage} as base
+FROM ${baseImage} AS base
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -114,7 +114,7 @@ RUN ln -s /build/python/bin/generate_nghttpx_config.py /usr/local/bin/generate_n
 # -----------------------------------------------------------------------------
 # Builder image with binary
 # -----------------------------------------------------------------------------
-FROM base as builder
+FROM base AS builder
 
 # Build the code.
 COPY cwf $MAGMA_ROOT/cwf
