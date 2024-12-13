@@ -66,6 +66,9 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    security_opt:
+      - apparmor=unconfined
+      - systempaths=unconfined
     command: >
       /bin/bash -c "
         /usr/bin/env python3 /usr/local/bin/generate_oai_config.py &&
