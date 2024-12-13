@@ -13,7 +13,7 @@
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
 ARG baseImage="ubuntu:focal"
-FROM ${baseImage} as base
+FROM ${baseImage} AS base
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -118,7 +118,7 @@ COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
 # -----------------------------------------------------------------------------
 # Builder image with binaries
 # -----------------------------------------------------------------------------
-FROM base as builder
+FROM base AS builder
 # Enable make gen if proto gen is required
 # RUN make -C $MAGMA_ROOT/feg/gateway gen
 RUN make -C $MAGMA_ROOT/feg/gateway build
@@ -129,7 +129,7 @@ RUN ./run.sh build
 # -----------------------------------------------------------------------------
 # Go-cache base image
 # -----------------------------------------------------------------------------
-FROM ${baseImage} as gocache
+FROM ${baseImage} AS gocache
 COPY --from=builder /root/.cache /root/.cache
 
 # -----------------------------------------------------------------------------

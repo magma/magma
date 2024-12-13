@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:2.7.18-alpine3.11 as builder
+FROM python:2.7.18-alpine3.11 AS builder
 
 RUN apk add --no-cache \
         gcc=9.3.0-r0 \
