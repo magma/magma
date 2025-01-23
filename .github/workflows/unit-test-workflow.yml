@@ -21,7 +21,7 @@ on:
       - FeG Lint & Test
       - AGW Build & Test Experimental Go Code
       - NMS Lint & Test
-      - DP Lint & Test
+        #- DP Lint & Test
     types:
       - completed
 
