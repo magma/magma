@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "by-gdb",
+            "request": "launch",
+            "name": "(Bazel) Run C/C++ test with GDB",
+            "program": "${workspaceFolder}/bazel-bin/${input:pickCcTest}",
+            "cwd": "${workspaceRoot}",
+            "commandsBeforeExec": [
+                "enable pretty-printer"
+            ],
+        }
+    ],
+    "inputs": [
+        {
+            "id": "pickCcTest",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "description": "Pick a Bazel cc_test target",
+                // Use bazel query to find all test targets. This will automatically pick up any new cc_test added
+                // We need to massage the query output to get the output path
+                // 1. remove the initial // (ex: //orc8r/gateway/c/common/config/test:yaml_utils_test -> orc8r/gateway/c/common/config/test:yaml_utils_test)
+                // 2. replace : -> / (ex: orc8r/gateway/c/common/config/test:yaml_utils_test -> orc8r/gateway/c/common/config/test/yaml_utils_test)
+                "command": "bazel query \"kind('cc_test', //...)\" --output=label | sed 's/\\/\\///' | sed 's/:/\\//'",
+            },
+        }
+    ]
+}

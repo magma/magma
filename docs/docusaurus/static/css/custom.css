@@ -1,0 +1,90 @@
+/* your custom css */
+
+@media only screen and (min-device-width: 360px) and (max-device-width: 736px) {
+}
+
+@media only screen and (min-width: 1024px) {
+}
+
+@media only screen and (max-width: 1023px) {
+}
+
+@media only screen and (min-width: 1400px) {
+}
+
+@media only screen and (min-width: 1500px) {
+}
+
+body {
+  color: #4a4a4a !important;
+  font-family: Open Sans,sans-serif !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  -ms-text-size-adjust: 100% !important;
+  -webkit-text-size-adjust: 100% !important;
+  word-wrap: break-word !important;
+}
+
+
+.fixedHeaderContainer header .headerTitleWithLogo {
+    display: none !important;
+}
+
+.fixedHeaderContainer header h3 {
+    margin: 0 !important;
+    margin-left: 10px !important;
+}
+
+.navigationSlider {
+    height: 34px;
+    margin: auto !important;
+    text-transform: uppercase;
+}
+
+.toc .toggleNav .navGroup .navGroupCategoryTitle {
+    font-size: 16px;
+}
+
+.wrapper {
+    padding: 13px 20px !important;
+}
+
+.navigationSlider .slidingNav ul li {
+    margin-right: 10px;
+}
+
+.navigationSlider .slidingNav ul {
+    list-style: none;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    text-transform: uppercase !important;
+}
+
+h1 {
+    padding-right: 24px !important;
+    font-size: 42px !important;
+    font-weight: 500 !important;
+    color: #5602a4 !important;
+}
+
+.fixedHeaderContainer header img {
+    height: 32px;
+    /* margin-right: 10px; */
+    margin-left: 16px;
+}
+
+.navigationSlider .slidingNav ul li a {
+    color: #ffffff;
+    font-size: .9em;
+}
+
+/* Code block formatting with custom line-height
+ * for improved text graphics embedding.
+ */
+.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+    background: #F0F0F0;
+    line-height: normal;
+}

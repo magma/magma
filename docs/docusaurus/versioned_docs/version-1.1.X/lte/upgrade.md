@@ -4,7 +4,6 @@ title: Upgrade to  v1.1
 sidebar_label: Upgrade to v1.1
 hide_title: true
 original_id: agw_110_upgrade
-
 ---
 # Upgrade to v1.1
 
