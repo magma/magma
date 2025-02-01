@@ -55,14 +55,14 @@
     - agwc
     - base
 
-- name: Add key for magma registry
-  ansible.builtin.copy:
-    src: "{{ magma_pkgrepo_key }}"
-    dest: /etc/apt/trusted.gpg.d/magma.asc
-  become: true
-  tags:
-    - agwc
-    - base
+#- name: Add key for magma registry
+#  ansible.builtin.copy:
+#    src: "{{ magma_pkgrepo_key }}"
+#    dest: /etc/apt/trusted.gpg.d/magma.asc
+#  become: true
+#  tags:
+#    - agwc
+#    - base
 
 - name: Configuring the registry in sources.list.d
   ansible.builtin.apt_repository:
