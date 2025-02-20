@@ -1,58 +1,49 @@
 {
-  "version-1.1.X-docs": {
+  "version_1_1_X_docs": {
     "Basics": [
-      "version-1.1.X-basics/introduction",
-      "version-1.1.X-basics/prerequisites",
-      "version-1.1.X-basics/quick_start_guide"
+      "basics/version-1.1.X-prerequisites",
+      "basics/version-1.1.X-quick_start_guide"
     ],
     "Orchestrator": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploying Orchestrator",
-        "ids": [
-          "version-1.1.X-orc8r/deploy_intro",
-          "version-1.1.X-orc8r/deploy_build",
-          "version-1.1.X-orc8r/deploy_install",
-          "version-1.1.X-orc8r/deploy_upgrade"
+        "items": [
+          "orc8r/version-1.1.X-deploy_build",
+          "orc8r/version-1.1.X-deploy_install",
+          "orc8r/version-1.1.X-deploy_upgrade"
         ]
       }
     ],
     "NMS User Guide": [
-      "version-1.1.X-nms/nms_organizations",
-      "version-1.1.X-nms/nms_grafana"
+      {
+        "type": "doc",
+        "id": "nms/version-1.1.X-nms_organizations"
+      },
+      {
+        "type": "doc",
+        "id": "nms/version-1.1.X-nms_grafana"
+      }
     ],
     "Access Gateway": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploying AGWs",
-        "ids": [
-          "version-1.1.X-lte/setup_deb",
-          "version-1.1.X-lte/config_agw",
-          "version-1.1.X-lte/enodebd",
-          "version-1.1.X-lte/agw_110_upgrade"
+        "items": [
+          "lte/version-1.1.X-setup_deb",
+          "lte/version-1.1.X-config_agw",
+          "lte/version-1.1.X-enodebd",
+          "lte/version-1.1.X-agw_110_upgrade"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "AGW Development",
-        "ids": [
-          "version-1.1.X-lte/tr069",
-          "version-1.1.X-lte/s1ap_tests",
-          "version-1.1.X-lte/dev_notes"
+        "items": [
+          "lte/version-1.1.X-s1ap_tests",
+          "lte/version-1.1.X-dev_notes"
         ]
       }
-    ],
-    "Federation Gateway": [
-      {
-        "type": "subcategory",
-        "label": "Deploying FeG",
-        "ids": [
-          "version-1.1.X-feg/deploy_intro",
-          "version-1.1.X-feg/deploy_build",
-          "version-1.1.X-feg/deploy_install"
-        ]
-      }
-    ],
-    "FAQ": ["faq/magma_faq"]
+    ]
   }
 }

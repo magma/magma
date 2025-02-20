@@ -28,13 +28,13 @@ Ensure you have the following:
 
 ## Initiating a Call Trace
 
-![Call Tracing Page](assets/nms/calltracing_page.png)
+![Call Tracing Page](../../../../readmes/assets/nms/calltracing_page.png)
 
 The call tracing page can be accessed directly via the NMS sidebar.
 
 Click `Start New Trace`
 
-![Call Tracing Dialog](assets/nms/calltracing_dialog.png)
+![Call Tracing Dialog](../../../../readmes/assets/nms/calltracing_dialog.png)
 
 `trace_id` must be a unique value among all the call traces on your network.
 
@@ -46,13 +46,13 @@ Once the call trace is started, you can stop and/or download the call trace
 on the same page. Under `Actions`, click the vertical ellipsis button for your
 call trace to see these options.
 
-![Call Tracing Actions](assets/nms/calltracing_actions.png)
+![Call Tracing Actions](../../../../readmes/assets/nms/calltracing_actions.png)
 
 ## Viewing a Call Trace
 
 It is suggested that Wireshark is used to analyze call trace captures.
 
-![Call Tracing Viewing](assets/nms/calltracing_wireshark.png)
+![Call Tracing Viewing](../../../../readmes/assets/nms/calltracing_wireshark.png)
 
 ## Additional Configuration
 

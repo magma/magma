@@ -98,4 +98,5 @@ rootca_cert: /var/opt/magma/tmp/certs/rootCA.pem
 AGW$ sudo service magma@magmad restart
 ```
 
-11. If issue still persists, please  file github issues or ask in our support channels <https://magmacore.org/join-the-open-source-community/>
+11. If issue still persists, please  file github issues or ask in our support channels https://magmacore.org/join-the-open-source-community/
+

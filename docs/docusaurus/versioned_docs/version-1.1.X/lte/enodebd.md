@@ -64,7 +64,7 @@ On the NMS, navigate to "eNodeB Devices" in the sidebar, and hit "Add EnodeB".
 Configure the RAN parameters as necessary. Note that fields left blank will
 be inherited from either the network or gateway LTE parameters:
 
-![Configuring an eNodeB](assets/nms/configure_enb.png)
+![Configuring an eNodeB](../../../../readmes/assets/nms/configure_enb.png)
 
 Then, go back to the "Gateways" page and edit the LTE configuration of your
 AGW. Enter the serial number of the enodeB you just provisioned into the
@@ -159,7 +159,7 @@ failure until you add the corresponding IMSI to the subscriber database.
 On the NMS, go to "Subscribers", then "Add Subscriber". The SIM secrets can be
 entered either in hex or base64-encoded binary:
 
-![Adding a subscriber](assets/nms/add_sub.png)
+![Adding a subscriber](../../../../readmes/assets/nms/add_sub.png)
 
 Subscriber information will eventually propagate to the AGW. You can verify
 using the CLI command `"subscriber_cli.py list"`

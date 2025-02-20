@@ -9,9 +9,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM node:14
+FROM node:18
 
 WORKDIR /app/website
 
 COPY package.json /app/website/package.json
-RUN yarn install
+RUN npm install
