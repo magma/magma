@@ -1,6 +1,6 @@
 ---
 id: version-1.3.X-upgrade_intro
-title: Orchestrator Upgrades: Introduction
+title: Orchestrator Upgrades Introduction
 hide_title: true
 original_id: upgrade_intro
 ---

@@ -67,7 +67,7 @@ Configure the RAN parameters in the resulting multi-step modal as necessary.
 Note that fields left blank will be inherited from either the network or
 gateway LTE parameters:
 
-![Configuring an eNodeB](assets/nms/configure_enb_12.png)
+![Configuring an eNodeB](../../../../readmes/assets/nms/configure_enb_12.png)
 
 Then, go back to the "Gateways" page and click on the ID of the AGW that you
 registered in the gateway table. Click through to the "Config" tab of the
@@ -75,7 +75,7 @@ AGW detail view, then hit "Edit" by the RAN configuration. Select the eNodeB
 that you just registered in the multi-select dropdown, then save the update.
 Make sure that transmit is enabled.
 
-![Connecting an eNodeB](assets/nms/connect_enb.png)
+![Connecting an eNodeB](../../../../readmes/assets/nms/connect_enb.png)
 
 ### Basic Troubleshooting
 After connecting your eNodeB(s) to the gateway through the `eth1` interface, you

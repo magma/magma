@@ -24,13 +24,13 @@ When configuring an integration with LTE nodes, it is necessary to link these tw
 
 In the **Federated LTE** **Network**’s NMS page, the Federation config should be the **Federation** **Network**’s network ID.
 
-![NMS-FederatedLTE-Config.png](assets/feg/NMS-FederatedLTE-Config.png)
+![NMS-FederatedLTE-Config.png](../../../../readmes/assets/feg/NMS-FederatedLTE-Config.png)
 
 ### Associating Federation network to a FederatedLTE network
 
 In order to complete the association, we also need to modify the **Federation Network**‘s federation configuration.
 
-![API-Federation-Network-Config.png](assets/feg/API-Federation-Network-Config.png)
+![API-Federation-Network-Config.png](../../../../readmes/assets/feg/API-Federation-Network-Config.png)
 
 Ensure that the following field “served_network_ids” has the **Federated LTE** **Network** networkID.
 
@@ -44,7 +44,7 @@ Ensure that the following field “served_network_ids” has the **Federated LTE
 
 In **Federated LTE** **Network**’s EPC configuration, ensure both of the relay flags are set to `true`.
 
-![API-LTE-Network-EPC-Config.png](assets/feg/API-LTE-Network-EPC-Config.png)
+![API-LTE-Network-EPC-Config.png](../../../../readmes/assets/feg/API-LTE-Network-EPC-Config.png)
 ```
   "gx_gy_relay_enabled": true,
   "hss_relay_enabled": true,
@@ -54,14 +54,14 @@ In **Federated LTE** **Network**’s EPC configuration, ensure both of the relay
 
 The NMS page for  **Federated LTE Network** has the following policy configuration page.
 
-![NMS-Policy-Config.png](assets/feg/NMS-Policy-Config.png)
+![NMS-Policy-Config.png](../../../../readmes/assets/feg/NMS-Policy-Config.png)
 
 ### Configuring Omnipresent/Network-Wide Policies
 
 Omnipresent rules or Network-Wide polices are policies that do not require a PCRF to install. On Session creation, all network wide policies will be installed for the session along with any other policies configured by the PCRF.
 In the policy configuration’s edit dialogue, use the **Network Wide** check box to toggle the configuration.
 
-![NMS-Network-Wide-Rules-Config.png](assets/feg/NMS-Network-Wide-Rules-Config.png)
+![NMS-Network-Wide-Rules-Config.png](../../../../readmes/assets/feg/NMS-Network-Wide-Rules-Config.png)
 
 
 ## Advanced Configuration Steps
@@ -70,7 +70,7 @@ In the policy configuration’s edit dialogue, use the **Network Wide** check bo
 
 In order to enable FUA-redirection support, enable the `redirectd` service in the magmad configuration.
 
-![API-LTE-Magmad-Config.png](assets/feg/API-LTE-Magmad-Config.png)
+![API-LTE-Magmad-Config.png](../../../../readmes/assets/feg/API-LTE-Magmad-Config.png)
 ```
 "dynamic_services": ["eventd","td-agent-bit","redirectd"]
 ```
@@ -81,7 +81,7 @@ In order to enable FUA-redirection support, enable the `redirectd` service in th
 
 **DisableGx**: For PCRF-less deployments. In this setting, omnipresent policies must be added to the networks’ subscriber_config. If the rules contain a rating group, credit usage will be reported through the Gy interface.
 
-![API-Federation-Network-Config.png](assets/feg/API-Federation-Network-Config.png)
+![API-Federation-Network-Config.png](../../../../readmes/assets/feg/API-Federation-Network-Config.png)
 
 The relevant configurations for disabling Gx/Gy are:
 
@@ -106,7 +106,7 @@ To enable this feature add a list `plmn_ids` to `s6a` and add a list of PLMN
 ids. The list can contain 5 digit or 6 digit PLMN ids. If the list is empty or
 null, s6a will send any IMSI request to HSS.
 
-![API-Federation-Network-Config.png](assets/feg/API-Federation-Network-Config.png)
+![API-Federation-Network-Config.png](../../../../readmes/assets/feg/API-Federation-Network-Config.png)
 
 ```
 "s6a": {
@@ -148,7 +148,7 @@ APN will only be applied for the Gx interactions, as the config for Gy is empty.
 
 ### FeG
 
-* Here are the steps to test the FeG <-> Gx/Gy/S6a connections
+* Here are the steps to test the FeG <  > Gx/Gy/S6a connections
     * Exec into `session_proxy` container: `docker exec -it session_proxy bash`
     * Run `/var/opt/magma/bin/gx_client_cli `with the following parameters
         * --commands=IT

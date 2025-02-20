@@ -121,7 +121,7 @@ registered with the Orchestrator.
 
 To register the Carrier Wifi Gateway, go to the Orchestrator's APIdocs in your browser.
 **Note: It is highly encouraged to use V1 of the apidocs**
-(i.e. <https://controller.url.sample:9443/apidocs/v1/>).
+(i.e. https://controller.url.sample:9443/apidocs/v1/).
 
 Now, create a Carrier Wifi Network. This is found at `/cwf` under the
 **Carrier Wifi Networks** section. Then register the gateway under the

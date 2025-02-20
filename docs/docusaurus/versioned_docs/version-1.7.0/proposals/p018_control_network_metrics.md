@@ -46,7 +46,7 @@ deployment.
 
 ## Proposal
 
-![Network metrics path](assets/orc8r/control_network_metrics.png)
+![Network metrics path](../../../../readmes/assets/orc8r/control_network_metrics.png)
 
 To collect relevant byte count metrics, we propose using an
 [eBPF](https://ebpf.io/what-is-ebpf/) program. eBPF is a modern Linux kernel
@@ -417,26 +417,26 @@ of the slow callback function.
 
 [1]: Jay Schulist, Daniel Borkmann, Alexei Starovoitov. 2018. Linux Socket
 Filtering aka Berkeley Packet Filter (BPF).
-<https://www.kernel.org/doc/Documentation/networking/filter.txt>
+https://www.kernel.org/doc/Documentation/networking/filter.txt
 
 [2]: yonghong-song. 2020. Netqtop 3037.
-<https://github.com/iovisor/bcc/pull/3048>
+https://github.com/iovisor/bcc/pull/3048
 
 [3]: Brendan Gregg. 2018. TCP Tracepoints.
-<https://www.brendangregg.com/blog/2018-03-22/tcp-tracepoints.html>
+https://www.brendangregg.com/blog/2018-03-22/tcp-tracepoints.html
 
-[4]: pflua-bench. 2016. <https://github.com/Igalia/pflua-bench>
+[4]: pflua-bench. 2016. https://github.com/Igalia/pflua-bench
 
 [5]: Alexei Starovoitov. 2014. net: filter: rework/optimize internal BPF
 interpreter's instruction set.
-<https://www.kernel.org/doc/Documentation/networking/filter.txt>
+https://www.kernel.org/doc/Documentation/networking/filter.txt
 
 [6]: Alexei Starovoitov. 2019. bpf: introduce bounded loops.
-<https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2589726d12a1b12eaaa93c7f1ea64287e383c7a5>
+https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/commit/?id=2589726d12a1b12eaaa93c7f1ea64287e383c7a5
 
 [7]: Quentin Monnet. 2021. eBPF Updates #4: In-Memory Loads Detection,
 Debugging QUIC, Local CI Runs, MTU Checks, but No Pancakes.
-<https://ebpf.io/blog/ebpf-updates-2021-02>
+https://ebpf.io/blog/ebpf-updates-2021-02
 
 [8]: Ivan Babrou. 2018. eBPF overhead benchmark.
-<https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark>
+https://github.com/cloudflare/ebpf_exporter/tree/master/benchmark

@@ -80,7 +80,7 @@ This document focuses on the subscribers codepath for concreteness, but the desc
 
 For an overview of Orc8r's architecture, along with per-service functionality, see the [Architecture Overview documentation](https://magma.github.io/magma/docs/next/orc8r/architecture_overview).
 
-![subscribers_overview](assets/proposals/p010/subscribers_overview.png)
+![subscribers_overview](../../../../readmes/assets/proposals/p010/subscribers_overview.png)
 
 ### Subscriber objects
 
@@ -376,11 +376,11 @@ If the assumption of minimal subscriber updates is violated, or we scale past vi
 - a set of nodes whose subtrees collectively contain all changes — with tunable precision for number of nodes
 - the exact set of mutated data blocks (subscriber objects)
 
-![merkle_tree](assets/proposals/p010/merkle_tree.png)
+![merkle_tree](../../../../readmes/assets/proposals/p010/merkle_tree.png)
 
 **Context: Radix tree**. [Prefix trees](https://en.wikipedia.org/wiki/Trie) support stable, deterministic arrangement of objects based on string keys. In their compressed form they're called [radix trees](https://en.wikipedia.org/wiki/Radix_tree), which is what we'll want to use. See this [radix tree visualization](https://www.cs.usfca.edu/~galles/visualization/RadixTree.html) to get an intuitive understanding.
 
-![prefix_tree](assets/proposals/p010/prefix_tree.png)
+![prefix_tree](../../../../readmes/assets/proposals/p010/prefix_tree.png)
 
 **Solution: Merkle radix trees**. Combining Merkle and radix trees allows us to organize the full set of subscribers into a stable, IMSI-keyed tree (radix tree), then recursively generate digests for each node up the tree (Merkle tree). This unlocks arbitrarily fine-grained control over how many subscriber objects must be sent, even under high subscriber write volume. Note that, [per our Swagger spec, an IMSI can contain between 10 and 15 digits](https://github.com/magma/magma/blob/51843e3245e0b785a738d991f62657c2cac328b6/lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml#L843-L847), inclusive. This results in a maximum tree depth of 15 and maximum branching factor of 10, and due to the nature of radix trees the full tree size will only be a function of the total number of subscribers.
 

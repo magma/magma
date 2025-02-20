@@ -22,7 +22,7 @@ we consider the use case when a subscriber of a Roaming Partner Network (RPN)
 tries to access LTE services while visiting an area covered by Magma Partner
 Network (MPN).
 
-![Inbound Roaming 3gpp](../assets/feg/proposals/inbound_roaming_3gpp_description.jpeg)
+![Inbound Roaming 3gpp](../../../../readmes/assets/feg/proposals/inbound_roaming_3gpp_description.jpeg)
 
 ## Use cases
 
@@ -41,7 +41,7 @@ cases which include HSS for X operator (Magma operator).
 To support inbound roaming we will need to modify current flow on control plane
 on AGW and introduce a new service (s8_proxy) on FEG.
 
-![Inbound Roaming Magma Architecture](../assets/feg/proposals/inbound_roaming_magma_architecture.jpeg)
+![Inbound Roaming Magma Architecture](../../../../readmes/assets/feg/proposals/inbound_roaming_magma_architecture.jpeg)
 
 ## Design
 
@@ -119,7 +119,7 @@ Some partners have also offered their support to test in their own local
 environment using a remote HSS and PGW. That will allow testing Magma in a
 production environment that implements VPN between remote and local network.
 
-![Inbound Roaming proposed setup](../assets/feg/proposals/inbound_roaming_prod_setup.jpg)
+![Inbound Roaming proposed setup](../../../../readmes/assets/feg/proposals/inbound_roaming_prod_setup.jpg)
 
 ## Implementation Phases
 

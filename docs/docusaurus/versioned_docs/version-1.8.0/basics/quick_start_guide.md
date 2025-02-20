@@ -235,3 +235,15 @@ refer to
 the [Connecting a physical eNodeb and UE device to gateway
 VM](../lte/dev_notes.md#connecting-a-physical-enodeb-and-ue-to-gateway-vm)
 section.
+
+## Rest API quick start guide
+
+### Deploying the Swagger
+It is possible to access Swagger on Swagger Hub using the following link: https://app.swaggerhub.com/apis/MagmaCore/Magma/1.0.0.
+If you want to deploy Swagger locally, you can follow this tutorial.
+After building the Orchestrator you may need to insert the ssl certificate into your browser to access the UI. To get that you need to access the .cache/test_certs folder, and get the admin_operator.pem file. Depending on what browser you using you may need to convert the admin file to other extension running:
+```bash
+openssl pkcs12 -export -out Cert.p12 -in cert.pem -inkey key.pem -passin pass:root -passout pass:root
+```
+With the right extension you can add the certificate to your browser.
+After that you can run the Swagger UI in your localhost: https://localhost:9443/swagger/v1/ui.

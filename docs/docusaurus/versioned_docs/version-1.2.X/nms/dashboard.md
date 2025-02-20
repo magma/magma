@@ -7,7 +7,7 @@ original_id: nms_dashboard
 # NMS Main Dashboard
 
 ## Network
-![lte_dashboard1](assets/nms/userguide/lte_dashboard1.png)
+![lte_dashboard1](../../../../readmes/assets/nms/userguide/lte_dashboard1.png)
 
 The network tab contains the following components:
 * Chart displaying frequency of alerts and events over time. The chart and event table data is selected over a default time period of the last 3 days. This time period can be modified through the datetime selector on the top right hand corner of the dashboard.
@@ -25,4 +25,4 @@ The network tab contains the following components:
     * We can filter specific events by searching for either event types or event tags. Examples of event tags include
     hardware_id of a gateway or imsi of a subscriber.
 
-![imsi_filtering_eventtable](assets/nms/userguide/imsi_filtering_eventtable.png)
+![imsi_filtering_eventtable](../../../../readmes/assets/nms/userguide/imsi_filtering_eventtable.png)
