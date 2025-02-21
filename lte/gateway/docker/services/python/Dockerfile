@@ -31,6 +31,10 @@ ENV MAGMA_ROOT=/magma
 ENV PIP_CACHE_HOME="~/.pipcache"
 ARG DEBIAN_FRONTEND=noninteractive
 
+# [TODO_GPG_KEY_WORKAROUND] Temporary steps to be removed once GPG public key issue has been fixed.
+RUN echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories \
+    && echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
+
 RUN apt-get update && apt-get install -y \
   docker.io \
   git \
@@ -96,6 +100,10 @@ ENV TZ=Europe/Paris
 
 ARG JSONPOINTER_VERSION=1.13
 ARG DEBIAN_FRONTEND=noninteractive
+
+# [TODO_GPG_KEY_WORKAROUND] Temporary steps to be removed once GPG public key issue has been fixed.
+RUN echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories \
+    && echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
 
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
