@@ -52,7 +52,7 @@ jobs:
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: always()
         with:
-          name: pr
+          name: reverted check pr
           path: pr/
 
   dco_check_job:
@@ -66,7 +66,7 @@ jobs:
         uses: tim-actions/get-pr-commits@c64db31d359214d244884dd68f971a110b29ab83 # pin@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: DCO Check
+      - name: Perform DCO Check
         uses: tim-actions/dco@f2279e6e62d5a7d9115b0cb8e837b777b1b02e21 # pin@master
         with:
           commits: ${{ steps.get-pr-commits.outputs.commits }}
@@ -79,5 +79,5 @@ jobs:
       - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: always()
         with:
-          name: pr
+          name: dco check job pr
           path: pr/
