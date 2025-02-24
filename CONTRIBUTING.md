@@ -18,9 +18,13 @@ a. The Technical Steering Committee (the “TSC”) will be responsible for all 
 
 b. Membership in the TSC is by vote of the Committers and Contributors of the project.
 
-&nbsp;&nbsp;&nbsp;&nbsp;i. There may be as few as three TSC members and as many as five. If active membership falls below a quorum, its powers and responsibilities are assumed by the Governing Board.
+&nbsp;&nbsp;&nbsp;&nbsp;i. There may be three, five, or seven seats in the TSC. The procedure for membership is to sort candidates by votes received and then a random number used for tie breaking; cull candidates receiving less than two votes; cull all candidates beyond the first seven. If the remaining set is four or six, cull the last candidate.
 
 &nbsp;&nbsp;&nbsp;&nbsp;ii. A TSC member who attends no TSC meetings in a month is removed, unless they have a genuine excuse or had a proxy attend on their behalf. They will be notified and have two weeks to respond. On removal there will be a special election to fill their seat.
+
+&nbsp;&nbsp;&nbsp;&nbsp;iii. If active membership falls below three, the TSC's powers and responsibilities are assumed by the Governing Board.
+
+&nbsp;&nbsp;&nbsp;&nbsp;iv. No more than one candidate from the same company can stand for election. If more than one candidate from the same company stands for election, no candidates from that company will be accepted. It is the responsibility of a company to ensure it has no more than one candidate in the running.
 
 c. The Project Committers may choose an alternative approach for determining the voting members of the TSC, and any such alternative approach will be documented in the CONTRIBUTING file.  Any meetings of the Technical Steering Committee are intended to be open to the public, and can be conducted electronically, via teleconference, or in person.
 
@@ -73,4 +77,3 @@ d. Every vote should have a Github issue. It might be a dedicated issue only for
 e. The +1 vote of the proposer and seconder are assumed. They do not have to restate their vote.
 
 f. Abstention from voting does not count towards quorum.
-
