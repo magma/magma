@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 
 using magma::lte::MmeNasStateManager;
 

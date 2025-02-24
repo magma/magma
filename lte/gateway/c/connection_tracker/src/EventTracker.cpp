@@ -16,14 +16,15 @@
 #include <arpa/inet.h>
 #include <glog/logging.h>
 #include <libmnl/libmnl.h>
+#include <linux/netfilter/nfnetlink.h>
 #include <linux/netfilter/nfnetlink_compat.h>
+#include <linux/netfilter/nfnetlink_conntrack.h>
 #include <linux/netlink.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <iostream>
-#include <linux/netfilter/nfnetlink.h>
-#include <linux/netfilter/nfnetlink_conntrack.h>
 #include <memory>
 
 #include "lte/gateway/c/connection_tracker/src/PacketGenerator.hpp"

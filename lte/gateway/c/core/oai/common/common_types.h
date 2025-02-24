@@ -39,8 +39,8 @@
 #define FILE_COMMON_TYPES_SEEN
 
 #include <inttypes.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/security_types.h"

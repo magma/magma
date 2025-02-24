@@ -22,17 +22,16 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <string.h>
-#include <inttypes.h>
 #include <arpa/inet.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <execinfo.h>
+#include <inttypes.h>
+#include <netinet/in.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <sys/time.h>
-#include <pthread.h>
-#include <execinfo.h>
-#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <time.h>
@@ -40,8 +39,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/hashtable/obj_hashtable.h"

@@ -10,23 +10,24 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include <iostream>
 #include <string.h>
 #include <sys/types.h>
 
+#include <iostream>
+
 extern "C" {
+#include "S1ap_CauseRadioNetwork.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "S1ap_CauseRadioNetwork.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
 #include "lte/gateway/c/core/oai/include/ha_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_state.hpp"
 #include "lte/gateway/c/core/oai/tasks/ha/HaClient.hpp"
+#include "lte/gateway/c/core/oai/tasks/ha/ha_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_state_manager.hpp"
 

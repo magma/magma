@@ -10,17 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
+#include <string>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
 #include "lte/gateway/c/core/oai/include/map.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
 
 using ::testing::_;
 using ::testing::Return;

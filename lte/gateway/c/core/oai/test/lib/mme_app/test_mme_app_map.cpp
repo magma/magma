@@ -11,11 +11,12 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <google/protobuf/map.h>
-#include "lte/protos/oai/mme_nas_state.pb.h"
+#include <gtest/gtest.h>
+
 #include "lte/gateway/c/core/oai/include/proto_map.hpp"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/protos/oai/mme_nas_state.pb.h"
 
 using ::testing::Test;
 TEST(test_map, test_map) {

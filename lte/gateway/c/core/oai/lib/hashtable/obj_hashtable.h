@@ -41,8 +41,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #define FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_ptr)                    \
   do {                                                                 \

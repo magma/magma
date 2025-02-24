@@ -16,11 +16,12 @@
 #include <folly/json.h>
 #include <glog/logging.h>
 #include <grpcpp/impl/codegen/status.h>
-#include <stdint.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <orc8r/protos/common.pb.h>
 #include <orc8r/protos/eventd.pb.h>
+#include <stdint.h>
+
 #include <ostream>
 #include <unordered_map>
 #include <utility>

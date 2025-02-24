@@ -13,15 +13,17 @@
 
 #include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 
+#include <google/protobuf/stubs/common.h>
 #include <grpcpp/impl/codegen/completion_queue.h>  // for ServerCompletionQueue
 #include <grpcpp/security/server_credentials.h>    // for InsecureServerCred...
-#include <orc8r/protos/common.pb.h>                // for FATAL, LogLevel
-#include <orc8r/protos/metricsd.pb.h>              // for MetricsContainer
-#include <orc8r/protos/service303.pb.h>            // for ServiceInfo, Reloa...
-#include <prometheus/registry.h>                   // for Registry
-#include <stdarg.h>                                // for va_list
-#include <google/protobuf/stubs/common.h>
 #include <metrics.pb.h>
+#include <orc8r/protos/common.pb.h>      // for FATAL, LogLevel
+#include <orc8r/protos/metricsd.pb.h>    // for MetricsContainer
+#include <orc8r/protos/service303.pb.h>  // for ServiceInfo, Reloa...
+#include <prometheus/registry.h>         // for Registry
+#include <stdarg.h>                      // for va_list
+
+#include <algorithm>
 #include <chrono>       // for seconds, duration
 #include <csignal>      // for raise, SIGTERM
 #include <ctime>        // for time
@@ -29,12 +31,11 @@
 #include <type_traits>  // for enable_if<>::type
 #include <utility>      // for move
 #include <vector>       // for vector
-#include <algorithm>
 
+#include "orc8r/gateway/c/common/logging/magma_logging_init.hpp"  // for set_verbosity
 #include "orc8r/gateway/c/common/service303/MetricsSingleton.hpp"  // for MetricsSingleton
 #include "orc8r/gateway/c/common/service303/ProcFileUtils.hpp"  // for ProcFileUtils::mem...
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"  // for ServiceRegistrySin...
-#include "orc8r/gateway/c/common/logging/magma_logging_init.hpp"  // for set_verbosity
 
 namespace grpc {
 class ServerContext;

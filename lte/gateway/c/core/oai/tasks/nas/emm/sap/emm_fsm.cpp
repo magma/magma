@@ -15,10 +15,10 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
+
 #include <stdbool.h>
 #include <stdlib.h>
-
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_fsm.hpp"
 
 #ifdef __cplusplus
 extern "C" {

@@ -12,6 +12,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <iostream>
 #include <nlohmann/json.hpp>
 

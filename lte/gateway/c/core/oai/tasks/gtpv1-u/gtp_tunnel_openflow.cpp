@@ -17,8 +17,8 @@
 
 #include <assert.h>
 #include <errno.h>
-#include <stdint.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdlib.h>
 
 #ifdef __cplusplus

@@ -28,20 +28,21 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#include <string>
-#include <vector>
-#include <regex>
-#include <algorithm>
-#include <fstream>
-#include <cstdio>
-#include <stdlib.h>
-#include <unistd.h>
 #include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.hpp"
+
+#include <dirent.h>
 #include <glog/logging.h>
 #include <glog/stl_logging.h>
-
+#include <stdlib.h>
 #include <sys/types.h>
-#include <dirent.h>
+#include <unistd.h>
+
+#include <algorithm>
+#include <cstdio>
+#include <fstream>
+#include <regex>
+#include <string>
+#include <vector>
 
 std::vector<std::string> read_directory(const std::string& dir_path) {
   char* absolute_dir_path = realpath(dir_path.c_str(), nullptr);

@@ -20,18 +20,19 @@
 *****************************************************************************/
 
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.hpp"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
-#include <cstdlib>
-#include <cstring>
 
 #include <memory.h>
 
-extern "C" {
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include <cstdlib>
+#include <cstring>
 
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
+
+extern "C" {
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 }
 
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"

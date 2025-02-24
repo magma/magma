@@ -10,14 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+#include "lte/gateway/c/core/oai/tasks/ha/HaClient.hpp"
+
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
+
 #include <iostream>
+#include <thread>  // std::thread
 #include <utility>
 
-#include "lte/gateway/c/core/oai/tasks/ha/HaClient.hpp"
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/protos/ha_orc8r.pb.h"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 namespace magma {
 

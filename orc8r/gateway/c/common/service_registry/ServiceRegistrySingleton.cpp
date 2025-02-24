@@ -13,14 +13,15 @@
 
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
-#include <grpcpp/create_channel.h>  // IWYU pragma: keep
-#include <grpcpp/channel.h>         // IWYU pragma: keep
 #include <assert.h>                 // for assert
+#include <grpcpp/channel.h>         // IWYU pragma: keep
+#include <grpcpp/create_channel.h>  // IWYU pragma: keep
 #include <grpcpp/security/credentials.h>
 #include <grpcpp/support/channel_arguments.h>
+
 #include <fstream>  // IWYU pragma: keep
-#include <string>   // for string, allocator, ope...
 #include <stdexcept>
+#include <string>  // for string, allocator, ope...
 
 using grpc::CreateCustomChannel;
 using grpc::InsecureChannelCredentials;

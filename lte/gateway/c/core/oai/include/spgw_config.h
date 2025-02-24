@@ -25,9 +25,9 @@
 #ifndef FILE_SPGW_CONFIG_SEEN
 #define FILE_SPGW_CONFIG_SEEN
 
-#include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
+#include "lte/gateway/c/core/oai/include/sgw_config.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define MAGMA_CONFIG_STRING "MAGMA"

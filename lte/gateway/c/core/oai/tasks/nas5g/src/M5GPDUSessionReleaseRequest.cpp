@@ -17,12 +17,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionReleaseRequest.hpp"
 
 namespace magma5g {
-PDUSessionReleaseRequestMsg::PDUSessionReleaseRequestMsg() {};
-PDUSessionReleaseRequestMsg::~PDUSessionReleaseRequestMsg() {};
+PDUSessionReleaseRequestMsg::PDUSessionReleaseRequestMsg(){};
+PDUSessionReleaseRequestMsg::~PDUSessionReleaseRequestMsg(){};
 
 // Decode PDUSessionReleaseRequest Message and its IEs
 int PDUSessionReleaseRequestMsg::DecodePDUSessionReleaseRequestMsg(

@@ -15,9 +15,9 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.hpp"
-
 #include <stdint.h>
+
+#include "lte/gateway/c/core/oai/tasks/nas/emm/msg/NASSecurityModeComplete.hpp"
 
 #ifdef __cplusplus
 extern "C" {

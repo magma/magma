@@ -12,6 +12,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <map>
 #include <stdexcept>
 #include <utility>

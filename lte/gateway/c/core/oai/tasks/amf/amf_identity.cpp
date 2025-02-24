@@ -24,12 +24,13 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/common/common_defs.h"
 #include <unordered_map>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 
 extern amf_config_t amf_config;
 namespace magma5g {

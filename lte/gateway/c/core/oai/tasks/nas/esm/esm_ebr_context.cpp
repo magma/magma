@@ -18,8 +18,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas/esm/esm_ebr_context.hpp"
 
 #include <stdbool.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

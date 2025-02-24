@@ -14,6 +14,7 @@
 #include "orc8r/gateway/c/common/config/YAMLUtils.hpp"
 
 #include <yaml-cpp/yaml.h>
+
 #include <string>  // for string
 
 namespace magma {

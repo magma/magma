@@ -10,19 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include <glog/logging.h>
-
 #include <grpcpp/impl/codegen/status.h>
-#include "lte/protos/subscriberauth.pb.h"
-#include "lte/protos/subscriberauth.grpc.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
-#include "lte/protos/subscriberdb.grpc.pb.h"
+#include <gtest/gtest.h>
 
-#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.hpp"
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
+#include "lte/protos/subscriberauth.grpc.pb.h"
+#include "lte/protos/subscriberauth.pb.h"
+#include "lte/protos/subscriberdb.grpc.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
 
 using ::testing::Test;
 

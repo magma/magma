@@ -18,12 +18,13 @@ extern "C" {
 }
 #endif
 #include <sstream>
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GAuthenticationResult.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-AuthenticationResultMsg::AuthenticationResultMsg() {};
-AuthenticationResultMsg::~AuthenticationResultMsg() {};
+AuthenticationResultMsg::AuthenticationResultMsg(){};
+AuthenticationResultMsg::~AuthenticationResultMsg(){};
 
 // Decode Authentication Result Message and its IEs
 int AuthenticationResultMsg::DecodeAuthenticationResultMsg(

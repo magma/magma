@@ -14,13 +14,13 @@
 #pragma once
 
 #include <arpa/inet.h>
+#include <linux/bpf.h>
 #include <netinet/in.h>
 #include <stdint.h>
 #include <string.h>
 #include <strings.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <linux/bpf.h>
 
 #include "orc8r/gateway/c/common/ebpf/EbpfMap.h"
 

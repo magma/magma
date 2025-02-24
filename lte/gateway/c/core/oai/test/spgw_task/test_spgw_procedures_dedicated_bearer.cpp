@@ -13,6 +13,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+
 #include <cstdint>
 #include <string>
 #include <thread>
@@ -32,9 +33,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 

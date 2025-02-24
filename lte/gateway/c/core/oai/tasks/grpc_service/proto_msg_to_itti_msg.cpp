@@ -19,14 +19,15 @@
 
 #include <stdint.h>
 #include <string.h>
+
 #include <iostream>
 #include <string>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "feg/protos/csfb.pb.h"
+#include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/common/common_ies.h"
-#include "feg/protos/csfb.pb.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/protos/sms_orc8r.pb.h"
 
 extern "C" {

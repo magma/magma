@@ -18,33 +18,33 @@ extern "C" {
 #define CHECK_PROTOTYPE_ONLY
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_init.h"
 #undef CHECK_PROTOTYPE_ONLY
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
 
-#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include <gtest/gtest.h>
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
-#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_as.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_authentication.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
-#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_identity.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_packet_handler.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GQosFlowParam.hpp"
+#include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
+#include "lte/gateway/c/core/oai/test/amf/util_nas5g_pkt.hpp"
+#include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 
 using ::testing::Test;
 task_zmq_ctx_t grpc_service_task_zmq_ctx;

@@ -15,17 +15,16 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp"
+
 #include <netinet/in.h>
 #include <string.h>
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp"
 
 using namespace fluid_msg;
 
 namespace openflow {
 
-static struct in_addr INADDR_ZERO {
-  .s_addr = 0
-};
+static struct in_addr INADDR_ZERO { .s_addr = 0 };
 
 ControllerEvent::ControllerEvent(fluid_base::OFConnection* ofconn,
                                  const ControllerEventType type)

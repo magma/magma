@@ -24,8 +24,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_ta.hpp"
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {

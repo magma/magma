@@ -34,8 +34,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/util/nas_timer.hpp"
 
-#include <string.h>  // memset
 #include <stdlib.h>  // malloc, free
+#include <string.h>  // memset
 
 #ifdef __cplusplus
 extern "C" {

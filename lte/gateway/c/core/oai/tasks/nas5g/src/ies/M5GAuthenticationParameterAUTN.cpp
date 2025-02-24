@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstring>
 #include <cstdint>
+#include <cstring>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,12 +19,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GAuthenticationParameterAUTN.hpp"
 
 namespace magma5g {
-AuthenticationParameterAUTNMsg::AuthenticationParameterAUTNMsg() {};
-AuthenticationParameterAUTNMsg::~AuthenticationParameterAUTNMsg() {};
+AuthenticationParameterAUTNMsg::AuthenticationParameterAUTNMsg(){};
+AuthenticationParameterAUTNMsg::~AuthenticationParameterAUTNMsg(){};
 
 // Decode AuthenticationParameterAUTN IE
 int AuthenticationParameterAUTNMsg::DecodeAuthenticationParameterAUTNMsg(

@@ -11,8 +11,6 @@
  * limitations under the License.
  */
 
-#include <systemd/sd-daemon.h>
-#include <cpp_redis/core/client.hpp>
 #include <folly/io/async/EventBase.h>
 #include <folly/io/async/EventBaseManager.h>
 #include <glog/logging.h>
@@ -21,9 +19,12 @@
 #include <lte/protos/policydb.pb.h>
 #include <orc8r/protos/common.pb.h>
 #include <stdint.h>
+#include <systemd/sd-daemon.h>
 #include <time.h>
 #include <yaml-cpp/yaml.h>
+
 #include <chrono>
+#include <cpp_redis/core/client.hpp>
 #include <cstdlib>
 #include <future>
 #include <iostream>

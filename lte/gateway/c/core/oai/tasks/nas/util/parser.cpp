@@ -33,10 +33,11 @@
 *****************************************************************************/
 
 #include "lte/gateway/c/core/oai/tasks/nas/util/parser.hpp"
-#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 #include <stdio.h>   // fprintf
 #include <string.h>  // strcmp, strncpy
+
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

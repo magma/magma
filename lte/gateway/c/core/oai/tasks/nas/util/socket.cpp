@@ -34,19 +34,19 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/util/socket.hpp"
 
-#include <stdlib.h>  // malloc, free, atoi
-#include <string.h>  // memset
-#include <unistd.h>  // close
-#include <errno.h>   // EINTR
-#include <sys/types.h>
-#include <sys/socket.h>  // socket, setsockopt, connect, bind, recv, send
+#include <errno.h>       // EINTR
 #include <netdb.h>       // getaddrinfo
 #include <stdbool.h>     // true, false
+#include <stdlib.h>      // malloc, free, atoi
+#include <string.h>      // memset
+#include <sys/socket.h>  // socket, setsockopt, connect, bind, recv, send
+#include <sys/types.h>
+#include <unistd.h>  // close
 
 #include <iostream>
 
-#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/nas/commonDef.h"
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/

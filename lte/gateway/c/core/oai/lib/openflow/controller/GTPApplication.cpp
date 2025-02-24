@@ -17,8 +17,9 @@
 
 #include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"
 
-#include <netinet/ip.h>
 #include <arpa/inet.h>
+#include <netinet/ip.h>
+
 #include <string>
 
 #include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"

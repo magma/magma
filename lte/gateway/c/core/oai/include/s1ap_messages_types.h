@@ -37,16 +37,15 @@
 #ifndef FILE_S1AP_MESSAGES_TYPES_SEEN
 #define FILE_S1AP_MESSAGES_TYPES_SEEN
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.331.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "S1ap_HandoverType.h"
+#include "S1ap_Source-ToTarget-TransparentContainer.h"
 #include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
-
-#include "S1ap_Source-ToTarget-TransparentContainer.h"
-#include "S1ap_HandoverType.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.331.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_36.413.h"
 
 #define S1AP_ENB_DEREGISTERED_IND(mSGpTR) \
   (mSGpTR)->ittiMsg.s1ap_eNB_deregistered_ind

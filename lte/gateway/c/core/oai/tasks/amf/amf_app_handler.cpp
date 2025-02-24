@@ -24,11 +24,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/include/n11_messages_types.h"
+#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
@@ -37,18 +38,13 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_sap.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_session_manager_pco.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_qos.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GNasEnums.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "lte/gateway/c/core/oai/include/n11_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_timer_management.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_common.h"
-#include "lte/gateway/c/core/oai/include/map.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
-#include "lte/gateway/c/core/oai/include/ngap_messages_types.h"
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
 
 extern amf_config_t amf_config;
 extern amf_config_t amf_config;

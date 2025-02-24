@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,12 +18,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionEstablishmentRequest.hpp"
 
 namespace magma5g {
-PDUSessionEstablishmentRequestMsg::PDUSessionEstablishmentRequestMsg() {};
-PDUSessionEstablishmentRequestMsg::~PDUSessionEstablishmentRequestMsg() {};
+PDUSessionEstablishmentRequestMsg::PDUSessionEstablishmentRequestMsg(){};
+PDUSessionEstablishmentRequestMsg::~PDUSessionEstablishmentRequestMsg(){};
 
 // Decode PDUSessionEstablishmentRequest Message and its IEs
 int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(

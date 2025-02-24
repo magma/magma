@@ -25,8 +25,8 @@
 #define SGW
 #define SGW_TASK_C
 
-#include <stdio.h>
 #include <netinet/in.h>
+#include <stdio.h>
 #include <sys/types.h>
 
 #ifdef __cplusplus

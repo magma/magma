@@ -24,26 +24,26 @@
 #define PGW
 #define PGW_CONFIG_C
 
-#include <pthread.h>
-#include <string.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdlib.h>
-#include <stdbool.h>
 #include <libconfig.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/assertions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }
 #endif
 
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 
 #ifdef LIBCONFIG_LONG

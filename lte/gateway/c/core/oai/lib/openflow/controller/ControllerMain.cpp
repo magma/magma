@@ -15,11 +15,12 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
+
+#include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.hpp"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
 #include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.hpp"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/BaseApplication.hpp"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/GTPApplication.hpp"
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/log.h"

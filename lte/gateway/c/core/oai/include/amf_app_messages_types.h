@@ -14,16 +14,17 @@
 #pragma once
 
 #include <stdint.h>
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/amf_as_message.h"
+#include "lte/gateway/c/core/oai/include/nas/as_message.h"
+#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/nas/securityDef.hpp"
-#include "lte/gateway/c/core/oai/include/amf_as_message.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
-#include "lte/gateway/c/core/oai/include/nas/as_message.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 extern "C" {
 #endif

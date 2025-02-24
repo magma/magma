@@ -22,8 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
 
 #ifdef __cplusplus

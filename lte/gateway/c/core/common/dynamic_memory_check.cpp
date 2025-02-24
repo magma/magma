@@ -39,6 +39,7 @@
 extern "C" {
 #endif
 #include <stdlib.h>
+
 #include "lte/gateway/c/core/common/assertions.h"
 
 //------------------------------------------------------------------------------

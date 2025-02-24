@@ -9,8 +9,8 @@
    limitations under the License.
  */
 
-#include <sstream>
 #include <cstdint>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,12 +18,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMMCause.hpp"
 
 namespace magma5g {
-M5GMMCauseMsg::M5GMMCauseMsg() {};
-M5GMMCauseMsg::~M5GMMCauseMsg() {};
+M5GMMCauseMsg::M5GMMCauseMsg(){};
+M5GMMCauseMsg::~M5GMMCauseMsg(){};
 
 // Decode 5GMMCause IE
 int M5GMMCauseMsg::DecodeM5GMMCauseMsg(M5GMMCauseMsg* m5gmm_cause, uint8_t iei,

@@ -24,10 +24,10 @@
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_sgw_selection.hpp"
 
-#include <stdio.h>
-#include <stdint.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
+#include <netinet/in.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {

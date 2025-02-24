@@ -11,8 +11,10 @@
  * limitations under the License.
  */
 
-#include <memory>
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
+
+#include <memory>
+
 #include "lte/gateway/c/core/oai/lib/n11/M5GAuthenticationServiceClient.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.hpp"

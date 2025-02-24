@@ -26,21 +26,22 @@
 
 #include "lte/gateway/c/core/oai/include/pgw_config.h"
 
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
-#include <errno.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <pthread.h>
-#include <libconfig.h>
+#include <errno.h>
 #include <inttypes.h>
+#include <libconfig.h>
+#include <net/if.h>
+#include <netinet/in.h>
+#include <pthread.h>
+#include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <unistd.h>
+
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 
 #ifdef __cplusplus
 extern "C" {

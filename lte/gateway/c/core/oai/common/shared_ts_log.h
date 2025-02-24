@@ -38,8 +38,8 @@
 #ifndef FILE_SHARED_TS_LOG_SEEN
 #define FILE_SHARED_TS_LOG_SEEN
 
-#include <sys/time.h>
 #include <liblfds710.h>
+#include <sys/time.h>
 
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"

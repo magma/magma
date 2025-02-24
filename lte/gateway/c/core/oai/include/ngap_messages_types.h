@@ -13,17 +13,17 @@
 
 #pragma once
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.331.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "Ngap_Cause.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/n11_messages_types.h"  //pdu_res_set_change
 #include "Ngap_PagingDRX.h"
 #include "Ngap_PagingPriority.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
+#include "lte/gateway/c/core/oai/include/n11_messages_types.h"  //pdu_res_set_change
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.331.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;

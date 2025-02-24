@@ -24,12 +24,12 @@
 
 #include "lte/gateway/c/core/oai/tasks/s11/s11_mme_session_manager.hpp"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <inttypes.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -15,6 +15,7 @@
 #include <gflags/gflags.h>
 #include <glog/logging.h>
 #include <stdint.h>
+
 #include <ostream>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"

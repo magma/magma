@@ -12,6 +12,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 
 extern "C" {

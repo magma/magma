@@ -12,8 +12,8 @@
  */
 
 #pragma once
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 //==============================================================================
 // 9 General message format and information elements coding

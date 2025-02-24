@@ -25,16 +25,16 @@
 #ifndef FILE_PGW_CONFIG_SEEN
 #define FILE_PGW_CONFIG_SEEN
 
-#include <sys/socket.h>  // inet_aton
-#include <netinet/in.h>  // inet_aton
 #include <arpa/inet.h>   // inet_aton
+#include <netinet/in.h>  // inet_aton
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <sys/socket.h>  // inet_aton
 
 #include "lte/gateway/c/core/oai/common/queue.h"
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/include/pgw_types.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define PGW_CONFIG_STRING_PGW_CONFIG "P-GW"
 #define PGW_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"

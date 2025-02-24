@@ -13,6 +13,7 @@
 
 #include <gtest/gtest.h>
 #include <prometheus/registry.h>
+
 #include <memory>
 #include <string>
 

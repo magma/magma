@@ -14,9 +14,9 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <stdlib.h>
-#include <stdint.h>
 #include <gtest/gtest.h>
+#include <stdint.h>
+#include <stdlib.h>
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/conversions.h"

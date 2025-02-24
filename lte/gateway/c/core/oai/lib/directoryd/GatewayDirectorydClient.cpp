@@ -16,15 +16,15 @@
  */
 #include "lte/gateway/c/core/oai/lib/directoryd/GatewayDirectorydClient.hpp"
 
+#include <google/protobuf/map.h>
+#include <grpcpp/impl/codegen/async_unary_call.h>
+
 #include <memory>
 #include <thread>
 #include <utility>
 
-#include <grpcpp/impl/codegen/async_unary_call.h>
-#include <google/protobuf/map.h>
-
-#include "orc8r/protos/common.pb.h"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
+#include "orc8r/protos/common.pb.h"
 
 namespace grpc {
 class Channel;

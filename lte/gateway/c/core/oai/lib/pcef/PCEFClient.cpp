@@ -15,17 +15,19 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
+
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>
+
 #include <iostream>
 #include <string>
+#include <thread>
 #include <utility>
 
-#include "orc8r/protos/mconfig/mconfigs.pb.h"
-#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "lte/protos/session_manager.pb.h"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
+#include "orc8r/protos/mconfig/mconfigs.pb.h"
 
 namespace grpc {
 class Status;

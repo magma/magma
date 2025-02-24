@@ -10,8 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include <sstream>
+
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #ifdef __cplusplus
 extern "C" {
 #endif

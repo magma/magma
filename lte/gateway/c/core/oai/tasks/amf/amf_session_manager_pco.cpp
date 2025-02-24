@@ -22,9 +22,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/common/rfc_1332.h"
 #include "lte/gateway/c/core/oai/common/rfc_1877.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 
 namespace magma5g {
 

@@ -24,10 +24,10 @@
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_pdn_context.hpp"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

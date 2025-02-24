@@ -17,9 +17,9 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/ies/ProcedureTransactionIdentity.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {

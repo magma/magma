@@ -13,10 +13,10 @@
 
 #pragma once
 
+#include <czmq.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <czmq.h>
 
 #include "Ngap_Cause.h"
 #include "lte/gateway/c/core/common/common_defs.h"
@@ -26,7 +26,6 @@
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state.hpp"
 

@@ -15,8 +15,8 @@
 
 #include <google/protobuf/text_format.h>
 
-#include <fstream>
 #include <algorithm>
+#include <fstream>
 #include <sstream>
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme.hpp"

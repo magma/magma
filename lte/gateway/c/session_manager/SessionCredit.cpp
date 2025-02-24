@@ -15,6 +15,7 @@
 
 #include <glog/logging.h>
 #include <stdlib.h>
+
 #include <cstdint>
 #include <ostream>
 #include <string>

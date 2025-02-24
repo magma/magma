@@ -35,6 +35,7 @@
 #define __NW_GTPV2C_LOG_H__
 
 #include <stdio.h>
+
 #include "lte/gateway/c/core/oai/lib/gtpv2-c/nwgtpv2c-0.11/shared/NwLog.h"
 
 /**

@@ -24,16 +24,16 @@
 
 #include "lte/gateway/c/core/oai/tasks/sctp/sctp_itti_messaging.hpp"
 
-#include <string.h>
 #include <stdbool.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #ifdef __cplusplus
 }
 #endif

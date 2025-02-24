@@ -17,9 +17,10 @@
 #include <glog/logging.h>
 #include <google/protobuf/stubs/status.h>    // for Status
 #include <google/protobuf/util/json_util.h>  // for JsonStringToMessage
-#include <nlohmann/json.hpp>
+
 #include <cstdlib>  // for getenv
 #include <fstream>  // IWYU pragma: keep
+#include <nlohmann/json.hpp>
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"  // for MLOG
 

@@ -24,11 +24,11 @@
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_handlers.hpp"
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <netinet/in.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <netinet/in.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -43,7 +43,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "BIT_STRING.h"
 #include "INTEGER.h"
 #include "S1ap_CNDomain.h"
@@ -87,6 +86,7 @@ extern "C" {
 #include "S1ap_UERadioCapability.h"
 #include "asn_SEQUENCE_OF.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
 #include "lte/gateway/c/core/oai/include/mme_app_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
@@ -127,9 +127,10 @@ status_code_e s1ap_generate_s1_setup_response(
 bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int id, void* arg);
 
-static bool s1ap_send_enb_deregistered_ind(
-    __attribute__((unused)) uint32_t keyP, uint64_t const dataP, void* argP,
-    void** resultP);
+static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
+                                           uint32_t keyP,
+                                           uint64_t const dataP, void* argP,
+                                           void** resultP);
 /* Handlers matrix. Only mme related procedures present here.
  */
 s1ap_message_handler_t message_handlers[][3] = {
@@ -3594,9 +3595,10 @@ status_code_e s1ap_mme_handle_path_switch_request(
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool s1ap_send_enb_deregistered_ind(
-    __attribute__((unused)) uint32_t keyP, uint64_t const dataP, void* argP,
-    void** resultP) {
+static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
+                                           uint32_t keyP,
+                                           uint64_t const dataP, void* argP,
+                                           void** resultP) {
   arg_s1ap_send_enb_dereg_ind_t* arg = (arg_s1ap_send_enb_dereg_ind_t*)argP;
   oai::UeDescription* ue_ref_p = nullptr;
 

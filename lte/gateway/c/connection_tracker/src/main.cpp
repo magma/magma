@@ -16,6 +16,7 @@
 #include <orc8r/protos/common.pb.h>
 #include <stdint.h>
 #include <yaml-cpp/yaml.h>
+
 #include <memory>
 #include <ostream>
 #include <string>

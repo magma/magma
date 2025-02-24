@@ -13,9 +13,6 @@
 
 #include "lte/gateway/c/session_manager/RedisStoreClient.hpp"
 
-#include <cpp_redis/core/client.hpp>
-#include <cpp_redis/core/reply.hpp>
-#include <cpp_redis/misc/error.hpp>
 #include <folly/Range.h>
 #include <folly/dynamic.h>
 #include <folly/json.h>
@@ -23,6 +20,10 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+
+#include <cpp_redis/core/client.hpp>
+#include <cpp_redis/core/reply.hpp>
+#include <cpp_redis/misc/error.hpp>
 #include <future>
 #include <ostream>
 #include <unordered_map>

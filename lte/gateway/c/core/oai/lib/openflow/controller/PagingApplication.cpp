@@ -15,12 +15,14 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.hpp"
+
+#include <arpa/inet.h>
 #include <netinet/ip.h>
 #include <netinet/ip6.h>
-#include <arpa/inet.h>
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
-#include "lte/gateway/c/core/oai/lib/openflow/controller/PagingApplication.hpp"
+
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_paging.hpp"
 
 extern "C" {

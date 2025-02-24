@@ -15,11 +15,13 @@
  *      contact@openairinterface.org
  */
 
-#include <thread>
-#include <mutex>
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
+
 #include <chrono>
 #include <condition_variable>
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"
+#include <mutex>
+#include <thread>
+
 #include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerMain.hpp"
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"

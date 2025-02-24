@@ -13,7 +13,6 @@
 
 #include "lte/gateway/c/sctpd/src/sctpd.hpp"
 
-#include <systemd/sd-daemon.h>
 #include <bits/types/siginfo_t.h>
 #include <glog/logging.h>
 #include <grpcpp/grpcpp.h>
@@ -24,7 +23,9 @@
 #include <signal.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <systemd/sd-daemon.h>
 #include <yaml-cpp/yaml.h>
+
 #include <memory>
 #include <ostream>
 #include <string>

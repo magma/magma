@@ -9,9 +9,9 @@
    limitations under the License.
  */
 
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,12 +19,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNASKeySetIdentifier.hpp"
 
 namespace magma5g {
-NASKeySetIdentifierMsg::NASKeySetIdentifierMsg() {};
-NASKeySetIdentifierMsg::~NASKeySetIdentifierMsg() {};
+NASKeySetIdentifierMsg::NASKeySetIdentifierMsg(){};
+NASKeySetIdentifierMsg::~NASKeySetIdentifierMsg(){};
 
 // Decode NASKeySetIdentifier IE
 int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(

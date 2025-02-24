@@ -19,17 +19,19 @@
 #include <gtest/gtest.h>            // for TestInfo (ptr only), InitGoog...
 #include <stddef.h>                 // for NULL
 #include <stdint.h>                 // for uint8_t
+
 #include <fluid/base/EventLoop.hh>  // for fluid_base
 #include <fluid/util/ethaddr.hh>    // for fluid_msg
 #include <memory>                   // for unique_ptr
 // TODO: Once #5146 is resolved this can be re-ordered above <memory>
 #include <fluid/OFConnection.hh>  // for OFConnection, OFConnection::E...
 #include <stdexcept>              // for runtime_error
-#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp"  // for EVENT_PACKET_IN, EVENT_SWITCH...
-#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"  // for OpenflowController, OFPT_PACK...
+
 #include "gmock/gmock-matchers.h"       // for AnythingMatcher, _
 #include "gmock/gmock-spec-builders.h"  // for EXPECT_CALL, TypedExpectation
 #include "gmock/gmock.h"                // for InitGoogleMock
+#include "lte/gateway/c/core/oai/lib/openflow/controller/ControllerEvents.hpp"  // for EVENT_PACKET_IN, EVENT_SWITCH...
+#include "lte/gateway/c/core/oai/lib/openflow/controller/OpenflowController.hpp"  // for OpenflowController, OFPT_PACK...
 #include "lte/gateway/c/core/oai/test/openflow/openflow_mocks.h"  // for MockApplication
 
 using ::testing::_;

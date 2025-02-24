@@ -24,9 +24,9 @@
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_edns_emulation.hpp"
 
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <netinet/in.h>
 #include <string.h>
 
 #ifdef __cplusplus

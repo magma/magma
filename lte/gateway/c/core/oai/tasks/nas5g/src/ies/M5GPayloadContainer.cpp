@@ -9,10 +9,10 @@
    limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,12 +20,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainer.hpp"
 
 namespace magma5g {
-PayloadContainerMsg::PayloadContainerMsg() {};
-PayloadContainerMsg::~PayloadContainerMsg() {};
+PayloadContainerMsg::PayloadContainerMsg(){};
+PayloadContainerMsg::~PayloadContainerMsg(){};
 
 int PayloadContainerMsg::DecodePayloadContainerMsg(
     PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,

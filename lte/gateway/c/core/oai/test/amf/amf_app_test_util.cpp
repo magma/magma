@@ -10,10 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
+
 #include <gtest/gtest.h>
+
+#include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 
 namespace magma5g {
 

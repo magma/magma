@@ -18,8 +18,9 @@
 #include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
 
 #include <grpcpp/impl/codegen/async_unary_call.h>
-#include <thread>  // std::thread
+
 #include <iostream>
+#include <thread>  // std::thread
 #include <utility>
 
 #include "feg/protos/s6a_proxy.pb.h"

@@ -14,6 +14,7 @@
 #include "orc8r/gateway/c/common/async_grpc/GRPCReceiver.hpp"
 
 #include <glog/logging.h>
+
 #include <ostream>  // for operator<<, char_traits
 
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"  // for MLOG

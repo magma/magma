@@ -10,12 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <fstream>
-#include <algorithm>
-
 #include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.hpp"
-#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+
 #include <google/protobuf/text_format.h>
+
+#include <algorithm>
+#include <fstream>
+
+#include "lte/gateway/c/core/oai/include/spgw_state.hpp"
 
 namespace magma {
 namespace lte {

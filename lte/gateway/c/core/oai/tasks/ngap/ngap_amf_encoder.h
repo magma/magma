@@ -21,6 +21,7 @@
 #pragma once
 
 #include <stdint.h>
+
 #include "Ngap_NGAP-PDU.h"
 
 int ngap_amf_encode_pdu(Ngap_NGAP_PDU_t* message, uint8_t** buffer,

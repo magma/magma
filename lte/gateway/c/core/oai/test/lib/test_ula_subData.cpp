@@ -10,13 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string.h>
 #include <gtest/gtest.h>
+#include <string.h>
 
 #include "feg/protos/s6a_proxy.pb.h"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
-
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
 
 namespace magma {
 

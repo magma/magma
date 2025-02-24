@@ -15,8 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 #ifdef __cplusplus

@@ -15,11 +15,10 @@
 
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
-
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/lib/hashtable/hashtable.h"
 
 #define NGAP_MAX_BROADCAST_PLMNS 6
 /* Maximum TAI Items configured, can be upto 256 */

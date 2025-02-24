@@ -9,15 +9,17 @@
   limitations under the License.
 */
 
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSecurityHeaderType.hpp"
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-SecurityHeaderTypeMsg::SecurityHeaderTypeMsg() {};
-SecurityHeaderTypeMsg::~SecurityHeaderTypeMsg() {};
+SecurityHeaderTypeMsg::SecurityHeaderTypeMsg(){};
+SecurityHeaderTypeMsg::~SecurityHeaderTypeMsg(){};
 
 // Decode SecurityHeaderType IE
 int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
@@ -25,7 +27,7 @@ int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
-  sec_header_type->sec_hdr = *(buffer) & 0xf;
+  sec_header_type->sec_hdr = *(buffer)&0xf;
   decoded++;
   return (decoded);
 };

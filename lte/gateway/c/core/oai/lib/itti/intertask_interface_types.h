@@ -38,9 +38,9 @@
 #define INTERTASK_INTERFACE_TYPES_H_
 
 #include <time.h>
-#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 #include "lte/gateway/c/core/oai/include/messages_types.h"
+#include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
 
 /* Defines to handle bit fields on unsigned long values */
 #define UL_BIT_MASK(lENGTH) ((1UL << (lENGTH)) - 1UL)
@@ -51,7 +51,7 @@
   UL_BIT_SHIFT(UL_BIT_MASK(lENGTH), (oFFSET))
 #define UL_FIELD_INSERT(vALUE, fIELD, oFFSET, lENGTH) \
   (((vALUE) & (~UL_FIELD_MASK(oFFSET, lENGTH))) |     \
-   UL_BIT_SHIFT(((fIELD) & UL_BIT_MASK(lENGTH)), oFFSET))
+   UL_BIT_SHIFT(((fIELD)&UL_BIT_MASK(lENGTH)), oFFSET))
 #define UL_FIELD_EXTRACT(vALUE, oFFSET, lENGTH) \
   (UL_BIT_UNSHIFT((vALUE), (oFFSET)) & UL_BIT_MASK(lENGTH))
 

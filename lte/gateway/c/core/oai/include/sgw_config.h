@@ -24,14 +24,14 @@
 
 #ifndef FILE_SGW_CONFIG_SEEN
 #define FILE_SGW_CONFIG_SEEN
-#include <stdint.h>
-#include <stdbool.h>
 #include <netinet/in.h>
 #include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
 
+#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/oai/common/common_types.h"
 
 #define SGW_CONFIG_STRING_SGW_CONFIG "S-GW"
 #define SGW_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"

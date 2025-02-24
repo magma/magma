@@ -18,7 +18,9 @@
 #include <gtest/gtest-param-test.h>  // for ParamIteratorInterface, Values
 #include <gtest/gtest-test-part.h>   // for TestPartResult
 #include <gtest/gtest.h>             // for InitGoogleTest, RUN_ALL_TESTS
-#include <string>                    // for basic_string, string
+
+#include <string>  // for basic_string, string
+
 #include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"  // for IMSIEncoder, openflow
 
 using ::testing::Test;

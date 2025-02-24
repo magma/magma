@@ -40,6 +40,7 @@
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
 #include <stddef.h>
+
 #include "lte/gateway/c/core/common/common_defs.h"
 
 status_code_e digest_buffer(const EVP_MD* (*evp_x)(void),

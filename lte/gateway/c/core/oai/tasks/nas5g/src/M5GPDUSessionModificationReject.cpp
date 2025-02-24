@@ -17,13 +17,13 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
-PDUSessionModificationRejectMsg::PDUSessionModificationRejectMsg() {};
-PDUSessionModificationRejectMsg::~PDUSessionModificationRejectMsg() {};
+PDUSessionModificationRejectMsg::PDUSessionModificationRejectMsg(){};
+PDUSessionModificationRejectMsg::~PDUSessionModificationRejectMsg(){};
 
 // Decode PDUSessionModificationReject Message and its IEs
 int PDUSessionModificationRejectMsg::DecodePDUSessionModificationRejectMsg(

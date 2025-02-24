@@ -9,16 +9,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
-#include <cstdint>
-#include <cstring>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.hpp"
 
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+
 namespace magma5g {
-M5GUplinkDataStatus::M5GUplinkDataStatus() {};
-M5GUplinkDataStatus::~M5GUplinkDataStatus() {};
+M5GUplinkDataStatus::M5GUplinkDataStatus(){};
+M5GUplinkDataStatus::~M5GUplinkDataStatus(){};
 
 int M5GUplinkDataStatus::EncodeUplinkDataStatus(
     M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei, uint8_t* buffer,

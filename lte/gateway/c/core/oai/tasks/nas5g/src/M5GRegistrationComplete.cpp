@@ -17,12 +17,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationComplete.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationComplete.hpp"
 
 namespace magma5g {
-RegistrationCompleteMsg::RegistrationCompleteMsg() {};
-RegistrationCompleteMsg::~RegistrationCompleteMsg() {};
+RegistrationCompleteMsg::RegistrationCompleteMsg(){};
+RegistrationCompleteMsg::~RegistrationCompleteMsg(){};
 
 // Decoding Registration Complete Message and its IEs
 int RegistrationCompleteMsg::DecodeRegistrationCompleteMsg(

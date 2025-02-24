@@ -24,15 +24,14 @@ extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 }
 
-#include <memory>  // for make_unique<>
+#include <grpcpp/grpcpp.h>
+#include <lte/protos/sctpd.grpc.pb.h>
 #include <unistd.h>
 
-#include <grpcpp/grpcpp.h>
+#include <memory>  // for make_unique<>
 
-#include <lte/protos/sctpd.grpc.pb.h>
-
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
 namespace magma {
 namespace lte {

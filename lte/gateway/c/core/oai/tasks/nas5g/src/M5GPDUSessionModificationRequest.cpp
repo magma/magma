@@ -19,13 +19,13 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GPDUSessionModificationRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
-PDUSessionModificationRequestMsg::PDUSessionModificationRequestMsg() {};
-PDUSessionModificationRequestMsg::~PDUSessionModificationRequestMsg() {};
+PDUSessionModificationRequestMsg::PDUSessionModificationRequestMsg(){};
+PDUSessionModificationRequestMsg::~PDUSessionModificationRequestMsg(){};
 
 // Decode PDUSessionModificationRequest Message and its IEs
 int PDUSessionModificationRequestMsg::DecodePDUSessionModificationRequestMsg(

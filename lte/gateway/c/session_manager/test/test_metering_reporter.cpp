@@ -13,6 +13,7 @@
 #include <gtest/gtest.h>
 #include <metrics.pb.h>
 #include <orc8r/protos/metricsd.pb.h>
+
 #include <cstdint>
 #include <memory>
 #include <string>

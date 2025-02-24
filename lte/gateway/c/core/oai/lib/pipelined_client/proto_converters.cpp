@@ -12,6 +12,7 @@
  */
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.hpp"
+
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.hpp"
 
 namespace magma {

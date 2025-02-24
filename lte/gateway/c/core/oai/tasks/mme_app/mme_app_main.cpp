@@ -22,11 +22,11 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdio.h>
-#include <string.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <pthread.h>
+#include <stdio.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

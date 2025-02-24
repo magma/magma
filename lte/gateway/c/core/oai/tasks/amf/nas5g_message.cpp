@@ -1,11 +1,12 @@
-#include <string.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <netinet/in.h>
-#include <sstream>
-#include <iostream>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include <iomanip>
+#include <iostream>
+#include <sstream>
 
 #ifdef __cplusplus
 extern "C" {

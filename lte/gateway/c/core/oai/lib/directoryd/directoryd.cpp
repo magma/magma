@@ -15,12 +15,14 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
+
 #include <grpcpp/impl/codegen/status.h>
-#include <string>
+
 #include <iostream>
+#include <string>
 
 #include "lte/gateway/c/core/oai/lib/directoryd/GatewayDirectorydClient.hpp"
-#include "lte/gateway/c/core/oai/lib/directoryd/directoryd.hpp"
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/directoryd.pb.h"
 

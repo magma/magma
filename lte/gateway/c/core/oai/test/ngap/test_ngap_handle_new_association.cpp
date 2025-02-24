@@ -16,8 +16,8 @@
 #include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.hpp"
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
 }
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
 

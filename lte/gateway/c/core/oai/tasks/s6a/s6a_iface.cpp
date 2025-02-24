@@ -32,8 +32,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"
 #endif
 
-#include <new>
 #include <exception>
+#include <new>
 
 S6aViface* s6a_interface = nullptr;
 

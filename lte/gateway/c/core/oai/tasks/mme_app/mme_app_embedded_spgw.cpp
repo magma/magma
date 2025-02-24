@@ -17,8 +17,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_embedded_spgw.hpp"
 
-#include <unistd.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {

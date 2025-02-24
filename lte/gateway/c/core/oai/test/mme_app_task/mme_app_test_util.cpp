@@ -12,8 +12,9 @@
  */
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
 
-#include <chrono>
 #include <gtest/gtest.h>
+
+#include <chrono>
 #include <cstdint>
 #include <thread>
 

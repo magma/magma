@@ -32,8 +32,8 @@
 #include "lte/protos/mobilityd.grpc.pb.h"
 #include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
-#include "orc8r/protos/common.pb.h"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
+#include "orc8r/protos/common.pb.h"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

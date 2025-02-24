@@ -9,14 +9,16 @@
    limitations under the License.
  */
 
-#include <sstream>
-#include <cstdint>
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GIntegrityProtMaxDataRate.hpp"
+
+#include <cstdint>
+#include <sstream>
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-IntegrityProtMaxDataRateMsg::IntegrityProtMaxDataRateMsg() {};
-IntegrityProtMaxDataRateMsg::~IntegrityProtMaxDataRateMsg() {};
+IntegrityProtMaxDataRateMsg::IntegrityProtMaxDataRateMsg(){};
+IntegrityProtMaxDataRateMsg::~IntegrityProtMaxDataRateMsg(){};
 
 // Decode IntegrityProtMaxDataRate IE
 int IntegrityProtMaxDataRateMsg::DecodeIntegrityProtMaxDataRateMsg(

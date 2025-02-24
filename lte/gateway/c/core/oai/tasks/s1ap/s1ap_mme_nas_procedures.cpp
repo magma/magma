@@ -24,17 +24,17 @@
 
 #include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_nas_procedures.hpp"
 
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-#include "lte/gateway/c/core/common/assertions.h"
 #ifdef __cplusplus
 }
 #endif
@@ -425,9 +425,11 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_nas_non_delivery(
-    oai::S1apState* state, __attribute__((unused)) sctp_assoc_id_t assoc_id,
-    sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
+status_code_e s1ap_mme_handle_nas_non_delivery(oai::S1apState* state,
+                                               __attribute__((unused))
+                                               sctp_assoc_id_t assoc_id,
+                                               sctp_stream_id_t stream,
+                                               S1ap_S1AP_PDU_t* pdu) {
   S1ap_NASNonDeliveryIndication_t* container;
   S1ap_NASNonDeliveryIndication_IEs_t *ie = NULL, *ie_nas_pdu = NULL;
   oai::UeDescription* ue_ref = nullptr;

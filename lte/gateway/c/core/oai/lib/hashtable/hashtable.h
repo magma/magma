@@ -37,10 +37,10 @@
 #ifndef FILE_HASH_TABLE_SEEN
 #define FILE_HASH_TABLE_SEEN
 
-#include <stdbool.h>
-#include <stdint.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 

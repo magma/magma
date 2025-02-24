@@ -9,10 +9,10 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <iostream>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -20,12 +20,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSSCMode.hpp"
 
 namespace magma5g {
-SSCModeMsg::SSCModeMsg() {};
-SSCModeMsg::~SSCModeMsg() {};
+SSCModeMsg::SSCModeMsg(){};
+SSCModeMsg::~SSCModeMsg(){};
 
 // Decode SSCMode IE
 int SSCModeMsg::DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,

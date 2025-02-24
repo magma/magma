@@ -9,15 +9,17 @@
    limitations under the License.
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GMessageType.hpp"
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-MessageTypeMsg::MessageTypeMsg() {};
-MessageTypeMsg::~MessageTypeMsg() {};
+MessageTypeMsg::MessageTypeMsg(){};
+MessageTypeMsg::~MessageTypeMsg(){};
 
 // Decode MessageType IE
 int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,

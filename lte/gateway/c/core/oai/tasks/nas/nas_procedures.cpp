@@ -25,12 +25,12 @@
 #include "lte/gateway/c/core/oai/tasks/nas/nas_procedures.hpp"
 
 #include <inttypes.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdlib.h>
 #include <openssl/crypto.h>
 #include <openssl/evp.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

@@ -28,15 +28,15 @@
 
  *******************************************************************************/
 
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
-#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
@@ -45,19 +45,19 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/common/gcc_diag.h"
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
-#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "lte/gateway/c/core/oai/include/mme_app_ue_context.hpp"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/s11_messages_types.hpp"
 #include "lte/gateway/c/core/oai/include/s1ap_messages_types.h"
-#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_ie_defs.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.007.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_itti_messaging.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_cnDef.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/nas_proc.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP

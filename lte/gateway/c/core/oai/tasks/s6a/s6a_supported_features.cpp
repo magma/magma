@@ -15,8 +15,8 @@
   Description Handles the Supported Features Diameter AVP
 *****************************************************************************/
 
-#include <stdint.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 

@@ -18,9 +18,9 @@
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_send.hpp"
 
 #include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
 #ifdef __cplusplus

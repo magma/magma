@@ -14,6 +14,7 @@
 #include "lte/gateway/c/session_manager/ChargingGrant.hpp"
 
 #include <glog/logging.h>
+
 #include <algorithm>
 #include <ctime>
 #include <limits>

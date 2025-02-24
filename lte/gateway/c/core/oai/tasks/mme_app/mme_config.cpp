@@ -36,16 +36,16 @@
 */
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <string.h>
 #include <arpa/inet.h> /* To provide inet_addr */
-#include <pthread.h>
 #include <libconfig.h>
 #include <netinet/in.h>
+#include <pthread.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 
 #ifdef __cplusplus
 extern "C" {

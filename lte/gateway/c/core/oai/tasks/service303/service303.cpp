@@ -14,13 +14,14 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <stdio.h>
+#include "lte/gateway/c/core/oai/include/service303.hpp"
+
 #include <assert.h>
 #include <stdarg.h>
+#include <stdio.h>
 
-#include "lte/gateway/c/core/oai/include/service303.hpp"
-#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
+#include "orc8r/gateway/c/common/service303/MagmaService.hpp"
 #include "orc8r/protos/service303.pb.h"
 
 using magma::service303::MagmaService;

@@ -16,8 +16,9 @@
  */
 #include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
 
-#include <string>
 #include <arpa/inet.h>
+
+#include <string>
 
 #include "lte/protos/spgw_service.pb.h"
 

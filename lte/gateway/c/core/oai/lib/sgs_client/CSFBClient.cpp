@@ -15,14 +15,16 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/lib/sgs_client/CSFBClient.hpp"
+
 #include <grpcpp/impl/codegen/async_unary_call.h>
+
 #include <thread>  // std::thread
 #include <utility>
 
-#include "lte/gateway/c/core/oai/lib/sgs_client/CSFBClient.hpp"
+#include "feg/protos/csfb.pb.h"
 #include "lte/gateway/c/core/oai/lib/sgs_client/itti_msg_to_proto_msg.hpp"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "feg/protos/csfb.pb.h"
 #include "orc8r/protos/common.pb.h"
 
 namespace grpc {

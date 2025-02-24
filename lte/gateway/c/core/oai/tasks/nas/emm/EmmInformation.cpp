@@ -37,9 +37,9 @@
         at any time during an established EMM context.
 
 *****************************************************************************/
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {

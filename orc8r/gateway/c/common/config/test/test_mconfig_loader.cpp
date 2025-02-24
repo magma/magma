@@ -12,6 +12,7 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <sstream>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"

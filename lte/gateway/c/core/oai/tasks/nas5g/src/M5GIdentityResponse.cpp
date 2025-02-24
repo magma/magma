@@ -17,12 +17,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityResponse.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GIdentityResponse.hpp"
 
 namespace magma5g {
-IdentityResponseMsg::IdentityResponseMsg() {};
-IdentityResponseMsg::~IdentityResponseMsg() {};
+IdentityResponseMsg::IdentityResponseMsg(){};
+IdentityResponseMsg::~IdentityResponseMsg(){};
 
 // Decode IdentityResponse Message and its IEs
 int IdentityResponseMsg::DecodeIdentityResponseMsg(

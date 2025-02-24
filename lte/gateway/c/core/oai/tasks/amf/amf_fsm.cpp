@@ -18,8 +18,9 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include <iostream>
 #include <cstring>
+#include <iostream>
+
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/include/amf_as_message.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
@@ -27,8 +28,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/amf/amf_fsm.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_app_statistics.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
 

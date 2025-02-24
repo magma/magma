@@ -38,8 +38,8 @@
 #ifndef FILE_COMMON_DEFS_SEEN
 #define FILE_COMMON_DEFS_SEEN
 
-#include <string.h>  // memcpy
 #include <arpa/inet.h>
+#include <string.h>  // memcpy
 
 #define GNB_GTP_TEID_FMT "%08x"
 //------------------------------------------------------------------------------

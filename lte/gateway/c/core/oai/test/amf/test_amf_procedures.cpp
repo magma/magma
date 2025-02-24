@@ -10,20 +10,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
 #include <gtest/gtest.h>
+
+#include <chrono>
 #include <thread>
 
 #include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
-#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 #include "lte/gateway/c/core/oai/include/amf_app_messages_types.h"
+#include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
-#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
 #include "lte/gateway/c/core/oai/test/amf/amf_app_test_util.h"
 #include "lte/gateway/c/core/oai/test/amf/util_s6a_update_location.hpp"
 

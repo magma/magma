@@ -9,11 +9,13 @@
   limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.hpp"
+
 #include <cstdint>
 #include <cstring>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUAddress.hpp"
+#include <iostream>
+#include <sstream>
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #ifdef __cplusplus
 extern "C" {
@@ -25,8 +27,8 @@ extern "C" {
 #endif
 
 namespace magma5g {
-PDUAddressMsg::PDUAddressMsg() {};
-PDUAddressMsg::~PDUAddressMsg() {};
+PDUAddressMsg::PDUAddressMsg(){};
+PDUAddressMsg::~PDUAddressMsg(){};
 
 // Decode PDUAddress IE
 int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,

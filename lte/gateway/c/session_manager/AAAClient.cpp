@@ -13,12 +13,13 @@
 
 #include "lte/gateway/c/session_manager/AAAClient.hpp"
 
+#include <feg/gateway/services/aaa/protos/accounting.grpc.pb.h>
+#include <feg/gateway/services/aaa/protos/accounting.pb.h>
 #include <glog/logging.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/impl/codegen/status.h>
-#include <feg/gateway/services/aaa/protos/accounting.grpc.pb.h>
-#include <feg/gateway/services/aaa/protos/accounting.pb.h>
 #include <lte/protos/session_manager.pb.h>
+
 #include <memory>
 #include <ostream>
 #include <string>
@@ -28,8 +29,8 @@
 
 #include "lte/gateway/c/session_manager/SessionState.hpp"
 #include "lte/gateway/c/session_manager/Types.hpp"
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 using grpc::Status;
 

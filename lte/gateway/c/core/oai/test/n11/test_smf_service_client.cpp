@@ -10,13 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include <glog/logging.h>
-#include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include <gtest/gtest.h>
 
-#include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.hpp"
+#include "lte/protos/session_manager.pb.h"
 
 using ::testing::Test;
 

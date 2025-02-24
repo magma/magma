@@ -37,8 +37,8 @@
 #ifndef FILE_LOG_SEEN
 #define FILE_LOG_SEEN
 
-#include <syslog.h>
 #include <stdio.h>
+#include <syslog.h>
 
 #include "lte/gateway/c/core/oai/common/gcc_diag.h"
 
@@ -47,13 +47,13 @@ extern int asn_debug;
 extern int asn1_xer_print;
 extern int fd_g_debug_lvl;
 
-#include <stdarg.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <pthread.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #include "lte/gateway/c/core/oai/common/glogwrapper/glog_logging.hpp"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 struct shared_log_queue_item_s;
 
@@ -596,4 +596,4 @@ const char* get_short_file_name(const char* const source_file_nameP);
     log_message_prefix_id(OAILOG_LEVEL_INFO, pRoTo, __FILE__, __LINE__, ue_id, \
                           ##__VA_ARGS__);                                      \
   } while (0) /*!< \brief informational */
-#endif /* FILE_LOG_SEEN */
+#endif        /* FILE_LOG_SEEN */

@@ -19,12 +19,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GDLNASTransport.hpp"
 
 namespace magma5g {
-DLNASTransportMsg::DLNASTransportMsg() {};
-DLNASTransportMsg::~DLNASTransportMsg() {};
+DLNASTransportMsg::DLNASTransportMsg(){};
+DLNASTransportMsg::~DLNASTransportMsg(){};
 
 // Decode DLNASTransport Message and its IEs
 int DLNASTransportMsg::DecodeDLNASTransportMsg(

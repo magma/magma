@@ -18,10 +18,10 @@
 extern "C" {
 #endif
 
+#include <ctype.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <string.h>
-#include <limits.h>
-#include <ctype.h>
 
 struct bStream;
 
@@ -125,7 +125,8 @@ struct tagbstring {
 #define bchar(b, p) bchare((b), (p), '\0')
 
 /* Static constant string initialization macro */
-#define bsStaticMlen(q, m) {(m), (int)sizeof(q) - 1, (unsigned char*)("" q "")}
+#define bsStaticMlen(q, m) \
+  { (m), (int)sizeof(q) - 1, (unsigned char*)("" q "") }
 #if defined(_MSC_VER)
 #define bsStatic(q) bsStaticMlen(q, -32)
 #endif

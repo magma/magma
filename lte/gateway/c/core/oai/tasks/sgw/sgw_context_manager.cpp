@@ -26,10 +26,10 @@
 
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
-#include <inttypes.h>
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 
@@ -37,8 +37,8 @@
 extern "C" {
 #endif
 #include "lte/gateway/c/core/common/assertions.h"
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 #ifdef __cplusplus
 }

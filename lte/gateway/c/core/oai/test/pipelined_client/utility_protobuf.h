@@ -13,16 +13,17 @@
 
 #pragma once
 
-#include <thread>
-#include <gtest/gtest.h>
 #include <arpa/inet.h>
+#include <gtest/gtest.h>
 #include <stdio.h>
 
+#include <thread>
+
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.hpp"
+#include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.hpp"
+#include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 #include "lte/protos/pipelined.pb.h"
-#include "lte/protos/mobilityd.pb.h"
-#include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.hpp"
 
 namespace magma {
 namespace lte {
@@ -152,7 +153,9 @@ class FlowDLOps {
         dst_v4_("192.168.60.141"),
         src_v4_("192.168.128.11") {}
 
-  struct ip_flow_dl get_flow_dl() { return flow_dl_; }
+  struct ip_flow_dl get_flow_dl() {
+    return flow_dl_;
+  }
 
   void set_flow_dl() {
     flow_dl_.set_params = set_params_;

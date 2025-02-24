@@ -39,6 +39,7 @@
 #define FILE_ASYNC_SYSTEM_MESSAGES_TYPES_SEEN
 
 #include <stdbool.h>
+
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 #define ASYNC_SYSTEM_COMMAND(mSGpTR) (mSGpTR)->ittiMsg.async_system_command

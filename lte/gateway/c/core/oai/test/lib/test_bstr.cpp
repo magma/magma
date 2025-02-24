@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string.h>
 #include <gtest/gtest.h>
+#include <string.h>
 
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 

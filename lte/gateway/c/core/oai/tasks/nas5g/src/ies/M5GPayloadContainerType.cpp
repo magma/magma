@@ -9,16 +9,18 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <sstream>
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.hpp"
+
 #include <cstdint>
 #include <cstring>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPayloadContainerType.hpp"
+#include <iostream>
+#include <sstream>
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-PayloadContainerTypeMsg::PayloadContainerTypeMsg() {};
-PayloadContainerTypeMsg::~PayloadContainerTypeMsg() {};
+PayloadContainerTypeMsg::PayloadContainerTypeMsg(){};
+PayloadContainerTypeMsg::~PayloadContainerTypeMsg(){};
 
 // Decode PayloadContainerType IE
 int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(

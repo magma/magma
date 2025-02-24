@@ -11,9 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <stdint.h>
-#include <iostream>
 #include "lte/gateway/c/core/oai/common/common_utility_funs.hpp"
+
+#include <stdint.h>
+
+#include <iostream>
+
 #include "lte/protos/mconfig/mconfigs.pb.h"
 
 // Extract MCC and MNC from the imsi received and match with

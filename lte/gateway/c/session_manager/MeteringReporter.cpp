@@ -14,6 +14,7 @@
 #include "lte/gateway/c/session_manager/MeteringReporter.hpp"
 
 #include <stddef.h>
+
 #include <cstdint>
 #include <string>
 #include <unordered_map>

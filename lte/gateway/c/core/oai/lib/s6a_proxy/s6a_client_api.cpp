@@ -15,21 +15,23 @@
  *      contact@openairinterface.org
  */
 
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
+
 #include <grpcpp/impl/codegen/status.h>
 #include <stdint.h>
 #include <string.h>
-#include <string>
-#include <iostream>
-#include "lte/gateway/c/core/oai/common/conversions.h"
 
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/s6a_client_api.hpp"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
-#include "lte/gateway/c/core/oai/common/common_types.h"
+#include <iostream>
+#include <string>
+
 #include "feg/protos/s6a_proxy.pb.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/itti_types.h"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/S6aClient.hpp"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
 #include "lte/gateway/c/core/oai/lib/store/sqlite.hpp"
 #include "lte/protos/subscriberdb.pb.h"
 

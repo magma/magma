@@ -22,8 +22,8 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
-#include <stdint.h>
 #include <netinet/in.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 

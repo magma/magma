@@ -12,8 +12,9 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_state_converter.hpp"
-#include <vector>
+
 #include <memory>
+#include <vector>
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"

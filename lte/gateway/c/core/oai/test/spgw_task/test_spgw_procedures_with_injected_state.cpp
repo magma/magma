@@ -11,25 +11,25 @@
  * limitations under the License.
  */
 
-#include <unistd.h>
-#include <sys/types.h>
-#include <pwd.h>
-
 #include <gtest/gtest.h>
+#include <pwd.h>
+#include <sys/types.h>
+#include <unistd.h>
+
+#include <cstdlib>
 #include <string>
 #include <thread>
-#include <cstdlib>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
-#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
-#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_state.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_handlers.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/spgw_state_converter.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/mock_spgw_op.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/include/spgw_config.h"

@@ -14,11 +14,13 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string>
 #include <string.h>
-#include "lte/gateway/c/core/oai/lib/openflow/controller/IMSIEncoder.hpp"
+
+#include <string>
 
 namespace openflow {
 

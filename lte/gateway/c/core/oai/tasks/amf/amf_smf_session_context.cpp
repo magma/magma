@@ -11,8 +11,9 @@
  * limitations under the License.
  */
 
-#include <sstream>
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_smf_session_context.hpp"
+
+#include <sstream>
 
 #ifdef __cplusplus
 extern "C" {

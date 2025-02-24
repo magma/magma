@@ -10,20 +10,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "lte/gateway/c/core/oai/test/ngap/mock_utils.h"
-#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.hpp"
 #include <gtest/gtest.h>
 
+#include "lte/gateway/c/core/oai/test/ngap/mock_utils.h"
+#include "lte/gateway/c/core/oai/test/ngap/util_ngap_pkt.hpp"
+
 extern "C" {
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "Ngap_NGAP-PDU.h"
-#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
 }
 
+#include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_converter.hpp"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
-#include "lte/gateway/c/core/oai/include/map.h"
 
 using ::testing::Test;
 

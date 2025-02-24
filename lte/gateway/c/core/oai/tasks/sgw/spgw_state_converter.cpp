@@ -22,8 +22,8 @@ extern "C" {
 }
 
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
-#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/include/sgw_context_manager.hpp"
+#include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
 using magma::lte::oai::CreateSessionMessage;

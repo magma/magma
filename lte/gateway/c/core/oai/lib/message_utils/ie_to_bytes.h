@@ -35,9 +35,9 @@
 
 #include "lte/gateway/c/core/oai/common/common_ies.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
+#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.008.h"
-#include "lte/gateway/c/core/oai/include/TrackingAreaIdentity.h"
 
 // value field length of IEs (IEI and length indicator are excluded)
 #define IE_LENGTH_EPS_LOCATION_UPDATE_TYPE 1

@@ -10,28 +10,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
+
+#include <arpa/inet.h>
 #include <google/protobuf/util/time_util.h>
-#include <cassert>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
+#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
+
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
-#include <lte/protos/session_manager.grpc.pb.h>
-#include <lte/protos/session_manager.pb.h>
-#include <arpa/inet.h>
 #include <utility>
 
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/include/amf_service_handler.h"
 #include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/include/amf_service_handler.h"
 #ifdef __cplusplus
 }
 #endif

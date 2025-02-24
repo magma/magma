@@ -17,10 +17,10 @@
 
 #include "lte/gateway/c/core/oai/tasks/nas/emm/sap/emm_recv.hpp"
 
-#include <stdint.h>
 #include <stdbool.h>
-#include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

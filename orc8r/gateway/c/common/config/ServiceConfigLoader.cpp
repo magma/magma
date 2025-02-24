@@ -14,6 +14,7 @@
 #include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
 
 #include <glog/logging.h>
+
 #include <iostream>  // for operator<<, basic_ostream
 #include <string>    // for allocator, operator+, char_traits
 

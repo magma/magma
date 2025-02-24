@@ -12,12 +12,13 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <cstdint>
 #include <string>
 #include <thread>
 
-#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 #include "lte/gateway/c/core/oai/test/spgw_task/spgw_procedures_test_fixture.hpp"
+#include "lte/gateway/c/core/oai/test/spgw_task/spgw_test_util.h"
 
 namespace magma {
 namespace lte {

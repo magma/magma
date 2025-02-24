@@ -18,17 +18,18 @@
 
 #include <grpcpp/grpcpp.h>
 #include <grpcpp/security/server_credentials.h>
+
 #include <memory>
 
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/CSFBGatewayServiceImpl.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S1apServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S6aServiceImpl.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/AmfServiceImpl.hpp"
-#include "lte/gateway/c/core/oai/tasks/grpc_service/HaServiceImpl.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SMSOrc8rGatewayServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/tasks/grpc_service/SpgwServiceImpl.hpp"
 
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"

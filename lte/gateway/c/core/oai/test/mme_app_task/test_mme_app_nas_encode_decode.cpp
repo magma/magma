@@ -10,8 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <gtest/gtest.h>
 #include <glog/logging.h>
+#include <gtest/gtest.h>
 
 extern "C" {
 #include "lte/gateway/c/core/common/dynamic_memory_check.h"
@@ -20,8 +20,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 }
 
-#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/AttachRequest.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas/ies/ApnAggregateMaximumBitRate.hpp"
 
 class NASEncodeDecodeTest : public ::testing::Test {
   virtual void SetUp() {}

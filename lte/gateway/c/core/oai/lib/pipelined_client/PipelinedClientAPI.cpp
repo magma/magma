@@ -14,6 +14,7 @@
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedClientAPI.hpp"
 
 #include <grpcpp/security/credentials.h>
+
 #include <cstdint>
 #include <cstring>
 #include <string>
@@ -23,7 +24,6 @@
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
 #include "lte/gateway/c/core/oai/include/spgw_types.hpp"
-
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.hpp"
 
 using grpc::Channel;

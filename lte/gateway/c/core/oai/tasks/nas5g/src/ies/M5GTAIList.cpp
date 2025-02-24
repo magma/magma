@@ -8,9 +8,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-#include <sstream>
-#include <cstdint>
 #include <string.h>
+
+#include <cstdint>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -18,12 +19,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GTAIList.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GTAIList.hpp"
 namespace magma5g {
-TAIListMsg::TAIListMsg() {};
+TAIListMsg::TAIListMsg(){};
 
-TAIListMsg::~TAIListMsg() {};
+TAIListMsg::~TAIListMsg(){};
 
 int TAIListMsg::EncodeTAIListMsg(TAIListMsg* TAIList, uint8_t iei,
                                  uint8_t* buffer, uint32_t len) {

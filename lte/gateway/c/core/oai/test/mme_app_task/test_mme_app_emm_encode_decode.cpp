@@ -31,7 +31,6 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateReject.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/TrackingAreaUpdateRequest.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas/emm/msg/UplinkNasTransport.hpp"
-
 #include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
 
 namespace magma {

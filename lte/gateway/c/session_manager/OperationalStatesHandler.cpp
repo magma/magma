@@ -12,23 +12,24 @@
  */
 #include "lte/gateway/c/session_manager/OperationalStatesHandler.hpp"
 
-#include <nlohmann/json.hpp>
 #include <glog/logging.h>
 #include <google/protobuf/stubs/status.h>
 #include <google/protobuf/stubs/stringpiece.h>
 #include <google/protobuf/util/json_util.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
+
 #include <fstream>
 #include <list>
 #include <map>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <ostream>
+#include <regex>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <vector>
-#include <regex>
 
 #include "lte/gateway/c/session_manager/EnumToString.hpp"
 #include "lte/gateway/c/session_manager/SessionState.hpp"

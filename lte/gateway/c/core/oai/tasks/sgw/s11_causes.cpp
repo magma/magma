@@ -26,9 +26,9 @@
 
 #include "lte/gateway/c/core/oai/tasks/sgw/s11_causes.hpp"
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_29.274.h"
 

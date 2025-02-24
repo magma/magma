@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
+#include <memory>
 #include <sstream>
 #include <thread>
-#include <memory>
 #ifdef __cplusplus
 extern "C" {
 #endif

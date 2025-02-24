@@ -12,15 +12,15 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <thread>
 
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "feg/protos/s6a_proxy.grpc.pb.h"
-#include "lte/gateway/c/core/oai/tasks/async_grpc_service/grpc_async_service_task.hpp"
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
-
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/tasks/async_grpc_service/grpc_async_service_task.hpp"
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_defs.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 using grpc::ServerContext;
 using ::testing::Test;

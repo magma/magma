@@ -13,15 +13,15 @@
 
 #include "lte/gateway/c/core/oai/lib/n11/M5GSUCIRegistrationServiceClient.hpp"
 
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
-#include <cassert>
 
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,11 +35,11 @@ extern "C" {
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
 
+#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 #include "lte/protos/subscriberdb.grpc.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "lte/gateway/c/core/oai/lib/n11/amf_client_proto_msg_to_itti_msg.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_recv.hpp"
 
 using grpc::Channel;
 using grpc::ClientContext;

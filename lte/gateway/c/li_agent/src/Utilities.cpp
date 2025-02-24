@@ -15,6 +15,7 @@
 
 #include <glog/logging.h>
 #include <orc8r/protos/common.pb.h>
+
 #include <chrono>
 #include <ostream>
 

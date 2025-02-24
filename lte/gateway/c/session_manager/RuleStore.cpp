@@ -12,9 +12,10 @@
  */
 #include "lte/gateway/c/session_manager/RuleStore.hpp"
 
-#include <stddef.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
+#include <stddef.h>
+
 #include <algorithm>
 #include <cstdint>
 #include <memory>

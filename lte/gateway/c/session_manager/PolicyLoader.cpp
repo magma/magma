@@ -12,20 +12,21 @@
  */
 #include "lte/gateway/c/session_manager/PolicyLoader.hpp"
 
-#include <cpp_redis/core/client.hpp>
-#include <cpp_redis/misc/error.hpp>
 #include <glog/logging.h>
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 #include <lte/protos/policydb.pb.h>
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+
 #include <algorithm>
 #include <chrono>
+#include <cpp_redis/core/client.hpp>
+#include <cpp_redis/misc/error.hpp>
 #include <memory>
 #include <ostream>
 #include <string>
 #include <thread>
 
-#include "lte/gateway/c/session_manager/ObjectMap.hpp"
 #include "RedisMap.hpp"
+#include "lte/gateway/c/session_manager/ObjectMap.hpp"
 #include "lte/gateway/c/session_manager/Serializers.hpp"
 #include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"

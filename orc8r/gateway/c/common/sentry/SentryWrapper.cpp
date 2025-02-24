@@ -15,19 +15,21 @@
 
 #include <bits/local_lim.h>
 #include <unistd.h>
+
 #include <string>
 
 #if SENTRY_ENABLED
 #include <yaml-cpp/yaml.h>
-#include <experimental/optional>
-#include <cstdlib>
-#include <fstream>
-#include <cstring>
 
-#include "sentry.h"
+#include <cstdlib>
+#include <cstring>
+#include <experimental/optional>
+#include <fstream>
+
 #include "orc8r/gateway/c/common/config/MConfigLoader.hpp"
 #include "orc8r/gateway/c/common/config/ServiceConfigLoader.hpp"
 #include "orc8r/protos/mconfig/mconfigs.pb.h"
+#include "sentry.h"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"

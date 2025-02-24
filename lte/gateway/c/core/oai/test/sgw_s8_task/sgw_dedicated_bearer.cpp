@@ -11,8 +11,8 @@
  * limitations under the License.
  */
 
-#include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.hpp"
 #include "lte/gateway/c/core/oai/tasks/sgw/pgw_procedures.hpp"
+#include "lte/gateway/c/core/oai/test/sgw_s8_task/sgw_s8_utility.hpp"
 extern "C" {
 #include "lte/gateway/c/core/oai/common/common_types.h"
 }

@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+
 #include <cstring>
 
 extern "C" {

@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 #include "lte/gateway/c/session_manager/RestartHandler.hpp"
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 
 #include <cxxabi.h>
 #include <glog/logging.h>
@@ -20,6 +19,7 @@
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
+
 #include <chrono>
 #include <future>
 #include <memory>
@@ -33,6 +33,7 @@
 
 #include "lte/gateway/c/session_manager/AAAClient.hpp"
 #include "lte/gateway/c/session_manager/DirectorydClient.hpp"
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 #include "lte/gateway/c/session_manager/SessionReporter.hpp"
 #include "lte/gateway/c/session_manager/SessionStore.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"

@@ -17,12 +17,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeCommand.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GSecurityModeCommand.hpp"
 
 namespace magma5g {
-SecurityModeCommandMsg::SecurityModeCommandMsg() {};
-SecurityModeCommandMsg::~SecurityModeCommandMsg() {};
+SecurityModeCommandMsg::SecurityModeCommandMsg(){};
+SecurityModeCommandMsg::~SecurityModeCommandMsg(){};
 
 // Decode SecurityModeCommand Message and its IEs
 int SecurityModeCommandMsg::DecodeSecurityModeCommandMsg(

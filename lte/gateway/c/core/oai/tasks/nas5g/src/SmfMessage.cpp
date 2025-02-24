@@ -18,16 +18,16 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/SmfMessage.hpp"
 
 namespace magma5g {
-SMsg_u::SMsg_u() {};
-SMsg_u::~SMsg_u() {};
-SmfMsg::SmfMsg() {};
-SmfMsg::~SmfMsg() {};
+SMsg_u::SMsg_u(){};
+SMsg_u::~SMsg_u(){};
+SmfMsg::SmfMsg(){};
+SmfMsg::~SmfMsg(){};
 
 // Decode SMF Message Header
 int SmfMsg::SmfMsgDecodeHeaderMsg(SmfMsgHeader* hdr, uint8_t* buffer,

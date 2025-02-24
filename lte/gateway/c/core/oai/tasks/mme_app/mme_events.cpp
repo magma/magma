@@ -17,10 +17,11 @@
 
 #include "lte/gateway/c/core/oai/include/mme_events.hpp"
 
+#include <grpcpp/support/status.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <nlohmann/json.hpp>
-#include <grpcpp/support/status.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,11 +32,9 @@ extern "C" {
 #endif
 
 #include "lte/gateway/c/core/oai/common/common_types.h"
-
+#include "lte/gateway/c/core/oai/lib/event_client/EventClientAPI.hpp"
 #include "orc8r/protos/common.pb.h"
 #include "orc8r/protos/eventd.pb.h"
-
-#include "lte/gateway/c/core/oai/lib/event_client/EventClientAPI.hpp"
 
 using grpc::Status;
 using magma::lte::init_eventd_client;

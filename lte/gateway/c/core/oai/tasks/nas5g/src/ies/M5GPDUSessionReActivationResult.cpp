@@ -9,16 +9,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <iostream>
-#include <sstream>
-#include <cstdint>
-#include <cstring>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionReActivationResult.hpp"
 
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <sstream>
+
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+
 namespace magma5g {
-M5GPDUSessionReActivationResult::M5GPDUSessionReActivationResult() {};
-M5GPDUSessionReActivationResult::~M5GPDUSessionReActivationResult() {};
+M5GPDUSessionReActivationResult::M5GPDUSessionReActivationResult(){};
+M5GPDUSessionReActivationResult::~M5GPDUSessionReActivationResult(){};
 
 int M5GPDUSessionReActivationResult::EncodePDUSessionReActivationResult(
     M5GPDUSessionReActivationResult* pduSessionReActivationStatus, uint8_t iei,

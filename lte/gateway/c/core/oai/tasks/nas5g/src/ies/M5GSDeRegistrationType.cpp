@@ -9,15 +9,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSDeRegistrationType.hpp"
+
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSDeRegistrationType.hpp"
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg() {};
-M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg() {};
+M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg(){};
+M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg(){};
 
 int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
     M5GSDeRegistrationTypeMsg* de_reg_type, uint8_t iei, uint8_t* buffer,

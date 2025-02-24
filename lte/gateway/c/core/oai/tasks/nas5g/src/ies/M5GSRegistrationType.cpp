@@ -9,9 +9,9 @@
    limitations under the License.
 */
 
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,13 +19,14 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationType.hpp"
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 #include <bitset>
 
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSRegistrationType.hpp"
+
 namespace magma5g {
-M5GSRegistrationTypeMsg::M5GSRegistrationTypeMsg() {};
-M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg() {};
+M5GSRegistrationTypeMsg::M5GSRegistrationTypeMsg(){};
+M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg(){};
 
 // Decode M5GSRegistrationType Message
 int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(

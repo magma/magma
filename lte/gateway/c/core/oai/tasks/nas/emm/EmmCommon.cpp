@@ -43,10 +43,10 @@
 *****************************************************************************/
 #include "lte/gateway/c/core/oai/tasks/nas/emm/EmmCommon.hpp"
 
-#include <stdlib.h>
-#include <string.h>
 #include <assert.h>
 #include <pthread.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

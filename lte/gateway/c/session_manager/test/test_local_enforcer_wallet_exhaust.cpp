@@ -20,6 +20,7 @@
 #include <orc8r/protos/common.pb.h>
 #include <stdint.h>
 #include <time.h>
+
 #include <iostream>
 #include <memory>
 #include <set>

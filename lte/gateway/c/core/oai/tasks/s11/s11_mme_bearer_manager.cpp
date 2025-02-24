@@ -24,11 +24,11 @@
 
 #include "lte/gateway/c/core/oai/tasks/s11/s11_mme_bearer_manager.hpp"
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {

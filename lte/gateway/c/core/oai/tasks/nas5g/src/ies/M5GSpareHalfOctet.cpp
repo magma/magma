@@ -9,15 +9,17 @@
    limitations under the License.
  */
 
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+
+#include <cstdint>
 #include <iostream>
 #include <sstream>
-#include <cstdint>
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GSpareHalfOctet.hpp"
+
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-SpareHalfOctetMsg::SpareHalfOctetMsg() {};
-SpareHalfOctetMsg::~SpareHalfOctetMsg() {};
+SpareHalfOctetMsg::SpareHalfOctetMsg(){};
+SpareHalfOctetMsg::~SpareHalfOctetMsg(){};
 
 // Decode SpareHalfOctet IE
 int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(

@@ -27,12 +27,12 @@
 
 #include "lte/gateway/c/core/oai/tasks/sgw/sgw_handlers.hpp"
 
+#include <netinet/in.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include <string.h>
-#include <netinet/in.h>
 
 #ifdef __cplusplus
 extern "C" {

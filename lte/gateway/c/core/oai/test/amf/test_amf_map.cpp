@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
+
 #include "lte/gateway/c/core/oai/include/map.h"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_defs.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"

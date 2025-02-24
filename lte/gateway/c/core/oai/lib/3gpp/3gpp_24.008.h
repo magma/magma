@@ -40,9 +40,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
+#include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
 
 // #warning "Set it to max size of message"
 #define IE_UNDEFINED_MAX_LENGTH 1024

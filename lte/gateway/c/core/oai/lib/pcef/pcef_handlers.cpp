@@ -17,10 +17,11 @@
 
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
 
+#include <grpcpp/impl/codegen/status.h>
+
 #include <cstring>
 #include <string>
 
-#include <grpcpp/impl/codegen/status.h>
 #include "lte/protos/session_manager.pb.h"
 
 #ifdef __cplusplus
@@ -34,8 +35,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
 #include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
+#include "lte/gateway/c/core/oai/lib/pcef/PCEFClient.hpp"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 

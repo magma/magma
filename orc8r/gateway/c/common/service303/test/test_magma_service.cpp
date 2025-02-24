@@ -13,6 +13,7 @@
 #include <google/protobuf/stubs/common.h>
 #include <gtest/gtest.h>
 #include <orc8r/protos/service303.pb.h>
+
 #include <algorithm>
 #include <string>
 

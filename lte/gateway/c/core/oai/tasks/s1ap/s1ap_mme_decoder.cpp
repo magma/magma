@@ -31,7 +31,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "S1ap_InitiatingMessage.h"
 #include "S1ap_ProcedureCode.h"
 #include "S1ap_S1AP-PDU.h"
@@ -40,6 +39,7 @@ extern "C" {
 #include "asn_codecs.h"
 #include "lte/gateway/c/core/common/assertions.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/tasks/s1ap/s1ap_mme_decoder.hpp"
 #include "per_decoder.h"
 
 //-----------------------------------------------------------------------------

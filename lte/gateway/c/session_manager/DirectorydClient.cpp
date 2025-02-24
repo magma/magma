@@ -12,15 +12,16 @@
  */
 
 #include "lte/gateway/c/session_manager/DirectorydClient.hpp"
-#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 
 #include <grpcpp/channel.h>
 #include <orc8r/protos/common.pb.h>
 #include <orc8r/protos/directoryd.grpc.pb.h>
 #include <orc8r/protos/directoryd.pb.h>
+
 #include <memory>
 #include <utility>
 
+#include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
 #include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 namespace grpc {

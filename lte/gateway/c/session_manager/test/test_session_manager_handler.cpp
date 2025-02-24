@@ -23,6 +23,7 @@
 #include <lte/protos/subscriberdb.pb.h>
 #include <orc8r/protos/common.pb.h>
 #include <stdint.h>
+
 #include <functional>
 #include <iostream>
 #include <memory>

@@ -11,13 +11,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
 #include <gtest/gtest.h>
-#include <cstdint>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <stdio.h>
+
+#include <chrono>
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
+#include <thread>
 
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
 #include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"

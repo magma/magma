@@ -32,6 +32,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 
 #ifdef __cplusplus

@@ -41,6 +41,7 @@
 #define FILE_ASYNC_SYSTEM_SEEN
 
 #include <stdbool.h>
+
 #include "lte/gateway/c/core/common/common_defs.h"
 
 status_code_e async_system_init(void);

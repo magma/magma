@@ -23,8 +23,8 @@
 
 #include "lte/gateway/c/core/oai/tasks/s6a/s6a_fd_iface.hpp"
 
-#include <iostream>
 #include <exception>
+#include <iostream>
 
 #ifdef __cplusplus
 extern "C" {

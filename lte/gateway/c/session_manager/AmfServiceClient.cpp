@@ -5,13 +5,14 @@
 #include <grpcpp/impl/codegen/status.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
+
 #include <functional>
 #include <ostream>
 #include <utility>
 
-#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
-#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
 #include "lte/gateway/c/session_manager/GrpcMagmaUtils.hpp"
+#include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "orc8r/gateway/c/common/service_registry/ServiceRegistrySingleton.hpp"
 
 using grpc::Status;
 

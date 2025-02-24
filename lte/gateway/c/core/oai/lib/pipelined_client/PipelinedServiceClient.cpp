@@ -13,18 +13,18 @@
 
 #include "lte/gateway/c/core/oai/lib/pipelined_client/PipelinedServiceClient.hpp"
 
-#include <utility>
-#include <cassert>
+#include <grpcpp/impl/codegen/async_unary_call.h>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <netinet/in.h>
+
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
-
-#include <grpcpp/impl/codegen/async_unary_call.h>
+#include <utility>
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/lib/pipelined_client/proto_converters.hpp"

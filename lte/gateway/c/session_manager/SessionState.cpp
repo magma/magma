@@ -13,12 +13,13 @@
 
 #include "lte/gateway/c/session_manager/SessionState.hpp"
 
-#include <ext/alloc_traits.h>
 #include <glog/logging.h>
 #include <google/protobuf/stubs/port.h>
 #include <google/protobuf/timestamp.pb.h>
+
 #include <algorithm>
 #include <ctime>
+#include <ext/alloc_traits.h>
 #include <functional>
 #include <ostream>
 #include <string>
@@ -31,8 +32,8 @@
 #include "lte/gateway/c/session_manager/RuleStore.hpp"
 #include "lte/gateway/c/session_manager/StoredState.hpp"
 #include "lte/gateway/c/session_manager/Utilities.hpp"
-#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 #include "orc8r/gateway/c/common/logging/magma_logging.hpp"
+#include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";

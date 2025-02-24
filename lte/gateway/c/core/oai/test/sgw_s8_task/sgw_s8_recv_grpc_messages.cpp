@@ -12,10 +12,12 @@
  */
 
 #include <gtest/gtest.h>
+
 #include <thread>
+
 #include "feg/protos/s8_proxy.grpc.pb.h"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 #include "lte/gateway/c/core/oai/tasks/grpc_service/S8ServiceImpl.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 extern "C" {
 #include "lte/gateway/c/core/oai/include/grpc_service.hpp"
 }

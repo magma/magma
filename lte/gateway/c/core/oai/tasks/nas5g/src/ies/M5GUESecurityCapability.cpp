@@ -9,11 +9,11 @@
    limitations under the License.
  */
 
-#include <iostream>
-#include <iomanip>
-#include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,12 +21,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUESecurityCapability.hpp"
 
 namespace magma5g {
-UESecurityCapabilityMsg::UESecurityCapabilityMsg() {};
-UESecurityCapabilityMsg::~UESecurityCapabilityMsg() {};
+UESecurityCapabilityMsg::UESecurityCapabilityMsg(){};
+UESecurityCapabilityMsg::~UESecurityCapabilityMsg(){};
 
 int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
     UESecurityCapabilityMsg* ue_sec_capability, uint8_t iei, uint8_t* buffer,

@@ -11,13 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#include <grpcpp/impl/codegen/status.h>
-#include "feg/protos/s8_proxy.grpc.pb.h"
-#include "orc8r/protos/common.pb.h"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_client_api.hpp"
-#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.hpp"
+
+#include <grpcpp/impl/codegen/status.h>
+
+#include "feg/protos/s8_proxy.grpc.pb.h"
 #include "lte/gateway/c/core/oai/lib/pcef/pcef_handlers.hpp"
+#include "lte/gateway/c/core/oai/lib/s8_proxy/S8Client.hpp"
 #include "lte/gateway/c/core/oai/lib/s8_proxy/s8_itti_proto_conversion.h"
+#include "orc8r/protos/common.pb.h"
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"

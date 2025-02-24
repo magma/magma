@@ -15,10 +15,9 @@
  *      contact@openairinterface.org
  */
 
-#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
-
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityClientAPI.hpp"
+#include "lte/gateway/c/core/oai/tasks/sgw/pgw_ue_ip_address_alloc.hpp"
 #include "orc8r/gateway/c/common/service303/MetricsHelpers.hpp"
 
 #ifdef __cplusplus

@@ -10,24 +10,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
 #include <gtest/gtest.h>
-#include <cstdint>
-#include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <stdio.h>
 
-#include "feg/protos/s6a_proxy.pb.h"
-#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
-#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
-#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
-#include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
-#include "lte/gateway/c/core/oai/test/mme_app_task/mme_procedure_test_fixture.hpp"
+#include <chrono>
+#include <condition_variable>
+#include <cstdint>
+#include <mutex>
+#include <thread>
 
+#include "feg/protos/s6a_proxy.pb.h"
 #include "lte/gateway/c/core/oai/include/mme_app_state.hpp"
 #include "lte/gateway/c/core/oai/include/mme_config.hpp"
+#include "lte/gateway/c/core/oai/lib/s6a_proxy/proto_msg_to_itti_msg.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_ip_imsi.hpp"
+#include "lte/gateway/c/core/oai/tasks/mme_app/mme_app_state_manager.hpp"
+#include "lte/gateway/c/core/oai/test/mme_app_task/mme_app_test_util.hpp"
+#include "lte/gateway/c/core/oai/test/mme_app_task/mme_procedure_test_fixture.hpp"
+#include "lte/gateway/c/core/oai/test/mock_tasks/mock_tasks.hpp"
 
 namespace magma {
 namespace lte {

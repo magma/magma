@@ -12,6 +12,7 @@
  */
 
 #include "lte/gateway/c/core/oai/tasks/ngap/include/ngap_client_servicer.hpp"
+
 #include <memory>
 extern "C" {
 #include "lte/gateway/c/core/common/common_defs.h"

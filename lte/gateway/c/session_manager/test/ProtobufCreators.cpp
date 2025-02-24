@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <lte/protos/subscriberdb.pb.h>
 #include <orc8r/protos/common.pb.h>
+
 #include <memory>
 #include <string>
 #include <unordered_map>

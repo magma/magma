@@ -9,9 +9,9 @@
  * limitations under the License.
  * */
 
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,12 +19,12 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer3.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
+#include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GGprsTimer3.hpp"
 
 namespace magma5g {
-GPRSTimer3Msg::GPRSTimer3Msg() {};
-GPRSTimer3Msg::~GPRSTimer3Msg() {};
+GPRSTimer3Msg::GPRSTimer3Msg(){};
+GPRSTimer3Msg::~GPRSTimer3Msg(){};
 
 int GPRSTimer3Msg::DecodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
                                        uint8_t* buffer, uint32_t len) {

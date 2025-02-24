@@ -14,27 +14,29 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/include/nas/networkDef.h"
+#include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #ifdef __cplusplus
 }
 #endif
-#include "lte/gateway/c/core/common/common_defs.h"
+#include <unistd.h>
+
 #include <cstdint>
 #include <cstring>
 #include <string>
-#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
-#include <unistd.h>
 #include <thread>
-#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
-#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
+
+#include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
-#include "lte/protos/session_manager.pb.h"
+#include "lte/gateway/c/core/oai/lib/mobility_client/MobilityServiceClient.hpp"
 #include "lte/gateway/c/core/oai/lib/n11/M5GMobilityServiceClient.hpp"
+#include "lte/gateway/c/core/oai/lib/n11/SmfServiceClient.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/amf_app_ue_context_and_proc.hpp"
+#include "lte/gateway/c/core/oai/tasks/amf/amf_smfDefs.hpp"
 #include "lte/gateway/c/core/oai/tasks/amf/include/amf_client_servicer.hpp"
+#include "lte/protos/session_manager.pb.h"
 
 #define VERSION_0 0
 

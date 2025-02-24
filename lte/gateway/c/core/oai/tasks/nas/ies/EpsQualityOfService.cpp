@@ -23,8 +23,8 @@ extern "C" {
 }
 #endif
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <string.h>
 
 #ifdef __cplusplus
@@ -36,8 +36,8 @@ extern "C" {
 }
 #endif
 
-#include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/common_types.h"
 
 //------------------------------------------------------------------------------
 static int decode_eps_qos_bit_rates(EpsQoSBitRates* epsqosbitrates,

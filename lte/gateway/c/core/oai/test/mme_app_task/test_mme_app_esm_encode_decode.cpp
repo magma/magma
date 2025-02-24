@@ -11,10 +11,12 @@
  * limitations under the License.
  */
 #include <gtest/gtest.h>
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include <cstring>
 #include <string>
+
 #include "lte/protos/session_manager.pb.h"
 
 extern "C" {
