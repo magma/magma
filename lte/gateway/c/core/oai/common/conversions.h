@@ -401,7 +401,7 @@
  */
 #define MACRO_ENB_ID_TO_CELL_IDENTITY(mACRO, cELL_iD, bITsTRING)      \
   do {                                                                \
-    (bITsTRING)->buf = (uint8_t*)calloc(4, sizeof(uint8_t));          \
+    (bITsTRING)->buf = reinterpret_cast<uint8_t*>(calloc(4, sizeof(uint8_t))); \
     (bITsTRING)->buf[0] = ((mACRO) >> 12);                            \
     (bITsTRING)->buf[1] = (mACRO) >> 4;                               \
     (bITsTRING)->buf[2] = (((mACRO) & 0x0f) << 4) | ((cELL_iD) >> 4); \

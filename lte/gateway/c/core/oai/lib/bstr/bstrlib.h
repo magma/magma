@@ -125,7 +125,8 @@ struct tagbstring {
 #define bchar(b, p) bchare((b), (p), '\0')
 
 /* Static constant string initialization macro */
-#define bsStaticMlen(q, m) {(m), (int)sizeof(q) - 1, (unsigned char*)("" q "")}
+#define bsStaticMlen(q, m) {(m), static_cast<int>(sizeof(q) - 1), reinterpret_cast<unsigned char*>("" q "")}
+
 #if defined(_MSC_VER)
 #define bsStatic(q) bsStaticMlen(q, -32)
 #endif

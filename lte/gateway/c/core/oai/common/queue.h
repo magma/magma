@@ -493,7 +493,7 @@
     struct type* cqh_last;  /* last element */  \
   }
 
-#define CIRCLEQ_HEAD_INITIALIZER(head) {(void*)&head, (void*)&head}
+#define CIRCLEQ_HEAD_INITIALIZER(head) {reinterpret_cast<void*>(&head), reinterpret_cast<void*>(&head)}
 
 #define CIRCLEQ_ENTRY(type)                       \
   struct {                                        \
