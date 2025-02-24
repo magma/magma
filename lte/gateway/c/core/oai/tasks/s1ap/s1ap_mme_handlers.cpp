@@ -130,6 +130,10 @@ static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int id, void* arg);
 static bool s1ap_send_enb_deregistered_ind(
     __attribute__((unused)) uint32_t keyP, uint64_t const dataP, void* argP,
     void** resultP);
+
+}  // namespace lte
+}  // namespace magma
+
 /* Handlers matrix. Only mme related procedures present here.
  */
 s1ap_message_handler_t message_handlers[][3] = {
