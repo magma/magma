@@ -23,7 +23,7 @@ namespace {
 static constexpr const char* SERVICE_NAME_MME = "mme";
 
 const char* healthy_mconfig =
-    R"pb({
+R"pb({
            "configs_by_key": {
              "mobilityd": {
                "@type": "type.googleapis.com/magma.mconfig.MobilityD",
@@ -55,7 +55,7 @@ const char* healthy_mconfig =
                "enable5gFeatures": false
              }
            }
-         })pb";
+})pb";
 
 TEST(MConfigLoader, FailsEmptyStream) {
   magma::mconfig::MME mconfig;
