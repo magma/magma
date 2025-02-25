@@ -12,14 +12,15 @@
 ARG baseImage="ubuntu:focal"
 FROM ${baseImage} as base
 
-# Add the magma apt repo
+# Add the magma apt repo and install runtime dependencies
 RUN apt-get update && \
-    apt-get install -y apt-utils software-properties-common apt-transport-https
+    apt-get install -y apt-utils software-properties-common apt-transport-https && \
+    apt-get install -y bzr curl daemontools gcc git libc-ares-dev libev-dev \
+                       libevent-dev libffi-dev libjansson-dev libjemalloc-dev
 
-# Add the magma apt repo
-COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
-
+# Add the magma apt repo key
+COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc && \
+    add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
     bzr \

@@ -163,8 +163,7 @@ typedef uint32_t
 
 typedef uint16_t
     mme_gid_t; /*!< \brief  MME Group ID shall be of 16 bits length. */
-typedef uint8_t
-    mme_code_t; /*!< \brief  MME Code shall be of 8 bits length.      */
+typedef uint8_t mme_code_t; /*!< \brief  MME Code shall be of 8 bits length. */
 
 /*! \struct  gummei_t
  * \brief Structure containing the Globally Unique MME Identity.
@@ -196,8 +195,7 @@ typedef struct s_tmsi_s {
 //----------------- 5G Globally Unique Temporary UE Identity (GUTI)-------------
 typedef uint16_t
     amf_gid_t; /*!< \brief  AMF Group ID shall be of 16 bits length. */
-typedef uint8_t
-    amf_code_t; /*!< \brief  AMF Code shall be of 8 bits length.      */
+typedef uint8_t amf_code_t; /*!< \brief  AMF Code shall be of 8 bits length. */
 typedef uint8_t amf_Pointer_t;  // 9.3.3.19 AMF Pointer is used to identify one
                                 // or more AMF(s) within the AMF Set.
 /*! \struct  guamfi_t
