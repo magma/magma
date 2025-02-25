@@ -11,7 +11,6 @@
 
 ARG baseImage="ubuntu:focal"
 FROM ${baseImage} as base
-
 # Add the magma apt repo and install runtime dependencies
 RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https && \
