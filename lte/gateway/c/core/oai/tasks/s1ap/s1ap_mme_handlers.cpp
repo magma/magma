@@ -132,7 +132,6 @@ __attribute__((unused)) uint32_t keyP,
 uint64_t const dataP, 
 void* argP, 
 void** resultP);
-
 }  // namespace lte
 }  // namespace magma
 
