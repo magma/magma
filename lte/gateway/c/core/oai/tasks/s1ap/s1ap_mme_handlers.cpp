@@ -127,9 +127,7 @@ status_code_e s1ap_generate_s1_setup_response(
 bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int id, void* arg);
 
-static bool s1ap_send_enb_deregistered_ind(
-    __attribute__((unused)) uint32_t keyP, uint64_t const dataP, void* argP,
-    void** resultP);
+static bool s1ap_send_enb_deregistered_ind(__attribute__((unused)) uint32_t keyP, uint64_t const dataP, void* argP,void** resultP);
 
 }  // namespace lte
 }  // namespace magma
