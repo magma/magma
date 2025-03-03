@@ -27,5 +27,5 @@ class S6aGrpcIface : public S6aViface {
   bool send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP);
   bool purge_ue(const char* imsi);
 
-  ~S6aGrpcIface(){};
+  ~S6aGrpcIface() {};
 };

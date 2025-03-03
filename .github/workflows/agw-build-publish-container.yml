@@ -233,35 +233,35 @@ jobs:
         run: mkdir -p lte/gateway/test_results
 
       - name: Download test results of precommit tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test_results_precommit
           path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of precommit tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test-status-precommit
 
       - name: Download test results of extended tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test_results_extended_tests
           path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of of extended tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test-status-extended_tests
 
       - name: Download test results of long extended tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test_results_extended_tests_long
           path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of of long extended tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test-status-extended_tests_long
 

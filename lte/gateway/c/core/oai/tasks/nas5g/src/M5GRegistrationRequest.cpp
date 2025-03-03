@@ -22,8 +22,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GRegistrationRequest.hpp"
 
 namespace magma5g {
-RegistrationRequestMsg::RegistrationRequestMsg(){};
-RegistrationRequestMsg::~RegistrationRequestMsg(){};
+RegistrationRequestMsg::RegistrationRequestMsg() {};
+RegistrationRequestMsg::~RegistrationRequestMsg() {};
 
 // Decode RegistrationRequest Message and its IEs
 int RegistrationRequestMsg::DecodeRegistrationRequestMsg(

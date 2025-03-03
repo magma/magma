@@ -39,13 +39,12 @@
 //------------------------------------------------------------------------------
 // Table 9.8.1: Message types for EPS mobility management
 /* Message identifiers for EPS Mobility Management Registration  REGISTRATION */
-//#define REGISTRATION_REQUEST   0b01000001                  /* 65 = 0x41 */
-//#define REGISTRATION_ACCEPT    0b01000010                  /* 66 = 0x42 */
-//#define REGISTRATION_COMPLETE  0b01000011                  /* 67 = 0x43 */
-//#define REGISTRATION_REJECT    0b01000100                  /* 68 = 0x44 */
-//#define DEREGISTRATION_REQUEST_UE_INIT 0b01000101                  /* 69 =
-// 0x45 */ #define DEREGISTRATION_ACCEPT_UE_INIT  0b01000110                  /*
-// 70 = 0x46 */
+// #define REGISTRATION_REQUEST   0b01000001                  /* 65 = 0x41 */
+// #define REGISTRATION_ACCEPT    0b01000010                  /* 66 = 0x42 */
+// #define REGISTRATION_COMPLETE  0b01000011                  /* 67 = 0x43 */
+// #define REGISTRATION_REJECT    0b01000100                  /* 68 = 0x44 */
+// #define DEREGISTRATION_REQUEST_UE_INIT 0b01000101                  /* 69 =
+//  0x45 */ #define DEREGISTRATION_ACCEPT_UE_INIT  0b01000110 /* 70 = 0x46 */
 #define DEREGISTRATION_REQUEST_NW_INIT 0b01000111 /* 71 = 0x47 */
 #define DEREGISTRATION_ACCEPT_NW_INIT 0b01001000  /* 72 = 0x48 */
 #define DEREGISTRATION_ACCEPT_UE_INIT 0b01000110  /* 70 = 0x46 */

@@ -596,4 +596,4 @@ const char* get_short_file_name(const char* const source_file_nameP);
     log_message_prefix_id(OAILOG_LEVEL_INFO, pRoTo, __FILE__, __LINE__, ue_id, \
                           ##__VA_ARGS__);                                      \
   } while (0) /*!< \brief informational */
-#endif        /* FILE_LOG_SEEN */
+#endif /* FILE_LOG_SEEN */

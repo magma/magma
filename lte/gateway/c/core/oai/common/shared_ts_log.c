@@ -68,8 +68,7 @@ typedef struct oai_shared_log_s {
 
   int log_start_time_second; /*!< \brief Logging utility reference time */
 
-  log_message_number_t
-      log_message_number; /*!< \brief Counter of log message        */
+  log_message_number_t log_message_number; /*!< \brief Counter of log message */
   struct lfds710_queue_bmm_element* qbmme;
   struct lfds710_queue_bmm_state
       log_message_queue; /*!< \brief Thread safe log message queue */

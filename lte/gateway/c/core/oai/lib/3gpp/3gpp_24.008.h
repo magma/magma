@@ -44,7 +44,7 @@
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
-//#warning "Set it to max size of message"
+// #warning "Set it to max size of message"
 #define IE_UNDEFINED_MAX_LENGTH 1024
 
 //******************************************************************************

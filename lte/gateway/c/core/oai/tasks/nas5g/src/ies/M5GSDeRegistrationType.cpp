@@ -16,8 +16,8 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg(){};
-M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg(){};
+M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg() {};
+M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg() {};
 
 int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
     M5GSDeRegistrationTypeMsg* de_reg_type, uint8_t iei, uint8_t* buffer,

@@ -83,7 +83,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.filter.outputs.integration_tests  == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: always()
         with:
           name: pr
@@ -160,7 +160,9 @@ jobs:
         working-directory: "${{ github.workspace }}"
         run: |
           sudo cp keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-          sudo add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main'
+          #[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
+          #sudo add-apt-repository 'deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main'
+          echo "deb [trusted=yes] https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" | sudo tee /etc/apt/sources.list.d/magma.list > /dev/null
           sudo apt-get update -y
           sudo apt-get install -y python3-aioeventlet
           sudo rm -rf /var/lib/apt/lists/*

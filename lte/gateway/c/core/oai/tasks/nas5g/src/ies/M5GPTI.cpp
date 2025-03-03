@@ -15,8 +15,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-PTIMsg::PTIMsg(){};
-PTIMsg::~PTIMsg(){};
+PTIMsg::PTIMsg() {};
+PTIMsg::~PTIMsg() {};
 
 // Decode PTI IE
 int PTIMsg::DecodePTIMsg(PTIMsg* pti, uint8_t iei, uint8_t* buffer,

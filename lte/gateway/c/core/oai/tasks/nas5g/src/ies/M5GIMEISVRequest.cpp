@@ -23,8 +23,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-ImeisvRequestMsg::ImeisvRequestMsg(){};
-ImeisvRequestMsg::~ImeisvRequestMsg(){};
+ImeisvRequestMsg::ImeisvRequestMsg() {};
+ImeisvRequestMsg::~ImeisvRequestMsg() {};
 
 int ImeisvRequestMsg::DecodeImeisvRequestMsg(ImeisvRequestMsg* imeisv_request,
                                              uint8_t iei, uint8_t* buffer,

@@ -17,8 +17,8 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GUplinkDataStatus.hpp"
 
 namespace magma5g {
-M5GUplinkDataStatus::M5GUplinkDataStatus(){};
-M5GUplinkDataStatus::~M5GUplinkDataStatus(){};
+M5GUplinkDataStatus::M5GUplinkDataStatus() {};
+M5GUplinkDataStatus::~M5GUplinkDataStatus() {};
 
 int M5GUplinkDataStatus::EncodeUplinkDataStatus(
     M5GUplinkDataStatus* uplinkDataStatus, uint8_t iei, uint8_t* buffer,

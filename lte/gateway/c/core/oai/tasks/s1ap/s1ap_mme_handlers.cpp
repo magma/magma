@@ -127,10 +127,9 @@ status_code_e s1ap_generate_s1_setup_response(
 bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 static int handle_ue_context_rel_timer_expiry(zloop_t* loop, int id, void* arg);
 
-static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
-                                           uint32_t keyP,
-                                           uint64_t const dataP, void* argP,
-                                           void** resultP);
+static bool s1ap_send_enb_deregistered_ind(
+    __attribute__((unused)) uint32_t keyP, uint64_t const dataP, void* argP,
+    void** resultP);
 /* Handlers matrix. Only mme related procedures present here.
  */
 s1ap_message_handler_t message_handlers[][3] = {
@@ -3595,10 +3594,9 @@ status_code_e s1ap_mme_handle_path_switch_request(
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------
-static bool s1ap_send_enb_deregistered_ind(__attribute__((unused))
-                                           uint32_t keyP,
-                                           uint64_t const dataP, void* argP,
-                                           void** resultP) {
+static bool s1ap_send_enb_deregistered_ind(
+    __attribute__((unused)) uint32_t keyP, uint64_t const dataP, void* argP,
+    void** resultP) {
   arg_s1ap_send_enb_dereg_ind_t* arg = (arg_s1ap_send_enb_dereg_ind_t*)argP;
   oai::UeDescription* ue_ref_p = nullptr;
 

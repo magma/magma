@@ -337,7 +337,7 @@ typedef struct transport_layer_s {
 
 typedef enum {
   NORMAL_RELEASE,
-  AUTHENTICATION_FAILURE_NAS,  //#defined on AUTHENTICATION_FAILURE
+  AUTHENTICATION_FAILURE_NAS,  // #defined on AUTHENTICATION_FAILURE
   DEREGISTER,
   UNSPECIFIED_NAS_CAUSE,
 } NAS_cause;

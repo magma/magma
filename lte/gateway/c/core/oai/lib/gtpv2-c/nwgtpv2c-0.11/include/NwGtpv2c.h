@@ -216,9 +216,8 @@ typedef struct nw_gtpv2c_initial_req_info_s {
 
   NW_IN struct sockaddr*
       edns_peer_ip; /**< Required only in case when hTunnel == 0            */
-  NW_IN uint8_t
-      internal_flags; /**< Required only in case when hTunnel == 0            */
-  NW_IN uint32_t teidLocal; /**< Required only in case when hTunnel == 0 */
+  NW_IN uint8_t internal_flags; /**< Required only in case when hTunnel == 0 */
+  NW_IN uint32_t teidLocal;     /**< Required only in case when hTunnel == 0 */
   NW_IN nw_gtpv2c_ulp_tunnel_handle_t
       hUlpTunnel; /**< Required only in case when hTunnel == 0            */
   NW_IN bool noDelete; /**< Set if the tunnel shall not be deleted automatically
@@ -522,7 +521,7 @@ nw_rc_t nwGtpv2cFinalize(NW_IN nw_gtpv2c_stack_handle_t hGtpcStackHandle);
 nw_rc_t nwGtpv2cConfigSet(NW_IN nw_gtpv2c_stack_handle_t* phGtpcStackHandle,
                           NW_IN nw_gtpv2c_stack_config_t* pConfig);
 
-//#define T3_TIMER  10
+// #define T3_TIMER  10
 
 /**
  Get Configuration for the nw-gtpv2c stack.

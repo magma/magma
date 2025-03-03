@@ -24,8 +24,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-SSCModeMsg::SSCModeMsg(){};
-SSCModeMsg::~SSCModeMsg(){};
+SSCModeMsg::SSCModeMsg() {};
+SSCModeMsg::~SSCModeMsg() {};
 
 // Decode SSCMode IE
 int SSCModeMsg::DecodeSSCModeMsg(SSCModeMsg* ssc_mode, uint8_t iei,

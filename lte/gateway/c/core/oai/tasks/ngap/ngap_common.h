@@ -697,7 +697,7 @@ inline void ASN_DEBUG(const char* fmt, ...);
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_33.401.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.401.h"
 #include "lte/gateway/c/core/oai/lib/bstr/bstrlib.h"
-//#include "ngap_state.h"
+// #include "ngap_state.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 // Forward declaration

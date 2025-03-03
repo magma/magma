@@ -152,9 +152,7 @@ class FlowDLOps {
         dst_v4_("192.168.60.141"),
         src_v4_("192.168.128.11") {}
 
-  struct ip_flow_dl get_flow_dl() {
-    return flow_dl_;
-  }
+  struct ip_flow_dl get_flow_dl() { return flow_dl_; }
 
   void set_flow_dl() {
     flow_dl_.set_params = set_params_;
