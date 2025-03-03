@@ -466,7 +466,7 @@ void mme_app_handle_conn_est_cnf(
   }
   establishment_cnf_p->no_of_e_rabs = j;
 
-  //#pragma message  "Check ue_context_p ambr"
+  // #pragma message  "Check ue_context_p ambr"
   establishment_cnf_p->ue_ambr.br_ul = ue_context_p->subscribed_ue_ambr.br_ul;
   establishment_cnf_p->ue_ambr.br_dl = ue_context_p->subscribed_ue_ambr.br_dl;
   establishment_cnf_p->ue_ambr.br_unit =
@@ -1485,7 +1485,7 @@ static void mme_app_populate_bearer_contexts_to_be_removed(
       }
       break;
     }  // end of ebi comparison
-  }    // end of for
+  }  // end of for
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -1553,7 +1553,7 @@ static void mme_app_populate_bearer_contexts_to_be_modified(
       (*bc_to_be_modified_idx)++;
       break;
     }  // end of if
-  }    // end of for loop
+  }  // end of for loop
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -1589,7 +1589,7 @@ static void mme_app_build_modify_bearer_request_message(
           ue_context_p, initial_ctxt_setup_rsp_p, s11_modify_bearer_request,
           idx, bc_to_be_removed_idx);
     }  // end of if(!bearer_found)
-  }    // end of bid for loop
+  }  // end of bid for loop
   // Fill the common parameters
   ue_context_p->pdn_contexts[*pid]
       ->s_gw_address_s11_s4.address.ipv4_address.s_addr =

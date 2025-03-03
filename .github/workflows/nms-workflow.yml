@@ -53,7 +53,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: always()
         with:
           name: pr
@@ -204,7 +204,7 @@ jobs:
           ./e2e_test_setup.sh
       - name: Publish Test Results
         if: always()
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         with:
           name: NMS Test Results
           path: "/tmp/nms_artifacts/*"

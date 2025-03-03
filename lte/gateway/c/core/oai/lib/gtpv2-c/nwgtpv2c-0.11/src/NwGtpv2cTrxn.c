@@ -313,12 +313,11 @@ nw_gtpv2c_trxn_t* nwGtpv2cTrxnWithSeqNumNew(NW_IN nw_gtpv2c_stack_t* thiz,
    @return NW_OK on success.
 */
 
-nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(NW_IN nw_gtpv2c_stack_t* thiz,
-                                               __attribute__((unused))
-                                               NW_IN uint32_t teidLocal,
-                                               NW_IN struct sockaddr* peerIp,
-                                               NW_IN uint32_t peerPort,
-                                               NW_IN uint32_t seqNum) {
+nw_gtpv2c_trxn_t* nwGtpv2cTrxnOutstandingRxNew(
+    NW_IN nw_gtpv2c_stack_t* thiz,
+    __attribute__((unused)) NW_IN uint32_t teidLocal,
+    NW_IN struct sockaddr* peerIp, NW_IN uint32_t peerPort,
+    NW_IN uint32_t seqNum) {
   nw_rc_t rc;
   nw_gtpv2c_trxn_t *pTrxn, *pCollision;
 

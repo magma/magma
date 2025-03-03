@@ -330,13 +330,13 @@ jobs:
           mkdir -p lte/gateway/test_results/
           python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
       - name: Publish bazel test profile
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel test all profile ${{ matrix.bazel-config }}
           path: Bazel_test_all_profile
       - name: Upload Bazel unit-test results ${{ matrix.bazel-config }}
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: always()
         with:
           name: Bazel unit-test results ${{ matrix.bazel-config }}
@@ -590,7 +590,7 @@ jobs:
             mv ./bazel-bin/lte/gateway/c/session_manager/sessiond ./sentry_services/sessiond
 
       - name: Upload services for sentry_release job
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: |
           github.repository_owner == 'magma' &&
           ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
@@ -662,7 +662,7 @@ jobs:
           COMMIT_MESSAGE: ${{ toJSON(github.event.head_commit.message) }}
 
       - name: Publish bazel profile
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: |
           always() &&
           github.event.inputs.publish_bazel_profile == 'true'
@@ -701,7 +701,7 @@ jobs:
         with:
           fetch-depth: 0
       - run: mkdir sentry_services
-      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: sentry_services
           path: sentry_services

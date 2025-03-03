@@ -24,8 +24,8 @@ extern "C" {
 #include <bitset>
 
 namespace magma5g {
-M5GSRegistrationTypeMsg::M5GSRegistrationTypeMsg(){};
-M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg(){};
+M5GSRegistrationTypeMsg::M5GSRegistrationTypeMsg() {};
+M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg() {};
 
 // Decode M5GSRegistrationType Message
 int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(

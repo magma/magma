@@ -21,9 +21,9 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GNSSAI.hpp"
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 namespace magma5g {
-NSSAIMsg::NSSAIMsg(){};
+NSSAIMsg::NSSAIMsg() {};
 
-NSSAIMsg::~NSSAIMsg(){};
+NSSAIMsg::~NSSAIMsg() {};
 
 int NSSAIMsg::EncodeNSSAIMsg(NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer,
                              uint32_t len) {
