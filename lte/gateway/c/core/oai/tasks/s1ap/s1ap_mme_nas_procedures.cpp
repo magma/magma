@@ -425,11 +425,9 @@ status_code_e s1ap_mme_handle_uplink_nas_transport(
 }
 
 //------------------------------------------------------------------------------
-status_code_e s1ap_mme_handle_nas_non_delivery(oai::S1apState* state,
-                                               __attribute__((unused))
-                                               sctp_assoc_id_t assoc_id,
-                                               sctp_stream_id_t stream,
-                                               S1ap_S1AP_PDU_t* pdu) {
+status_code_e s1ap_mme_handle_nas_non_delivery(
+    oai::S1apState* state, __attribute__((unused)) sctp_assoc_id_t assoc_id,
+    sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   S1ap_NASNonDeliveryIndication_t* container;
   S1ap_NASNonDeliveryIndication_IEs_t *ie = NULL, *ie_nas_pdu = NULL;
   oai::UeDescription* ue_ref = nullptr;

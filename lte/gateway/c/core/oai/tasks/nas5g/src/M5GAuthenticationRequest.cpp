@@ -22,8 +22,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-AuthenticationRequestMsg::AuthenticationRequestMsg(){};
-AuthenticationRequestMsg::~AuthenticationRequestMsg(){};
+AuthenticationRequestMsg::AuthenticationRequestMsg() {};
+AuthenticationRequestMsg::~AuthenticationRequestMsg() {};
 
 // Decode AuthenticationRequest Messsage
 int AuthenticationRequestMsg::DecodeAuthenticationRequestMsg(

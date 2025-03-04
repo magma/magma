@@ -23,8 +23,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-ABBAMsg::ABBAMsg(){};
-ABBAMsg::~ABBAMsg(){};
+ABBAMsg::ABBAMsg() {};
+ABBAMsg::~ABBAMsg() {};
 
 // Decode ABBA Message IE
 int ABBAMsg::DecodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer,

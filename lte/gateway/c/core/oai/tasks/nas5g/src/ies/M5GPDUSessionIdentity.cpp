@@ -23,8 +23,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
-PDUSessionIdentityMsg::PDUSessionIdentityMsg(){};
-PDUSessionIdentityMsg::~PDUSessionIdentityMsg(){};
+PDUSessionIdentityMsg::PDUSessionIdentityMsg() {};
+PDUSessionIdentityMsg::~PDUSessionIdentityMsg() {};
 
 // Decode PDUSessionIdentity IE
 int PDUSessionIdentityMsg::DecodePDUSessionIdentityMsg(

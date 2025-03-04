@@ -159,7 +159,12 @@ class ECIES_HN(object):             # noqa: N801
         Returns:
             cleartext: decrypted mac
         """
-        shared_key = KDF(ue_pubkey, self.EC.generate_sharedkey(ue_pubkey))
+
+        ec_shared_key = self.EC.generate_sharedkey(ue_pubkey)
+        if ec_shared_key is None:
+            return None  # Invalid curve point detected
+
+        shared_key = KDF(ue_pubkey, ec_shared_key)
         aes_key, aes_nonce, aes_cnt, mac_key = (
             shared_key[:16],
             shared_key[16:24],

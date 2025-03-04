@@ -21,8 +21,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-ServiceAcceptMsg::ServiceAcceptMsg(){};
-ServiceAcceptMsg::~ServiceAcceptMsg(){};
+ServiceAcceptMsg::ServiceAcceptMsg() {};
+ServiceAcceptMsg::~ServiceAcceptMsg() {};
 
 // Decoding Service Accept Message and its IEs
 int ServiceAcceptMsg::DecodeServiceAcceptMsg(ServiceAcceptMsg* svc_acpt,

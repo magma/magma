@@ -68,7 +68,7 @@ const int itti_debug = ITTI_DEBUG_ISSUES | ITTI_DEBUG_MP_STATISTICS;
 #define ITTI_DEBUG(m, x, args...)                                    \
   do {                                                               \
     /* stdout is redirected to syslog when MME is run via systemd */ \
-    if ((m)&itti_debug) fprintf(stdout, "[ITTI][D]" x, ##args);      \
+    if ((m) & itti_debug) fprintf(stdout, "[ITTI][D]" x, ##args);    \
   } while (0);
 
 /* Global message size */

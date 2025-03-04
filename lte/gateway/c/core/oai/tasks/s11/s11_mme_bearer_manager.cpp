@@ -350,8 +350,9 @@ status_code_e s11_mme_delete_bearer_command(
   DevAssert(cmd_p);
   memset(&ulp_req, 0, sizeof(nw_gtpv2c_ulp_api_t));
   ulp_req.apiType = NW_GTPV2C_ULP_API_INITIAL_REQ;
-  ulp_req.apiType = (nw_gtpv2c_ulp_api_type_t)(
-      ulp_req.apiType | NW_GTPV2C_ULP_API_FLAG_IS_COMMAND_MESSAGE);
+  ulp_req.apiType =
+      (nw_gtpv2c_ulp_api_type_t)(ulp_req.apiType |
+                                 NW_GTPV2C_ULP_API_FLAG_IS_COMMAND_MESSAGE);
 
   // Prepare a new Delete Session Request msg
   rc = nwGtpv2cMsgNew(*stack_p, true, NW_GTP_DELETE_BEARER_CMD, cmd_p->teid, 0,

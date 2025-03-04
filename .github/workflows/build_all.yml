@@ -60,7 +60,7 @@ jobs:
             orc8r/tools/helm/package.sh --deployment-type all
           fi
       - name: Upload charts as artifacts
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: github.event_name == 'pull_request'
         with:
           name: helm-charts
@@ -72,9 +72,9 @@ jobs:
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
           echo "false" > ./pr/skipped
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         with:
-          name: pr
+          name: jobs pr
           path: pr/
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
@@ -260,9 +260,9 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         with:
-          name: pr
+          name: deploy pr
           path: pr/
       - name: Create release Tag
         if: github.event_name == 'push'
@@ -331,9 +331,9 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         with:
-          name: pr
+          name: operator pr
           path: pr/
       - name: Create release Tag
         if: github.event_name == 'push'

@@ -185,8 +185,12 @@ class ECDH_SECP256R1(object):       # noqa: N801
         """
         generate_sharedkey - Generates shared key
         """
-        extpubkey = ec.EllipticCurvePublicKey.from_encoded_point(
-            curve=ec.SECP256R1(),
-            data=ext_pubkey,
-        )
+        try:
+            extpubkey = ec.EllipticCurvePublicKey.from_encoded_point(
+                curve=ec.SECP256R1(),
+                data=ext_pubkey,
+            )
+        except ValueError:
+            return None  # Invalid curve point received from UE
+
         return self.PrivKey.exchange(ec.ECDH(), extpubkey)

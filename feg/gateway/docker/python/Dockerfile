@@ -79,10 +79,22 @@ RUN apt-get update && \
     apt-get install -y apt-utils software-properties-common apt-transport-https curl
 
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
+
+#[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
+#RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main"
+RUN echo "deb [trusted=yes] https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" \
+    > /etc/apt/sources.list.d/magma.list
+
+#[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
+RUN echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories && \
+    echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
+
 RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
-RUN apt-key add /tmp/fluentbit.key && \
-    add-apt-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
+RUN apt-key add /tmp/fluentbit.key 
+#[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
+#&& add-apt-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
+RUN echo "deb [trusted=yes] https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" \
+    > /etc/apt/sources.list.d/magma.list
 
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \

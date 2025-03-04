@@ -17,8 +17,8 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionReActivationResult.hpp"
 
 namespace magma5g {
-M5GPDUSessionReActivationResult::M5GPDUSessionReActivationResult(){};
-M5GPDUSessionReActivationResult::~M5GPDUSessionReActivationResult(){};
+M5GPDUSessionReActivationResult::M5GPDUSessionReActivationResult() {};
+M5GPDUSessionReActivationResult::~M5GPDUSessionReActivationResult() {};
 
 int M5GPDUSessionReActivationResult::EncodePDUSessionReActivationResult(
     M5GPDUSessionReActivationResult* pduSessionReActivationStatus, uint8_t iei,

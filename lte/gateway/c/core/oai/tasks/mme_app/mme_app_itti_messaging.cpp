@@ -408,9 +408,9 @@ status_code_e mme_app_send_s11_create_session_req(
   if (1) {
     mme_app_select_sgw(
         &ue_mm_context->emm_context.originating_tai,
-        (struct sockaddr* const) & session_request_p->edns_peer_ip);
+        (struct sockaddr* const)&session_request_p->edns_peer_ip);
 
-    if (((struct sockaddr* const) & (session_request_p->edns_peer_ip))
+    if (((struct sockaddr* const)&(session_request_p->edns_peer_ip))
             ->sa_family == AF_INET) {
       ue_mm_context->pdn_contexts[pdn_cid]
           ->s_gw_address_s11_s4.address.ipv4_address.s_addr =

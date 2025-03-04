@@ -24,8 +24,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-PayloadContainerMsg::PayloadContainerMsg(){};
-PayloadContainerMsg::~PayloadContainerMsg(){};
+PayloadContainerMsg::PayloadContainerMsg() {};
+PayloadContainerMsg::~PayloadContainerMsg() {};
 
 int PayloadContainerMsg::DecodePayloadContainerMsg(
     PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,

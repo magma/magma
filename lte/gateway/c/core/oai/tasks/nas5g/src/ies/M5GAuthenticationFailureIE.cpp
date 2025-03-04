@@ -22,8 +22,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-M5GAuthenticationFailureIE::M5GAuthenticationFailureIE(){};
-M5GAuthenticationFailureIE::~M5GAuthenticationFailureIE(){};
+M5GAuthenticationFailureIE::M5GAuthenticationFailureIE() {};
+M5GAuthenticationFailureIE::~M5GAuthenticationFailureIE() {};
 
 // Decode 5GMMCause IE
 int M5GAuthenticationFailureIE::DecodeM5GAuthenticationFailureIE(

@@ -62,7 +62,7 @@ class AmfUeContext {
  private:
   std::map<int, timer_arg_t> amf_app_timers;
   std::map<int, ue_pdu_id_t> amf_pdu_timers;
-  AmfUeContext() : amf_app_timers(), amf_pdu_timers(){};
+  AmfUeContext() : amf_app_timers(), amf_pdu_timers() {};
 
  public:
   static AmfUeContext& Instance() {

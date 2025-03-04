@@ -57,7 +57,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: always()
         with:
           name: pr
@@ -111,7 +111,7 @@ jobs:
         timeout-minutes: 15
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         with:
           name: Unit Test Results
           path: "${{ env.MAGMA_ROOT}}/orc8r/cloud/test-results/*"
@@ -119,7 +119,7 @@ jobs:
         if: always()
         id: gateway_test_init
         with:
-          go-version: '1.20.1'
+          go-version: '1.21.12'
       - name: Download dependencies
         if: always() && steps.gateway_test_init.outcome=='success'
         id: gateway_test_dep

@@ -15,8 +15,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-M5GSIdentityTypeMsg::M5GSIdentityTypeMsg(){};
-M5GSIdentityTypeMsg::~M5GSIdentityTypeMsg(){};
+M5GSIdentityTypeMsg::M5GSIdentityTypeMsg() {};
+M5GSIdentityTypeMsg::~M5GSIdentityTypeMsg() {};
 
 // Decode M5GSIdentityType IE
 int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(

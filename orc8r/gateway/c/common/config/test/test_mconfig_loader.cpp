@@ -23,39 +23,39 @@ namespace {
 static constexpr const char* SERVICE_NAME_MME = "mme";
 
 const char* healthy_mconfig =
-    R"proto({
-              "configs_by_key": {
-                "mobilityd": {
-                  "@type": "type.googleapis.com/magma.mconfig.MobilityD",
-                  "logLevel": "INFO",
-                  "ipBlock": "192.168.128.0/24",
-                  "ipv6Block": "fdee:5:6c::/48",
-                  "ipv6PrefixAllocationType": "RANDOM",
-                  "ip_allocator_type": "IP_POOL",
-                  "static_ip_enabled": true,
-                  "multi_apn_ip_alloc": true
-                },
-                "mme": {
-                  "@type": "type.googleapis.com/magma.mconfig.MME",
-                  "mmeCode": 1,
-                  "mmeGid": 1,
-                  "mmeRelativeCapacity": 11,
-                  "logLevel": "INFO",
-                  "mcc": "001",
-                  "mnc": "01",
-                  "tac": 1,
-                  "enableDnsCaching": false,
-                  "relayEnabled": false,
-                  "hssRelayEnabled": false,
-                  "csfbMcc": "001",
-                  "dnsPrimary": "8.8.8.8",
-                  "dnsSecondary": "8.8.4.4",
-                  "ipv6PCscfAddress": "2a12:577:9941:f99c:0002:0001:c731:f114",
-                  "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
-                  "enable5gFeatures": false
-                }
-              }
-            })proto";
+    R"pb({
+           "configs_by_key": {
+             "mobilityd": {
+               "@type": "type.googleapis.com/magma.mconfig.MobilityD",
+               "logLevel": "INFO",
+               "ipBlock": "192.168.128.0/24",
+               "ipv6Block": "fdee:5:6c::/48",
+               "ipv6PrefixAllocationType": "RANDOM",
+               "ip_allocator_type": "IP_POOL",
+               "static_ip_enabled": true,
+               "multi_apn_ip_alloc": true
+             },
+             "mme": {
+               "@type": "type.googleapis.com/magma.mconfig.MME",
+               "mmeCode": 1,
+               "mmeGid": 1,
+               "mmeRelativeCapacity": 11,
+               "logLevel": "INFO",
+               "mcc": "001",
+               "mnc": "01",
+               "tac": 1,
+               "enableDnsCaching": false,
+               "relayEnabled": false,
+               "hssRelayEnabled": false,
+               "csfbMcc": "001",
+               "dnsPrimary": "8.8.8.8",
+               "dnsSecondary": "8.8.4.4",
+               "ipv6PCscfAddress": "2a12:577:9941:f99c:0002:0001:c731:f114",
+               "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
+               "enable5gFeatures": false
+             }
+           }
+         })pb";
 
 TEST(MConfigLoader, FailsEmptyStream) {
   magma::mconfig::MME mconfig;

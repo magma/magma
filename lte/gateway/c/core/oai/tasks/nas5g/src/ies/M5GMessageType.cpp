@@ -16,8 +16,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-MessageTypeMsg::MessageTypeMsg(){};
-MessageTypeMsg::~MessageTypeMsg(){};
+MessageTypeMsg::MessageTypeMsg() {};
+MessageTypeMsg::~MessageTypeMsg() {};
 
 // Decode MessageType IE
 int MessageTypeMsg::DecodeMessageTypeMsg(MessageTypeMsg* message_type,

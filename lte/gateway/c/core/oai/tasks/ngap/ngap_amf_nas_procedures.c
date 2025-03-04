@@ -337,11 +337,9 @@ status_code_e ngap_amf_handle_uplink_nas_transport(
 }
 
 //------------------------------------------------------------------------------
-status_code_e ngap_amf_handle_nas_non_delivery(ngap_state_t* state,
-                                               __attribute__((unused))
-                                               sctp_assoc_id_t assoc_id,
-                                               sctp_stream_id_t stream,
-                                               Ngap_NGAP_PDU_t* pdu) {
+status_code_e ngap_amf_handle_nas_non_delivery(
+    ngap_state_t* state, __attribute__((unused)) sctp_assoc_id_t assoc_id,
+    sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
   Ngap_NASNonDeliveryIndication_t* container;
   Ngap_NASNonDeliveryIndication_IEs_t *ie = NULL, *ie_nas_pdu;
   m5g_ue_description_t* ue_ref = NULL;

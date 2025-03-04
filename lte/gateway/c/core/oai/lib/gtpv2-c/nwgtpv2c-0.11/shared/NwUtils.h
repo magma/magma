@@ -47,11 +47,11 @@
   NW_ASSERT(_ptr != NULL) /**< Null pointer check \
                            */
 
-#define NW_HTONS(x) ((((x)&0xff00) >> 8) | (((x)&0x00ff) << 8))
+#define NW_HTONS(x) ((((x) & 0xff00) >> 8) | (((x) & 0x00ff) << 8))
 
-#define NW_HTONL(x)                                     \
-  ((((x)&0xff000000) >> 24) | (((x)&0x00ff0000) >> 8) | \
-   (((x)&0x0000ff00) << 8) | (((x)&0x000000ff) << 24))
+#define NW_HTONL(x)                                         \
+  ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >> 8) | \
+   (((x) & 0x0000ff00) << 8) | (((x) & 0x000000ff) << 24))
 
 #define NW_HTONLL(x)                                 \
   (((((uint64_t)x) & 0xff00000000000000ULL) >> 56) | \

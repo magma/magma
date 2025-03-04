@@ -135,13 +135,13 @@ jobs:
             echo fail > test_status_${{ inputs.test_targets }}.txt
           fi
       - name: Upload test results
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: always()
         with:
           name: test_results_${{ inputs.test_targets }}
           path: lte/gateway/test_results/**/*.xml
       - name: Upload final_status
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         if: always()
         with:
           name: test-status-${{ inputs.test_targets }}

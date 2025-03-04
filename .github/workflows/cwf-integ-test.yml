@@ -44,7 +44,7 @@ jobs:
           docker save cwf_cwag_go:latest  | gzip > cwf_cwag_go.tar.gz
           docker save cwf_gateway_go:latest | gzip > cwf_gateway_go.tar.gz
           docker save cwf_gateway_pipelined:latest | gzip > cwf_gateway_pipelined.tar.gz
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         with:
           name: docker-images
           path: images
@@ -107,7 +107,7 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
           sudo apt install virtualbox
-      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: docker-images
       - uses: geekyeggo/delete-artifact@54ab544f12cdb7b71613a16a2b5a37a9ade990af # pin@v2.0.0
@@ -134,7 +134,7 @@ jobs:
           fab integ-test --destroy-vm --transfer-images --test-result-xml=tests.xml --rerun-fails=3 --skip-docker-load --tar-path="/tmp/cwf-images"
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         with:
           name: test-results
           path: cwf/gateway/tests.xml
@@ -154,7 +154,7 @@ jobs:
           cp *.log logs/
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
         with:
           name: test-logs
           path: cwf/gateway/logs
