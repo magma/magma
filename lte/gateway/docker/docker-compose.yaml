@@ -1,3 +1,4 @@
+---
 version: "3.7"
 
 # Standard logging for each service
@@ -56,7 +57,7 @@ services:
     <<: *pyservice
     container_name: magmad
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50052"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50052" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -66,6 +67,9 @@ services:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    security_opt:
+      - apparmor=unconfined
+      - systempaths=unconfined
     command: >
       /bin/bash -c "
         /usr/bin/env python3 /usr/local/bin/generate_oai_config.py &&
@@ -75,7 +79,7 @@ services:
     <<: *pyservice
     container_name: redis
     healthcheck:
-      test: ["CMD", "redis-cli", "-p", "6380", "ping"]
+      test: [ "CMD", "redis-cli", "-p", "6380", "ping" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -90,7 +94,7 @@ services:
     depends_on:
       - redis
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50067"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50067" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -102,7 +106,7 @@ services:
     <<: *pyservice
     container_name: subscriberdb
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50051"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50051" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -114,12 +118,12 @@ services:
     <<: *pyservice
     container_name: enodebd
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "60055"]
+      test: [ "CMD", "nc", "-zv", "localhost", "60055" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
     cap_add:
-      - NET_ADMIN  # The container is invoking iptables and needs NET_ADMIN for that
+      - NET_ADMIN # The container is invoking iptables and needs NET_ADMIN for that
     environment:
       MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: /usr/bin/env python3 -m magma.enodebd.main
@@ -128,7 +132,7 @@ services:
     <<: *pyservice
     container_name: state
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50074"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50074" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -144,7 +148,7 @@ services:
     depends_on:
       - redis
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50068"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50068" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -156,7 +160,7 @@ services:
     <<: *pyservice
     container_name: health
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50080"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50080" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -168,7 +172,7 @@ services:
     <<: *pyservice
     container_name: monitord
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50076"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50076" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -182,7 +186,7 @@ services:
     <<: *pyservice
     container_name: redirectd
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50071"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50071" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -192,7 +196,7 @@ services:
     <<: *pyservice
     container_name: smsd
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50078"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50078" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -204,7 +208,7 @@ services:
     <<: *pyservice
     container_name: control_proxy
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "8443"]
+      test: [ "CMD", "nc", "-zv", "localhost", "8443" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -219,7 +223,7 @@ services:
     <<: *pyservice
     container_name: ctraced
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50079"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50079" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -233,7 +237,7 @@ services:
     ulimits:
       core: -1
     healthcheck:
-      test: ["CMD", "test", "-S", "/tmp/sctpd_downstream.sock"]
+      test: [ "CMD", "test", "-S", "/tmp/sctpd_downstream.sock" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -248,7 +252,7 @@ services:
     <<: *cservice
     container_name: oai_mme
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50073"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50073" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -284,7 +288,7 @@ services:
       - NET_RAW
       - SYS_NICE
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50063"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50063" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -306,7 +310,7 @@ services:
     depends_on:
       - directoryd
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50065"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50065" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -321,20 +325,19 @@ services:
     <<: *pyservice
     container_name: mobilityd
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "60051"]
+      test: [ "CMD", "nc", "-zv", "localhost", "60051" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
     environment:
       MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
-    command:
-      sh -c "sleep 5 && /usr/bin/env python3 -m magma.mobilityd.main"
+    command: sh -c "sleep 5 && /usr/bin/env python3 -m magma.mobilityd.main"
 
   td-agent-bit:
     <<: *pyservice
     container_name: td-agent-bit
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "5140"]
+      test: [ "CMD", "nc", "-zv", "localhost", "5140" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -343,14 +346,13 @@ services:
     environment:
       MAGMA_DEV_MODE: ${MAGMA_DEV_MODE}
     command: >
-        /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
-        /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
+      /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py && /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
 
   eventd:
     <<: *pyservice
     container_name: eventd
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50075"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50075" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -362,7 +364,7 @@ services:
     <<: *cservice
     container_name: connectiond
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50082"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50082" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -376,7 +378,7 @@ services:
     <<: *cservice
     container_name: liagentd
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50065"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50065" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
@@ -390,7 +392,7 @@ services:
     image: ${DOCKER_REGISTRY}gateway_go${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
     container_name: envoy_controller
     healthcheck:
-      test: ["CMD", "nc", "-zv", "localhost", "50081"]
+      test: [ "CMD", "nc", "-zv", "localhost", "50081" ]
       interval: "4s"
       timeout: "4s"
       retries: 3
