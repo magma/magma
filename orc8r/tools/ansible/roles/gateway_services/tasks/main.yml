@@ -55,7 +55,7 @@
       - libjansson-dev
       - libjemalloc-dev
       - libc-ares-dev
-      -nghttp2-proxy=1.31.1-1
+      - nghttp2-proxy=1.31.1-1
     state: present
   retries: 5
   when: preburn
