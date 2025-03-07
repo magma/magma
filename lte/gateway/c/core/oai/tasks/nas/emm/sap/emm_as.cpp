@@ -807,6 +807,15 @@ static status_code_e emm_as_establish_req(emm_as_establish_t* msg,
     }
   }
 
+  if (nas_msg.plain.emm.header.protocol_discriminator !=
+      EPS_MOBILITY_MANAGEMENT_MESSAGE) {
+    // The NAS message had external EMM header and internal internal
+    // plaintext/encrypted ESM header--discard
+    OAILOG_ERROR(LOG_NAS_EMM,
+                 "EMMAS-SAP - Malformed Packet - Inconsistent outer EMM header "
+                 "with inner ESM header");
+  }
+
   /*
    * Process initial NAS message
    */

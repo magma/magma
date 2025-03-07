@@ -728,7 +728,6 @@ struct ngap_message_s;
             "NGAP_FIND_PROTOCOLIE_BY_ID: %s %d: Optional ie is NULL\n",       \
             __FILE__, __LINE__);                                              \
     }                                                                         \
-    if (mandatory) DevAssert(ie != NULL);                                     \
   } while (0)
 
 /** \brief Function callback prototype.
