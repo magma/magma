@@ -64,11 +64,9 @@ The Magma materials are provided in accordance with the licenses made available 
 
 Responsible disclosures from independent researchers are gratefully accepted. See the [Security Policy](/magma/magma/security/policy) for submission details and [Security Overview for Contributors](https://github.com/magma/magma/wiki/Security-Overview-for-Contributors) to learn about other ways of contributing.
 
-We wish to acknowledge valuable disclosures by the following security researchers:
+We appreciate very much the valuable disclosures (and often fixes) from the following security researchers:
 
+- Nathaniel Bennett (University of Florida). The contributions by Mr. Bennett required deep knowledge of code, networking, security, and Magma. We're grateful.
+- Yilu Dong, Tianchang Yang, Abdullah Al Ishtiaq, Syed Md Mukit Rashid, Ali Ranjbar, Kai Tu, Tianwei Wu, Md Sultan Mahmud, Syed Rafiul Hussain (The Pennsylvania State University)
 - Guarang Maheta
 - Phi Trần
-- Nathaniel Bennett (University of Florida)
-
-The contributions by Mr. Bennett required deep knowledge of code, networking, security, and Magma. We're grateful.
-
