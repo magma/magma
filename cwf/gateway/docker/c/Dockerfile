@@ -17,7 +17,7 @@
 
 ARG OS_DIST=ubuntu OS_RELEASE=focal EXTRA_REPO=https://linuxfoundation.jfrog.io/artifactory/magma-packages-test
 
-FROM ghcr.io/magma/magma/bazel-cache-plain:latest as builder
+FROM ghcr.io/magma/magma/bazel-cache-plain:latest AS builder
 
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
