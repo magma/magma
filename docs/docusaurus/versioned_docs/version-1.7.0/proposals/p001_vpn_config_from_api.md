@@ -62,7 +62,7 @@ The goals of automating VPN setup and making it configurable are:
 ```
 
 For setting this up, we can take advantage of our terraform module configuration, to deploy and expose an OpenVPN server.
-We can deploy an OpenVPN server on kubernetes by using helm openvpn module on: <https://hub.helm.sh/charts/stable/openvpn>. This server should use persistent volume in k8s to store all the client keys mapping information.
+We can deploy an OpenVPN server on kubernetes by using helm openvpn module on: https://hub.helm.sh/charts/stable/openvpn. This server should use persistent volume in k8s to store all the client keys mapping information.
 
 ### Bootstrapper Updates
 

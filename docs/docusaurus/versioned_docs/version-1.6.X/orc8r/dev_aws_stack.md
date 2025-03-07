@@ -9,7 +9,7 @@ original_id: dev_aws_stack
 
 This document describes the Orchestrator stack when it's deployed to AWS.
 
-![orc8r_aws_stack](assets/orc8r/orc8r_aws_stack.png)
+![orc8r_aws_stack](../../../../readmes/assets/orc8r/orc8r_aws_stack.png)
 
 ## What does Terraform deploy in my AWS account?
 

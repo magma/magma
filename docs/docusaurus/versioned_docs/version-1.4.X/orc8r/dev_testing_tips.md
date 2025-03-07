@@ -41,11 +41,11 @@ to install the
 
 `Go Test` configurations should look something like
 
-![intellij_subproject_configs](assets/orc8r/intellij_subproject_configs.png)
+![intellij_subproject_configs](../../../../readmes/assets/orc8r/intellij_subproject_configs.png)
 
 `Multirun` configurations should include `go test all`, and look something like
 
-![intellij_multirun](assets/orc8r/intellij_multirun.png)
+![intellij_multirun](../../../../readmes/assets/orc8r/intellij_multirun.png)
 
 ### Install prereqs
 

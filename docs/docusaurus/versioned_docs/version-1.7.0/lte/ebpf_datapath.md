@@ -84,7 +84,7 @@ Following Diagram shows packet flow for UL direction.
     - DL ingress hook for SGi interface.
 3. PipelineD would select right map for adding session entries
 
-![eBPF datapath](ebpf-dp1.png)
+<!-- ![eBPF datapath](../../../../../readmes/assets/ebpf-dp1.png) -->
 
 ### Control path for eBPF
 
@@ -135,4 +135,4 @@ The Initial plan is to use eBPF for enforcement rules. PipelineD would determine
     - Per CPU data structures
 - Efficient use of XDP
 
-[1] <https://docs.cilium.io/en/v1.11/bpf/>
+[1] https://docs.cilium.io/en/v1.11/bpf/

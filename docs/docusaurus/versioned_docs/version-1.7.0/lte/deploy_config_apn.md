@@ -38,7 +38,7 @@ will be impacted by these changes.
 button and filling out the requested fields. After saving these changes, the
 page should refresh with the new list of APNs and their configurations.
 
-![Creating an APN Configuration](assets/nms/add_apnconfig.png)
+![Creating an APN Configuration](../../../../readmes/assets/nms/add_apnconfig.png)
 
 ## Add APN Configurations to Subscriber Profiles
 
@@ -52,7 +52,7 @@ field (screenshot below shows the view after clicking on the "Add Subscriber"
 button). Once you save the updated or new subscriber information, the APNs
 added to the subscriber profile will show be reflected on the page.
 
-![Adding subscriber with APN](assets/nms/add_apn2subscriber.png)
+![Adding subscriber with APN](../../../../readmes/assets/nms/add_apn2subscriber.png)
 
 ### Notes
 

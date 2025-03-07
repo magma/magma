@@ -11,7 +11,7 @@ original_id: alerts_troubleshooting
 
 ### Description
 
-S1 setup connections are failing within network <network_id>, which means that the eNodeBs are not able to get provisioned with this network.
+S1 setup connections are failing within network <network_id></network_id>, which means that the eNodeBs are not able to get provisioned with this network.
 
 ### Why is this important?
 
@@ -58,7 +58,7 @@ Network, eNodeB, Gateway, Subscribers.
 
 ### Description
 
-S1 setup connections are failing within network <network_id>, which means that the eNodeBs are not able to get provisioned with this network.
+S1 setup connections are failing within network <network_id></network_id>, which means that the eNodeBs are not able to get provisioned with this network.
 
 ### Why is this important?
 
@@ -79,7 +79,9 @@ Subscribers will not be able to access the services.
 2. Make sure that configuration for [Gateway](https://magma.github.io/magma/docs/lte/deploy_config_agw), [eNodeB](https://magma.github.io/magma/docs/lte/deploy_config_enodebd) and [APN](https://magma.github.io/magma/docs/lte/deploy_config_apn)has been followed.
 3. Please follow troubleshooting steps from [here](https://magma.github.io/magma/docs/howtos/troubleshooting/user_unable_to_attach) for issue Gateway. Please note the error code.
 4. Please check mme logs, verify if the service request failures are coming from a specific user/device/model/firmware.
+```promql
 5. You may use PromQL _ue_attach{networkID=&lt;NetworkID>,result="failure"}_ to isolate further.
+```
 6. If required, please consider rebooting the problematic device (this should be done in minimal traffic duration).
 7. If still not resolved, then capture trace on eth1 interface on issue Gateway(s) to identify the case.
 8. If issue persists then get higher level support by providing relevant traces/logs and [additional files](https://magma.github.io/magma/docs/lte/debug_show_tech). Report issue with eNodeB (vendor, firmware etc) and Magma node details along with any issue found in step 6.

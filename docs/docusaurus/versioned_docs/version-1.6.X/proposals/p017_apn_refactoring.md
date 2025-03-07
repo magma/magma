@@ -36,7 +36,7 @@ Currently two main issues exists in the way APNs are handled
 * APN resource configuration is too tightly coupled with Subscriberdb data models. This makes any further changes to APN config hard and unnecessarily affects subscriber data models.
 
 ## **Existing Implementation**
-![existing](assets/proposals/p017/apn_old.png)
+![existing](../../../../readmes/assets/proposals/p017/apn_old.png)
 
 ### **Orc8r**
 
@@ -48,12 +48,12 @@ Currently two main issues exists in the way APNs are handled
 * Subscriberdb holds the APN config for each subscriber as it gets streamed down from the orc8r.
 * During subscriber session set up, we have two distinct workflows
 
-1. Configure APN transport configuration into OVS((MME <-> Mobilityd <-> Subscriberdb)
+1. Configure APN transport configuration into OVS(MME <  > Mobilityd <  > Subscriberdb)
 
 * Mobilityd gets APN resource config from subscriberdb and passes transport information to MME.
 * MME controller pushes this vlan tagging information to OVS(table 0)
 
-1. Configure APN QOS information into OVS (PolicyDB, MME <-> Sessiond <-> Pipelined)
+1. Configure APN QOS information into OVS (PolicyDB, MME <  > Sessiond <  > Pipelined)
     1. MME pushes APN AMBR information to sessiond
     2. PolicyDB pushes per subscriber APN specific rules to sessiond
     3. Sessiond combines both this information and builds the flow request to pipelined
@@ -87,7 +87,7 @@ gateway_apn_config
 
 ## Implementation
 
-![new](assets/proposals/p017/apn_new.png)
+![new](../../../../readmes/assets/proposals/p017/apn_new.png)
 
 ### Orc8r
 

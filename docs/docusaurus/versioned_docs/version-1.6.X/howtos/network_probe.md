@@ -15,12 +15,12 @@ Current architecture leverages both AGW and Orc8r to deliver the magma LI featur
 
 The high level design is described in the picture below,
 
-![Network Probe Architecture](assets/lte/network_probe_architecture.png "Network Probe Architecture")
+![Network Probe Architecture](../../../../readmes/assets/lte/network_probe_architecture.png "Network Probe Architecture")
 
 The LI feature can be summarized as follow,
 
 ## X1 Interface:
-It relies on the Orc8r Swagger API to configure intercept tasks and destinations. This interface uses Json content and thus is not 3GPP complaint. An external solution (nprobe-proxy) can handle the translation 3GPP (XML based) <-> Orc8r Swagger When required.
+It relies on the Orc8r Swagger API to configure intercept tasks and destinations. This interface uses Json content and thus is not 3GPP complaint. An external solution (nprobe-proxy) can handle the translation 3GPP (XML based) <  > Orc8r Swagger When required.
 
 Swagger nprobe endpoints allow the following,
 
