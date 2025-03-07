@@ -8,16 +8,16 @@ Currently working on arm64 kvm-qemu VM host.
 
 The following table list the configurable parameters of the agw chart and their default values.
 
-| Parameter        | Description     | Default   |
-| ---              | ---             | ---       |
-| `secret.certs` | Secret name containing agwc certs. | `agwc-secrets-certs` |
-| `image.repository` | Repository for agwc images. | `` |
-| `image.pullPolicy` | Pull policy for agwc images. | `` |
-| `image.tag` | Tag for agwc image. | `latest` |
-| `image.arch` | Tag for node architecture (e.g., arm). | `` |
-| `config.domainName` | Orchestrator domain name. | `` |
-| `persistant.name` | Secret name containing agwc certs. | `agwc-claim` |
-| `config.gwChallenge` | Challenge key. | `` |
+| Parameter            | Description                            | Default              |
+| -------------------- | -------------------------------------- | -------------------- |
+| `secret.certs`       | Secret name containing agwc certs.     | `agwc-secrets-certs` |
+| `image.repository`   | Repository for agwc images.            | ``                   |
+| `image.pullPolicy`   | Pull policy for agwc images.           | ``                   |
+| `image.tag`          | Tag for agwc image.                    | `latest`             |
+| `image.arch`         | Tag for node architecture (e.g., arm). | ``                   |
+| `config.domainName`  | Orchestrator domain name.              | ``                   |
+| `persistant.name`    | Secret name containing agwc certs.     | `agwc-claim`         |
+| `config.gwChallenge` | Challenge key.                         | ``                   |
 
 ## Prerequisites
 
@@ -60,13 +60,14 @@ For `image.arch`, use `arm` or leave blank for x86
 # Create rootca certificate secret needed to communicate with orc8r
 
 ```sh
-~ kubectl create secret generic agwc-secret-certs --from-file=rootCA.pem=rootCA.pem --namespace magma
+~ kubectl create secret generic agwc-secret-certs --from-file=rootCA.pem --namespace magma
 ```
 
 # Deploy an AGW after updating values.yaml
 
 ```sh
 ~ cd lte/gateway/deploy/agwc-helm-charts
+~ kubectl apply -f templates/agwc-pv.yaml
 ~ helm --debug install agwc --namespace magma . --values=values.yaml
 ```
 

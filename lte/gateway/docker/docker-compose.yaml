@@ -53,6 +53,33 @@ x-agw-c-service: &cservice
   image: ${DOCKER_REGISTRY}agw_gateway_c${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
 
 services:
+  gateway_ovs:
+    build:
+      context: ${BUILD_CONTEXT}
+      dockerfile: lte/gateway/docker/services/openvswitch/Dockerfile
+    image: ${DOCKER_REGISTRY}agw_gateway_ovs${OPTIONAL_ARCH_POSTFIX}:${IMAGE_VERSION}
+    profiles: [ ovs ]
+    privileged: true
+    container_name: openvswitch-switch
+    command: "load-modules-and-start-ovs"
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh" ]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/network:/etc/network # shared ifupdown files with the host
+      - /var/run/openvswitch/:/var/run/openvswitch/ # run time files shared between ovs and magmad
+      - /lib/modules:/lib/modules # used to load/unload modules in hosts kernel
+      - /etc/openvswitch:/etc/openvswitch
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    network_mode: host
+
   magmad:
     <<: *pyservice
     container_name: magmad
@@ -278,6 +305,9 @@ services:
     container_name: pipelined
     security_opt:
       - seccomp:unconfined
+    depends_on:
+      gateway_ovs:
+        condition: service_healthy
     privileged: true
     environment:
       MAGMA_PRINT_GRPC_PAYLOAD: 0
@@ -405,6 +435,8 @@ services:
   waitForHealthyPods:
     image: alpine:latest
     depends_on:
+      gateway_ovs:
+        condition: service_healthy
       magmad:
         condition: service_healthy
       redis:

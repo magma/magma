@@ -1,0 +1,203 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# tasks for agw worker nodes
+- name: Include vars
+  include_vars:
+    file: all.yaml
+
+- name: Checking if Ubuntu 20.04 is installed
+  ansible.builtin.meta: end_host
+  when:
+    - ansible_distribution != 'Ubuntu'
+    - ansible_distribution_version != '20.04'
+
+- name: Apt purge unattended upgrades
+  shell: apt purge --auto-remove unattended-upgrades -y
+
+- name: Hold aws linux headers packages
+  shell: apt-mark hold {{ ansible_kernel }} linux-aws linux-headers-aws linux-image-aws
+
+- name: Enable service networking and ensure it is not masked
+  systemd:
+    name: networking
+    enabled: true
+    masked: no
+
+- name: Update DNS resolvers
+  script: update_dns_resolvers.sh
+
+- name: Create interfaces.d if it does not exist
+  file:
+    path: /etc/network/interfaces.d
+    state: directory
+
+- name: Point interfaces to interfaces.d directory
+  copy:
+    dest: /etc/network/interfaces
+    content: |
+      source-directory /etc/network/interfaces.d
+
+- name: Clone magma github repository
+  git:
+    repo: https://github.com/magma/magma.git
+    dest: /opt/magma
+    clone: yes
+    update: yes
+    version: v1.9
+
+- name: Add key for magma registry
+  ansible.builtin.copy:
+    src: "roles/magma_deploy/files/{{ magma_pkgrepo_key }}"
+    dest: /etc/apt/trusted.gpg.d/magma.asc
+
+- name: Configure the registry in sources.list.d
+  ansible.builtin.apt_repository:
+    repo: "deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path }} {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}"
+    filename: magma
+    state: present
+    update_cache: true
+
+- name: Install networking utils.
+  apt:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - ifupdown
+      - bridge-utils
+      - net-tools
+
+- name: Set network intefaces fact
+  vars:
+    iface_prefix: "en"
+  set_fact:
+    cur_ifaces: "{{ ansible_interfaces | select('match', iface_prefix ~ '.*') | sort | list }}"
+
+- name: Check netplan configuration files
+  find:
+    paths: /etc/netplan
+    file_type: file
+    read_whole_file: true
+    contains: "{{ item }}"
+  register: file_match
+  loop: "{{ cur_ifaces }}"
+
+- name: Set grup options
+  shell: sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+  when: cur_ifaces | length > 0
+
+- name: Rename network interfaces
+  ansible.builtin.replace:
+    path: "{{ item.files.0.path }}"
+    regexp: '(\s+){{ item.invocation.module_args.contains }}:(\s+.*)?'
+    replace: '\1eth{{ iface_idx }}:\2'
+    backup: no
+  loop: "{{ file_match.results }}"
+  loop_control:
+    index_var: iface_idx
+  when: cur_ifaces | length > 0
+
+- name: Update grup configuration
+  shell: update-grub2
+  when: cur_ifaces | length > 0
+
+- name: Netplan apply
+  shell: netplan apply
+  when: cur_ifaces | length > 0
+
+- name: Install prebuilt openvswitch packages
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - libopenvswitch
+      - openvswitch-datapath-dkms
+      - openvswitch-datapath-source
+      - openvswitch-common
+      - openvswitch-switch
+
+- name: Stop and disable service openvswitch-switch.
+  service:
+    name: openvswitch-switch
+    state: stopped
+    enabled: false
+
+- name: Install kernel headers for ovs
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - linux-headers-{{ ansible_kernel }}
+
+- name: Copy necessary files for ovs
+  copy:
+    src={{ item.src }}
+    dest={{ item.dest }}
+    mode=0755
+  with_items:
+    - { src: 'roles/magma/files/magma_ifaces_gtp', dest: '/etc/network/interfaces.d/gtp' }
+    - { src: 'roles/magma/files/magma_modules_load', dest: '/etc/modules-load.d/magma.conf' }
+
+- name: Preload ip6_udp_tunnel module
+  community.general.modprobe:
+    name: ip6_udp_tunnel
+    state: present
+
+- name: Preload GTP module
+  community.general.modprobe:
+    name: gtp
+    state: present
+
+- name: create directories for magma configs and files
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "/var/opt/magma"
+    - "/var/opt/magma/configs"
+    - "/var/opt/magma/configs/tmp"
+    - "/var/opt/magma/certs"
+    - "/etc/magma"
+    - "/etc/magma/templates/"
+    - "/var/opt/magma/docker"
+
+- name: Create openvswitch directory
+  file:
+    path: /etc/openvswitch
+    state: directory
+
+- name: touch snowflake
+  shell: touch /etc/snowflake
+
+- name: copy the config files for magma
+  shell: cp -r  /opt/magma/lte/gateway/configs/* /etc/magma/
+
+- name: copy the config files for orchestrator
+  shell: cp -r  /opt/magma/orc8r/gateway/configs/templates/* /etc/magma/templates/
+
+- name: update nat interface
+  shell: cp -f /etc/magma/pipelined.yml_prod /etc/magma/pipelined.yml
+
+- name: copy the python scripts
+  shell: cp -r /opt/magma/lte/gateway/python/scripts/* /usr/local/bin/
+
+- name: Wait for server to restart
+  reboot:
+    reboot_timeout: 300
+  when: cur_ifaces | length > 0
+
+- name: Join worker to cluster
+  shell: "{{ hostvars['127.0.0.1']['join_command'] }} >> node_joined.log"
+  args:
+    chdir: /home/{{ kube_admin_username }}
+    creates: node_joined.log

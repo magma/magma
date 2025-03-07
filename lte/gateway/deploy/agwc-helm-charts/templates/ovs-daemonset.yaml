@@ -1,0 +1,58 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: ovs-daemonset
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/component: ovs-daemonset
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: ovs-daemonset
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: ovs-daemonset
+{{ include "default-selector-labels" . | indent 6 }}
+{{ include "image-version-label" . | indent 6 }}
+    spec:
+      containers:
+        - name: ovs-daemonset
+          image: "{{ .Values.image.repository }}/agw_gateway_ovs{{ .Values.image.arch}}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          # imagePullPolicy: Always
+          command: ["/entrypoint.sh", "load-modules-only"]
+          resources: {}
+          securityContext:
+            privileged: true
+            capabilities:
+              add:
+                - NET_ADMIN
+                - NET_RAW
+                - SYS_MODULE
+          volumeMounts:
+            - mountPath: /lib/modules
+              name: lib-modules
+            - mountPath: /usr/src
+              name: usr-src
+          hostNetwork: true
+      volumes:
+        - name: lib-modules
+          hostPath:
+            path: /lib/modules
+        - name: usr-src
+          hostPath:
+            path: /usr/src
