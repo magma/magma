@@ -1,7 +1,7 @@
 server {
   listen 443 ssl;
-  ssl_certificate /var/opt/magma/certs/nms/tls.crt;
-  ssl_certificate_key /var/opt/magma/certs/nms/tls.key;
+  ssl_certificate /etc/nginx/conf.d/nms_nginx.pem;
+  ssl_certificate_key /etc/nginx/conf.d/nms_nginx.key.pem;
   location / {
      proxy_pass http://magmalte:8081;
      proxy_set_header Host $http_host;
