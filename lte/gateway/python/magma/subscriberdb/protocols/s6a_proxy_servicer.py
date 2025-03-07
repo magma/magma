@@ -39,6 +39,19 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         s6a_proxy_pb2_grpc.add_S6aProxyServicer_to_server(self, server)
 
     def AuthenticationInformation(self, request, context):
+        """
+        Handle the Authentication Information request.
+        Retrieves user information from the request, performs authentication operations,
+        increments success/failure metrics, and logs the outcome.
+        Returns an Authentication Information Answer message.
+
+        Args:
+            request: AuthenticationInformationRequest message
+            context: gRPC context
+
+        Returns:
+            AuthenticationInformationAnswer message
+        """
         print_grpc(request, self._print_grpc_payload, "AIR:")
         imsi = request.user_name
         aia = s6a_proxy_pb2.AuthenticationInformationAnswer()
@@ -95,6 +108,17 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             print_grpc(aia, self._print_grpc_payload, "AIA:")
 
     def UpdateLocation(self, request, context):
+        """
+        Update the location of a subscriber based on the request information.
+
+        Args:
+            self: The object instance.
+            request: The request object containing user information.
+            context: The context of the request.
+
+        Returns:
+            s6a_proxy_pb2.UpdateLocationAnswer: The answer containing the updated location information.
+        """
         print_grpc(request, self._print_grpc_payload, "ULR:")
         imsi = request.user_name
         ula = s6a_proxy_pb2.UpdateLocationAnswer()
@@ -124,6 +148,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         for apn in sub_data.non_3gpp.apn_config:
             sec_apn = ula.apn.add()
             sec_apn.context_id = context_id
+            if apn.is_default:
+                ula.default_context_id = context_id
             context_id += 1
             sec_apn.service_selection = apn.service_selection
             sec_apn.qos_profile.class_id = apn.qos_profile.class_id
@@ -151,6 +177,17 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         return ula
 
     def PurgeUE(self, request, context):
+        """
+        Handle a PurgeUE request.
+
+        Args:
+            self: The class instance.
+            request: The request object containing information about the PurgeUE request.
+            context: The context of the RPC call.
+
+        Returns:
+            s6a_proxy_pb2.PurgeUEAnswer: The response containing the result of the PurgeUE operation.
+        """
         logging.warning(
             "Purge request not implemented: %s %s",
             request.DESCRIPTOR.full_name, MessageToJson(request),
@@ -159,10 +196,17 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         print_grpc(pur, self._print_grpc_payload, "PUR:")
         return pur
 
-    @staticmethod
-    def encode_msisdn(msisdn: str) -> bytes:
-        # Mimic how the MSISDN is encoded in ULA : 3GPP TS 29.329-f10
-        # For odd length MSISDN pad it with an extra 'F'/'1111'
+    def encode_msisdn(self, msisdn: str) -> bytes:
+        """
+        Mimic how the MSISDN is encoded in ULA : 3GPP TS 29.329-f10
+        For odd length MSISDN pad it with an extra 'F'/'1111'
+
+        Args:
+            msisdn: The MSISDN to encode.
+
+        Returns:
+            bytes: The encoded MSISDN.
+        """
         if len(msisdn) % 2 != 0:
             msisdn = msisdn + "F"
         result = []

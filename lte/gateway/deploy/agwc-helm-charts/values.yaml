@@ -25,6 +25,7 @@ image:
 
 config:
   domainName: iot.magmacore.click
+  gwChallenge: 
 
 persistent:
   name: agwc-claim

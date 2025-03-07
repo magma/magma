@@ -172,6 +172,7 @@ const mockApns: Record<string, Apn> = {
         preemption_vulnerability: false,
         priority_level: 15,
       },
+      is_default: false,
     },
     apn_name: 'oai.ipv4',
   },

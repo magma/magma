@@ -29,6 +29,7 @@ import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
 import Text from '../../theme/design-system/Text';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
+import {Checkbox, FormControlLabel} from '@mui/material';
 import {getErrorMessage} from '../../util/ErrorUtils';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '../../hooks/useSnackbar';
@@ -46,6 +47,7 @@ const DEFAULT_APN_CONFIG = {
       preemption_vulnerability: false,
       priority_level: 15,
     },
+    is_default: false,
     pdn_type: 0,
   },
   apn_name: '',
@@ -119,6 +121,10 @@ export function ApnEdit(props: Props) {
     props.apn?.apn_configuration?.pdn_type ||
       DEFAULT_APN_CONFIG.apn_configuration.pdn_type,
   );
+  const [isDefault, setIsDefault] = useState(
+    props.apn?.apn_configuration?.is_default ||
+      DEFAULT_APN_CONFIG.apn_configuration.is_default,
+  );
 
   const onSave = async () => {
     if (apn.apn_name === '') {
@@ -136,6 +142,7 @@ export function ApnEdit(props: Props) {
           ambr: maxBandwidth,
           qos_profile: qosProfile,
           pdn_type: pdnType,
+          is_default: isDefault,
         },
       };
       await ctx.setState(newApn.apn_name, newApn);
@@ -253,6 +260,19 @@ export function ApnEdit(props: Props) {
                   });
                 }}
                 checked={qosProfile.preemption_capability}
+              />
+            </AltFormField>
+            <AltFormField label={'Is Default'}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isDefault}
+                    onChange={({target}) => setIsDefault(target.checked)}
+                    name="isDefault"
+                    color="primary"
+                  />
+                }
+                label="Is Default"
               />
             </AltFormField>
             <AltFormField label={'ARP Pre-emption-Vulnerability'}>

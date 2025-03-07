@@ -28,8 +28,8 @@ satisfies the following requirements:
 >   interface to `eth0`.
 >
 > - If you do not want all internet traffic to go through `enp1s0`
->  to separate control plane (Orc8r Http2 traffic) from user plane, you
->  may want to add another interface and configure proper routing.
+>   to separate control plane (Orc8r Http2 traffic) from user plane, you
+>   may want to add another interface and configure proper routing.
 
 ## Deployment
 

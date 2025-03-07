@@ -6690,6 +6690,10 @@ definitions:
     properties:
       ambr:
         $ref: '#/definitions/aggregated_maximum_bitrate'
+      is_default:
+        default: false
+        description: Is this the default APN?
+        type: boolean
       pdn_type:
         description: Value identifier for PDN type (0=IPv4 1=IPv6 2=IPv4v6 3=IPv4orv6)
         enum:

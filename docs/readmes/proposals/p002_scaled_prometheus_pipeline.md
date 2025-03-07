@@ -27,17 +27,17 @@ On prod we currently have ~347 active gateways, and ~105k metric series
 
 Query times for PromQL query `count({__name__=~".+"})`
 
-|Time Range |Query Time |
-|--- |--- |
-|1m |3141ms |
-|5m |7801ms |
-|15m |6966ms |
-|30m |6025ms |
-|1h |6153ms |
-|2h |8186ms |
-|6h |11957ms |
-|12h |17983ms |
-|1d |TIMEOUT |
+| Time Range | Query Time |
+| ---------- | ---------- |
+| 1m         | 3141ms     |
+| 5m         | 7801ms     |
+| 15m        | 6966ms     |
+| 30m        | 6025ms     |
+| 1h         | 6153ms     |
+| 2h         | 8186ms     |
+| 6h         | 11957ms    |
+| 12h        | 17983ms    |
+| 1d         | TIMEOUT    |
 
 Even the smallest query range takes over 3 seconds, and over any significant period of time the query times out. This is definitely not “snappy” and will not provide a good user experience with a large network. This data fits in with prometheus recommendations that queries should not have more than ~100k series.
 
@@ -51,7 +51,7 @@ Time to load grafana dashboard on prod NMS: **>15s**from click until all graphs 
 
 ### Thanos
 
-[Thanos](https://improbable.io/blog/thanos-prometheus-at-scale) is a very popular project which allows for easy and customizable scaling of prometheus monitoring pipelines. From the start, I believe this will be the easiest and most powerful solution to the problem. Thanos consists of several components, all of which can be used independently. The most relevant to us is the `Querier` which allows for the querying of data across multiple prometheus servers. A simple architecture diagram from Thanos shows how this works in a typical deployment:
+Thanos is a very popular project which allows for easy and customizable scaling of prometheus monitoring pipelines. From the start, I believe this will be the easiest and most powerful solution to the problem. Thanos consists of several components, all of which can be used independently. The most relevant to us is the `Querier` which allows for the querying of data across multiple prometheus servers. A simple architecture diagram from Thanos shows how this works in a typical deployment:
 ![image.png](assets/proposals/p002_scaled_prometheus_pipeline/image.png)Here we see multiple prometheus servers with the Thanos `sidecar` attached. This allows for the rest of the thanos components to work together. Then, the `Querier` components are able to accept PromQL queries and retrieve data from any set of the prometheus servers.
 
 With this setup, we only need to deploy the Thanos `sidecar` and multiple `Querier` components, along with Object storage to achieve faster queries.
@@ -110,11 +110,11 @@ In the end if we can't get enough performance out of a single edge-hub, we will 
 
 ## Development Plan
 
-|Step |Est. Time |
-|--- |--- |
-|Deploy Thanos locally and experiment with loads to validate query time improvements |2 wk |
-|Deploy Thanos with a single prometheus server in Orchestrator to test that the Querier and sidecar don’t cause any unexpected side effects. |1 wk |
-|Add Object storage |2 wk |
-|Investigate performance improvements in prometheus-edge-hub | 2 wk |
-|Configure helm chart |2 wk |
-|Deploy to staging/prod |1 wk |
+| Step                                                                                                                                        | Est. Time |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| Deploy Thanos locally and experiment with loads to validate query time improvements                                                         | 2 wk      |
+| Deploy Thanos with a single prometheus server in Orchestrator to test that the Querier and sidecar don’t cause any unexpected side effects. | 1 wk      |
+| Add Object storage                                                                                                                          | 2 wk      |
+| Investigate performance improvements in prometheus-edge-hub                                                                                 | 2 wk      |
+| Configure helm chart                                                                                                                        | 2 wk      |
+| Deploy to staging/prod                                                                                                                      | 1 wk      |
