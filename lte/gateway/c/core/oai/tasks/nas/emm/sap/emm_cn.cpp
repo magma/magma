@@ -562,7 +562,7 @@ static status_code_e emm_cn_cs_response_success(
   OAILOG_DEBUG(LOG_NAS_EMM, "EMM  -  qos.gbrDL = %u \n", msg_pP->qos.gbrDL);
   qos.bitRatesPresent = 0;
   qos.bitRatesExtPresent = 0;
-  //#pragma message "Some work to do here about qos"
+  // #pragma message "Some work to do here about qos"
   qos.qci = msg_pP->qci;
   qos.bitRates.maxBitRateForUL = msg_pP->qos.mbrUL;
   qos.bitRates.maxBitRateForDL = msg_pP->qos.mbrDL;

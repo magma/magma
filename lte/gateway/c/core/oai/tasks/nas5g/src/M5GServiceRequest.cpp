@@ -23,8 +23,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5gNasMessage.h"
 
 namespace magma5g {
-ServiceRequestMsg::ServiceRequestMsg(){};
-ServiceRequestMsg::~ServiceRequestMsg(){};
+ServiceRequestMsg::ServiceRequestMsg() {};
+ServiceRequestMsg::~ServiceRequestMsg() {};
 
 // Decode ServiceRequest Messsage
 int ServiceRequestMsg::DecodeServiceRequestMsg(ServiceRequestMsg* svc_req,

@@ -120,9 +120,9 @@ static int ngap_amf_compare_plmn(
           ret = TA_LIST_AT_LEAST_ONE_MATCH;
           break;
         }  // Slice Found in plmn_support list
-      }    // Plmn found in support list
-    }      // Loop through plmn support list
-  }        // Plmn Match Found
+      }  // Plmn found in support list
+    }  // Loop through plmn support list
+  }  // Plmn Match Found
 
   amf_config_unlock(&amf_config);
   OAILOG_FUNC_RETURN(LOG_NGAP, ret);

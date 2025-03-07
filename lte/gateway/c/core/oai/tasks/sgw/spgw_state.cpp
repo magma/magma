@@ -117,7 +117,7 @@ void spgw_free_s11_bearer_context_information(void** ptr) {
       context_p->clear_sgw_eps_bearer_context();
       context_p->clear_pgw_eps_bearer_context();
     }  // end of s11_bearer_context_p
-  }    // end of ptr
+  }  // end of ptr
   free_cpp_wrapper(ptr);
 }
 

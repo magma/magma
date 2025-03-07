@@ -17,8 +17,8 @@ limitations under the License.
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/ies/M5GPDUSessionStatus.hpp"
 
 namespace magma5g {
-M5GPDUSessionStatus::M5GPDUSessionStatus(){};
-M5GPDUSessionStatus::~M5GPDUSessionStatus(){};
+M5GPDUSessionStatus::M5GPDUSessionStatus() {};
+M5GPDUSessionStatus::~M5GPDUSessionStatus() {};
 
 int M5GPDUSessionStatus::EncodePDUSessionStatus(
     M5GPDUSessionStatus* pduSessionStatus, uint8_t iei, uint8_t* buffer,

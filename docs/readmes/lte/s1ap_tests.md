@@ -133,7 +133,7 @@ restarts.
     1. `cd /etc/systemd/system`
     1. comment out the line `PartOf=magma@mme.service` from the following files
  (you will need sudo privileges):\
- magma@mobilityd.service, magma@pipelined.service, magma@sessiond.service and
+ `magma@mobilityd.service`, `magma@pipelined.service`, `magma@sessiond.service` and
 sctpd.service
     1. `sudo systemctl daemon-reload`
 

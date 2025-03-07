@@ -211,7 +211,7 @@ class AMFClientServicer : public AMFClientServicerBase {
 #endif /* MME_UNIT_TEST */
 
  private:
-  AMFClientServicer(){};
+  AMFClientServicer() {};
 };
 
 }  // namespace magma5g

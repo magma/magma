@@ -4,8 +4,6 @@ Author(s): [@arsenii-oganov]
 
 Last updated: 03/18/2022
 
-Link to detailed discussion doc: <https://docs.google.com/document/d/1_uYf7372V1Rs7I4QPbTuizou2ONuXsEYRqb7mdwOj48/edit>
-
 ## 1 Background and Objective
 
 The objective of this proposal is to extend Magma components to add support for settlement interfaces to bridge the gap between traditional roaming settlement based on Gy interface on Home PGW and new requirements of packet purchasing managed by the Magma core.
