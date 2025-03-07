@@ -16,15 +16,16 @@
 name: DP Lint & Test
 
 on:
-  push:
-    branches:
-      - master
-      - 'v1.*'
-  pull_request:
-    branches:
-      - master
-      - 'v1.*'
-    types: [ opened, reopened, synchronize ]
+  workflow_dispatch:
+    #push:
+    #branches:
+    #- master
+    #- 'v1.*'
+    #pull_request:
+    #branches:
+    #- master
+    #- 'v1.*'
+    #types: [ opened, reopened, synchronize ]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
