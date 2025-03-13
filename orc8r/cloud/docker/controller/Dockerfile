@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------------
 ARG PLATFORM=linux/amd64
 
-FROM --platform=$PLATFORM ubuntu:focal as base
+FROM --platform=$PLATFORM ubuntu:focal AS base
 
 ENV GO111MODULE on
 ENV GOPATH ${USER}/go
@@ -64,7 +64,7 @@ RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1
 # ------------------------------------------------------------------------------
 # Gocache: cache Go modules
 # ------------------------------------------------------------------------------
-FROM base as gocache
+FROM base AS gocache
 
 ARG MAGMA_MODULES="orc8r lte feg cwf dp"
 RUN echo "export GOCACHE_MODULES=\"$(for m in $MAGMA_MODULES ; do echo -n /gomod/src/magma/$m ; echo -n ' ' ; done)\"" >> /etc/profile.d/env.sh
@@ -76,7 +76,7 @@ RUN . /etc/profile.d/env.sh && for m in $GOCACHE_MODULES ; do cd ${m}/cloud/go &
 # ------------------------------------------------------------------------------
 # Src: different src depending on MAGMA_MODULES
 # ------------------------------------------------------------------------------
-FROM gocache as src
+FROM gocache AS src
 
 ARG MAGMA_MODULES="orc8r lte feg cwf dp"
 RUN echo "export MAGMA_MODULES=\"$(for m in $MAGMA_MODULES ; do echo -n /src/magma/$m ; echo -n ' ' ; done)\"" >> /etc/profile.d/env.sh
@@ -92,7 +92,7 @@ COPY configs /etc/magma/configs
 # ------------------------------------------------------------------------------
 # Builder: compile src
 # ------------------------------------------------------------------------------
-FROM src as builder
+FROM src AS builder
 
 RUN . /etc/profile.d/env.sh && make build
 

@@ -10,7 +10,7 @@
 # limitations under the License.
 
 ARG ENV=standard
-FROM python:3.9.2-slim-buster as protos-generator
+FROM python:3.9.2-slim-buster AS protos-generator
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl zip make unzip
 RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.10.0/protoc-3.10.0-linux-x86_64.zip \
@@ -34,7 +34,7 @@ COPY ./dp $MAGMA_ROOT/dp/
 WORKDIR /magma/dp
 RUN mkdir -p $PYTHON_BUILD && make protos
 
-FROM python:3.9.2-slim-buster as standard-version
+FROM python:3.9.2-slim-buster AS standard-version
 
 COPY dp/cloud/python/magma/test_runner/requirements.txt /dp/cloud/python/magma/test_runner/requirements.txt
 RUN pip3 install --upgrade pip --no-cache-dir -r dp/cloud/python/magma/test_runner/requirements.txt
