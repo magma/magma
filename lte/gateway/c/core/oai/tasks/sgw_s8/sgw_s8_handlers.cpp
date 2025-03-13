@@ -614,9 +614,9 @@ static void insert_sgw_cp_and_up_teid_to_directoryd(sgw_state_t* sgw_state,
                     ->s_gw_teid_S5_S8_up;
           }
         }  // end of bearer list
-      }    // check for sgw_session_ctxt_p
-    }      // switch based on teid type
-  }        // end of s11_teid_list
+      }  // check for sgw_session_ctxt_p
+    }  // switch based on teid type
+  }  // end of s11_teid_list
 
   char separator = ',';
   for (uint8_t idx = 0; idx < teid_list_idx; idx++) {

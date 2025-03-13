@@ -21,8 +21,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-SecurityModeCompleteMsg::SecurityModeCompleteMsg(){};
-SecurityModeCompleteMsg::~SecurityModeCompleteMsg(){};
+SecurityModeCompleteMsg::SecurityModeCompleteMsg() {};
+SecurityModeCompleteMsg::~SecurityModeCompleteMsg() {};
 
 // Decode SecurityModeComplete Message and its IEs
 int SecurityModeCompleteMsg::DecodeSecurityModeCompleteMsg(

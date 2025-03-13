@@ -93,6 +93,7 @@ jobs:
         run: |
           c_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_c
           python_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python
+          ovs_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_ovs
           go_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go
 
           echo image_tag=${commit_hash} >> $GITHUB_OUTPUT
@@ -100,10 +101,12 @@ jobs:
           then
             echo c_image_tags=${c_image}:${commit_hash},${c_image}:latest >> $GITHUB_OUTPUT
             echo python_image_tags=${python_image}:${commit_hash},${python_image}:latest >> $GITHUB_OUTPUT
+            echo ovs_image_tags=${ovs_image}:${commit_hash},${ovs_image}:latest >> $GITHUB_OUTPUT
             echo go_image_tags=${go_image}:${commit_hash},${go_image}:latest >> $GITHUB_OUTPUT
           else
             echo c_image_tags=${c_image}:${commit_hash} >> $GITHUB_OUTPUT
             echo python_image_tags=${python_image}:${commit_hash} >> $GITHUB_OUTPUT
+            echo ovs_image_tags=${ovs_image}:${commit_hash} >> $GITHUB_OUTPUT
             echo go_image_tags=${go_image}:${commit_hash} >> $GITHUB_OUTPUT
           fi
 
@@ -111,6 +114,7 @@ jobs:
         run: |
           echo "C image: ${{ steps.set-agwc-tags.outputs.c_image_tags }}"
           echo "Python image: ${{ steps.set-agwc-tags.outputs.python_image_tags }}"
+          echo "OVS image: ${{ steps.set-agwc-tags.outputs.ovs_image_tags }}"
           echo "Go image: ${{ steps.set-agwc-tags.outputs.go_image_tags }}"
 
       - uses: ./.github/workflows/composite/docker-builder-agw
@@ -134,6 +138,16 @@ jobs:
           TAGS: ${{ steps.set-agwc-tags.outputs.python_image_tags }}
           TARGET: gateway_python
       - run: echo "docker-builder-python conclusion = ${{ steps.docker-builder-python.conclusion }}"
+      - uses: ./.github/workflows/composite/docker-builder-agw
+        id: docker-builder-ovs
+        with:
+          REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
+          REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
+          REGISTRY: ${{ env.registry }}
+          FILE: lte/gateway/docker/services/openvswitch/Dockerfile
+          TAGS: ${{ steps.set-agwc-tags.outputs.ovs_image_tags }}
+          TARGET: gateway_ovs
+      - run: echo "docker-builder-ovs conclusion = ${{ steps.docker-builder-ovs.conclusion }}"
 
       - uses: ./.github/workflows/composite/docker-builder-agw
         id: docker-builder-go
@@ -233,35 +247,35 @@ jobs:
         run: mkdir -p lte/gateway/test_results
 
       - name: Download test results of precommit tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test_results_precommit
           path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of precommit tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test-status-precommit
 
       - name: Download test results of extended tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test_results_extended_tests
           path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of of extended tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test-status-extended_tests
 
       - name: Download test results of long extended tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test_results_extended_tests_long
           path: "${{ github.workspace }}/lte/gateway/test_results"
 
       - name: Download final status of of long extended tests
-        uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
         with:
           name: test-status-extended_tests_long
 

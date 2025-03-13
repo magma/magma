@@ -365,7 +365,7 @@ status_code_e emm_proc_identification_complete(const mme_ue_s1ap_id_t ue_id,
       rc = emm_sap_send(&emm_sap);
 
     }  // else ignore the response if procedure not found
-  }    // else ignore the response if ue context not found
+  }  // else ignore the response if ue context not found
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

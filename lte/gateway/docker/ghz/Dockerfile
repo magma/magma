@@ -40,7 +40,7 @@ WORKDIR ${MAGMA_ROOT}/ghz
 
 RUN make build
 
-FROM ${REPO_LOCATION}/agw_gateway_python as python_builder
+FROM ${REPO_LOCATION}/agw_gateway_python AS python_builder
 
 ARG GHZ_REPO=https://github.com/bojand/ghz
 
@@ -68,13 +68,13 @@ WORKDIR ${MAGMA_ROOT}/ghz
 
 RUN make build
 
-FROM ${REPO_LOCATION}/agw_gateway_c as agw_c_ghz
+FROM ${REPO_LOCATION}/agw_gateway_c AS agw_c_ghz
 
 COPY --from=c_builder /magma/ghz/dist/ghz /usr/local/bin/
 
 WORKDIR ${MAGMA_ROOT}/lte/gateway/python/load_tests
 
-FROM ${REPO_LOCATION}/agw_gateway_python as agw_python_ghz
+FROM ${REPO_LOCATION}/agw_gateway_python AS agw_python_ghz
 
 COPY --from=python_builder /magma/ghz/dist/ghz /usr/local/bin/
 

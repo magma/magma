@@ -76,8 +76,15 @@ COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d
 
 # Add the magma apt repo
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" && \
-    add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
+
+#[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
+RUN echo "deb [trusted=yes] https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" \
+    > /etc/apt/sources.list.d/magma.list
+RUN add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
+
+#[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
+RUN echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories && \
+    echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
 
 RUN apt-get -y update && apt-get -y install \
     curl \

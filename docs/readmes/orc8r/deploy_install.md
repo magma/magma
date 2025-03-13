@@ -322,8 +322,7 @@ deployment by visiting the host NMS organization at e.g.
 NOTE: the `https://` is required. If you self-signed certs above, the browser
 will rightfully complain. Either ignore the browser warnings at your own risk
 (some versions of Chrome won't allow this at all), or e.g.
-[import the root CA from above on a per-browser basis
-](https://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate).
+[import the root CA from above on a per-browser basis](https://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate).
 
 For interacting with the Orchestrator REST API, a good starting point is the
 Swagger UI available at `https://api.yoursubdomain.yourdomain.com/swagger/v1/ui/`.

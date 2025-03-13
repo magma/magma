@@ -333,8 +333,7 @@ status_code_e emm_recv_attach_request(
           " , emm_cause =(%d)\n",
           ue_id, *emm_cause);
       rc = emm_proc_attach_reject(ue_id, *emm_cause);
-      free_emm_attach_request_ies((emm_attach_request_ies_t * * const) &
-                                  params);
+      free_emm_attach_request_ies((emm_attach_request_ies_t * * const)&params);
       // Free the ESM container
       bdestroy_wrapper(&(msg->esmmessagecontainer));
       // Free supported codec list

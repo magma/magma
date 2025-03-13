@@ -31,6 +31,10 @@ spec:
           hostPath:
             path: /etc/magma
             type: Directory
+        - name: mme-logs
+          hostPath:
+            path: /var/log
+            type: Directory
         - name: agwc-claim
           persistentVolumeClaim:
             claimName: agwc-claim
@@ -62,10 +66,13 @@ securityContext:
 volumeMounts:
   - mountPath: /etc/magma
     name: magma-config
+  - mountPath: /var/log
+    name: mme-logs
   - mountPath: /var/opt/magma
     name: agwc-claim
   - mountPath: /tmp
     name: tmp-volume
   - mountPath: /var/run
     name: ovs-volume
+
 {{- end -}}

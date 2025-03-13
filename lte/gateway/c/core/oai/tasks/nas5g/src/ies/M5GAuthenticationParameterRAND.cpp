@@ -23,8 +23,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-AuthenticationParameterRANDMsg::AuthenticationParameterRANDMsg(){};
-AuthenticationParameterRANDMsg::~AuthenticationParameterRANDMsg(){};
+AuthenticationParameterRANDMsg::AuthenticationParameterRANDMsg() {};
+AuthenticationParameterRANDMsg::~AuthenticationParameterRANDMsg() {};
 
 // Decode AuthenticationParameterRAND IE
 int AuthenticationParameterRANDMsg::DecodeAuthenticationParameterRANDMsg(
