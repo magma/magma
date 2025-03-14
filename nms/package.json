@@ -37,7 +37,7 @@
     "csurf": "^1.9.0",
     "date-fns": "^2.29.2",
     "email-validator": "^2.0.4",
-    "express": "^4.17.3",
+    "express": "^4.20.0",
     "express-http-proxy": "^1.5.1",
     "express-rate-limit": "^7.1.5",
     "express-session": "^1.15.6",
