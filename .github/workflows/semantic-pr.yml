@@ -68,6 +68,7 @@ jobs:
             deps
             deps-dev
             directoryd
+            docusaurus
             dp
             eap
             eap_aka
