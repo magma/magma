@@ -17,7 +17,7 @@ gateway to serve as a secondary to a primary gateway running at an edge site.
 
 Steps:
 
-1. Download packer onto your host machine at <https://www.packer.io/downloads.html>
+1. Download packer onto your host machine at https://www.packer.io/downloads.html
 2. Run the following
 
 ```text

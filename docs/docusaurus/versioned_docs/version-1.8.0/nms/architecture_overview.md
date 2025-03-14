@@ -11,7 +11,7 @@ ability to configure and receive alerts.
 
 ## Big Picture
 
-![nms](assets/nms/userguide/nms.png)
+![nms](../../../../readmes/assets/nms/userguide/nms.png)
 
 ### NMS UI
 
@@ -50,7 +50,7 @@ Session middleware helps with creating the session, setting the session cookie(u
 
 #### csrfMiddleware
 
-This protects against any CSRF attacks.  For more understanding, check this (<https://github.com/pillarjs/understanding-csrf#csrf-tokens>). Magmalte server includes the csrf tokens when it responds to the client and client submits the form with the token. (nms/app/common/axiosConfig.js)
+This protects against any CSRF attacks.  For more understanding, check this (https://github.com/pillarjs/understanding-csrf#csrf-tokens). Magmalte server includes the csrf tokens when it responds to the client and client submits the form with the token. (nms/app/common/axiosConfig.js)
 
 #### appMiddleware
 
@@ -76,7 +76,7 @@ Network creation calls are handled by this router and the network is added to th
 
 #### grafana router
 
-Grafana router is used for displaying the grafana component within iframe in UI. It handles all requests and proxies it to the underlying grafana service. It attempts to synchronize default grafana state when the route is invoked. The default state includes syncing the tenants, user information, datasource and dashboards. The datasource URL is a Orc8r tenants URL(magma/v1/tenants/<org_name>/metrics). NMS certs is also passed along with the datasource information so that grafana can use this to query orc8r and retrieve relevant metrics.
+Grafana router is used for displaying the grafana component within iframe in UI. It handles all requests and proxies it to the underlying grafana service. It attempts to synchronize default grafana state when the route is invoked. The default state includes syncing the tenants, user information, datasource and dashboards. The datasource URL is a Orc8r tenants URL(magma/v1/tenants/<org_name></org_name>/metrics). NMS certs is also passed along with the datasource information so that grafana can use this to query orc8r and retrieve relevant metrics.
 The default state synchronized helps display set of default dashboards to the users. The default dashboards include dashboards for gateways, subscribers, internal metrics etc.
 Finally grafana router uses the tenant information synced to ensure that we only retrieve information for networks associated with a particular organization.
 

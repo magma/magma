@@ -50,4 +50,4 @@ echo 'If you want to follow the build logs, run docker compose logs -f docusauru
 spin
 echo 'Navigate to http://localhost:3000/ to see the docs.'
 
-xdg-open 'http://localhost:3000/docs/next/basics/introduction.html' || true
+# xdg-open 'http://localhost:3000/docs/next/basics/introduction.html' || true

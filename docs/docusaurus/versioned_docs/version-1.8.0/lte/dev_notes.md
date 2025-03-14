@@ -34,7 +34,7 @@ gateway and written here. This streamed config takes precedence over
     These configurations are local and are not exposed through the API. These
 include logging level, local network interface names, etc.
 - `/etc/magma/templates/<service_name>.conf.template`: This contains the
-    structured template for the <service_name>.conf file used as input to
+    structured template for the <service_name></service_name>.conf file used as input to
 some services, such as Control-proxy, Dnsd, MME and Redis.
 - `/var/opt/magma/tmp/<service_name>.conf`: The configuration file read by
     some services, such as Control-proxy, Dnsd, MME and Redis, at start-up. This

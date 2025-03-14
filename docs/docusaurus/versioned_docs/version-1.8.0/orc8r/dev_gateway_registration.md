@@ -16,7 +16,7 @@ In efforts to simplify gateway registration, the new registration process only r
 ## Overview
 
 The overview of gateway registration is as follows:
-![gateway_registration_overview](assets/orc8r/gateway_registration_overview.png)
+![gateway_registration_overview](../../../../readmes/assets/orc8r/gateway_registration_overview.png)
 
 Note: The operator should set per-tenant default `control_proxy.yml` through the API endpoint `\tenants\{tenant_id}\control_proxy` as a prerequisite.
 The control proxy must have `\n` characters as line breaks. Here is a sample request body:

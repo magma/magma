@@ -78,7 +78,7 @@ Magma modules encapsulate domain-specific functionality by defining reusable cod
 
 You can see the full list of modules in [Module Dependencies](./dev_dependencies.md). These modules span both Orc8r and the relevant gateways, allowing domain-specific code to be shared and injected across the stack. As an example, the AGW, FeG, and CWAG are gateways that collectively share the *orc8r*, *lte*, *feg*, and *cwf* modules
 
-![Orc8r modules example](assets/orc8r/magma_modules.png)
+![Orc8r modules example](../../../../readmes/assets/orc8r/magma_modules.png)
 
 ## Extending Orchestrator
 

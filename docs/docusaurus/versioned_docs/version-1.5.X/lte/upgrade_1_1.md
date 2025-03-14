@@ -18,7 +18,7 @@ the desired software version for that tier to `1.1.0-1589476391-5dbd6822`.
 The AGWs in this tier will pull this configuration and upgrade automatically.
 By default, we check for an upgrade every 5 minutes.
 
-![1.1.0 upgrade](assets/agw_110_upgrade.png)
+![1.1.0 upgrade](../../../../readmes/assets/agw_110_upgrade.png)
 
 When the gateway completes its upgrade, you should see that its reported
 software version in this tab has changed. If it hasn't changed, something
