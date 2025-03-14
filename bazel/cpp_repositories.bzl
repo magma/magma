@@ -109,6 +109,10 @@ def cpp_repositories():
         urls = ["https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.zip"],
         sha256 = "1b1938db2c6928cd8668087effcf4a1211585d24310ab2a82fe446442473c1c4",
         build_file = "//bazel/external:liblfds.BUILD",
+        commit = "b36a48014574225723779c7e1e9fb8cb6fa8f7f4",
+        remote = "git://liblfds.org/liblfds",
+        shallow_since = "1657356839 +0000",
+
     )
 
     new_git_repository(
