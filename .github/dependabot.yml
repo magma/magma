@@ -1,0 +1,12 @@
+# https://docs.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+# This is configured to only require security updates and exclude version updates, you can set open-pull-requests-limit to 0.
+
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    # Disable version updates for npm dependencies
+    open-pull-requests-limit: 0
