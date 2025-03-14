@@ -23,7 +23,7 @@ cd $1
 shift
 
 ASNC1=$(which asn1c)
-${ASNC1:-asn1c} -gen-PER -fcompound-names  $* 2>&1 | grep -v -- '->' | grep -v '^Compiled' |grep -v sample
+${ASNC1:-asn1c}  -fcompound-names  $* 2>&1 | grep -v -- '->' | grep -v '^Compiled' |grep -v sample
 
 awk ' 
   BEGIN { 
