@@ -19,6 +19,8 @@
 #include <string>
 #include <thread>
 #include <cassert>
+#include <iomanip>
+#include <sstream>
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_38.413.h"
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_24.501.h"
@@ -52,6 +54,15 @@ using magma::lte::M5GSUCIRegistrationRequest;
 using magma5g::amf_proc_registration_reject;
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
+
+std::string to_hex_string(const std::string& input) {
+  std::stringstream ss;
+  ss << std::hex << std::setfill('0');
+  for (unsigned char c : input) {
+    ss << std::setw(2) << static_cast<int>(c);
+  }
+  return ss.str();
+}
 
 static void handle_decrypted_imsi_info_ans(
     grpc::Status status, magma::lte::M5GSUCIRegistrationAnswer response,
@@ -106,6 +117,18 @@ M5GSUCIRegistrationRequest create_decrypt_msin_request(
     const uint8_t ue_pubkey_identifier, const std::string& ue_pubkey,
     const std::string& ciphertext, const std::string& mac_tag) {
   M5GSUCIRegistrationRequest request;
+
+  OAILOG_DEBUG(LOG_AMF_APP, "create_decrypt_msin_request()");
+  OAILOG_DEBUG(LOG_AMF_APP, "UE pubkey identifier: %u", ue_pubkey_identifier);
+  OAILOG_DEBUG(LOG_AMF_APP, "UE pubkey (hex): %s",
+               to_hex_string(ue_pubkey).c_str());
+  OAILOG_DEBUG(LOG_AMF_APP, "UE pubkey length: %zu", ue_pubkey.length());
+  OAILOG_DEBUG(LOG_AMF_APP, "Ciphertext (hex): %s",
+               to_hex_string(ciphertext).c_str());
+  OAILOG_DEBUG(LOG_AMF_APP, "Ciphertext length: %zu", ciphertext.length());
+  OAILOG_DEBUG(LOG_AMF_APP, "MAC tag (hex): %s",
+               to_hex_string(mac_tag).c_str());
+  OAILOG_DEBUG(LOG_AMF_APP, "MAC tag length: %zu", mac_tag.length());
 
   request.Clear();
   request.set_ue_pubkey_identifier(ue_pubkey_identifier);
