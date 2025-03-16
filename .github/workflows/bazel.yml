@@ -331,13 +331,13 @@ jobs:
           mkdir -p lte/gateway/test_results/
           python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
       - name: Publish bazel test profile
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel test all profile ${{ matrix.bazel-config }}
           path: Bazel_test_all_profile
       - name: Upload Bazel unit-test results ${{ matrix.bazel-config }}
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: always()
         with:
           name: Bazel unit-test results ${{ matrix.bazel-config }}
@@ -591,7 +591,7 @@ jobs:
             mv ./bazel-bin/lte/gateway/c/session_manager/sessiond ./sentry_services/sessiond
 
       - name: Upload services for sentry_release job
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: |
           github.repository_owner == 'magma' &&
           ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
@@ -663,7 +663,7 @@ jobs:
           COMMIT_MESSAGE: ${{ toJSON(github.event.head_commit.message) }}
 
       - name: Publish bazel profile
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: |
           always() &&
           github.event.inputs.publish_bazel_profile == 'true'
