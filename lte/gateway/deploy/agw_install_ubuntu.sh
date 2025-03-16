@@ -194,10 +194,8 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   echo "Generating localhost hostfile for Ansible"
   echo "[magma_deploy]
   127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
-  #Temporary steps to be removed once GPG public key issue has been fixed.
-  echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories
-  echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
 
+  exit 0
   # install magma and its dependencies including OVS.
   su - $MAGMA_USER -c "ansible-playbook -e \"use_master=True\" -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
 
@@ -214,3 +212,4 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
 else
   echo "Magma already installed, skipping.."
 fi
+
