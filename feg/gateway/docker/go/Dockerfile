@@ -36,7 +36,8 @@ RUN apt-get update && apt-get install -y \
     libjansson-dev \
     libjemalloc-dev \
     libssl-dev \
-    libsystemd-dev \
+    libsystemd-dev=245.4-4ubuntu3.24 \
+    libczmq-dev=4.2.0-2 \
    nghttp2-proxy\
     make \
     net-tools \
@@ -164,3 +165,4 @@ ENV MAGMA_BUILD_BRANCH $MAGMA_BUILD_BRANCH
 ENV MAGMA_BUILD_TAG $MAGMA_BUILD_TAG
 ENV MAGMA_BUILD_COMMIT_HASH $MAGMA_BUILD_COMMIT_HASH
 ENV MAGMA_BUILD_COMMIT_DATE $MAGMA_BUILD_COMMIT_DATE
+
