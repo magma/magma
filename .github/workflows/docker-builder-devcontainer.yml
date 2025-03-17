@@ -64,7 +64,7 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_BAZEL_BASE }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_BAZEL_BASE }}
-          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+          PUSH_TO_REGISTRY: "true"
       - name: Build space left after run
         shell: bash
         run: |
@@ -95,7 +95,7 @@ jobs:
           IMAGE_STREAM: ${{ env.IMAGE_STREAM_DEVCONTAINER }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE_DEVCONTAINER }}
-          PUSH_TO_REGISTRY: ${{ github.event_name == 'push' && github.ref_name == 'master' && github.token != null }}
+          PUSH_TO_REGISTRY: "true"
       - name: Build space left after run
         shell: bash
         run: |

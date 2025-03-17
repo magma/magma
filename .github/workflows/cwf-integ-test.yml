@@ -44,7 +44,7 @@ jobs:
           docker save cwf_cwag_go:latest  | gzip > cwf_cwag_go.tar.gz
           docker save cwf_gateway_go:latest | gzip > cwf_gateway_go.tar.gz
           docker save cwf_gateway_pipelined:latest | gzip > cwf_gateway_pipelined.tar.gz
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         with:
           name: docker-images
           path: images
@@ -134,7 +134,7 @@ jobs:
           fab integ-test --destroy-vm --transfer-images --test-result-xml=tests.xml --rerun-fails=3 --skip-docker-load --tar-path="/tmp/cwf-images"
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         with:
           name: test-results
           path: cwf/gateway/tests.xml
@@ -154,7 +154,7 @@ jobs:
           cp *.log logs/
       - name: Upload logs
         if: always()
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         with:
           name: test-logs
           path: cwf/gateway/logs

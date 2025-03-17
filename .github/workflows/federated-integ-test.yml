@@ -43,7 +43,7 @@ jobs:
           docker save orc8r_controller:latest  | gzip > fed_orc8r_controller.tar.gz
           docker save orc8r_fluentd:latest  | gzip > fed_orc8r_fluentd.tar.gz
           docker save orc8r_test:latest  | gzip > fed_orc8r_test.tar.gz
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         with:
           name: docker-build-orc8r-images
           path: images
@@ -70,7 +70,7 @@ jobs:
           cd images
           docker save feg_gateway_go:latest  | gzip > fed_feg_gateway_go.tar.gz
           docker save feg_gateway_python:latest  | gzip > fed_feg_gateway_python.tar.gz
-      - uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+      - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         with:
           name: docker-build-feg-images
           path: images
@@ -191,7 +191,7 @@ jobs:
           fab get-test-summaries --integration-tests
           ls -R
       - name: Upload test results
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: always()
         with:
           name: test_results
@@ -202,7 +202,7 @@ jobs:
           cd lte/gateway
           fab get-test-logs --gateway-host-name=magma_deb --dst-path=./logs.tar.gz
       - name: Upload test logs
-        uses: actions/upload-artifact@3cea5372237819ed00197afe530f5a7ea3e805c8 # pin@v3
+        uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: always()
         with:
           name: test-logs
