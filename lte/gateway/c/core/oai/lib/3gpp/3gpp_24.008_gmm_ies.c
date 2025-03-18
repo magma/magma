@@ -475,3 +475,53 @@ int encode_voice_domain_preference_and_ue_usage_setting(
   *lenPtr = encoded - 1 - ((iei_present) ? 1 : 0);
   return encoded;
 }
+
+//------------------------------------------------------------------------------
+// 10.5.5.32 Extended DRX parameter
+//------------------------------------------------------------------------------
+int decode_edrx_parameter_ie(edrx_parameter_t* edrxparameter,
+                             const bool iei_present, uint8_t* buffer,
+                             const uint32_t len) {
+  int decoded = 0;
+
+  if (iei_present) {
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, EDRX_PARAMETER_IE_MAX_LENGTH,
+                                         len);
+    CHECK_IEI_DECODER(GMM_EDRX_PARAMETER_IEI, *buffer);
+    decoded++;
+  } else {
+    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
+        buffer, (EDRX_PARAMETER_IE_MAX_LENGTH - 1), len);
+  }
+
+  edrxparameter->length = *(buffer + decoded);
+  decoded++;
+  edrxparameter->pagingtimewindow = (*(buffer + decoded) >> 4) & 0xF;
+  edrxparameter->edrxvalue = *(buffer + decoded) & 0xF;
+  decoded++;
+  return decoded;
+}
+
+//------------------------------------------------------------------------------
+int encode_edrx_parameter_ie(edrx_parameter_t* edrxparameter,
+                             const bool iei_present, uint8_t* buffer,
+                             const uint32_t len) {
+  uint32_t encoded = 0;
+
+  if (iei_present) {
+    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EDRX_PARAMETER_IE_MAX_LENGTH,
+                                         len);
+    *buffer = GMM_EDRX_PARAMETER_IEI;
+    encoded++;
+  } else {
+    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
+        buffer, (EDRX_PARAMETER_IE_MAX_LENGTH - 1), len);
+  }
+
+  *(buffer + encoded) = edrxparameter->length;
+  encoded++;
+  *(buffer + encoded) =
+      (edrxparameter->pagingtimewindow << 4) | edrxparameter->edrxvalue;
+  encoded++;
+  return encoded;
+}

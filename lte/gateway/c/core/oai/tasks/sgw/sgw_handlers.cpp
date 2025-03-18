@@ -680,7 +680,7 @@ static void sgw_populate_mbr_bearer_contexts_modified(
           .cause.cause_value = REQUEST_ACCEPTED;
       modify_response_p->bearer_contexts_modified.num_bearer_context++;
       // if default bearer
-      //#pragma message  "TODO define constant for default eps_bearer id"
+      // #pragma message  "TODO define constant for default eps_bearer id"
 
 #if !MME_UNIT_TEST  // skip tunnel creation for unit tests
       // setup GTPv1-U tunnel

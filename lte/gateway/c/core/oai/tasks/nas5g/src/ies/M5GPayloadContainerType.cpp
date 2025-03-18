@@ -17,8 +17,8 @@
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-PayloadContainerTypeMsg::PayloadContainerTypeMsg(){};
-PayloadContainerTypeMsg::~PayloadContainerTypeMsg(){};
+PayloadContainerTypeMsg::PayloadContainerTypeMsg() {};
+PayloadContainerTypeMsg::~PayloadContainerTypeMsg() {};
 
 // Decode PayloadContainerType IE
 int PayloadContainerTypeMsg::DecodePayloadContainerTypeMsg(

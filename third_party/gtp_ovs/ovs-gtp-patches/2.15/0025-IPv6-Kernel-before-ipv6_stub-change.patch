@@ -1,0 +1,33 @@
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index d4d49920d..94b788229 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -506,6 +506,18 @@ static struct dst_entry *gtp_get_v6_rt(struct sk_buff *skb,
+ 	fl6->saddr = info->key.u.ipv6.src;
+ 	fl6->flowlabel = ip6_make_flowinfo(RT_TOS(info->key.tos), info->key.label);
+
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 5) && LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) || (LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 18) && !defined(ISRHEL82))
++
++	int err;
++	err = ipv6_stub->ipv6_dst_lookup(dev_net(dev), gs6, &ndst, fl6);
++
++	if (unlikely(err < 0)) {
++		netdev_dbg(dev, "no route to %pI6\n", &fl6->daddr);
++		return ERR_PTR(-ENETUNREACH);
++	}
++
++#else
++
+ 	ndst = ipv6_stub->ipv6_dst_lookup_flow(dev_net(dev), gs6,
+ 						   fl6, NULL);
+ 	if (IS_ERR(ndst)) {
+@@ -513,6 +525,8 @@ static struct dst_entry *gtp_get_v6_rt(struct sk_buff *skb,
+ 		return ERR_PTR(-ENETUNREACH);
+ 	}
+
++#endif
++
+ 	if (unlikely(ndst->dev == dev)) {
+ 		netdev_dbg(dev, "circular route to %pI6\n", &fl6->daddr);
+ 		dst_release(ndst);
+

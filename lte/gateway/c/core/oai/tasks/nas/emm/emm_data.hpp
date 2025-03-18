@@ -219,14 +219,14 @@ typedef struct emm_context_s {
 #define EMM_CTXT_MEMBER_UE_ADDITIONAL_SECURITY_CAPABILITY ((uint32_t)1 << 16)
 
 #define EMM_CTXT_MEMBER_AUTH_VECTOR0 ((uint32_t)1 << 26)
-  //#define           EMM_CTXT_MEMBER_AUTH_VECTOR1                 ((uint32_t)1
+  // #define           EMM_CTXT_MEMBER_AUTH_VECTOR1                 ((uint32_t)1
   //<< 27)  // reserved bit for AUTH VECTOR #define EMM_CTXT_MEMBER_AUTH_VECTOR2
   //((uint32_t)1 << 28)  // reserved bit for AUTH VECTOR #define
-  // EMM_CTXT_MEMBER_AUTH_VECTOR3                 ((uint32_t)1 << 29)  //
-  // reserved bit for AUTH VECTOR #define           EMM_CTXT_MEMBER_AUTH_VECTOR4
+  //  EMM_CTXT_MEMBER_AUTH_VECTOR3                 ((uint32_t)1 << 29)  //
+  //  reserved bit for AUTH VECTOR #define EMM_CTXT_MEMBER_AUTH_VECTOR4
   //((uint32_t)1 << 30)  // reserved bit for AUTH VECTOR #define
-  // EMM_CTXT_MEMBER_AUTH_VECTOR5                 ((uint32_t)1 << 31)  //
-  // reserved bit for AUTH VECTOR
+  //  EMM_CTXT_MEMBER_AUTH_VECTOR5                 ((uint32_t)1 << 31)  //
+  //  reserved bit for AUTH VECTOR
 
 #define EMM_CTXT_MEMBER_SET_BIT(eMmCtXtMemBeRmAsK, bIt) \
   do {                                                  \

@@ -23,8 +23,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-GPRSTimer3Msg::GPRSTimer3Msg(){};
-GPRSTimer3Msg::~GPRSTimer3Msg(){};
+GPRSTimer3Msg::GPRSTimer3Msg() {};
+GPRSTimer3Msg::~GPRSTimer3Msg() {};
 
 int GPRSTimer3Msg::DecodeGPRSTimer3Msg(GPRSTimer3Msg* gprstimer, uint8_t iei,
                                        uint8_t* buffer, uint32_t len) {

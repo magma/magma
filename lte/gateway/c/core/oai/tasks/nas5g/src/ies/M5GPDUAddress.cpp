@@ -25,8 +25,8 @@ extern "C" {
 #endif
 
 namespace magma5g {
-PDUAddressMsg::PDUAddressMsg(){};
-PDUAddressMsg::~PDUAddressMsg(){};
+PDUAddressMsg::PDUAddressMsg() {};
+PDUAddressMsg::~PDUAddressMsg() {};
 
 // Decode PDUAddress IE
 int PDUAddressMsg::DecodePDUAddressMsg(PDUAddressMsg* pdu_address, uint8_t iei,

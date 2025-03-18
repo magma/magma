@@ -12,7 +12,7 @@
 ################################################################
 # Devcontainer Image (for local development and CI)
 ################################################################
-FROM ghcr.io/magma/magma/bazel-base:latest as devcontainer
+FROM ghcr.io/magma/magma/bazel-base:latest AS devcontainer
 
 # [Option] Install zsh
 ARG INSTALL_ZSH="true"
@@ -76,7 +76,8 @@ RUN echo "Install general purpose packages" && \
         ruby-dev \
         software-properties-common \
         tzdata \
-        virtualenv=20.0.17-1ubuntu0.4 && \
+        virtualenv=20.0.17-1ubuntu0.4
+RUN gem install dotenv -v 2.8.1 && \
     gem install fpm
 
 # Install golang

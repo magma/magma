@@ -10,7 +10,7 @@
 # limitations under the License.
 
 ARG ENV=standard
-FROM python:3.9.2-slim-buster as protos-generator
+FROM python:3.9.2-slim-buster AS protos-generator
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl zip make unzip
 RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.10.0/protoc-3.10.0-linux-x86_64.zip \
@@ -35,7 +35,7 @@ WORKDIR /magma/dp
 RUN mkdir -p $PYTHON_BUILD && make protos
 
 ARG ENV=standard
-FROM python:3.9.2-slim-buster as standard-version
+FROM python:3.9.2-slim-buster AS standard-version
 
 ENV CC_DIRECTORY=dp/cloud/python/magma/configuration_controller
 ENV DB_DIRECTORY=dp/cloud/python/magma/db_service
@@ -47,13 +47,13 @@ COPY $CC_DIRECTORY/requirements.txt \
 WORKDIR /$CC_DIRECTORY
 RUN pip3 install --upgrade pip --no-cache-dir -r requirements.txt
 
-#FROM standard-version as tests-version
+#FROM standard-version AS tests-version
 #COPY $CC_DIRECTORY/tests/requirements.txt \
 #     /$CC_DIRECTORY/tests/requirements.txt
 #RUN pip3 install --upgrade pip --no-cache-dir -r tests/requirements.txt
 
 # hadolint ignore=DL3006
-FROM ${ENV}-version as final
+FROM ${ENV}-version AS final
 COPY $CC_DIRECTORY /$CC_DIRECTORY/
 COPY $DB_DIRECTORY /$DB_DIRECTORY/
 COPY $FC_DIRECTORY /$FC_DIRECTORY/

@@ -327,7 +327,7 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
     copy_protocol_configuration_options(&msg->protocolconfigurationoptions,
                                         pco);
   }
-  //#pragma message  "TEST LG FORCE APN-AMBR"
+  // #pragma message  "TEST LG FORCE APN-AMBR"
   OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - FORCE APN-AMBR DL %lu UL %lu\n",
                pdn_context_p->subscribed_apn_ambr.br_dl,
                pdn_context_p->subscribed_apn_ambr.br_ul);

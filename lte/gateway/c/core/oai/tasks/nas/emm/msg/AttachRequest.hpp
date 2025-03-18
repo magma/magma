@@ -77,6 +77,7 @@
 #define ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT (1 << 13)
 #define ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT (1 << 14)
 #define ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT (1 << 15)
+#define ATTACH_REQUEST_EDRX_PARAMETER_PRESENT (1 << 16)
 
 typedef enum attach_request_iei_tag {
   ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI = GMM_PTMSI_SIGNATURE_IEI,
@@ -101,6 +102,7 @@ typedef enum attach_request_iei_tag {
   ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IEI = 0x10,
   ATTACH_REQUEST_DEVICE_PROPERTIES_IEI = 0xD0,
   ATTACH_REQUEST_DEVICE_PROPERTIES_LOW_PRIO_IEI = 0xD1,
+  ATTACH_REQUEST_EDRX_PARAMETER_IEI = 0x6e,
   ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI = 0x6F
 } attach_request_iei;
 
@@ -139,6 +141,7 @@ typedef struct attach_request_msg_tag {
       voicedomainpreferenceandueusagesetting;
   ms_network_feature_support_t msnetworkfeaturesupport;
   network_resource_identifier_container_t networkresourceidentifiercontainer;
+  edrx_parameter_t edrxparameter;
   ue_additional_security_capability_t ueadditionalsecuritycapability;
 } attach_request_msg;
 
