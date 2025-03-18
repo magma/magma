@@ -59,7 +59,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2 # pin@v0.18.1
       - name: Check clang-format for orc8r/gateway/c
-        uses: DoozyX/clang-format-lint-action@v0.18.1
+        uses: DoozyX/clang-format-lint-action@c71d0bf4e21876ebec3e5647491186f8797fde31 # pin@0.18.2
         with:
           source: 'orc8r/gateway/c'
           extensions: 'h,hpp,c,cpp'
