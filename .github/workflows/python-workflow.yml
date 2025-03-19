@@ -49,7 +49,6 @@ jobs:
             filesChanged:
               - added|modified: ["**/*.py"]
           list-files: 'shell'
-      # Need to save PR number as Github action does not propagate it with workflow_run event
       - name: Save PR number
         if: always()
         run: |
@@ -57,10 +56,10 @@ jobs:
           echo -n ${{ github.event.number }} > ./pr/pr_number
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
           echo -n "false" > ./pr/is_reverted_pr
-      - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pr
+          name: pr-${{ github.run_id }}  # Append run ID for uniqueness
           path: pr/
 
   run-formatters-and-check-for-errors:
@@ -97,14 +96,14 @@ jobs:
               echo "Running add-trailing-comma on $file...";
               add-trailing-comma --py35-plus $file;
             done;
-      # Need to save PR number as Github action does not propagate it with workflow_run event
       - name: Save PR number
         if: always()
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: pr
+          name: pr-${{ github.run_id }}  # Append run ID for uniqueness
           path: pr/
+
