@@ -148,7 +148,7 @@ RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
      git clone https://github.com/cpp-redis/cpp_redis.git && \
      wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
      wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
-     git clone https://liblfds.org/git/liblfds && \
+     git clone git://liblfds.org/liblfds && \
      git clone https://gitea.osmocom.org/cellular-infrastructure/libgtpnl && \
      git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
      git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
