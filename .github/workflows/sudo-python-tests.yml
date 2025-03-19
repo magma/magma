@@ -31,7 +31,7 @@ jobs:
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Cache magma-dev-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@d4323d4df104b026a6aa633fdb11d772146be0bf # pin@v4.2.2
           #cache issues 
 
         with:
