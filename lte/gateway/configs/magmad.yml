@@ -25,16 +25,21 @@ magma_services:
   - enodebd
   - sessiond
   - mme
+  - oai_mme
   - pipelined
-  - envoy_controller
+  - envoy_controller # not found in a docker install
   - redis
-  - dnsd
+  - dnsd # not found in a docker install
   - policydb
   - state
   - eventd
   - smsd
   - ctraced
   - health
+  - redirectd
+  - sctpd
+  - monitord
+  - connectiond
 #  - kernsnoopd
 # - liagentd
 

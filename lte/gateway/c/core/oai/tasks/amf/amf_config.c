@@ -355,8 +355,8 @@ int amf_config_parse_file(amf_config_t* config_pP,
           }
           config_pP->plmn_support_list.plmn_support_count += 1;
         }  // If MCC/MNC/Slice Information is found
-      }    // For the number of entries in the list for PLMN SUPPORT
-    }      // PLMN_SUPPORT LIST is present
+      }  // For the number of entries in the list for PLMN SUPPORT
+    }  // PLMN_SUPPORT LIST is present
 
     // enable VoNR support
     if ((config_setting_lookup_string(

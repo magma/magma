@@ -37,7 +37,7 @@ build_nginx() {
 
 build_magmalte() {
     cd "$MAGMA_ROOT/nms" || exit 1
-    COMPOSE_PROJECT_NAME=magmalte docker-compose build magmalte &&
+    COMPOSE_PROJECT_NAME=magmalte docker compose --compatibility build magmalte &&
     docker tag magmalte_magmalte:latest "$IMAGE"
     if $PUSH_IMAGE; then
         docker push "$IMAGE"

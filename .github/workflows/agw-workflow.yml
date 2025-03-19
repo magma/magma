@@ -57,21 +57,21 @@ jobs:
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@v2 # pin@v0.18.1
       - name: Check clang-format for orc8r/gateway/c
-        uses: DoozyX/clang-format-lint-action@9ea72631b74e61ce337d0839a90e76180e997283 # pin@v0.13
+        uses: DoozyX/clang-format-lint-action@c71d0bf4e21876ebec3e5647491186f8797fde31 # pin@0.18.2
         with:
           source: 'orc8r/gateway/c'
           extensions: 'h,hpp,c,cpp'
-          clangFormatVersion: 11.1.0
+          clangFormatVersion: 18
           # taken from .clang-format
           style: file
       - name: Check clang-format for lte/gateway
-        uses: DoozyX/clang-format-lint-action@9ea72631b74e61ce337d0839a90e76180e997283 # pin@v0.13
+        uses: DoozyX/clang-format-lint-action@v0.18.1
         with:
           source: 'lte/gateway/c lte/gateway/python'
           extensions: 'h,hpp,c,cpp'
-          clangFormatVersion: 11.1.0
+          clangFormatVersion: 18
           # taken from .clang-format
           style: file
 

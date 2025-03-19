@@ -279,7 +279,7 @@ status_code_e emm_proc_attach_request(
     increment_counter("ue_attach", 1, 2, "result", "failure", "cause",
                       "emergency_attach");
     if (ies) {
-      free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
+      free_emm_attach_request_ies((emm_attach_request_ies_t * * const)&ies);
     }
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
@@ -303,7 +303,7 @@ status_code_e emm_proc_attach_request(
     increment_counter("ue_attach", 1, 2, "result", "failure", "cause",
                       "ue_context_not_found");
     if (ies) {
-      free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
+      free_emm_attach_request_ies((emm_attach_request_ies_t * * const)&ies);
     }
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
@@ -464,8 +464,8 @@ status_code_e emm_proc_attach_request(
             mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
           }
           if (ies) {
-            free_emm_attach_request_ies((emm_attach_request_ies_t * * const) &
-                                        ies);
+            free_emm_attach_request_ies(
+                (emm_attach_request_ies_t * * const)&ies);
           }
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
@@ -529,8 +529,8 @@ status_code_e emm_proc_attach_request(
           increment_counter("duplicate_attach_request", 1, 1, "action",
                             "ignored");
           if (ies) {
-            free_emm_attach_request_ies((emm_attach_request_ies_t * * const) &
-                                        ies);
+            free_emm_attach_request_ies(
+                (emm_attach_request_ies_t * * const)&ies);
           }
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
         }
@@ -578,7 +578,7 @@ status_code_e emm_proc_attach_request(
                    "EMM-PROC  - Freeing Attach Request IEs for ue_id "
                    "= " MME_UE_S1AP_ID_FMT,
                    ue_id);
-    free_emm_attach_request_ies((emm_attach_request_ies_t * * const) & ies);
+    free_emm_attach_request_ies((emm_attach_request_ies_t * * const)&ies);
   }
   rc = emm_attach_run_procedure(&ue_mm_context->emm_context);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -2467,7 +2467,7 @@ void proc_new_attach_req(mme_ue_context_t* const mme_ue_context_p,
           (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3)) {
         hash_rc = obj_hashtable_uint64_ts_remove(
             mme_ue_context_p->guti_ue_context_htbl,
-            (const void* const) & ue_context_p->emm_context._guti,
+            (const void* const)&ue_context_p->emm_context._guti,
             sizeof(ue_context_p->emm_context._guti));
         if (HASH_TABLE_OK != hash_rc)
           OAILOG_ERROR_UE(LOG_MME_APP, ue_context_p->emm_context._imsi64,

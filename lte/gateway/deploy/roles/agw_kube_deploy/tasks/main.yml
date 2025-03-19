@@ -1,0 +1,175 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+- name: Include vars
+  include_vars:
+    file: all.yaml
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Set authorized key for remote user
+  ansible.posix.authorized_key:
+    user: "{{ kube_admin_username }}"
+    state: present
+    key: "{{ lookup('file', lookup('env','HOME') + '/.ssh/id_rsa.pub') }}"
+
+- name: Disable password authentication for root
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin prohibit-password'
+
+- name: Setup passwordless sudo
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%sudo'
+    line: '%sudo ALL=(ALL) NOPASSWD: ALL'
+    validate: '/usr/sbin/visudo -cf %s'
+
+- name: Disable SWAP
+  shell: |
+    swapoff -a
+
+- name: Disable SWAP in fstab
+  replace:
+    path: /etc/fstab
+    regexp: '^(\s*)([^#\n]+\s+)(\w+\s+)swap(\s+.*)$'
+    replace: '#\1\2\3swap\4'
+    backup: yes
+
+- name: Create an empty file for the containerd module
+  copy:
+    content: ""
+    dest: /etc/modules-load.d/containerd.conf
+    force: no
+
+- name: Configure modules for containerd
+  blockinfile:
+    path: /etc/modules-load.d/containerd.conf
+    block: |
+      overlay
+      br_netfilter
+
+- name: Create an empty file for K8S sysctl parameters
+  copy:
+    content: ""
+    dest: /etc/sysctl.d/99-kubernetes-cri.conf
+    force: no
+
+- name: Configure sysctl parameters for K8S
+  lineinfile:
+    path: /etc/sysctl.d/99-kubernetes-cri.conf
+    line: "{{ item }}"
+  with_items:
+    - "net.bridge.bridge-nf-call-iptables  = 1"
+    - "net.ipv4.ip_forward                 = 1"
+    - "net.bridge.bridge-nf-call-ip6tables = 1"
+
+- name: Apply sysctl parameters
+  command: sysctl --system
+
+- name: Install APT Transport HTTPS
+  apt:
+    name: apt-transport-https
+    state: present
+
+
+- name: Add keyrings directory if it doesn't exist
+  file:
+    path: /etc/apt/keyrings
+    state: directory
+
+- name: Add Docker apt-key
+  get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker-apt-keyring.asc
+    mode: "0644"
+    force: true
+
+- name: Add Docker's APT repo
+  apt_repository:
+    repo: "deb [arch={{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64' }} signed-by=/etc/apt/keyrings/docker-apt-keyring.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+
+- name: Add Kubernetes apt-key
+  get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+    dest: /etc/apt/keyrings/kubernetes-apt-keyring.asc
+    mode: "0644"
+    force: true
+
+- name: Add Kubernetes APT repository
+  apt_repository:
+    repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.asc] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+    state: present
+    update_cache: yes
+
+- name: Install containerd
+  apt:
+    name: containerd.io
+    state: present
+
+- name: Create containerd directory
+  file:
+    path: /etc/containerd
+    state: directory
+
+- name: Add containerd configuration
+  shell: /usr/bin/containerd config default > /etc/containerd/config.toml
+
+- name: Configuring Systemd cgroup driver for containerd
+  lineinfile:
+    path: /etc/containerd/config.toml
+    regexp: "            SystemdCgroup = false"
+    line: "            SystemdCgroup = true"
+
+- name: Enable the containerd service and start service
+  systemd:
+    name: containerd
+    state: restarted
+    enabled: yes
+    daemon-reload: yes
+
+- name: Install Kubelet
+  apt:
+    name: kubelet=1.29.*
+    state: present
+    update_cache: true
+
+- name: Install Kubeadm
+  apt:
+    name: kubeadm=1.29.*
+    state: present
+
+- name: Enable the Kubelet service
+  service:
+    name: kubelet
+    enabled: yes
+
+- name: Load br_netfilter kernel module
+  modprobe:
+    name: br_netfilter
+    state: present
+
+- name: Set bridge-nf-call-iptables
+  sysctl:
+    name: net.bridge.bridge-nf-call-iptables
+    value: 1
+
+- name: Set ip_forward
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1

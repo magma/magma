@@ -12,7 +12,7 @@
 ################################################################
 # Builder Image (can also be used as developer's image)
 ################################################################
-FROM ubuntu:focal as bazel_builder
+FROM ubuntu:focal AS bazel_builder
 
 ARG DEB_PORT=amd64
 

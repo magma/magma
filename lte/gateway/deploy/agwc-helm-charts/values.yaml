@@ -16,15 +16,15 @@ secret:
   certs: agwc-secret-certs
 
 image:
-  repository: public.ecr.aws/z2g3r6f7
+  repository: docker.io/ektrumdev
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: "latest"
+  tag: "feat_agw_in_k8s_51e29ca"
   # Arch is blank for x86 and _arm for ARM64
-  arch:
+  arch: "_arm"
 
 config:
-  domainName: iot.magmacore.click
+  domainName: magmacore.local
   gwChallenge: 
 
 persistent:

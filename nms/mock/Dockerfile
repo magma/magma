@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM node:16.14-alpine as builder
+FROM node:16.14-alpine AS builder
 
 WORKDIR /usr/src/
 

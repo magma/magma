@@ -25,8 +25,8 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/nas5g/include/M5GCommonDefs.h"
 
 namespace magma5g {
-DNNMsg::DNNMsg(){};
-DNNMsg::~DNNMsg(){};
+DNNMsg::DNNMsg() {};
+DNNMsg::~DNNMsg() {};
 
 // Decode DNN Message
 int DNNMsg::DecodeDNNMsg(DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer,

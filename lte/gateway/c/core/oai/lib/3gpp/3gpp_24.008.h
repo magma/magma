@@ -44,7 +44,7 @@
 
 #include "lte/gateway/c/core/oai/lib/3gpp/3gpp_23.003.h"
 
-//#warning "Set it to max size of message"
+// #warning "Set it to max size of message"
 #define IE_UNDEFINED_MAX_LENGTH 1024
 
 //******************************************************************************
@@ -704,6 +704,7 @@ typedef enum gprs_mobility_managenent_ie_e {
   GMM_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI = 0x5D, /* 0x5D = 93  */
   GMM_TMSI_STATUS_IEI = 0x90,    /* 0x90 = 144 (shifted by 4)*/
   GMM_IMEISV_REQUEST_IEI = 0xC0, /* 0xC0 = 192 (shifted by 4)*/
+  GMM_EDRX_PARAMETER_IEI = 0x6E, /* 0x6E = 110 */
 } gprs_mobility_managenent_ie_t;
 
 //------------------------------------------------------------------------------
@@ -956,6 +957,32 @@ int decode_voice_domain_preference_and_ue_usage_setting(
     voice_domain_preference_and_ue_usage_setting_t*
         voicedomainpreferenceandueusagesetting,
     const bool iei_present, uint8_t* buffer, const uint32_t len);
+#ifdef __cplusplus
+}
+#endif
+
+//------------------------------------------------------------------------------
+// 10.5.5.32 Extended DRX parameter
+//------------------------------------------------------------------------------
+#define EDRX_PARAMETER_IE_TYPE 3
+#define EDRX_PARAMETER_IE_MIN_LENGTH 3
+#define EDRX_PARAMETER_IE_MAX_LENGTH 3
+
+typedef struct edrx_parameter_s {
+  uint8_t length;
+  uint8_t pagingtimewindow : 4;
+  uint8_t edrxvalue : 4;
+} edrx_parameter_t;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int encode_edrx_parameter_ie(edrx_parameter_t* edrxparameter,
+                             const bool iei_present, uint8_t* buffer,
+                             const uint32_t len);
+int decode_edrx_parameter_ie(edrx_parameter_t* edrxparameter,
+                             const bool iei_present, uint8_t* buffer,
+                             const uint32_t len);
 #ifdef __cplusplus
 }
 #endif
