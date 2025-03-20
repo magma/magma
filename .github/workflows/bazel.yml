@@ -118,6 +118,7 @@ jobs:
 
             # Required for bazel-diff to perform git checkout.
             git config --global --add safe.directory /workspaces/magma
+            git config --global --add safe.directory /workspaces/magma/.git
 
             printf '\r%s\r' '###############################' 1>&2
             printf '\r%s\r' 'Bazel-diff.' 1>&2
