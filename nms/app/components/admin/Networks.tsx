@@ -220,7 +220,9 @@ function Networks() {
                 });
                 closeDialog();
                 if (!selectedNetworkId) {
-                  window.location.replace(`/nms/${networkID}/admin/networks`);
+                  window.location.replace(
+                    `/nms/${encodeURIComponent(networkID)}/admin/networks`,
+                  );
                 }
               }}
             />
