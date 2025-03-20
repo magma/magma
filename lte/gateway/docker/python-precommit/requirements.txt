@@ -69,7 +69,7 @@ flake8-string-format==0.3.0
     # via wemake-python-styleguide
 gitdb==4.0.2
     # via gitpython
-gitpython==3.1.32
+gitpython==3.1.41
     # via bandit
 isort==5.8.0
     # via
