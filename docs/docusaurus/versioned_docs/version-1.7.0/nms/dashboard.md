@@ -8,7 +8,7 @@ original_id: dashboard
 
 ## Network
 
-![lte_dashboard1](assets/nms/userguide/lte_dashboard1.png)
+![lte_dashboard1](../../../../readmes/assets/nms/userguide/lte_dashboard1.png)
 
 The network tab contains the following components:
 
@@ -27,4 +27,4 @@ The network tab contains the following components:
     - We can filter specific events by searching for either event types or event tags. Examples of event tags include
     hardware_id of a gateway or imsi of a subscriber.
 
-![imsi_filtering_eventtable](assets/nms/userguide/imsi_filtering_eventtable.png)
+![imsi_filtering_eventtable](../../../../readmes/assets/nms/userguide/imsi_filtering_eventtable.png)

@@ -31,9 +31,9 @@ You should always do this. In general, try your best not to release broken
 packages.
 
 1. Build the release like you normally would.
-2. Spin up a fresh prod VM or gateway machine and copy the magma_<version>.deb
+2. Spin up a fresh prod VM or gateway machine and copy the magma_<version></version>.deb
 generated above.
-3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version>.deb'
+3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version></version>.deb'
 4. A VM reload or gateway reboot will likely be required due to kernel upgrade.
 
 This will simulate the exact steps that apt-get performs in production.

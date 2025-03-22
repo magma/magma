@@ -25,20 +25,20 @@ The QoS flow is the lowest level granularity within the 5G system and is where p
 With the current infrastructure, AGW supports the static QoS flow attached to the subscribers in this release.
 
 The Static QoS flow descriptors attached to subscriber.
-![QoS in PDU Session Accept message](assets/lte/QoS_in_pdu_session_accept.png?raw=true "QoS in PDU Session Accept message")
+![QoS in PDU Session Accept message](../../../../readmes/assets/lte/QoS_in_pdu_session_accept.png?raw=true "QoS in PDU Session Accept message")
 
 ## IPv6 & Dual IPv4v6 support
 
 With the current infrastructure, AGW supports IPv6 & Dual IPv4v6.
 
 Getting IPv6 address allocated in PDU Session accept message.
-![Allocation of IPv6 address](assets/lte/IPv6.png?raw=true "Allocation of IPv6 address")
+![Allocation of IPv6 address](../../../../readmes/assets/lte/IPv6.png?raw=true "Allocation of IPv6 address")
 
 Getting IPv4v6 address allocated in PDU Session accept message.
-![Allocation of IPv4v6 address](assets/lte/IPv4v6.png?raw=true "Allocation of IPv4v6 address")
+![Allocation of IPv4v6 address](../../../../readmes/assets/lte/IPv4v6.png?raw=true "Allocation of IPv4v6 address")
 
 Router Advertisement in fast path.
-![Router Advertisement](assets/lte/Router_Advertisement.png?raw=true "Router Advertisement")
+![Router Advertisement](../../../../readmes/assets/lte/Router_Advertisement.png?raw=true "Router Advertisement")
 
 ## Network initiated Session Modification
 
@@ -86,7 +86,7 @@ In this release AGW supports two different profiles of [SUCI Extensions](suci_ex
 
 Stateless feature provides failure recovery mechanism by storing the context information (PDU Information, Registration information) in a persistent storage. On occurrence of a failure, AGW will retrieve the context information from the persistent storage with almost no or minimal impact to the existing users. This is based on the existing Magma philosophy.
 
-![Stateless Feature](assets/lte/Stateless_feature.png?raw=true "Stateless Feature")
+![Stateless Feature](../../../../readmes/assets/lte/Stateless_feature.png?raw=true "Stateless Feature")
 
 ## GTP extension header support
 
@@ -108,7 +108,7 @@ Stub CLI used to delete the QoS policy in Network initiated session modification
 session_manager_cli.py policy_rar IMSI001019976545660 IMSI001019976545660-112383 INTERNET DEL 10 6 "UL,6,192.168.128.12,0,192.168.200.1,12345;DL,1,8.8.8.8,0,192.168.128.12,0" "1000000,2000000,1000000,2000000,15,1,0"
 ```
 
-Here are the details of the [Stub CLI command](assets/lte/Session_modification_stub_cli_commands "Stub CLI Command") for add or delete the QoS policy in Network initiated session modification.
+Here are the details of the [Stub CLI command](../../../../readmes/assets/lte/Session_modification_stub_cli_commands "Stub CLI Command") for add or delete the QoS policy in Network initiated session modification.
 
 ### Stateless feature
 

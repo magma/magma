@@ -21,7 +21,7 @@ Post processing of these messages AMF will connect with existing subscriberdb, m
 
 Following diagram gives an overview of the 5G SA components.
 
-![Integrated 5G SA Architecture Overview](assets/lte/integrated_5G_sa_architecture_overview.png?raw=true "Integrated 5G sa architecture overview")
+![Integrated 5G SA Architecture Overview](../../../../readmes/assets/lte/integrated_5G_sa_architecture_overview.png?raw=true "Integrated 5G sa architecture overview")
 
 ## Prerequisites
 
@@ -128,7 +128,7 @@ Following are the feature set which are available as part of current release
    Swagger API : PUT - /lte/{network_id}/cellular/epc
    Below is the payload
 
-   ![Integrated 5G sa enable 5F Feature set](assets/lte/integrated_5G_sa_enable_5G_feature_set.png?raw=true "Enable 5G Feature set")
+   ![Integrated 5G sa enable 5F Feature set](../../../../readmes/assets/lte/integrated_5G_sa_enable_5G_feature_set.png?raw=true "Enable 5G Feature set")
 
 After a successful configuration gateway.mconfig should looks something like :
 
@@ -175,7 +175,7 @@ The basic subscriber configuration remains unchanged and can be added following 
 
 The sample configuration is shown in the below figure
 
-![5G Core network Restriction](assets/lte/integrated_5G_sa_core_network_type_restrictions.png?raw=true "5G Core Network Type Restrictions")
+![5G Core network Restriction](../../../../readmes/assets/lte/integrated_5G_sa_core_network_type_restrictions.png?raw=true "5G Core Network Type Restrictions")
 
 ### Additional AMF Specific Configurations
 

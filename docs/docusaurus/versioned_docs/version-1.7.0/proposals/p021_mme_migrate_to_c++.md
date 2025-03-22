@@ -62,10 +62,10 @@ The states that have to be serialized are:
 This work is necessary only for the deployment of Magma MME with 3GPP compliant S11 over GTPV2-C and S6a over freeDiameter interfaces.
 
 S6a Interface implemented in C should be migrated to C++.
-A C++ port of S6a interface is already available in OAI HSS repo (<https://github.com/OPENAIRINTERFACE/openair-hss>) could serve as a basis.
+A C++ port of S6a interface is already available in OAI HSS repo (https://github.com/OPENAIRINTERFACE/openair-hss) could serve as a basis.
 
 S11 Interface and its GTPV2-C protocol implemented in C should be migrated to C++.
-A C++ port of S11 and GTPV2-C interface done in OAI SPGW-C repo (<https://github.com/OPENAIRINTERFACE/openair-spgwc>) could serve as a basis.
+A C++ port of S11 and GTPV2-C interface done in OAI SPGW-C repo (https://github.com/OPENAIRINTERFACE/openair-spgwc) could serve as a basis.
 
 ## Rationale
 
@@ -104,7 +104,7 @@ Backward compatibility of the new serialization library with protobuf is not env
 
   List of hash tables with (Key,Value) types:
     - state_ue_ht            (mme_ue_s1ap_id_t, ue_mm_context_t*)
-    - UeIpImsiMap            (std::string/ue_ip, vector<imsi64_t>)
+    - UeIpImsiMap            (std::string/ue_ip, vector<imsi64_t></imsi64_t>)
     - guti_ue_context_htbl   (guti_t, mme_ue_s1ap_id_t)
     - enb_ue_s1ap_id_ue_context_htbl (enb_s1ap_id_key_t, mme_ue_s1ap_id_t)
     - tun11_ue_context_htbl  (teid_t/mme_teid_s11, mme_ue_s1ap_id_t)
@@ -128,7 +128,7 @@ Backward compatibility of the new serialization library with protobuf is not env
 
   List of hash tables with (Key,Value) types:
     - state_teid_ht_(s_gw_teid_S11_S4, s_plus_p_gw_eps_bearer_context_information_t*)
-    - state_ue_ht            (imsi64, spgw_ue_context_t*)  
+    - state_ue_ht            (imsi64, spgw_ue_context_t*)
 - Intertask Messaging migration
     - Study message copy avoidance
 - S6a migration (OAI only)
