@@ -148,7 +148,7 @@ def cc_asn1_library(
     """
     gen_name = name + "_genrule"
 
-    flags = "-pdu=all -fcompound-names -fno-include-deps -gen-PER -no-gen-example"
+    flags = "-pdu=all -fcompound-names -fno-include-deps  -no-gen-example"
 
     # Taken from https://github.com/magma/magma/blob/14c1cf643a61d576b3d24642e17ed3911d19210d/lte/gateway/c/core/oai/tasks/s1ap/CMakeLists.txt#L35
     # The original PR (PR2707) doesn't give an explanation on why this is necessary.
