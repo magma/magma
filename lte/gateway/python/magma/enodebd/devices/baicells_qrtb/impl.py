@@ -27,8 +27,8 @@ from magma.enodebd.devices.baicells_qrtb.params import (
 )
 from magma.enodebd.devices.baicells_qrtb.states import (
     BaicellsQRTBEndSessionState,
-    BaicellsQRTBNotifyDPState,
     BaicellsQRTBQueuedEventsWaitState,
+    BaicellsQRTBWaitGetObjectParametersState,
     BaicellsQRTBWaitInformRebootState,
 )
 from magma.enodebd.devices.device_utils import EnodebDeviceName
@@ -47,7 +47,6 @@ from magma.enodebd.state_machines.enb_acs_states import (
     SetParameterValuesState,
     WaitEmptyMessageState,
     WaitForFirmwareUpgradeDownloadResponse,
-    WaitGetObjectParametersState,
     WaitGetParametersState,
     WaitGetTransientParametersState,
     WaitInformState,
@@ -120,7 +119,7 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
             'get_params': GetParametersState(self, when_done='wait_get_params', request_all_params=True),
             'wait_get_params': WaitGetParametersState(self, when_done='get_obj_params'),
             'get_obj_params': GetObjectParametersState(self, when_done='wait_get_obj_params', request_all_params=True),
-            'wait_get_obj_params': WaitGetObjectParametersState(
+            'wait_get_obj_params': BaicellsQRTBWaitGetObjectParametersState(
                 self, when_delete='delete_objs', when_add='add_objs',
                 when_set='set_params', when_skip='end_session',
             ),
@@ -137,8 +136,7 @@ class BaicellsQRTBHandler(BasicEnodebAcsStateMachine):
                 request_all_params=True,
             ),
             'check_wait_get_params': WaitGetParametersState(self, when_done='end_session'),
-            'end_session': BaicellsQRTBEndSessionState(self, when_done='notify_dp'),
-            'notify_dp': BaicellsQRTBNotifyDPState(self, when_inform='wait_inform'),
+            'end_session': BaicellsQRTBEndSessionState(self, when_inform='wait_inform'),
             'reboot': EnbSendRebootState(self, when_done='wait_reboot'),
             'wait_reboot': WaitRebootResponseState(self, when_done='wait_post_reboot_inform'),
             'wait_post_reboot_inform': BaicellsQRTBWaitInformRebootState(
