@@ -23,7 +23,7 @@ RUN apt-get -y update && apt-get -y install \
     apt-transport-https \
     apt-utils \
     git \
-    libsystemd-dev \
+    libsystemd-dev=245.4-4ubuntu3.24 \
     python3.8 \
     python3-distutils \
     python3-pip \
@@ -87,8 +87,8 @@ RUN apt-get -y update && apt-get -y install \
     libjansson4 \
     libjemalloc2 \
     libssl-dev \
-    libsystemd-dev \
-   nghttp2-proxy\
+    libsystemd-dev=245.4-4ubuntu3.24 \
+    nghttp2-proxy\
     net-tools \
     openssl \
     pkg-config \

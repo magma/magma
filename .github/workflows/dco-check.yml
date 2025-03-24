@@ -52,7 +52,7 @@ jobs:
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: always()
         with:
-          name: pr
+          name: prreverted
           path: pr/
 
   dco_check_job:
@@ -79,5 +79,5 @@ jobs:
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: always()
         with:
-          name: pr
+          name: prdcocheck
           path: pr/
