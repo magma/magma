@@ -114,17 +114,17 @@ jobs:
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
       - name: Cache magma-deb-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4.2.3
         with:
           path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
           key: vagrant-box-magma-deb-focal64-20220804.0.0
       - name: Cache magma-test-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4.2.3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
           key: vagrant-box-magma-test-v1.3.20221230
       - name: Cache magma-trfserver-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4.2.3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v1.3.20221230
