@@ -38,6 +38,7 @@ magmalte:
     mysql_pass: postgres
     mysql_dialect: postgres
     grafana_address: orc8r-user-grafana:3000
+    session_token: fhcfvugnlkkgntihvlekctunhbbdbjiu
 
   labels: {}
 
