@@ -23,6 +23,7 @@ import OrganizationLocalStrategy from './auth/strategies/OrganizationLocalStrate
 import OrganizationSamlStrategy from './auth/strategies/OrganizationSamlStrategy';
 import alertRoutes from './alerts/routes';
 import connectSession from 'connect-session-sequelize';
+import crypto from 'crypto';
 import devWebpackConfig from '../config/webpack.config';
 import express from 'express';
 import fbcPassport from './auth/passport';
@@ -60,7 +61,7 @@ app.use(
     devMode: DEV_MODE,
     sessionStore: sequelizeSessionStore,
     sessionToken:
-      process.env.SESSION_TOKEN || 'fhcfvugnlkkgntihvlekctunhbbdbjiu',
+      process.env.SESSION_TOKEN || crypto.randomBytes(32).toString('hex'),
   }),
 );
 app.use(passport.initialize());
