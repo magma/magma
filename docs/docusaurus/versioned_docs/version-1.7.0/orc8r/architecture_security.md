@@ -81,8 +81,8 @@ To access REST API resources, perform the following steps:
 1. Log in with their username and password through the `/login` endpoint
 2. Copy the token from the response body
 3. Authenticate with their username and token (in lieu of the password field) through the Swagger Authorize tool on the top right corner
-   ![rest_api_auth_3](assets/orc8r/rest_api_auth_3.png)
-   ![rest_api_auth_4](assets/orc8r/rest_api_auth_4.png)
+   ![rest_api_auth_3](../../../../readmes/assets/orc8r/rest_api_auth_3.png)
+   ![rest_api_auth_4](../../../../readmes/assets/orc8r/rest_api_auth_4.png)
 
 For backwards compatibility, token security layer is hidden under the [`useToken`](https://github.com/magma/magma/blob/master/orc8r/cloud/configs/certifier.yml#L25-L25) in the certifier config.
 Currently, it is off by default.

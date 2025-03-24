@@ -9,7 +9,7 @@ original_id: ref_magma_metrics
 
 A metric in Magma deployments may originate at gateways (AGW, FeG, etc.), Orc8r, or other targets (Postgres, AWS, etc.). In this document, we focus on the life of a metric that originates at the AGW, travels through the Orc8r to [Prometheus](https://prometheus.io/), and is eventually displayed on the NMS UI.
 
-![Orc8r Metrics](assets/orc8r/orc8r_metrics.png)
+![Orc8r Metrics](../../../../readmes/assets/orc8r/orc8r_metrics.png)
 
 ## Phase 1: Collection and export
 
@@ -159,4 +159,4 @@ func (q *QueryRestrictor) RestrictQuery(query string) (string, error) {
 
 Magma provides [dashboards](https://sourcegraph.com/github.com/magma/magma@v1.6.0/-/blob/nms/app/packages/magmalte/grafana) to visualize and explore the collected metrics. In the NMS dashboard > Metrics > Explorer UI, each metric gets a [Grafana](https://grafana.com) `<iframe>` which connects to the Grafana Data Source API. In turn, the Grafana Data Source API proxies the parameterized metric request to Prometheus and displays the retrieved metrics.
 
-![Grafana Explore UI](assets/nms/grafana_query.png)
+![Grafana Explore UI](../../../../readmes/assets/nms/grafana_query.png)

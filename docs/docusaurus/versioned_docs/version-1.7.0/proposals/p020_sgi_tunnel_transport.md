@@ -67,7 +67,7 @@ AGW need following configuration for WireGuard tunnel
 
 ### **Datapath Programming for WireGuard Tunnel**
 
-![WireGuard datapath in NonNAT setup](assets/agw_wg_tun1.png)
+![WireGuard datapath in NonNAT setup](../../../../readmes/assets/agw_wg_tun1.png)
 
 Magma data path programming for WireGuard Tunnel will involve the following steps
 
@@ -134,7 +134,7 @@ Magma data path programming with IPSec will involve the following steps
        for managing the DHCP traffic.
 3. Setup the flows to drive the traffic to/from the tunnel port.
 
-![IPSec datapath in NonNAT setup](assets/agw_ipsec_tun1.png)
+![IPSec datapath in NonNAT setup](../../../../readmes/assets/agw_ipsec_tun1.png)
 
 ## **Scope of IPSec Tunnel**
 

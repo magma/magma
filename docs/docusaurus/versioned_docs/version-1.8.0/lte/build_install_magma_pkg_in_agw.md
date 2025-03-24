@@ -19,7 +19,7 @@ original_id: build_install_magma_pkg_in_agw
     git checkout v1.8
     ```
 
-2. **Install prerequisites**. Make sure you have installed all the tools specified in the prerequisites <https://magma.github.io/magma/docs/basics/prerequisites#prerequisites>
+2. **Install prerequisites**. Make sure you have installed all the tools specified in the prerequisites https://magma.github.io/magma/docs/basics/prerequisites#prerequisites
 
 3. **Build and create deb package**.
     To build an AGW package, use the script located at `$MAGMA_ROOT/lte/gateway/fabfile.py`. The commands below will create a vagrant machine, then build and create a deb package.

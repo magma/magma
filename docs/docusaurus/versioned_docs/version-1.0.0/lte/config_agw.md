@@ -65,14 +65,14 @@ network. Otherwise, select "Create Network" from the network selection icon
 at the bottom of the left sidebar. Select `lte` as the network type and fill
 the other fields as you see fit.
 
-![Creating a network](assets/nms/createnetwork.png)
+![Creating a network](../../../../readmes/assets/nms/createnetwork.png)
 
 Go back to the network management app using the app selector in the bottom left
 of the screen, then go to "Configure" in the left sidebar, followed by the
 "Network Configuration" tab at the top of the screen. Configure your RAN and
 EPC parameters which are appropriate for your hardware setup.
 
-![Configuring a network](assets/nms/configurenetwork.png)
+![Configuring a network](../../../../readmes/assets/nms/configurenetwork.png)
 
 ## Registering and Configuring Your Access Gateway
 
@@ -92,13 +92,13 @@ MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAECMB9zEbAlLDQLq1K8tgCLO8Kie5IloU4QuAXEjtR19jt0KTk
 Navigate to "Gateways" on the NMS via the left navigation bar, hit
 "Add Gateway", and fill out the form using the hardware secrets from above:
 
-![Creating a gateway](assets/nms/create_agw.png)
+![Creating a gateway](../../../../readmes/assets/nms/createnetwork.png)
 
 After you create your gateway, hit the Edit icon in its table row, select the
 "LTE" tab, and configure your EPC/RAN parameters. Make sure you enable enodeB
 transmit.
 
-![Configuring a gateway](assets/nms/configure_agw.png)
+![Configuring a gateway](../../../../readmes/assets/nms/configurenetwork.png)
 
 At this point, you can validate the connection between your AGW and
 Orchestrator:

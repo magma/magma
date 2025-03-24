@@ -53,7 +53,7 @@ Time to load grafana dashboard on prod NMS: **>15s**from click until all graphs 
 ### Thanos
 
 Thanos is a very popular project which allows for easy and customizable scaling of prometheus monitoring pipelines. From the start, I believe this will be the easiest and most powerful solution to the problem. Thanos consists of several components, all of which can be used independently. The most relevant to us is the `Querier` which allows for the querying of data across multiple prometheus servers. A simple architecture diagram from Thanos shows how this works in a typical deployment:
-![image.png](assets/proposals/p002_scaled_prometheus_pipeline/image.png)Here we see multiple prometheus servers with the Thanos `sidecar` attached. This allows for the rest of the thanos components to work together. Then, the `Querier` components are able to accept PromQL queries and retrieve data from any set of the prometheus servers.
+![image.png](../../../../readmes/assets/proposals/p002_scaled_prometheus_pipeline/image.png)Here we see multiple prometheus servers with the Thanos `sidecar` attached. This allows for the rest of the thanos components to work together. Then, the `Querier` components are able to accept PromQL queries and retrieve data from any set of the prometheus servers.
 
 With this setup, we only need to deploy the Thanos `sidecar` and multiple `Querier` components, along with Object storage to achieve faster queries.
 
@@ -70,11 +70,11 @@ In this solution, the flow of metrics is not changed until it gets to the promet
 
 Current metrics pipeline diagram:
 
-![currentMetricsPipeline.png](assets/proposals/p002_scaled_prometheus_pipeline/currentMetricsPipeline.png)
+![currentMetricsPipeline.png](../../../../readmes/assets/proposals/p002_scaled_prometheus_pipeline/currentMetricsPipeline.png)
 
 Proposed pipeline:
 
-![newMetricsPipeline.png](assets/proposals/p002_scaled_prometheus_pipeline/proposedMetricsPipeline.png)
+![newMetricsPipeline.png](../../../../readmes/assets/proposals/p002_scaled_prometheus_pipeline/proposedMetricsPipeline.png)
 
 ### Improving query times with Object Storage
 

@@ -137,11 +137,11 @@ resource "aws_db_instance" "default" {
 
 ## Screenshots
 
-![nms_rds_upgrade](assets/orc8r/rds_upgrade_nms.png)
+![nms_rds_upgrade](../../../../readmes/assets/orc8r/rds_upgrade_nms.png)
 > **_NOTE:_** Expected output when accessing the NMS during the upgrade. Errors are expected on screen.
 
-![nms_upgrade_aws](assets/orc8r/rds_upgrade_aws_9_6_22.png)
+![nms_upgrade_aws](../../../../readmes/assets/orc8r/rds_upgrade_aws_9_6_22.png)
 > **_NOTE:_** Upgrade from 9.6.22 to 9.6.23. Per AWS’s RDS upgrade guide, jumping to 12.8 can only be done from 9.6.23.
 
-![rds_upgrade_complete](assets/orc8r/rds_upgrade_aws_complete.png)
+![rds_upgrade_complete](../../../../readmes/assets/orc8r/rds_upgrade_aws_complete.png)
 > **_NOTE:_** This screenshot displays a successful upgrade.
