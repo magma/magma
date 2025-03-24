@@ -50,6 +50,7 @@ class GrantStates(enum.Enum):
     """
     Grant SAS state class
     """
+    IDLE = "idle"
     GRANTED = "granted"
     AUTHORIZED = "authorized"
     UNSYNC = "unsync"
