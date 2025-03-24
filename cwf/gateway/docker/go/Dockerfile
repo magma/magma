@@ -34,8 +34,8 @@ RUN apt-get update && apt-get install -y \
     libjansson-dev \
     libjemalloc-dev \
     libssl-dev \
-    libsystemd-dev \
-   nghttp2-proxy\
+    libsystemd-dev=245.4-4ubuntu3.24 \
+    nghttp2-proxy\
     make \
     net-tools \
     pkg-config \
@@ -47,6 +47,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     vim \
     virtualenv
+
 
 # Golang
 WORKDIR /usr/local

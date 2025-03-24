@@ -74,7 +74,7 @@ jobs:
           echo "false" > ./pr/skipped
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         with:
-          name: pr
+          name: savepr
           path: pr/
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
@@ -259,7 +259,7 @@ jobs:
           echo ${{ github.event.number }} > ./pr/pr_number
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         with:
-          name: pr
+          name: prcwagdeploy
           path: pr/
       - name: Create and Push Release Tag
         if: startsWith(github.ref, 'refs/heads/v1')  
@@ -327,7 +327,7 @@ jobs:
           echo ${{ github.event.number }} > ./pr/pr_number
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         with:
-          name: pr
+          name: prcwfoperatorbuild
           path: pr/
       - name: Create and Push Release Tag
         if: startsWith(github.ref,'refs/heads/v1')  

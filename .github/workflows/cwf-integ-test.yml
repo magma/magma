@@ -77,12 +77,12 @@ jobs:
           # when set to "true" but frees about 6 GB
           tool-cache: true
       - name: Cache ubuntu generic box for CWF VMs
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4.2.3
         with:
           path: ~/.vagrant.d/boxes/generic-VAGRANTSLASH-ubuntu2004
           key: vagrant-box-generic-ubuntu2004-v4.0.2
       - name: Cache magma-trfserver-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4.2.3
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v1.3.20221230
