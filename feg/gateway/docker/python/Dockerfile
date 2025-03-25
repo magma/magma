@@ -17,12 +17,16 @@ ARG DEB_PORT=amd64
 # workaround to avoid interactive tzdata configuration
 ARG DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update && \
+    apt-get install -y libsystemd0=245.4-4ubuntu3.24 && \
+    apt-mark hold libsystemd0
+
 # Install the build deps with apt.
 RUN apt-get -y update && apt-get -y install \
     apt-transport-https \
     apt-utils \
     git \
-    libsystemd-dev \
+    libsystemd-dev=245.4-4ubuntu3.24 \
     python3.8 \
     python3-distutils \
     python3-pip \
@@ -84,6 +88,10 @@ RUN curl -L http://packages.fluentbit.io/fluentbit.key > /tmp/fluentbit.key
 RUN apt-key add /tmp/fluentbit.key && \
     add-apt-repository "deb https://packages.fluentbit.io/ubuntu/focal focal main"
 
+RUN apt-get update && \
+    apt-get install -y libsystemd0=245.4-4ubuntu3.24 && \
+    apt-mark hold libsystemd0
+
 # Install the runtime deps from apt.
 RUN apt-get -y update && apt-get -y install \
     iproute2 \
@@ -93,8 +101,8 @@ RUN apt-get -y update && apt-get -y install \
     libjansson4 \
     libjemalloc2 \
     libssl-dev \
-    libsystemd-dev \
-   nghttp2-proxy\
+    libsystemd-dev=245.4-4ubuntu3.24 \
+    nghttp2-proxy\
     net-tools \
     openssl \
     iputils-ping \

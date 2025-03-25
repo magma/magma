@@ -28,10 +28,15 @@ generate_hashes() {
     echo -e "${LOG_HEADER} Creating temporary directory to check out the commit $GIT_COMMIT ..." 1>&2
     local WORKDIR
     WORKDIR=$(mktemp --directory)
+
     git -c advice.detachedHead=false clone "$MAGMA_ROOT" "$WORKDIR" --quiet
+
+    echo -e "Fix for Git ownership trust issues in CI containers." 1>&2
+    git config --global --add safe.directory "$WORKDIR"
 
     echo -e "${LOG_HEADER} Checking out the commit $GIT_COMMIT." 1>&2
     git -C "$WORKDIR" -c advice.detachedHead=false checkout "$GIT_COMMIT" --quiet
+
 
     echo -e "${LOG_HEADER} Generating the hashes for the commit $GIT_COMMIT" 1>&2
     "$BAZEL_DIFF" generate-hashes --workspacePath "$WORKDIR" --bazelPath "$BAZEL_PATH" "$HASHES_JSON"
