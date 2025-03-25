@@ -22,6 +22,10 @@ RUN apt-get update && \
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main"
 
+RUN apt-get update && \
+    apt-get install -y libsystemd0=245.4-4ubuntu3.24 && \
+    apt-mark hold libsystemd0
+
 # Install the runtime deps.
 RUN apt-get update && apt-get install -y \
     bzr \

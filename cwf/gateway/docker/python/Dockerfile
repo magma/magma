@@ -18,6 +18,10 @@ ARG DEB_PORT=amd64
 # workaround to avoid interactive tzdata configurtaion
 ARG DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update && \
+    apt-get install -y libsystemd0=245.4-4ubuntu3.24 && \
+    apt-mark hold libsystemd0
+
 # Install the build deps with apt.
 RUN apt-get -y update && apt-get -y install \
     apt-transport-https \
@@ -78,6 +82,10 @@ COPY cwf/gateway/deploy/roles/ovs/files/magma-preferences /etc/apt/preferences.d
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
 RUN add-apt-repository "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-1.9.0 main" && \
     add-apt-repository "deb http://archive.ubuntu.com/ubuntu/ focal-proposed restricted main multiverse universe"
+
+RUN apt-get update && \
+    apt-get install -y libsystemd0=245.4-4ubuntu3.24 && \
+    apt-mark hold libsystemd0
 
 RUN apt-get -y update && apt-get -y install \
     curl \
