@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetFegLTENetworkIDSubscriberConfigBaseNamesReader is a Reader for the GetFegLTENetworkIDSubscriberConfigBaseNames structure.
@@ -47,7 +46,8 @@ func NewGetFegLTENetworkIDSubscriberConfigBaseNamesOK() *GetFegLTENetworkIDSubsc
 	return &GetFegLTENetworkIDSubscriberConfigBaseNamesOK{}
 }
 
-/*GetFegLTENetworkIDSubscriberConfigBaseNamesOK handles this case with default header values.
+/*
+GetFegLTENetworkIDSubscriberConfigBaseNamesOK describes a response with status code 200, with default header values.
 
 Subscriber Config
 */
@@ -58,7 +58,6 @@ type GetFegLTENetworkIDSubscriberConfigBaseNamesOK struct {
 func (o *GetFegLTENetworkIDSubscriberConfigBaseNamesOK) Error() string {
 	return fmt.Sprintf("[GET /feg_lte/{network_id}/subscriber_config/base_names][%d] getFegLteNetworkIdSubscriberConfigBaseNamesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegLTENetworkIDSubscriberConfigBaseNamesOK) GetPayload() models.BaseNames {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetFegLTENetworkIDSubscriberConfigBaseNamesDefault(code int) *GetFegLTEN
 	}
 }
 
-/*GetFegLTENetworkIDSubscriberConfigBaseNamesDefault handles this case with default header values.
+/*
+GetFegLTENetworkIDSubscriberConfigBaseNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetFegLTENetworkIDSubscriberConfigBaseNamesDefault) Code() int {
 func (o *GetFegLTENetworkIDSubscriberConfigBaseNamesDefault) Error() string {
 	return fmt.Sprintf("[GET /feg_lte/{network_id}/subscriber_config/base_names][%d] GetFegLTENetworkIDSubscriberConfigBaseNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegLTENetworkIDSubscriberConfigBaseNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDGatewaysGatewayIDMagmadReader is a Reader for the GetNetworksNetworkIDGatewaysGatewayIDMagmad structure.
@@ -47,7 +46,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDMagmadOK() *GetNetworksNetworkIDGat
 	return &GetNetworksNetworkIDGatewaysGatewayIDMagmadOK{}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDMagmadOK handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDMagmadOK describes a response with status code 200, with default header values.
 
 Magmad agent configuration
 */
@@ -58,7 +58,6 @@ type GetNetworksNetworkIDGatewaysGatewayIDMagmadOK struct {
 func (o *GetNetworksNetworkIDGatewaysGatewayIDMagmadOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/gateways/{gateway_id}/magmad][%d] getNetworksNetworkIdGatewaysGatewayIdMagmadOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDGatewaysGatewayIDMagmadOK) GetPayload() *models.MagmadGatewayConfigs {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetNetworksNetworkIDGatewaysGatewayIDMagmadDefault(code int) *GetNetwork
 	}
 }
 
-/*GetNetworksNetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysGatewayIDMagmadDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetNetworksNetworkIDGatewaysGatewayIDMagmadDefault) Code() int {
 func (o *GetNetworksNetworkIDGatewaysGatewayIDMagmadDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/gateways/{gateway_id}/magmad][%d] GetNetworksNetworkIDGatewaysGatewayIDMagmad default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDGatewaysGatewayIDMagmadDefault) GetPayload() *models.Error {
 	return o.Payload
 }

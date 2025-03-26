@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteCwfNetworkIDCarrierWifiReader is a Reader for the DeleteCwfNetworkIDCarrierWifi structure.
@@ -47,7 +46,8 @@ func NewDeleteCwfNetworkIDCarrierWifiNoContent() *DeleteCwfNetworkIDCarrierWifiN
 	return &DeleteCwfNetworkIDCarrierWifiNoContent{}
 }
 
-/*DeleteCwfNetworkIDCarrierWifiNoContent handles this case with default header values.
+/*
+DeleteCwfNetworkIDCarrierWifiNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteCwfNetworkIDCarrierWifiDefault(code int) *DeleteCwfNetworkIDCarrie
 	}
 }
 
-/*DeleteCwfNetworkIDCarrierWifiDefault handles this case with default header values.
+/*
+DeleteCwfNetworkIDCarrierWifiDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteCwfNetworkIDCarrierWifiDefault) Code() int {
 func (o *DeleteCwfNetworkIDCarrierWifiDefault) Error() string {
 	return fmt.Sprintf("[DELETE /cwf/{network_id}/carrier_wifi][%d] DeleteCwfNetworkIDCarrierWifi default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteCwfNetworkIDCarrierWifiDefault) GetPayload() *models.Error {
 	return o.Payload
 }

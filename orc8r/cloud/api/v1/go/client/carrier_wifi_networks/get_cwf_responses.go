@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetCwfReader is a Reader for the GetCwf structure.
@@ -47,7 +46,8 @@ func NewGetCwfOK() *GetCwfOK {
 	return &GetCwfOK{}
 }
 
-/*GetCwfOK handles this case with default header values.
+/*
+GetCwfOK describes a response with status code 200, with default header values.
 
 List of Carrier Wifi network IDs
 */
@@ -58,7 +58,6 @@ type GetCwfOK struct {
 func (o *GetCwfOK) Error() string {
 	return fmt.Sprintf("[GET /cwf][%d] getCwfOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfOK) GetPayload() []string {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetCwfDefault(code int) *GetCwfDefault {
 	}
 }
 
-/*GetCwfDefault handles this case with default header values.
+/*
+GetCwfDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetCwfDefault) Code() int {
 func (o *GetCwfDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf][%d] GetCwf default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfDefault) GetPayload() *models.Error {
 	return o.Payload
 }

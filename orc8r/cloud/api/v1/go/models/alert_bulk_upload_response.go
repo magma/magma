@@ -6,13 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/go-openapi/validate"
 )
 
 // AlertBulkUploadResponse alert bulk upload response
+//
 // swagger:model alert_bulk_upload_response
 type AlertBulkUploadResponse struct {
 
@@ -45,11 +48,24 @@ func (m *AlertBulkUploadResponse) Validate(formats strfmt.Registry) error {
 
 func (m *AlertBulkUploadResponse) validateErrors(formats strfmt.Registry) error {
 
+	if err := validate.Required("errors", "body", m.Errors); err != nil {
+		return err
+	}
+
 	return nil
 }
 
 func (m *AlertBulkUploadResponse) validateStatuses(formats strfmt.Registry) error {
 
+	if err := validate.Required("statuses", "body", m.Statuses); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validates this alert bulk upload response based on context it is used
+func (m *AlertBulkUploadResponse) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDGatewaysGatewayIDMagmadReader is a Reader for the GetLTENetworkIDGatewaysGatewayIDMagmad structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDMagmadOK() *GetLTENetworkIDGatewaysGatew
 	return &GetLTENetworkIDGatewaysGatewayIDMagmadOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDMagmadOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDMagmadOK describes a response with status code 200, with default header values.
 
 Magmad agent configuration
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDGatewaysGatewayIDMagmadOK struct {
 func (o *GetLTENetworkIDGatewaysGatewayIDMagmadOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/magmad][%d] getLteNetworkIdGatewaysGatewayIdMagmadOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDMagmadOK) GetPayload() *models.MagmadGatewayConfigs {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDMagmadDefault(code int) *GetLTENetworkID
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDMagmadDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDMagmadDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDGatewaysGatewayIDMagmadDefault) Code() int {
 func (o *GetLTENetworkIDGatewaysGatewayIDMagmadDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/magmad][%d] GetLTENetworkIDGatewaysGatewayIDMagmad default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDMagmadDefault) GetPayload() *models.Error {
 	return o.Payload
 }

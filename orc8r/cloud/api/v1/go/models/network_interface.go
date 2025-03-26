@@ -6,32 +6,38 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkInterface network interface
+//
 // swagger:model network_interface
 type NetworkInterface struct {
 
 	// ip addresses
+	// Example: ["10.10.10.1","10.0.0.1"]
 	IPAddresses []string `json:"ip_addresses,omitempty" magma_alt_name:"IpAddresses"`
 
 	// ipv6 addresses
+	// Example: ["fe80::a00:27ff:fe1e:8332","fe80::a00:27ff:fe1e:8432"]
 	IPV6Addresses []string `json:"ipv6_addresses,omitempty" magma_alt_name:"Ipv6Addresses"`
 
 	// mac address
+	// Example: 08:00:27:1e:8a:32
 	MacAddress string `json:"mac_address,omitempty"`
 
 	// network interface id
+	// Example: gtp_br0
 	NetworkInterfaceID string `json:"network_interface_id,omitempty" magma_alt_name:"NetworkInterfaceId"`
 
 	// status
+	// Example: UP
 	// Enum: [UP DOWN UNKNOWN]
 	Status string `json:"status,omitempty"`
 }
@@ -76,14 +82,13 @@ const (
 
 // prop value enum
 func (m *NetworkInterface) validateStatusEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, networkInterfaceTypeStatusPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, networkInterfaceTypeStatusPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *NetworkInterface) validateStatus(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Status) { // not required
 		return nil
 	}
@@ -93,6 +98,11 @@ func (m *NetworkInterface) validateStatus(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this network interface based on context it is used
+func (m *NetworkInterface) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

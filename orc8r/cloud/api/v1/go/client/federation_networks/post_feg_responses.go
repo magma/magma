@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostFegReader is a Reader for the PostFeg structure.
@@ -47,7 +46,8 @@ func NewPostFegCreated() *PostFegCreated {
 	return &PostFegCreated{}
 }
 
-/*PostFegCreated handles this case with default header values.
+/*
+PostFegCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPostFegDefault(code int) *PostFegDefault {
 	}
 }
 
-/*PostFegDefault handles this case with default header values.
+/*
+PostFegDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PostFegDefault) Code() int {
 func (o *PostFegDefault) Error() string {
 	return fmt.Sprintf("[POST /feg][%d] PostFeg default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostFegDefault) GetPayload() *models.Error {
 	return o.Payload
 }

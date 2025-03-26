@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDGatewaysGatewayIDCellularRanReader is a Reader for the GetLTENetworkIDGatewaysGatewayIDCellularRan structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularRanNoContent() *GetLTENetworkIDG
 	return &GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent describes a response with status code 204, with default header values.
 
 RAN configuration
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent struct {
 func (o *GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/cellular/ran][%d] getLteNetworkIdGatewaysGatewayIdCellularRanNoContent  %+v", 204, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDCellularRanNoContent) GetPayload() *models.GatewayRanConfigs {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDCellularRanDefault(code int) *GetLTENetw
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDCellularRanDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDCellularRanDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDGatewaysGatewayIDCellularRanDefault) Code() int {
 func (o *GetLTENetworkIDGatewaysGatewayIDCellularRanDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/cellular/ran][%d] GetLTENetworkIDGatewaysGatewayIDCellularRan default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDCellularRanDefault) GetPayload() *models.Error {
 	return o.Payload
 }

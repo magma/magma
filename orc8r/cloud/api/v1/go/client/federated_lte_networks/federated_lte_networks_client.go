@@ -7,12 +7,11 @@ package federated_lte_networks
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new federated lte networks API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,59 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteFegLTENetworkID(params *DeleteFegLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegLTENetworkIDNoContent, error)
+
+	DeleteFegLTENetworkIDFederation(params *DeleteFegLTENetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegLTENetworkIDFederationNoContent, error)
+
+	DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error)
+
+	DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error)
+
+	GetFegLTE(params *GetFegLTEParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTEOK, error)
+
+	GetFegLTENetworkID(params *GetFegLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDOK, error)
+
+	GetFegLTENetworkIDFederation(params *GetFegLTENetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDFederationOK, error)
+
+	GetFegLTENetworkIDSubscriberConfig(params *GetFegLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDSubscriberConfigOK, error)
+
+	GetFegLTENetworkIDSubscriberConfigBaseNames(params *GetFegLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDSubscriberConfigBaseNamesOK, error)
+
+	GetFegLTENetworkIDSubscriberConfigRuleNames(params *GetFegLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDSubscriberConfigRuleNamesOK, error)
+
+	PostFegLTE(params *PostFegLTEParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegLTECreated, error)
+
+	PostFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated, error)
+
+	PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated, error)
+
+	PutFegLTENetworkID(params *PutFegLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDNoContent, error)
+
+	PutFegLTENetworkIDFederation(params *PutFegLTENetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDFederationOK, error)
+
+	PutFegLTENetworkIDSubscriberConfig(params *PutFegLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDSubscriberConfigNoContent, error)
+
+	PutFegLTENetworkIDSubscriberConfigBaseNames(params *PutFegLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDSubscriberConfigBaseNamesNoContent, error)
+
+	PutFegLTENetworkIDSubscriberConfigRuleNames(params *PutFegLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDSubscriberConfigRuleNamesNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
 DeleteFegLTENetworkID deletes a federated LTE network
 */
-func (a *Client) DeleteFegLTENetworkID(params *DeleteFegLTENetworkIDParams) (*DeleteFegLTENetworkIDNoContent, error) {
+func (a *Client) DeleteFegLTENetworkID(params *DeleteFegLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegLTENetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegLTENetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegLTENetworkID",
 		Method:             "DELETE",
 		PathPattern:        "/feg_lte/{network_id}",
@@ -42,9 +84,15 @@ func (a *Client) DeleteFegLTENetworkID(params *DeleteFegLTENetworkIDParams) (*De
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegLTENetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -60,13 +108,12 @@ func (a *Client) DeleteFegLTENetworkID(params *DeleteFegLTENetworkIDParams) (*De
 /*
 DeleteFegLTENetworkIDFederation deletes network fe g configs
 */
-func (a *Client) DeleteFegLTENetworkIDFederation(params *DeleteFegLTENetworkIDFederationParams) (*DeleteFegLTENetworkIDFederationNoContent, error) {
+func (a *Client) DeleteFegLTENetworkIDFederation(params *DeleteFegLTENetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegLTENetworkIDFederationNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegLTENetworkIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegLTENetworkIDFederation",
 		Method:             "DELETE",
 		PathPattern:        "/feg_lte/{network_id}/federation",
@@ -75,9 +122,15 @@ func (a *Client) DeleteFegLTENetworkIDFederation(params *DeleteFegLTENetworkIDFe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegLTENetworkIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -93,13 +146,12 @@ func (a *Client) DeleteFegLTENetworkIDFederation(params *DeleteFegLTENetworkIDFe
 /*
 DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams) (*DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
+func (a *Client) DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseName",
 		Method:             "DELETE",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config/base_names/{base_name}",
@@ -108,9 +160,15 @@ func (a *Client) DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -126,13 +184,12 @@ func (a *Client) DeleteFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *
 /*
 DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams) (*DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
+func (a *Client) DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID",
 		Method:             "DELETE",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config/rule_names/{rule_id}",
@@ -141,9 +198,15 @@ func (a *Client) DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *De
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -159,13 +222,12 @@ func (a *Client) DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *De
 /*
 GetFegLTE lists all federated LTE network i ds
 */
-func (a *Client) GetFegLTE(params *GetFegLTEParams) (*GetFegLTEOK, error) {
+func (a *Client) GetFegLTE(params *GetFegLTEParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTEOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegLTEParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegLTE",
 		Method:             "GET",
 		PathPattern:        "/feg_lte",
@@ -174,9 +236,15 @@ func (a *Client) GetFegLTE(params *GetFegLTEParams) (*GetFegLTEOK, error) {
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegLTEReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -192,13 +260,12 @@ func (a *Client) GetFegLTE(params *GetFegLTEParams) (*GetFegLTEOK, error) {
 /*
 GetFegLTENetworkID describes a federated LTE network
 */
-func (a *Client) GetFegLTENetworkID(params *GetFegLTENetworkIDParams) (*GetFegLTENetworkIDOK, error) {
+func (a *Client) GetFegLTENetworkID(params *GetFegLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegLTENetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegLTENetworkID",
 		Method:             "GET",
 		PathPattern:        "/feg_lte/{network_id}",
@@ -207,9 +274,15 @@ func (a *Client) GetFegLTENetworkID(params *GetFegLTENetworkIDParams) (*GetFegLT
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegLTENetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -225,13 +298,12 @@ func (a *Client) GetFegLTENetworkID(params *GetFegLTENetworkIDParams) (*GetFegLT
 /*
 GetFegLTENetworkIDFederation retrieves network fe g configs
 */
-func (a *Client) GetFegLTENetworkIDFederation(params *GetFegLTENetworkIDFederationParams) (*GetFegLTENetworkIDFederationOK, error) {
+func (a *Client) GetFegLTENetworkIDFederation(params *GetFegLTENetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegLTENetworkIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegLTENetworkIDFederation",
 		Method:             "GET",
 		PathPattern:        "/feg_lte/{network_id}/federation",
@@ -240,9 +312,15 @@ func (a *Client) GetFegLTENetworkIDFederation(params *GetFegLTENetworkIDFederati
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegLTENetworkIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -258,13 +336,12 @@ func (a *Client) GetFegLTENetworkIDFederation(params *GetFegLTENetworkIDFederati
 /*
 GetFegLTENetworkIDSubscriberConfig gets a network wide subscriber config
 */
-func (a *Client) GetFegLTENetworkIDSubscriberConfig(params *GetFegLTENetworkIDSubscriberConfigParams) (*GetFegLTENetworkIDSubscriberConfigOK, error) {
+func (a *Client) GetFegLTENetworkIDSubscriberConfig(params *GetFegLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDSubscriberConfigOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegLTENetworkIDSubscriberConfigParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegLTENetworkIDSubscriberConfig",
 		Method:             "GET",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config",
@@ -273,9 +350,15 @@ func (a *Client) GetFegLTENetworkIDSubscriberConfig(params *GetFegLTENetworkIDSu
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegLTENetworkIDSubscriberConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -291,13 +374,12 @@ func (a *Client) GetFegLTENetworkIDSubscriberConfig(params *GetFegLTENetworkIDSu
 /*
 GetFegLTENetworkIDSubscriberConfigBaseNames gets network wide base names
 */
-func (a *Client) GetFegLTENetworkIDSubscriberConfigBaseNames(params *GetFegLTENetworkIDSubscriberConfigBaseNamesParams) (*GetFegLTENetworkIDSubscriberConfigBaseNamesOK, error) {
+func (a *Client) GetFegLTENetworkIDSubscriberConfigBaseNames(params *GetFegLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDSubscriberConfigBaseNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegLTENetworkIDSubscriberConfigBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegLTENetworkIDSubscriberConfigBaseNames",
 		Method:             "GET",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config/base_names",
@@ -306,9 +388,15 @@ func (a *Client) GetFegLTENetworkIDSubscriberConfigBaseNames(params *GetFegLTENe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegLTENetworkIDSubscriberConfigBaseNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -324,13 +412,12 @@ func (a *Client) GetFegLTENetworkIDSubscriberConfigBaseNames(params *GetFegLTENe
 /*
 GetFegLTENetworkIDSubscriberConfigRuleNames gets network wide rule names
 */
-func (a *Client) GetFegLTENetworkIDSubscriberConfigRuleNames(params *GetFegLTENetworkIDSubscriberConfigRuleNamesParams) (*GetFegLTENetworkIDSubscriberConfigRuleNamesOK, error) {
+func (a *Client) GetFegLTENetworkIDSubscriberConfigRuleNames(params *GetFegLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegLTENetworkIDSubscriberConfigRuleNamesOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegLTENetworkIDSubscriberConfigRuleNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegLTENetworkIDSubscriberConfigRuleNames",
 		Method:             "GET",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config/rule_names",
@@ -339,9 +426,15 @@ func (a *Client) GetFegLTENetworkIDSubscriberConfigRuleNames(params *GetFegLTENe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegLTENetworkIDSubscriberConfigRuleNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -357,13 +450,12 @@ func (a *Client) GetFegLTENetworkIDSubscriberConfigRuleNames(params *GetFegLTENe
 /*
 PostFegLTE creates a new federated LTE network
 */
-func (a *Client) PostFegLTE(params *PostFegLTEParams) (*PostFegLTECreated, error) {
+func (a *Client) PostFegLTE(params *PostFegLTEParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegLTECreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegLTEParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostFegLTE",
 		Method:             "POST",
 		PathPattern:        "/feg_lte",
@@ -372,9 +464,15 @@ func (a *Client) PostFegLTE(params *PostFegLTEParams) (*PostFegLTECreated, error
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegLTEReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -390,13 +488,12 @@ func (a *Client) PostFegLTE(params *PostFegLTEParams) (*PostFegLTECreated, error
 /*
 PostFegLTENetworkIDSubscriberConfigBaseNamesBaseName adds a network wide base name
 */
-func (a *Client) PostFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams) (*PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
+func (a *Client) PostFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostFegLTENetworkIDSubscriberConfigBaseNamesBaseName",
 		Method:             "POST",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config/base_names/{base_name}",
@@ -405,9 +502,15 @@ func (a *Client) PostFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *Po
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegLTENetworkIDSubscriberConfigBaseNamesBaseNameReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -423,13 +526,12 @@ func (a *Client) PostFegLTENetworkIDSubscriberConfigBaseNamesBaseName(params *Po
 /*
 PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID adds a network wide rule name
 */
-func (a *Client) PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams) (*PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
+func (a *Client) PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID",
 		Method:             "POST",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config/rule_names/{rule_id}",
@@ -438,9 +540,15 @@ func (a *Client) PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *Post
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -456,13 +564,12 @@ func (a *Client) PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID(params *Post
 /*
 PutFegLTENetworkID updates an entire federated LTE network
 */
-func (a *Client) PutFegLTENetworkID(params *PutFegLTENetworkIDParams) (*PutFegLTENetworkIDNoContent, error) {
+func (a *Client) PutFegLTENetworkID(params *PutFegLTENetworkIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegLTENetworkIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegLTENetworkID",
 		Method:             "PUT",
 		PathPattern:        "/feg_lte/{network_id}",
@@ -471,9 +578,15 @@ func (a *Client) PutFegLTENetworkID(params *PutFegLTENetworkIDParams) (*PutFegLT
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegLTENetworkIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -489,13 +602,12 @@ func (a *Client) PutFegLTENetworkID(params *PutFegLTENetworkIDParams) (*PutFegLT
 /*
 PutFegLTENetworkIDFederation creates or modify network fe g configs
 */
-func (a *Client) PutFegLTENetworkIDFederation(params *PutFegLTENetworkIDFederationParams) (*PutFegLTENetworkIDFederationOK, error) {
+func (a *Client) PutFegLTENetworkIDFederation(params *PutFegLTENetworkIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegLTENetworkIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegLTENetworkIDFederation",
 		Method:             "PUT",
 		PathPattern:        "/feg_lte/{network_id}/federation",
@@ -504,9 +616,15 @@ func (a *Client) PutFegLTENetworkIDFederation(params *PutFegLTENetworkIDFederati
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegLTENetworkIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -522,13 +640,12 @@ func (a *Client) PutFegLTENetworkIDFederation(params *PutFegLTENetworkIDFederati
 /*
 PutFegLTENetworkIDSubscriberConfig updates a network wide subscriber config
 */
-func (a *Client) PutFegLTENetworkIDSubscriberConfig(params *PutFegLTENetworkIDSubscriberConfigParams) (*PutFegLTENetworkIDSubscriberConfigNoContent, error) {
+func (a *Client) PutFegLTENetworkIDSubscriberConfig(params *PutFegLTENetworkIDSubscriberConfigParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDSubscriberConfigNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegLTENetworkIDSubscriberConfigParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegLTENetworkIDSubscriberConfig",
 		Method:             "PUT",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config",
@@ -537,9 +654,15 @@ func (a *Client) PutFegLTENetworkIDSubscriberConfig(params *PutFegLTENetworkIDSu
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegLTENetworkIDSubscriberConfigReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -555,13 +678,12 @@ func (a *Client) PutFegLTENetworkIDSubscriberConfig(params *PutFegLTENetworkIDSu
 /*
 PutFegLTENetworkIDSubscriberConfigBaseNames updates network wide base names
 */
-func (a *Client) PutFegLTENetworkIDSubscriberConfigBaseNames(params *PutFegLTENetworkIDSubscriberConfigBaseNamesParams) (*PutFegLTENetworkIDSubscriberConfigBaseNamesNoContent, error) {
+func (a *Client) PutFegLTENetworkIDSubscriberConfigBaseNames(params *PutFegLTENetworkIDSubscriberConfigBaseNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDSubscriberConfigBaseNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegLTENetworkIDSubscriberConfigBaseNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegLTENetworkIDSubscriberConfigBaseNames",
 		Method:             "PUT",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config/base_names",
@@ -570,9 +692,15 @@ func (a *Client) PutFegLTENetworkIDSubscriberConfigBaseNames(params *PutFegLTENe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegLTENetworkIDSubscriberConfigBaseNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -588,13 +716,12 @@ func (a *Client) PutFegLTENetworkIDSubscriberConfigBaseNames(params *PutFegLTENe
 /*
 PutFegLTENetworkIDSubscriberConfigRuleNames updates network wide rule names
 */
-func (a *Client) PutFegLTENetworkIDSubscriberConfigRuleNames(params *PutFegLTENetworkIDSubscriberConfigRuleNamesParams) (*PutFegLTENetworkIDSubscriberConfigRuleNamesNoContent, error) {
+func (a *Client) PutFegLTENetworkIDSubscriberConfigRuleNames(params *PutFegLTENetworkIDSubscriberConfigRuleNamesParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegLTENetworkIDSubscriberConfigRuleNamesNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegLTENetworkIDSubscriberConfigRuleNamesParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegLTENetworkIDSubscriberConfigRuleNames",
 		Method:             "PUT",
 		PathPattern:        "/feg_lte/{network_id}/subscriber_config/rule_names",
@@ -603,9 +730,15 @@ func (a *Client) PutFegLTENetworkIDSubscriberConfigRuleNames(params *PutFegLTENe
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegLTENetworkIDSubscriberConfigRuleNamesReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetFegNetworkIDGatewaysReader is a Reader for the GetFegNetworkIDGateways structure.
@@ -47,7 +46,8 @@ func NewGetFegNetworkIDGatewaysOK() *GetFegNetworkIDGatewaysOK {
 	return &GetFegNetworkIDGatewaysOK{}
 }
 
-/*GetFegNetworkIDGatewaysOK handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysOK describes a response with status code 200, with default header values.
 
 Map of all federated gateways inside the network by gatewayID
 */
@@ -58,7 +58,6 @@ type GetFegNetworkIDGatewaysOK struct {
 func (o *GetFegNetworkIDGatewaysOK) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/gateways][%d] getFegNetworkIdGatewaysOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegNetworkIDGatewaysOK) GetPayload() map[string]models.FederationGateway {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetFegNetworkIDGatewaysDefault(code int) *GetFegNetworkIDGatewaysDefault
 	}
 }
 
-/*GetFegNetworkIDGatewaysDefault handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetFegNetworkIDGatewaysDefault) Code() int {
 func (o *GetFegNetworkIDGatewaysDefault) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/gateways][%d] GetFegNetworkIDGateways default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegNetworkIDGatewaysDefault) GetPayload() *models.Error {
 	return o.Payload
 }

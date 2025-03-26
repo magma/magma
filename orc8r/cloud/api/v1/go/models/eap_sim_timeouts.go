@@ -6,30 +6,41 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // EapSimTimeouts eap sim timeouts
+//
 // swagger:model eap_sim_timeouts
 type EapSimTimeouts struct {
 
 	// challenge ms
+	// Example: 20000
 	ChallengeMs uint32 `json:"challenge_ms,omitempty"`
 
 	// error notification ms
+	// Example: 10000
 	ErrorNotificationMs uint32 `json:"error_notification_ms,omitempty"`
 
 	// session authenticated ms
+	// Example: 5000
 	SessionAuthenticatedMs uint32 `json:"session_authenticated_ms,omitempty"`
 
 	// session ms
+	// Example: 43200000
 	SessionMs uint32 `json:"session_ms,omitempty"`
 }
 
 // Validate validates this eap sim timeouts
 func (m *EapSimTimeouts) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this eap sim timeouts based on context it is used
+func (m *EapSimTimeouts) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
