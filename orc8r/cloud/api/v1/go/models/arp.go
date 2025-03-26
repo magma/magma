@@ -6,24 +6,29 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Arp Allocation and retention priority
+//
 // swagger:model arp
 type Arp struct {
 
 	// preemption capability
+	// Example: true
 	PreemptionCapability *bool `json:"preemption_capability,omitempty"`
 
 	// preemption vulnerability
+	// Example: false
 	PreemptionVulnerability *bool `json:"preemption_vulnerability,omitempty"`
 
 	// priority level
+	// Example: 15
 	// Maximum: 15
 	// Minimum: 0
 	PriorityLevel *uint32 `json:"priority_level,omitempty"`
@@ -44,19 +49,23 @@ func (m *Arp) Validate(formats strfmt.Registry) error {
 }
 
 func (m *Arp) validatePriorityLevel(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.PriorityLevel) { // not required
 		return nil
 	}
 
-	if err := validate.MinimumInt("priority_level", "body", int64(*m.PriorityLevel), 0, false); err != nil {
+	if err := validate.MinimumUint("priority_level", "body", uint64(*m.PriorityLevel), 0, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("priority_level", "body", int64(*m.PriorityLevel), 15, false); err != nil {
+	if err := validate.MaximumUint("priority_level", "body", uint64(*m.PriorityLevel), 15, false); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this arp based on context it is used
+func (m *Arp) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

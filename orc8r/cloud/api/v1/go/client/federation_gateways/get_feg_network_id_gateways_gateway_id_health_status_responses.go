@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetFegNetworkIDGatewaysGatewayIDHealthStatusReader is a Reader for the GetFegNetworkIDGatewaysGatewayIDHealthStatus structure.
@@ -47,7 +46,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusOK() *GetFegNetworkIDGateway
 	return &GetFegNetworkIDGatewaysGatewayIDHealthStatusOK{}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDHealthStatusOK handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysGatewayIDHealthStatusOK describes a response with status code 200, with default header values.
 
 Health Status of Federation Gateway
 */
@@ -58,7 +58,6 @@ type GetFegNetworkIDGatewaysGatewayIDHealthStatusOK struct {
 func (o *GetFegNetworkIDGatewaysGatewayIDHealthStatusOK) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/gateways/{gateway_id}/health_status][%d] getFegNetworkIdGatewaysGatewayIdHealthStatusOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegNetworkIDGatewaysGatewayIDHealthStatusOK) GetPayload() *models.FederationGatewayHealthStatus {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetFegNetworkIDGatewaysGatewayIDHealthStatusDefault(code int) *GetFegNet
 	}
 }
 
-/*GetFegNetworkIDGatewaysGatewayIDHealthStatusDefault handles this case with default header values.
+/*
+GetFegNetworkIDGatewaysGatewayIDHealthStatusDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetFegNetworkIDGatewaysGatewayIDHealthStatusDefault) Code() int {
 func (o *GetFegNetworkIDGatewaysGatewayIDHealthStatusDefault) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/gateways/{gateway_id}/health_status][%d] GetFegNetworkIDGatewaysGatewayIDHealthStatus default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegNetworkIDGatewaysGatewayIDHealthStatusDefault) GetPayload() *models.Error {
 	return o.Payload
 }

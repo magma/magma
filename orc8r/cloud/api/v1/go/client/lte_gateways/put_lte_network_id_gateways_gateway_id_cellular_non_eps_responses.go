@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutLTENetworkIDGatewaysGatewayIDCellularNonEpsReader is a Reader for the PutLTENetworkIDGatewaysGatewayIDCellularNonEps structure.
@@ -47,7 +46,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent() *PutLTENetwork
 	return &PutLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularNonEpsNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault(code int) *PutLTEN
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault) Code() int {
 func (o *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/gateways/{gateway_id}/cellular/non_eps][%d] PutLTENetworkIDGatewaysGatewayIDCellularNonEps default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDGatewaysGatewayIDCellularNonEpsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

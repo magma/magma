@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDReader is a Reader for the PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID structure.
@@ -47,7 +46,8 @@ func NewPostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated() *PostFegLTEN
 	return &PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated{}
 }
 
-/*PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated handles this case with default header values.
+/*
+PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *Pos
 	}
 }
 
-/*PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault) Code() int {
 func (o *PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[POST /feg_lte/{network_id}/subscriber_config/rule_names/{rule_id}][%d] PostFegLTENetworkIDSubscriberConfigRuleNamesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

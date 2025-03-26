@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutFegNetworkIDGatewaysGatewayIDFederationReader is a Reader for the PutFegNetworkIDGatewaysGatewayIDFederation structure.
@@ -47,7 +46,8 @@ func NewPutFegNetworkIDGatewaysGatewayIDFederationOK() *PutFegNetworkIDGatewaysG
 	return &PutFegNetworkIDGatewaysGatewayIDFederationOK{}
 }
 
-/*PutFegNetworkIDGatewaysGatewayIDFederationOK handles this case with default header values.
+/*
+PutFegNetworkIDGatewaysGatewayIDFederationOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutFegNetworkIDGatewaysGatewayIDFederationDefault(code int) *PutFegNetwo
 	}
 }
 
-/*PutFegNetworkIDGatewaysGatewayIDFederationDefault handles this case with default header values.
+/*
+PutFegNetworkIDGatewaysGatewayIDFederationDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutFegNetworkIDGatewaysGatewayIDFederationDefault) Code() int {
 func (o *PutFegNetworkIDGatewaysGatewayIDFederationDefault) Error() string {
 	return fmt.Sprintf("[PUT /feg/{network_id}/gateways/{gateway_id}/federation][%d] PutFegNetworkIDGatewaysGatewayIDFederation default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutFegNetworkIDGatewaysGatewayIDFederationDefault) GetPayload() *models.Error {
 	return o.Payload
 }

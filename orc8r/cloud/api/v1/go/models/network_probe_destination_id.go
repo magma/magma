@@ -6,14 +6,23 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
+
+	"github.com/go-openapi/strfmt"
 )
 
 // NetworkProbeDestinationID network probe destination id
+// Example: xxxx-yyyy-zzzz
+//
 // swagger:model network_probe_destination_id
 type NetworkProbeDestinationID string
 
 // Validate validates this network probe destination id
 func (m NetworkProbeDestinationID) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this network probe destination id based on context it is used
+func (m NetworkProbeDestinationID) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

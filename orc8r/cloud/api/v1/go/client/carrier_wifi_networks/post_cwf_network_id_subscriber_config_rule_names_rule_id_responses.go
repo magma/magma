@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDReader is a Reader for the PostCwfNetworkIDSubscriberConfigRuleNamesRuleID structure.
@@ -47,7 +46,8 @@ func NewPostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated() *PostCwfNetwork
 	return &PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated{}
 }
 
-/*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated handles this case with default header values.
+/*
+PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *PostCw
 	}
 }
 
-/*PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Code() int {
 func (o *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[POST /cwf/{network_id}/subscriber_config/rule_names/{rule_id}][%d] PostCwfNetworkIDSubscriberConfigRuleNamesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

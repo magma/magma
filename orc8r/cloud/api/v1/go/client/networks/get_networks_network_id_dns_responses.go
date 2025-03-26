@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDDNSReader is a Reader for the GetNetworksNetworkIDDNS structure.
@@ -47,7 +46,8 @@ func NewGetNetworksNetworkIDDNSOK() *GetNetworksNetworkIDDNSOK {
 	return &GetNetworksNetworkIDDNSOK{}
 }
 
-/*GetNetworksNetworkIDDNSOK handles this case with default header values.
+/*
+GetNetworksNetworkIDDNSOK describes a response with status code 200, with default header values.
 
 DNS configuration of the network
 */
@@ -58,7 +58,6 @@ type GetNetworksNetworkIDDNSOK struct {
 func (o *GetNetworksNetworkIDDNSOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/dns][%d] getNetworksNetworkIdDnsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDDNSOK) GetPayload() *models.NetworkDNSConfig {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetNetworksNetworkIDDNSDefault(code int) *GetNetworksNetworkIDDNSDefault
 	}
 }
 
-/*GetNetworksNetworkIDDNSDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDDNSDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetNetworksNetworkIDDNSDefault) Code() int {
 func (o *GetNetworksNetworkIDDNSDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/dns][%d] GetNetworksNetworkIDDNS default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDDNSDefault) GetPayload() *models.Error {
 	return o.Payload
 }

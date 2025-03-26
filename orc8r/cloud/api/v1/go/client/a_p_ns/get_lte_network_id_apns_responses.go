@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDAPNSReader is a Reader for the GetLTENetworkIDAPNS structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDAPNSOK() *GetLTENetworkIDAPNSOK {
 	return &GetLTENetworkIDAPNSOK{}
 }
 
-/*GetLTENetworkIDAPNSOK handles this case with default header values.
+/*
+GetLTENetworkIDAPNSOK describes a response with status code 200, with default header values.
 
 List of all the APNs in the network
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDAPNSOK struct {
 func (o *GetLTENetworkIDAPNSOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/apns][%d] getLteNetworkIdApnsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDAPNSOK) GetPayload() map[string]models.APN {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetLTENetworkIDAPNSDefault(code int) *GetLTENetworkIDAPNSDefault {
 	}
 }
 
-/*GetLTENetworkIDAPNSDefault handles this case with default header values.
+/*
+GetLTENetworkIDAPNSDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetLTENetworkIDAPNSDefault) Code() int {
 func (o *GetLTENetworkIDAPNSDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/apns][%d] GetLTENetworkIDAPNS default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDAPNSDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostNetworksNetworkIDPoliciesBaseNamesReader is a Reader for the PostNetworksNetworkIDPoliciesBaseNames structure.
@@ -47,7 +46,8 @@ func NewPostNetworksNetworkIDPoliciesBaseNamesCreated() *PostNetworksNetworkIDPo
 	return &PostNetworksNetworkIDPoliciesBaseNamesCreated{}
 }
 
-/*PostNetworksNetworkIDPoliciesBaseNamesCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDPoliciesBaseNamesCreated describes a response with status code 201, with default header values.
 
 Charging Rule Base Name
 */
@@ -58,7 +58,6 @@ type PostNetworksNetworkIDPoliciesBaseNamesCreated struct {
 func (o *PostNetworksNetworkIDPoliciesBaseNamesCreated) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/policies/base_names][%d] postNetworksNetworkIdPoliciesBaseNamesCreated  %+v", 201, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDPoliciesBaseNamesCreated) GetPayload() models.BaseName {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewPostNetworksNetworkIDPoliciesBaseNamesDefault(code int) *PostNetworksNet
 	}
 }
 
-/*PostNetworksNetworkIDPoliciesBaseNamesDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDPoliciesBaseNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *PostNetworksNetworkIDPoliciesBaseNamesDefault) Code() int {
 func (o *PostNetworksNetworkIDPoliciesBaseNamesDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/policies/base_names][%d] PostNetworksNetworkIDPoliciesBaseNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDPoliciesBaseNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

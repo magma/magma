@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetTenantsTargetsMetadataReader is a Reader for the GetTenantsTargetsMetadata structure.
@@ -47,7 +46,8 @@ func NewGetTenantsTargetsMetadataOK() *GetTenantsTargetsMetadataOK {
 	return &GetTenantsTargetsMetadataOK{}
 }
 
-/*GetTenantsTargetsMetadataOK handles this case with default header values.
+/*
+GetTenantsTargetsMetadataOK describes a response with status code 200, with default header values.
 
 Info of metrics
 */
@@ -58,7 +58,6 @@ type GetTenantsTargetsMetadataOK struct {
 func (o *GetTenantsTargetsMetadataOK) Error() string {
 	return fmt.Sprintf("[GET /tenants/targets_metadata][%d] getTenantsTargetsMetadataOK  %+v", 200, o.Payload)
 }
-
 func (o *GetTenantsTargetsMetadataOK) GetPayload() []*models.PrometheusTargetsMetadata {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetTenantsTargetsMetadataDefault(code int) *GetTenantsTargetsMetadataDef
 	}
 }
 
-/*GetTenantsTargetsMetadataDefault handles this case with default header values.
+/*
+GetTenantsTargetsMetadataDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetTenantsTargetsMetadataDefault) Code() int {
 func (o *GetTenantsTargetsMetadataDefault) Error() string {
 	return fmt.Sprintf("[GET /tenants/targets_metadata][%d] GetTenantsTargetsMetadata default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetTenantsTargetsMetadataDefault) GetPayload() *models.Error {
 	return o.Payload
 }

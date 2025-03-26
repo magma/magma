@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteLTENetworkIDPolicyQosProfilesProfileIDReader is a Reader for the DeleteLTENetworkIDPolicyQosProfilesProfileID structure.
@@ -47,7 +46,8 @@ func NewDeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent() *DeleteLTENetwor
 	return &DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent{}
 }
 
-/*DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDPolicyQosProfilesProfileIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteLTENetworkIDPolicyQosProfilesProfileIDDefault(code int) *DeleteLTE
 	}
 }
 
-/*DeleteLTENetworkIDPolicyQosProfilesProfileIDDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDPolicyQosProfilesProfileIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteLTENetworkIDPolicyQosProfilesProfileIDDefault) Code() int {
 func (o *DeleteLTENetworkIDPolicyQosProfilesProfileIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/policy_qos_profiles/{profile_id}][%d] DeleteLTENetworkIDPolicyQosProfilesProfileID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDPolicyQosProfilesProfileIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

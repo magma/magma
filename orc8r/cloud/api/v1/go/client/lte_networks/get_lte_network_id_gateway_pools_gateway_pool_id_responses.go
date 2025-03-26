@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDGatewayPoolsGatewayPoolIDReader is a Reader for the GetLTENetworkIDGatewayPoolsGatewayPoolID structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDGatewayPoolsGatewayPoolIDOK() *GetLTENetworkIDGatewayPool
 	return &GetLTENetworkIDGatewayPoolsGatewayPoolIDOK{}
 }
 
-/*GetLTENetworkIDGatewayPoolsGatewayPoolIDOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewayPoolsGatewayPoolIDOK describes a response with status code 200, with default header values.
 
 HA gateway pool
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDGatewayPoolsGatewayPoolIDOK struct {
 func (o *GetLTENetworkIDGatewayPoolsGatewayPoolIDOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateway_pools/{gateway_pool_id}][%d] getLteNetworkIdGatewayPoolsGatewayPoolIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewayPoolsGatewayPoolIDOK) GetPayload() *models.CellularGatewayPool {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDGatewayPoolsGatewayPoolIDDefault(code int) *GetLTENetwork
 	}
 }
 
-/*GetLTENetworkIDGatewayPoolsGatewayPoolIDDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewayPoolsGatewayPoolIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDGatewayPoolsGatewayPoolIDDefault) Code() int {
 func (o *GetLTENetworkIDGatewayPoolsGatewayPoolIDDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateway_pools/{gateway_pool_id}][%d] GetLTENetworkIDGatewayPoolsGatewayPoolID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewayPoolsGatewayPoolIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostLTENetworkIDSMSReader is a Reader for the PostLTENetworkIDSMS structure.
@@ -47,7 +46,8 @@ func NewPostLTENetworkIDSMSCreated() *PostLTENetworkIDSMSCreated {
 	return &PostLTENetworkIDSMSCreated{}
 }
 
-/*PostLTENetworkIDSMSCreated handles this case with default header values.
+/*
+PostLTENetworkIDSMSCreated describes a response with status code 201, with default header values.
 
 PK of the created message
 */
@@ -58,7 +58,6 @@ type PostLTENetworkIDSMSCreated struct {
 func (o *PostLTENetworkIDSMSCreated) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/sms][%d] postLteNetworkIdSmsCreated  %+v", 201, o.Payload)
 }
-
 func (o *PostLTENetworkIDSMSCreated) GetPayload() string {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewPostLTENetworkIDSMSDefault(code int) *PostLTENetworkIDSMSDefault {
 	}
 }
 
-/*PostLTENetworkIDSMSDefault handles this case with default header values.
+/*
+PostLTENetworkIDSMSDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *PostLTENetworkIDSMSDefault) Code() int {
 func (o *PostLTENetworkIDSMSDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/sms][%d] PostLTENetworkIDSMS default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDSMSDefault) GetPayload() *models.Error {
 	return o.Payload
 }

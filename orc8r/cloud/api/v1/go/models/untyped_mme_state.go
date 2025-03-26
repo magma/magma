@@ -6,5 +6,6 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 // UntypedMmeState Arbitrary untyped JSON object that represents replicated MME state
+//
 // swagger:model untyped_mme_state
 type UntypedMmeState interface{}

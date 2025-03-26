@@ -6,45 +6,55 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Health health service configuration
+//
 // swagger:model health
 type Health struct {
 
 	// cloud disable period secs
+	// Example: 10
 	CloudDisablePeriodSecs uint32 `json:"cloud_disable_period_secs,omitempty" magma_alt_name:"CloudDisconnectPeriodSecs"`
 
 	// cpu utilization threshold
+	// Example: 0.9
 	CPUUtilizationThreshold float32 `json:"cpu_utilization_threshold,omitempty" magma_alt_name:"CpuUtilizationThreshold"`
 
 	// FeG services for the health service to monitor
+	// Example: ["SESSION_PROXY","SWX_PROXY"]
 	HealthServices []string `json:"health_services" magma_alt_name:"RequiredServices"`
 
 	// local disable period secs
+	// Example: 1
 	LocalDisablePeriodSecs uint32 `json:"local_disable_period_secs,omitempty" magma_alt_name:"LocalDisconnectPeriodSecs"`
 
 	// memory available threshold
+	// Example: 0.75
 	MemoryAvailableThreshold float32 `json:"memory_available_threshold,omitempty"`
 
 	// minimum request threshold
+	// Example: 1
 	MinimumRequestThreshold uint32 `json:"minimum_request_threshold,omitempty"`
 
 	// request failure threshold
+	// Example: 0.5
 	RequestFailureThreshold float32 `json:"request_failure_threshold,omitempty"`
 
 	// update failure threshold
+	// Example: 3
 	UpdateFailureThreshold uint32 `json:"update_failure_threshold,omitempty"`
 
 	// update interval secs
+	// Example: 10
 	UpdateIntervalSecs uint32 `json:"update_interval_secs,omitempty"`
 }
 
@@ -75,14 +85,13 @@ func init() {
 }
 
 func (m *Health) validateHealthServicesItemsEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, healthHealthServicesItemsEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, healthHealthServicesItemsEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *Health) validateHealthServices(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.HealthServices) { // not required
 		return nil
 	}
@@ -96,6 +105,11 @@ func (m *Health) validateHealthServices(formats strfmt.Registry) error {
 
 	}
 
+	return nil
+}
+
+// ContextValidate validates this health based on context it is used
+func (m *Health) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
