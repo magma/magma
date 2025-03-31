@@ -41,13 +41,44 @@ from magma.enodebd.state_machines.enb_acs_states import (
     AcsMsgAndTransition,
     AcsReadMsgResult,
     EnodebAcsState,
-    NotifyDPState,
+    WaitGetObjectParametersState,
     WaitInformMRebootState,
 )
 from magma.enodebd.state_machines.timer import StateMachineTimer
 from magma.enodebd.tr069 import models
 
 logger = EnodebdLogger
+
+
+class BaicellsQRTBWaitGetObjectParametersState(WaitGetObjectParametersState):
+    """ WaitGetObjectParametersState modified in a way that allows to sync up
+    with DP before transitioning in the next state, so DP params will be
+    included into the config and del/add/set messages."""
+
+    def _get_next_state(self) -> AcsReadMsgResult:
+        self._notify_dp()   # Call DP hook before going into the next state.
+        return super()._get_next_state()
+
+    def _notify_dp(self) -> None:
+        serial_number = self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
+
+        # NOTE: In case GPS scan is not completed, eNB reports LAT and LONG values as 0.
+        #       Only update CBSD in Domain Proxy when all params are available.
+        gps_status = strtobool(self.acs.device_cfg.get_parameter(ParameterName.GPS_STATUS))
+        if gps_status:
+            enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
+                serial_number=serial_number,
+                latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
+                longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
+                indoor_deployment=self.acs.device_cfg.get_parameter(ParameterName.INDOOR_DEPLOYMENT),
+                antenna_height=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT),
+                antenna_height_type=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT_TYPE),
+                cbsd_category=self.acs.device_cfg.get_parameter(ParameterName.CBSD_CATEGORY),
+            )
+            state = enodebd_update_cbsd(enodebd_update_cbsd_request)
+            qrtb_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
+        else:
+            EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
 
 
 class BaicellsQRTBEndSessionState(EnodebAcsState):
@@ -60,11 +91,30 @@ class BaicellsQRTBEndSessionState(EnodebAcsState):
     def __init__(
             self,
             acs: EnodebAcsStateMachine,
-            when_done: str,
+            when_inform: str,
     ):
         super().__init__()
         self.acs = acs
-        self.done_transition = when_done
+        self.inform_transition = when_inform
+
+    def read_msg(self, message: Any) -> AcsReadMsgResult:
+        """
+        Send an empty response if a device sends an empty HTTP message
+
+        If it's an inform, try to process it. It could be a queued
+        inform or a periodic one.
+
+        Args:
+            message (Any): TR069 message
+
+        Returns:
+            AcsReadMsgResult
+        """
+        if isinstance(message, models.DummyInput):
+            return AcsReadMsgResult(msg_handled=True, next_state=None)
+        elif isinstance(message, models.Inform):
+            return AcsReadMsgResult(msg_handled=True, next_state=self.inform_transition)
+        return AcsReadMsgResult(msg_handled=False, next_state=None)
 
     def get_msg(self, message: Any) -> AcsMsgAndTransition:
         """
@@ -77,7 +127,7 @@ class BaicellsQRTBEndSessionState(EnodebAcsState):
             AcsMsgAndTransition
         """
         request = models.DummyInput()
-        return AcsMsgAndTransition(msg=request, next_state=self.done_transition)
+        return AcsMsgAndTransition(msg=request, next_state=None)
 
     def state_description(self) -> str:
         """
@@ -86,7 +136,7 @@ class BaicellsQRTBEndSessionState(EnodebAcsState):
         Returns:
             str
         """
-        return 'Completed provisioning eNB. Notifying DP.'
+        return 'Completed provisioning eNB. Awaiting new Inform.'
 
 
 class BaicellsQRTBQueuedEventsWaitState(EnodebAcsState):
@@ -189,36 +239,6 @@ class BaicellsQRTBWaitInformRebootState(WaitInformMRebootState):
     BaicellsQRTB WaitInformRebootState implementation
     """
     INFORM_EVENT_CODE = '1 BOOT'
-
-
-class BaicellsQRTBNotifyDPState(NotifyDPState):
-    """
-        BaicellsQRTB NotifyDPState implementation
-    """
-
-    def enter(self):
-        """
-        Enter the state
-        """
-        serial_number = self.acs.device_cfg.get_parameter(ParameterName.SERIAL_NUMBER)
-
-        # NOTE: In case GPS scan is not completed, eNB reports LAT and LONG values as 0.
-        #       Only update CBSD in Domain Proxy when all params are available.
-        gps_status = strtobool(self.acs.device_cfg.get_parameter(ParameterName.GPS_STATUS))
-        if gps_status:
-            enodebd_update_cbsd_request = build_enodebd_update_cbsd_request(
-                serial_number=serial_number,
-                latitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LAT),
-                longitude_deg=self.acs.device_cfg.get_parameter(ParameterName.GPS_LONG),
-                indoor_deployment=self.acs.device_cfg.get_parameter(ParameterName.INDOOR_DEPLOYMENT),
-                antenna_height=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT),
-                antenna_height_type=self.acs.device_cfg.get_parameter(ParameterName.ANTENNA_HEIGHT_TYPE),
-                cbsd_category=self.acs.device_cfg.get_parameter(ParameterName.CBSD_CATEGORY),
-            )
-            state = enodebd_update_cbsd(enodebd_update_cbsd_request)
-            qrtb_update_desired_config_from_cbsd_state(state, self.acs.desired_cfg)
-        else:
-            EnodebdLogger.debug("Waiting for GPS to sync, before updating CBSD params in Domain Proxy.")
 
 
 def _qrtb_check_state_compatibility_with_ca(state: CBSDStateResult) -> bool:
