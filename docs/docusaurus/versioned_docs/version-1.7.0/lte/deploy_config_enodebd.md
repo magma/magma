@@ -74,7 +74,7 @@ Configure the RAN parameters in the resulting multi-step modal as necessary.
 Note that fields left blank will be inherited from either the network or
 gateway LTE parameters:
 
-![Configuring an eNodeB](assets/nms/configure_enb_12.png)
+![Configuring an eNodeB](../../../../readmes/assets/nms/configure_enb_12.png)
 
 Then, go back to the "Gateways" page and click on the ID of the AGW that you
 registered in the gateway table. Click through to the "Config" tab of the
@@ -82,7 +82,7 @@ AGW detail view, then hit "Edit" by the RAN configuration. Select the eNodeB
 that you just registered in the multi-select dropdown, then save the update.
 Make sure that transmit is enabled.
 
-![Connecting an eNodeB](assets/nms/connect_enb.png)
+![Connecting an eNodeB](../../../../readmes/assets/nms/connect_enb.png)
 
 ### Basic Troubleshooting
 
@@ -147,13 +147,13 @@ manually provisioned eNodeBs.
 To register your eNodeB, first make sure to disable
 the DHCP server provided on the Gateway on the NMS configuration panel.
 
-![Disabling Gateway DHCP server](assets/nms/disable_dhcp_gw.png)
+![Disabling Gateway DHCP server](../../../../readmes/assets/nms/disable_dhcp_gw.png)
 
 After this, you can add the eNodeB basic information under the RAN section
 of the eNodeB configuration, select `eNodeB Managed Externally` and add the
 fields based on the provisioning of the radio.
 
-![Register unmanaged eNodeB](assets/nms/register_unmanaged_enb.png)
+![Register unmanaged eNodeB](../../../../readmes/assets/nms/register_unmanaged_enb.png)
 
 After registering the eNodeB, the last step is to add its serial number to the
 list of Connected eNodeBs on the Access Gateway

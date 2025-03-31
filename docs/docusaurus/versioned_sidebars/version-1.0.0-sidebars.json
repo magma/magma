@@ -1,44 +1,44 @@
 {
-  "version-1.0.0-docs": {
+  "version_1_0_0_docs": {
     "Basics": [
-      "version-1.0.0-basics/introduction",
-      "version-1.0.0-basics/prerequisites",
-      "version-1.0.0-basics/quick_start_guide"
+      "basics/version-1.0.0-introduction",
+      "basics/version-1.0.0-prerequisites",
+      "basics/version-1.0.0-quick_start_guide"
     ],
     "Orchestrator": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploying Orchestrator",
-        "ids": [
-          "version-1.0.0-orc8r/deploy_intro",
-          "version-1.0.0-orc8r/deploy_build",
-          "version-1.0.0-orc8r/deploy_terraform",
-          "version-1.0.0-orc8r/deploy_install",
-          "version-1.0.0-orc8r/deploy_dns"
+        "items": [
+          "orc8r/version-1.0.0-deploy_intro",
+          "orc8r/version-1.0.0-deploy_build",
+          "orc8r/version-1.0.0-deploy_terraform",
+          "orc8r/version-1.0.0-deploy_install",
+          "orc8r/version-1.0.0-deploy_dns"
         ]
       }
     ],
     "Access Gateway": [
-      "version-1.0.0-lte/setup_deb",
-      "version-1.0.0-lte/config_agw",
-      "version-1.0.0-lte/enodebd",
-      "version-1.0.0-lte/tr069"
+      "lte/version-1.0.0-setup_deb",
+      "lte/version-1.0.0-config_agw",
+      "lte/version-1.0.0-enodebd",
+      "lte/version-1.0.0-tr069"
     ],
     "Federation Gateway": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploying FeG",
-        "ids": [
-          "version-1.0.0-feg/deploy_intro",
-          "version-1.0.0-feg/deploy_build",
-          "version-1.0.0-feg/deploy_install"
+        "items": [
+          "feg/version-1.0.0-deploy_intro",
+          "feg/version-1.0.0-deploy_build",
+          "feg/version-1.0.0-deploy_install"
         ]
       }
     ],
     "Symphony": [
-      "version-1.0.0-symphony/quick_start",
-      "version-1.0.0-symphony/symphony_download_requirements",
-      "version-1.0.0-symphony/building_the_symphony_agent"
+      "symphony/version-1.0.0-quick_start",
+      "symphony/version-1.0.0-symphony_download_requirements",
+      "symphony/version-1.0.0-building_the_symphony_agent"
     ]
   }
 }
