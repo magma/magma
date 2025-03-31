@@ -12,7 +12,7 @@
  */
 import * as React from 'react';
 import {AxiosError} from 'axios';
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useMemo, useState} from 'react';
 
 import MagmaAPI from '../api/MagmaAPI';
 import {NetworkId} from '../../shared/types/network';
@@ -29,7 +29,9 @@ export type CbsdContextType = {
     pageSize: number;
   };
   setPaginationOptions: (options: {page: number; pageSize: number}) => void;
-  refetch: () => Promise<void>;
+  refetch: (
+    options?: Partial<PaginationOptions>,
+  ) => Promise<PaginatedCbsds | undefined>;
   create: (newCbsd: MutableCbsd) => Promise<void>;
   update: (id: number, cbsd: MutableCbsd) => Promise<void>;
   deregister: (id: number) => Promise<void>;
@@ -98,6 +100,7 @@ async function fetch(params: {
       })
     ).data;
     setFetchResponse(response);
+    return response;
   } catch (error) {
     handleError(error);
   } finally {
@@ -160,6 +163,11 @@ export async function remove(params: {networkId: string; cbsdId: number}) {
   });
 }
 
+type PaginationOptions = {
+  page: number;
+  pageSize: number;
+};
+
 export function CbsdContextProvider({
   networkId,
   children,
@@ -174,35 +182,34 @@ export function CbsdContextProvider({
     cbsds: [],
     total_count: 0,
   });
-  const [paginationOptions, setPaginationOptions] = useState<{
-    page: number;
-    pageSize: number;
-  }>({
-    page: 0,
-    pageSize: 10,
-  });
+  const [paginationOptions, setPaginationOptions] = useState<PaginationOptions>(
+    {
+      page: 0,
+      pageSize: 10,
+    },
+  );
 
-  const refetch = useCallback(() => {
-    return fetch({
+  const refetch: CbsdContextType['refetch'] = useCallback(
+    options => {
+      return fetch({
+        networkId,
+        page: paginationOptions.page,
+        pageSize: paginationOptions.pageSize,
+        setIsLoading,
+        setFetchResponse,
+        enqueueSnackbar,
+        ...options,
+      });
+    },
+    [
       networkId,
-      page: paginationOptions.page,
-      pageSize: paginationOptions.pageSize,
+      paginationOptions.page,
+      paginationOptions.pageSize,
       setIsLoading,
       setFetchResponse,
       enqueueSnackbar,
-    });
-  }, [
-    networkId,
-    paginationOptions.page,
-    paginationOptions.pageSize,
-    setIsLoading,
-    setFetchResponse,
-    enqueueSnackbar,
-  ]);
-
-  useEffect(() => {
-    void refetch();
-  }, [refetch, paginationOptions.page, paginationOptions.pageSize]);
+    ],
+  );
 
   const state = useMemo(() => {
     return {
