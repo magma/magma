@@ -6,29 +6,31 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkRanConfigs RAN (radio access network) cellular configuration for a network
+//
 // swagger:model network_ran_configs
 type NetworkRanConfigs struct {
 
 	// bandwidth mhz
+	// Example: 20
 	// Required: true
 	// Enum: [3 5 10 15 20]
 	BandwidthMhz uint32 `json:"bandwidth_mhz"`
 
 	// fdd config
-	FddConfig *NetworkRanConfigsFddConfig `json:"fdd_config,omitempty"`
+	FddConfig *NetworkRanConfigsFddConfig `json:"fdd_config,omitempty" magma_alt_name:"NetworkRANConfigFDDConfig"`
 
 	// tdd config
-	TddConfig *NetworkRanConfigsTddConfig `json:"tdd_config,omitempty"`
+	TddConfig *NetworkRanConfigsTddConfig `json:"tdd_config,omitempty" magma_alt_name:"NetworkRANConfigTDDConfig"`
 }
 
 // Validate validates this network ran configs
@@ -67,7 +69,7 @@ func init() {
 
 // prop value enum
 func (m *NetworkRanConfigs) validateBandwidthMhzEnum(path, location string, value uint32) error {
-	if err := validate.Enum(path, location, value, networkRanConfigsTypeBandwidthMhzPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, networkRanConfigsTypeBandwidthMhzPropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -88,7 +90,6 @@ func (m *NetworkRanConfigs) validateBandwidthMhz(formats strfmt.Registry) error 
 }
 
 func (m *NetworkRanConfigs) validateFddConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.FddConfig) { // not required
 		return nil
 	}
@@ -97,6 +98,8 @@ func (m *NetworkRanConfigs) validateFddConfig(formats strfmt.Registry) error {
 		if err := m.FddConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("fdd_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("fdd_config")
 			}
 			return err
 		}
@@ -106,7 +109,6 @@ func (m *NetworkRanConfigs) validateFddConfig(formats strfmt.Registry) error {
 }
 
 func (m *NetworkRanConfigs) validateTddConfig(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.TddConfig) { // not required
 		return nil
 	}
@@ -115,6 +117,58 @@ func (m *NetworkRanConfigs) validateTddConfig(formats strfmt.Registry) error {
 		if err := m.TddConfig.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("tdd_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("tdd_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this network ran configs based on the context it is used
+func (m *NetworkRanConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateFddConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.contextValidateTddConfig(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *NetworkRanConfigs) contextValidateFddConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.FddConfig != nil {
+		if err := m.FddConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("fdd_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("fdd_config")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkRanConfigs) contextValidateTddConfig(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.TddConfig != nil {
+		if err := m.TddConfig.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("tdd_config")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("tdd_config")
 			}
 			return err
 		}
@@ -142,14 +196,17 @@ func (m *NetworkRanConfigs) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkRanConfigsFddConfig network ran configs fdd config
+//
 // swagger:model NetworkRanConfigsFddConfig
 type NetworkRanConfigsFddConfig struct {
 
 	// earfcndl
+	// Example: 0
 	// Required: true
 	Earfcndl uint32 `json:"earfcndl"`
 
 	// earfcnul
+	// Example: 18000
 	// Required: true
 	// Minimum: > 0
 	Earfcnul uint32 `json:"earfcnul"`
@@ -188,10 +245,15 @@ func (m *NetworkRanConfigsFddConfig) validateEarfcnul(formats strfmt.Registry) e
 		return err
 	}
 
-	if err := validate.MinimumInt("fdd_config"+"."+"earfcnul", "body", int64(m.Earfcnul), 0, true); err != nil {
+	if err := validate.MinimumUint("fdd_config"+"."+"earfcnul", "body", uint64(m.Earfcnul), 0, true); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this network ran configs fdd config based on context it is used
+func (m *NetworkRanConfigsFddConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
@@ -214,19 +276,23 @@ func (m *NetworkRanConfigsFddConfig) UnmarshalBinary(b []byte) error {
 }
 
 // NetworkRanConfigsTddConfig network ran configs tdd config
+//
 // swagger:model NetworkRanConfigsTddConfig
 type NetworkRanConfigsTddConfig struct {
 
 	// earfcndl
+	// Example: 44590
 	// Required: true
 	Earfcndl uint32 `json:"earfcndl"`
 
 	// special subframe pattern
+	// Example: 7
 	// Required: true
 	// Maximum: 9
 	SpecialSubframePattern uint32 `json:"special_subframe_pattern"`
 
 	// subframe assignment
+	// Example: 2
 	// Required: true
 	// Maximum: 6
 	SubframeAssignment uint32 `json:"subframe_assignment"`
@@ -269,7 +335,7 @@ func (m *NetworkRanConfigsTddConfig) validateSpecialSubframePattern(formats strf
 		return err
 	}
 
-	if err := validate.MaximumInt("tdd_config"+"."+"special_subframe_pattern", "body", int64(m.SpecialSubframePattern), 9, false); err != nil {
+	if err := validate.MaximumUint("tdd_config"+"."+"special_subframe_pattern", "body", uint64(m.SpecialSubframePattern), 9, false); err != nil {
 		return err
 	}
 
@@ -282,10 +348,15 @@ func (m *NetworkRanConfigsTddConfig) validateSubframeAssignment(formats strfmt.R
 		return err
 	}
 
-	if err := validate.MaximumInt("tdd_config"+"."+"subframe_assignment", "body", int64(m.SubframeAssignment), 6, false); err != nil {
+	if err := validate.MaximumUint("tdd_config"+"."+"subframe_assignment", "body", uint64(m.SubframeAssignment), 6, false); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this network ran configs tdd config based on context it is used
+func (m *NetworkRanConfigsTddConfig) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

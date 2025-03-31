@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutLTENetworkIDSubscriberConfigRuleNamesReader is a Reader for the PutLTENetworkIDSubscriberConfigRuleNames structure.
@@ -47,7 +46,8 @@ func NewPutLTENetworkIDSubscriberConfigRuleNamesNoContent() *PutLTENetworkIDSubs
 	return &PutLTENetworkIDSubscriberConfigRuleNamesNoContent{}
 }
 
-/*PutLTENetworkIDSubscriberConfigRuleNamesNoContent handles this case with default header values.
+/*
+PutLTENetworkIDSubscriberConfigRuleNamesNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutLTENetworkIDSubscriberConfigRuleNamesDefault(code int) *PutLTENetwork
 	}
 }
 
-/*PutLTENetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
+/*
+PutLTENetworkIDSubscriberConfigRuleNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutLTENetworkIDSubscriberConfigRuleNamesDefault) Code() int {
 func (o *PutLTENetworkIDSubscriberConfigRuleNamesDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/subscriber_config/rule_names][%d] PutLTENetworkIDSubscriberConfigRuleNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDSubscriberConfigRuleNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

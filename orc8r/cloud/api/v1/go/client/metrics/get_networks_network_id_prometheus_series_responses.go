@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDPrometheusSeriesReader is a Reader for the GetNetworksNetworkIDPrometheusSeries structure.
@@ -47,7 +46,8 @@ func NewGetNetworksNetworkIDPrometheusSeriesOK() *GetNetworksNetworkIDPrometheus
 	return &GetNetworksNetworkIDPrometheusSeriesOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusSeriesOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusSeriesOK describes a response with status code 200, with default header values.
 
 List of metric names
 */
@@ -58,7 +58,6 @@ type GetNetworksNetworkIDPrometheusSeriesOK struct {
 func (o *GetNetworksNetworkIDPrometheusSeriesOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/prometheus/series][%d] getNetworksNetworkIdPrometheusSeriesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPrometheusSeriesOK) GetPayload() []models.PrometheusLabelset {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetNetworksNetworkIDPrometheusSeriesDefault(code int) *GetNetworksNetwor
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusSeriesDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusSeriesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetNetworksNetworkIDPrometheusSeriesDefault) Code() int {
 func (o *GetNetworksNetworkIDPrometheusSeriesDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/prometheus/series][%d] GetNetworksNetworkIDPrometheusSeries default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPrometheusSeriesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

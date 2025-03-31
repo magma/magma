@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDPoliciesBaseNamesBaseNameReader is a Reader for the GetNetworksNetworkIDPoliciesBaseNamesBaseName structure.
@@ -47,7 +46,8 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesBaseNameOK() *GetNetworksNetworkIDP
 	return &GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK{}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK describes a response with status code 200, with default header values.
 
 Charging Rule Base Name on success
 */
@@ -58,7 +58,6 @@ type GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK struct {
 func (o *GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/policies/base_names/{base_name}][%d] getNetworksNetworkIdPoliciesBaseNamesBaseNameOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPoliciesBaseNamesBaseNameOK) GetPayload() *models.BaseNameRecord {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault(code int) *GetNetwo
 	}
 }
 
-/*GetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault) Code() int {
 func (o *GetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/policies/base_names/{base_name}][%d] GetNetworksNetworkIDPoliciesBaseNamesBaseName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPoliciesBaseNamesBaseNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDReader is a Reader for the DeleteLTENetworkIDNetworkProbeDestinationsDestinationID structure.
@@ -47,7 +46,8 @@ func NewDeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent() *Dele
 	return &DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent{}
 }
 
-/*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault(code int)
 	}
 }
 
-/*DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault) Code() 
 func (o *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/network_probe/destinations/{destination_id}][%d] DeleteLTENetworkIDNetworkProbeDestinationsDestinationID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDNetworkProbeDestinationsDestinationIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

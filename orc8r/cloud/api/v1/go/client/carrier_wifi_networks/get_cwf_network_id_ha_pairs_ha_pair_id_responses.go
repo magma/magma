@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetCwfNetworkIDHaPairsHaPairIDReader is a Reader for the GetCwfNetworkIDHaPairsHaPairID structure.
@@ -47,7 +46,8 @@ func NewGetCwfNetworkIDHaPairsHaPairIDOK() *GetCwfNetworkIDHaPairsHaPairIDOK {
 	return &GetCwfNetworkIDHaPairsHaPairIDOK{}
 }
 
-/*GetCwfNetworkIDHaPairsHaPairIDOK handles this case with default header values.
+/*
+GetCwfNetworkIDHaPairsHaPairIDOK describes a response with status code 200, with default header values.
 
 Retrieve high availability gateway pair for Carrier Wifi network
 */
@@ -58,7 +58,6 @@ type GetCwfNetworkIDHaPairsHaPairIDOK struct {
 func (o *GetCwfNetworkIDHaPairsHaPairIDOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/ha_pairs/{ha_pair_id}][%d] getCwfNetworkIdHaPairsHaPairIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDHaPairsHaPairIDOK) GetPayload() *models.CwfHaPair {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetCwfNetworkIDHaPairsHaPairIDDefault(code int) *GetCwfNetworkIDHaPairsH
 	}
 }
 
-/*GetCwfNetworkIDHaPairsHaPairIDDefault handles this case with default header values.
+/*
+GetCwfNetworkIDHaPairsHaPairIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetCwfNetworkIDHaPairsHaPairIDDefault) Code() int {
 func (o *GetCwfNetworkIDHaPairsHaPairIDDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/ha_pairs/{ha_pair_id}][%d] GetCwfNetworkIDHaPairsHaPairID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDHaPairsHaPairIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

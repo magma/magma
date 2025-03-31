@@ -6,21 +6,29 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 )
 
 // ConfigInfo config info
+//
 // swagger:model config_info
 type ConfigInfo struct {
 
 	// mconfig created at
+	// Example: 1552968732
 	MconfigCreatedAt uint64 `json:"mconfig_created_at,omitempty"`
 }
 
 // Validate validates this config info
 func (m *ConfigInfo) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this config info based on context it is used
+func (m *ConfigInfo) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

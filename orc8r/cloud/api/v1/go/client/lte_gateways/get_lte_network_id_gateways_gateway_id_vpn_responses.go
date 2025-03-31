@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDGatewaysGatewayIDVpnReader is a Reader for the GetLTENetworkIDGatewaysGatewayIDVpn structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDVpnOK() *GetLTENetworkIDGatewaysGatewayI
 	return &GetLTENetworkIDGatewaysGatewayIDVpnOK{}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDVpnOK handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDVpnOK describes a response with status code 200, with default header values.
 
 The current VPN gateway config
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDGatewaysGatewayIDVpnOK struct {
 func (o *GetLTENetworkIDGatewaysGatewayIDVpnOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/vpn][%d] getLteNetworkIdGatewaysGatewayIdVpnOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDVpnOK) GetPayload() *models.GatewayVpnConfigs {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDGatewaysGatewayIDVpnDefault(code int) *GetLTENetworkIDGat
 	}
 }
 
-/*GetLTENetworkIDGatewaysGatewayIDVpnDefault handles this case with default header values.
+/*
+GetLTENetworkIDGatewaysGatewayIDVpnDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDGatewaysGatewayIDVpnDefault) Code() int {
 func (o *GetLTENetworkIDGatewaysGatewayIDVpnDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/gateways/{gateway_id}/vpn][%d] GetLTENetworkIDGatewaysGatewayIDVpn default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDGatewaysGatewayIDVpnDefault) GetPayload() *models.Error {
 	return o.Payload
 }
