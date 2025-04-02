@@ -146,22 +146,16 @@ function DataPlanOverview(props: WithAlert) {
                   {currRow.id}
                 </Link>
               ),
-              cellStyle: { textAlign: 'center' },
-              headerStyle: { textAlign: 'center' },
             },
             {
               title: 'Max Upload Bit Rate',
               field: 'maxUploadBitRate',
               type: 'numeric',
-              cellStyle: { textAlign: 'center' },
-              headerStyle: { textAlign: 'center' },
             },
             {
               title: 'Max Download Bit Rate',
               field: 'maxDownloadBitRate',
               type: 'numeric',
-              cellStyle: { textAlign: 'center' },
-              headerStyle: { textAlign: 'center' },
             },
           ]}
           handleCurrRow={(row: DataPlanRowType) => setCurrRow(row)}
