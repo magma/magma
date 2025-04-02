@@ -81,15 +81,15 @@ function DataPlanOverview(props: WithAlert) {
         return {
           id: id,
           maxUploadBitRate:
-            profile.max_dl_bit_rate ===
-            DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
-              ? 'Unlimited'
-              : `${profile.max_dl_bit_rate / BITRATE_MULTIPLIER} Mbps`,
-          maxDownloadBitRate:
             profile.max_ul_bit_rate ===
             DATA_PLAN_UNLIMITED_RATES.max_ul_bit_rate
               ? 'Unlimited'
               : `${profile.max_ul_bit_rate / BITRATE_MULTIPLIER} Mbps`,
+          maxDownloadBitRate:
+            profile.max_dl_bit_rate ===
+            DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
+              ? 'Unlimited'
+              : `${profile.max_dl_bit_rate / BITRATE_MULTIPLIER} Mbps`,
         };
       })
     : [];
@@ -146,16 +146,22 @@ function DataPlanOverview(props: WithAlert) {
                   {currRow.id}
                 </Link>
               ),
+              cellStyle: { textAlign: 'center' },
+              headerStyle: { textAlign: 'center' },
             },
             {
               title: 'Max Upload Bit Rate',
               field: 'maxUploadBitRate',
               type: 'numeric',
+              cellStyle: { textAlign: 'center' },
+              headerStyle: { textAlign: 'center' },
             },
             {
               title: 'Max Download Bit Rate',
               field: 'maxDownloadBitRate',
               type: 'numeric',
+              cellStyle: { textAlign: 'center' },
+              headerStyle: { textAlign: 'center' },
             },
           ]}
           handleCurrRow={(row: DataPlanRowType) => setCurrRow(row)}
