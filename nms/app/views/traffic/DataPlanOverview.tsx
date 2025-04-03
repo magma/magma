@@ -81,15 +81,15 @@ function DataPlanOverview(props: WithAlert) {
         return {
           id: id,
           maxUploadBitRate:
-            profile.max_dl_bit_rate ===
-            DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
-              ? 'Unlimited'
-              : `${profile.max_dl_bit_rate / BITRATE_MULTIPLIER} Mbps`,
-          maxDownloadBitRate:
             profile.max_ul_bit_rate ===
             DATA_PLAN_UNLIMITED_RATES.max_ul_bit_rate
               ? 'Unlimited'
               : `${profile.max_ul_bit_rate / BITRATE_MULTIPLIER} Mbps`,
+          maxDownloadBitRate:
+            profile.max_dl_bit_rate ===
+            DATA_PLAN_UNLIMITED_RATES.max_dl_bit_rate
+              ? 'Unlimited'
+              : `${profile.max_dl_bit_rate / BITRATE_MULTIPLIER} Mbps`,
         };
       })
     : [];
