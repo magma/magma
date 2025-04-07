@@ -36,7 +36,7 @@ runs:
         BAZEL_CACHE_REPO_CUTOFF_MB: 500
 
     - name: Bazel Cache
-      uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920 # pin@v3.2.4
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4.2.3
       with:
         path: ${{ github.workspace }}/${{ env.BAZEL_CACHE_DIR }}
         key: ${{ inputs.cache-key-prefix }}-${{ env.BAZEL_CACHE_NAME }}-${{ github.sha }}
@@ -44,7 +44,7 @@ runs:
           ${{ inputs.cache-key-prefix }}-${{ env.BAZEL_CACHE_NAME }}-
 
     - name: Bazel Cache Repo
-      uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920 # pin@v3.2.4
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # pin@v4.2.3
       with:
         path: ${{ github.workspace }}/${{ env.BAZEL_CACHE_REPO_DIR }}
         key: ${{ inputs.cache-key-prefix }}-${{ env.BAZEL_CACHE_REPO_NAME }}-${{ github.sha }}
