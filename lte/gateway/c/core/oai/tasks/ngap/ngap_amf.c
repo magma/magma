@@ -354,6 +354,13 @@ m5g_ue_description_t* ngap_new_ue(ngap_state_t* state,
 void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
   gnb_description_t* gNB_ref = NULL;
 
+  if (ue_ref == NULL) {
+    OAILOG_ERROR(LOG_NGAP, "ue_ref shouldn't be NULL\n");
+    return;
+  }
+
+  sctp_assoc_id_t sctp_assoc_id = ue_ref->sctp_assoc_id;
+
   // NULL reference...
   if (ue_ref == NULL) return;
 
@@ -373,12 +380,12 @@ void ngap_remove_ue(ngap_state_t* state, m5g_ue_description_t* ue_ref) {
 
   delete_ngap_ue_state(imsi64);
 
-  gNB_ref = ngap_state_get_gnb(state, ue_ref->sctp_assoc_id);
+  gNB_ref = ngap_state_get_gnb(state, sctp_assoc_id);
 
   // prevent a crash if the gNB_ref is NULL
   if (gNB_ref == NULL) {
     OAILOG_ERROR(LOG_NGAP, "gNB not found for sctp_assoc_id %d\n",
-                 ue_ref->sctp_assoc_id);
+                 sctp_assoc_id);
     return;
   }
 
