@@ -60,7 +60,7 @@ jobs:
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: always()
         with:
-          name: pr
+          name: prejobpr
           path: pr/
 
   run-formatters-and-check-for-errors:
@@ -106,5 +106,5 @@ jobs:
       - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # pin@v4
         if: always()
         with:
-          name: pr
+          name: formatterpr
           path: pr/
