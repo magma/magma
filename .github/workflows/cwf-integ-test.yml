@@ -107,7 +107,7 @@ jobs:
           pip3 install --upgrade pip
           pip3 install ansible fabric jsonpickle requests PyYAML firebase_admin
           sudo apt install virtualbox
-      - uses: actions/download-artifact@9782bd6a9848b53b110e712e20e42d89988822b7 # pin@v3.0.1
+      - uses: actions/download-artifact@@95815c38cf2ff2164869cbab79da8d1f422bc89e # pin@v4.2.1 
         with:
           name: docker-images
       - uses: geekyeggo/delete-artifact@54ab544f12cdb7b71613a16a2b5a37a9ade990af # pin@v2.0.0
