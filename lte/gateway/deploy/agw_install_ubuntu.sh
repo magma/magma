@@ -195,7 +195,6 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   echo "[magma_deploy]
   127.0.0.1 ansible_connection=local" > $DEPLOY_PATH/agw_hosts
 
-  exit 0
   # install magma and its dependencies including OVS.
   su - $MAGMA_USER -c "ansible-playbook -e \"use_master=True\" -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
 
