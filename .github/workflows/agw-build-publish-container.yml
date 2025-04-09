@@ -38,6 +38,11 @@ on:
       registry:
         type: string
         description: Overwrite registry (default linuxfoundation.jfrog.io/magma-docker-agw-test).
+
+      image_tag:
+        type: string
+        description: Override docker image tag  (default v1.9)
+        required: true
   push:
     branches:
       - master
@@ -47,12 +52,13 @@ on:
 
 env:
   registry: ${{ inputs.registry || 'linuxfoundation.jfrog.io/magma-docker-agw-test' }}
+  image_tag: ${{ inputs.image_tag || 'v1.9' }}
 
 jobs:
 
   build-containers:
     outputs:
-      image_tag: ${{ steps.set-agwc-tags.outputs.image_tag }}
+      image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
       registry: ${{ steps.set-registry.outputs.registry }}
     runs-on: ubuntu-20.04
     steps:
@@ -73,19 +79,20 @@ jobs:
           echo "Registry is ${{ steps.set-registry.outputs.registry }}"
           echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
 
-      - id: get-short-git-sha
-        name: Set short git sha output
+      - id: set-image-tag
+        name: Set image tag
         run: |
           echo ${GITHUB_SHA:0:8}
-          echo commit_hash=${GITHUB_SHA:0:8} >> $GITHUB_ENV
+          commit_hash=${GITHUB_SHA:0:8}
+          if [[ ${{ github.event_name }} != workflow_dispatch  ]]
+          then
+            echo image_tag="v1.9-${commit_hash}" >> $GITHUB_OUTPUT
+          else
+            echo image_tag=${{ env.image_tag }} >> $GITHUB_OUTPUT
+          fi
 
-      - name: verify git sha output
-        run: echo "Git SHA is ${commit_hash}"
-      - name: Create possible release Tag
-        if: github.event_name == 'push' && github.ref_name != 'master'
-        run: |
-          GIT_BRANCH_VERSION=${GITHUB_BASE_REF:-${GITHUB_REF#refs/heads/}}
-          echo commit_hash="${GIT_BRANCH_VERSION:1}" >> $GITHUB_ENV
+      - name: verify image tag
+        run: echo "Image tag is ${{ steps.set-image-tag.outputs.image_tag }}"
 
       - name: Set agwc tags
         id: set-agwc-tags
@@ -94,17 +101,18 @@ jobs:
           python_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}agw_gateway_python
           go_image=${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}gateway_go
 
-          echo "image_tag=${commit_hash}" >> $GITHUB_OUTPUT
-          if [[ ${{ github.ref_name }} = master ]]; then
-            echo "c_image_tags=${c_image}:${commit_hash},${c_image}:latest,${c_image}:v1.9" >> $GITHUB_OUTPUT
-            echo "python_image_tags=${python_image}:${commit_hash},${python_image}:latest,${python_image}:v1.9" >> $GITHUB_OUTPUT
-            echo "go_image_tags=${go_image}:${commit_hash},${go_image}:latest,${go_image}:v1.9" >> $GITHUB_OUTPUT
-          else
-            echo "c_image_tags=${c_image}:${commit_hash},${c_image}:v1.9" >> $GITHUB_OUTPUT
-            echo "python_image_tags=${python_image}:${commit_hash},${python_image}:v1.9" >> $GITHUB_OUTPUT
-            echo "go_image_tags=${go_image}:${commit_hash},${go_image}:v1.9" >> $GITHUB_OUTPUT
-          fi
+          image_tag=${{ steps.set-image-tag.outputs.image_tag }}
 
+          if [[ ${{ github.ref_name }} = master ]]
+          then
+            echo c_image_tags=${c_image}:${image_tag},${c_image}:latest >> $GITHUB_OUTPUT
+            echo python_image_tags=${python_image}:${image_tag},${python_image}:latest >> $GITHUB_OUTPUT
+            echo go_image_tags=${go_image}:${image_tag},${go_image}:latest >> $GITHUB_OUTPUT
+          else
+            echo c_image_tags=${c_image}:${image_tag} >> $GITHUB_OUTPUT
+            echo python_image_tags=${python_image}:${image_tag} >> $GITHUB_OUTPUT
+            echo go_image_tags=${go_image}:${image_tag} >> $GITHUB_OUTPUT
+          fi
 
       - name: Print agwc tags
         run: |
@@ -144,21 +152,6 @@ jobs:
           TAGS: ${{ steps.set-agwc-tags.outputs.go_image_tags }}
           TARGET: gateway_go
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
-      - name: Print github.ref for debugging
-        run: |
-         echo "The current github.ref is: ${GITHUB_REF}"
-      - name: Create and Push Release Tag
-        if: startsWith(github.ref, 'refs/heads/v1.')  
-        run: |
-         echo "GITHUB_REF_NAME=${GITHUB_REF_NAME}" 
-         RELEASE_TAG="${GITHUB_REF_NAME}"
-         git config --global user.email "magma@users.noreply.github.com"
-         git config --global user.name "magma"
-         echo "Creating release tag for version ${RELEASE_TAG}"
-         git tag -a "${RELEASE_TAG}" -m "Release version ${RELEASE_TAG}" 
-         git push origin refs/tags/"${RELEASE_TAG}" 
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-containers-ghz:
     runs-on: ubuntu-20.04
@@ -181,12 +174,27 @@ jobs:
           echo "Registry is ${{ steps.set-registry.outputs.registry }}"
           echo "Image prefix is ${{ steps.set-registry.outputs.image_prefix }}"
 
+      - id: set-image-tag
+        name: Set image tag
+        run: |
+          echo ${GITHUB_SHA:0:8}
+          commit_hash=${GITHUB_SHA:0:8}
+          if [[ ${{ github.event_name }} != workflow_dispatch  ]]
+          then
+            echo image_tag="1.9-${commit_hash}" >> $GITHUB_OUTPUT
+          else
+            echo image_tag=${{ env.image_tag }} >> $GITHUB_OUTPUT
+          fi
+
+      - name: verify image tag
+        run: echo "Image tag is ${{ steps.set-image-tag.outputs.image_tag }}"
+
       - uses: ./.github/workflows/composite/docker-builder-agw
         with:
           REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ needs.build-containers.outputs.image_tag }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_c:${{ steps.set-image-tag.outputs.image_tag }}
           TARGET: agw_c_ghz
           CONTEXT: lte/gateway/docker/ghz
 
@@ -195,7 +203,7 @@ jobs:
           REGISTRY_USERNAME: ${{ secrets.LF_JFROG_USERNAME }}
           REGISTRY_PASSWORD: ${{ secrets.LF_JFROG_PASSWORD }}
           REGISTRY: ${{ env.registry }}
-          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ needs.build-containers.outputs.image_tag }}
+          TAGS: ${{ steps.set-registry.outputs.registry }}/${{ steps.set-registry.outputs.image_prefix }}ghz_gateway_python:${{ steps.set-image-tag.outputs.image_tag }}
           TARGET: agw_python_ghz
           CONTEXT: lte/gateway/docker/ghz
 
