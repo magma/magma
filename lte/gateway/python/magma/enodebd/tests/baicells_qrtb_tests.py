@@ -34,8 +34,9 @@ from magma.enodebd.devices.baicells_qrtb.params import (
     CarrierAggregationParameters,
 )
 from magma.enodebd.devices.baicells_qrtb.states import (
-    BaicellsQRTBNotifyDPState,
+    BaicellsQRTBEndSessionState,
     BaicellsQRTBQueuedEventsWaitState,
+    BaicellsQRTBWaitGetObjectParametersState,
     BaicellsQRTBWaitInformRebootState,
     qrtb_update_desired_config_from_cbsd_state,
 )
@@ -102,6 +103,7 @@ GET_PARAMS_RESPONSE_PARAMS = [
     Param('Device.DeviceInfo.X_COM_LTE_LGW_Switch', 'int', '0'),
     Param('Device.DeviceInfo.X_COM_REM_Status', 'int', '0'),
     Param('Device.DeviceInfo.SAS.enableMode', 'int', '1'),
+    Param('Device.DeviceInfo.PowerSpectralDensity', 'int', '10'),
     Param('Device.FAP.PerfMgmt.Config.1.Enable', 'boolean', 'true'),
     Param('Device.FAP.PerfMgmt.Config.1.PeriodicUploadInterval', 'int', '300'),
     Param('Device.FAP.PerfMgmt.Config.1.URL', 'string', 'http://192.168.60.142:8081/'),
@@ -129,7 +131,7 @@ GET_PARAMS_RESPONSE_PARAMS = [
     Param('Device.Services.FAPService.1.FAPControl.LTE.Gateway.X_COM_MmePool.Enable', 'boolean', 'false'),
     Param('Device.Services.FAPService.Ipsec.IPSEC_ENABLE', 'bool', 'false'),
 
-    Param('Device.Services.FAPService.1.CellConfig.LTE.RAN.CA.CaEnable', 'bool', 'false'),
+    Param('Device.Services.FAPService.1.CellConfig.LTE.RAN.CA.CaEnable', 'int', '0'),
     Param('FAPService.1.CellConfig.LTE.RAN.CA.PARAMS.NumOfCells', 'int', '1'),
     Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.Common.CellIdentity', 'int', '138777000'),
     Param('Device.Services.FAPService.2.CellConfig.LTE.RAN.RF.FreqBandIndicator', 'int', '48'),
@@ -340,8 +342,9 @@ class SasToRfConfigTests(TestCase):
 
 
 class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
+    @parameterized.expand([('1',), ('0',)])
     @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
-    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, mock_enodebd_update_cbsd) -> None:
+    def test_enodebd_update_cbsd_not_called_when_gps_unavailable(self, gps_status, mock_enodebd_update_cbsd) -> None:
         test_serial_number = '120200024019APP0105'
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
@@ -354,10 +357,26 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
             enb_serial=test_serial_number,
             event_codes=['2 PERIODIC'],
         )
-        acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, '0')
         acs_state_machine.handle_tr069_message(req)
-        acs_state_machine.transition('notify_dp')
-        mock_enodebd_update_cbsd.assert_not_called()
+
+        # GPS params available only if GPS is synced
+        if gps_status == '1':
+            _add_to_acs_parameters_required_by_dp(acs_state_machine)
+
+        acs_state_machine.device_cfg.set_parameter(ParameterName.GPS_STATUS, gps_status)
+        state = BaicellsQRTBWaitGetObjectParametersState(
+            acs=acs_state_machine,
+            when_set='set',
+            when_skip='skip',
+            when_add='add',
+            when_delete='delete',
+        )
+        state._notify_dp()
+
+        if gps_status == '1':
+            mock_enodebd_update_cbsd.assert_called_once()
+        else:
+            mock_enodebd_update_cbsd.assert_not_called()
 
     @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_notify_dp(self, mock_enodebd_update_cbsd) -> None:
@@ -405,13 +424,18 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         )
         acs_state_machine.handle_tr069_message(req)
 
+        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
+        req = Tr069MessageBuilder.param_values_qrtb_response(
+            [], models.GetParameterValuesResponse,
+        )
+        acs_state_machine.handle_tr069_message(req)
+        mock_enodebd_update_cbsd.assert_called_once()
+
         # Transition to final get params check state
         acs_state_machine.transition('check_wait_get_params')
         req = Tr069MessageBuilder.param_values_qrtb_response(
             [], models.GetParameterValuesResponse,
         )
-
-        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         resp = acs_state_machine.handle_tr069_message(req)
 
@@ -529,7 +553,10 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
     @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_provision(self, mock_enodebd_update_cbsd) -> None:
         self.maxDiff = None
-        mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
+        mock_enodebd_update_cbsd.return_value = CBSDStateResult(
+            radio_enabled=False,
+            channels=[],
+        )
 
         acs_state_machine = EnodebAcsStateMachineBuilder.build_acs_state_machine(EnodebDeviceName.BAICELLS_QRTB)
         data_model = BaicellsQRTBTrDataModel()
@@ -608,7 +635,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
         resp = acs_state_machine.handle_tr069_message(req)
 
         # All the radio responses were intentionally crafted so that they match enodebd desired config.
-        # Therefore the provisioning ends here. The radio goes directly into end_session -> notify_dp state
+        # Therefore the provisioning ends here. The radio goes directly into end_session -> wait_inform state
         self.assertTrue(
             isinstance(resp, models.DummyInput),
             f'State machine should send back an empty message, got {resp} instead.',
@@ -616,7 +643,7 @@ class BaicellsQRTBHandlerTests(EnodebHandlerTestCase):
 
         self.assertIsInstance(
             acs_state_machine.state,
-            BaicellsQRTBNotifyDPState,
+            BaicellsQRTBEndSessionState,
         )
 
     def verify_acs_asking_enb_for_params(self, should_ask_for, response):
@@ -635,7 +662,6 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
     @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
     def test_end_session_and_notify_dp_transition(self, mock_enodebd_update_cbsd):
         """Testing if SM steps in and out of BaicellsQRTBWaitNotifyDPState as per state map"""
-
         mock_enodebd_update_cbsd.return_value = MOCK_CBSD_STATE
 
         acs_state_machine = provision_clean_sm(
@@ -652,11 +678,21 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
             models.GetParameterValuesResponse,
         )
         acs_state_machine.handle_tr069_message(msg)
+
+        # Notify DP should be called after exiting from this state.
+        acs_state_machine.transition('wait_get_obj_params')
+
+        mock_enodebd_update_cbsd.assert_not_called()
+        req = Tr069MessageBuilder.get_object_param_values_response(
+            cell_reserved_for_operator_use='true', enable='true', is_primary='true', plmnid='00101',
+        )
+        acs_state_machine.handle_tr069_message(req)
+        mock_enodebd_update_cbsd.assert_called_once()
+
         # Transition to final get params check state
         acs_state_machine.transition('check_wait_get_params')
 
-        # SM should transition from check_wait_get_params to end_session -> notify_dp automatically
-        # upon receiving response from the radio
+        # SM should transition from check_wait_get_params to end_session
         msg = Tr069MessageBuilder.param_values_qrtb_response(
             [], models.GetParameterValuesResponse,
         )
@@ -664,7 +700,7 @@ class BaicellsQRTBStatesTests(EnodebHandlerTestCase):
 
         self.assertIsInstance(
             acs_state_machine.state,
-            BaicellsQRTBNotifyDPState,
+            BaicellsQRTBEndSessionState,
         )
 
         msg = Tr069MessageBuilder.get_inform(event_codes=['1 BOOT'])
@@ -763,17 +799,24 @@ class BaicellsQRTBConfigTests(EnodebHandlerTestCase):
         self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_ENABLE), True)
         self.assertEqual(desired_cfg.get_parameter(CarrierAggregationParameters.CA_PLMN_PRIMARY), False)
 
-    def test_device_and_desired_config_discrepancy_after_initial_configuration(self):
+    @mock.patch('magma.enodebd.devices.baicells_qrtb.states.enodebd_update_cbsd')
+    def test_device_and_desired_config_discrepancy_after_initial_configuration(self, mock_enodebd_update_cbsd):
         """
         Testing a situation where device_cfg and desired_cfg are already present on the state machine,
         because the initial configuration of the radio has occurred, but then the configs have diverged
         (e.g. as a result of domain-proxy setting different values on the desired config)
         """
+        mock_enodebd_update_cbsd.return_value = CBSDStateResult(
+            radio_enabled=False,
+            channels=[],
+        )
+
         # Skipping previous states
         acs_state_machine = provision_clean_sm('wait_get_transient_params')
 
         # Need to set this param on the device_cfg first, otherwise we won't be able to generate the desired_cfg
         # using 'build_desired_config' function
+        acs_state_machine.device_cfg.set_parameter(ParameterName.SAS_RADIO_ENABLE, 'false')
         acs_state_machine.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 'false')
 
         acs_state_machine.desired_cfg = build_desired_config(
@@ -1278,3 +1321,24 @@ def _get_service_config():
             "models": {},
         },
     }
+
+
+def _add_to_acs_parameters_required_by_dp(acs) -> None:
+    acs.device_cfg.set_parameter(
+        ParameterName.GPS_LAT, '10',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.GPS_LONG, '-10',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.INDOOR_DEPLOYMENT, 'True',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.ANTENNA_HEIGHT, '5',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.ANTENNA_HEIGHT_TYPE, 'AMSL',
+    )
+    acs.device_cfg.set_parameter(
+        ParameterName.CBSD_CATEGORY, 'a',
+    )
