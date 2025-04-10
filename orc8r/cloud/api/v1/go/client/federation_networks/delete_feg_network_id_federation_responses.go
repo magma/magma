@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteFegNetworkIDFederationReader is a Reader for the DeleteFegNetworkIDFederation structure.
@@ -47,7 +46,8 @@ func NewDeleteFegNetworkIDFederationNoContent() *DeleteFegNetworkIDFederationNoC
 	return &DeleteFegNetworkIDFederationNoContent{}
 }
 
-/*DeleteFegNetworkIDFederationNoContent handles this case with default header values.
+/*
+DeleteFegNetworkIDFederationNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteFegNetworkIDFederationDefault(code int) *DeleteFegNetworkIDFederat
 	}
 }
 
-/*DeleteFegNetworkIDFederationDefault handles this case with default header values.
+/*
+DeleteFegNetworkIDFederationDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteFegNetworkIDFederationDefault) Code() int {
 func (o *DeleteFegNetworkIDFederationDefault) Error() string {
 	return fmt.Sprintf("[DELETE /feg/{network_id}/federation][%d] DeleteFegNetworkIDFederation default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteFegNetworkIDFederationDefault) GetPayload() *models.Error {
 	return o.Payload
 }

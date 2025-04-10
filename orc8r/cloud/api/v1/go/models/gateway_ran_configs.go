@@ -6,24 +6,28 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // GatewayRanConfigs RAN configuration for LTE gateway
+//
 // swagger:model gateway_ran_configs
 type GatewayRanConfigs struct {
 
 	// pci
+	// Example: 260
 	// Required: true
 	// Maximum: 503
 	// Minimum: > 0
 	Pci uint32 `json:"pci"`
 
 	// transmit enabled
+	// Example: true
 	// Required: true
 	TransmitEnabled *bool `json:"transmit_enabled"`
 }
@@ -52,11 +56,11 @@ func (m *GatewayRanConfigs) validatePci(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinimumInt("pci", "body", int64(m.Pci), 0, true); err != nil {
+	if err := validate.MinimumUint("pci", "body", uint64(m.Pci), 0, true); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("pci", "body", int64(m.Pci), 503, false); err != nil {
+	if err := validate.MaximumUint("pci", "body", uint64(m.Pci), 503, false); err != nil {
 		return err
 	}
 
@@ -69,6 +73,11 @@ func (m *GatewayRanConfigs) validateTransmitEnabled(formats strfmt.Registry) err
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this gateway ran configs based on context it is used
+func (m *GatewayRanConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

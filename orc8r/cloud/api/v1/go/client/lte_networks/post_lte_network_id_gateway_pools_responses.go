@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostLTENetworkIDGatewayPoolsReader is a Reader for the PostLTENetworkIDGatewayPools structure.
@@ -47,7 +46,8 @@ func NewPostLTENetworkIDGatewayPoolsCreated() *PostLTENetworkIDGatewayPoolsCreat
 	return &PostLTENetworkIDGatewayPoolsCreated{}
 }
 
-/*PostLTENetworkIDGatewayPoolsCreated handles this case with default header values.
+/*
+PostLTENetworkIDGatewayPoolsCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPostLTENetworkIDGatewayPoolsDefault(code int) *PostLTENetworkIDGatewayPo
 	}
 }
 
-/*PostLTENetworkIDGatewayPoolsDefault handles this case with default header values.
+/*
+PostLTENetworkIDGatewayPoolsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PostLTENetworkIDGatewayPoolsDefault) Code() int {
 func (o *PostLTENetworkIDGatewayPoolsDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/gateway_pools][%d] PostLTENetworkIDGatewayPools default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDGatewayPoolsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

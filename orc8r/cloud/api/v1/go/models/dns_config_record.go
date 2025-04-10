@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // DNSConfigRecord Mapping used for DNS resolving from a domain
+//
 // swagger:model dns_config_record
 type DNSConfigRecord struct {
 
@@ -29,6 +30,7 @@ type DNSConfigRecord struct {
 	CnameRecord []string `json:"cname_record"`
 
 	// domain
+	// Example: example.com
 	// Required: true
 	// Min Length: 1
 	Domain string `json:"domain"`
@@ -61,14 +63,13 @@ func (m *DNSConfigRecord) Validate(formats strfmt.Registry) error {
 }
 
 func (m *DNSConfigRecord) validateARecord(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ARecord) { // not required
 		return nil
 	}
 
 	for i := 0; i < len(m.ARecord); i++ {
 
-		if err := validate.MinLength("a_record"+"."+strconv.Itoa(i), "body", string(m.ARecord[i]), 1); err != nil {
+		if err := validate.MinLength("a_record"+"."+strconv.Itoa(i), "body", m.ARecord[i].String(), 1); err != nil {
 			return err
 		}
 
@@ -82,14 +83,13 @@ func (m *DNSConfigRecord) validateARecord(formats strfmt.Registry) error {
 }
 
 func (m *DNSConfigRecord) validateAaaaRecord(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.AaaaRecord) { // not required
 		return nil
 	}
 
 	for i := 0; i < len(m.AaaaRecord); i++ {
 
-		if err := validate.MinLength("aaaa_record"+"."+strconv.Itoa(i), "body", string(m.AaaaRecord[i]), 1); err != nil {
+		if err := validate.MinLength("aaaa_record"+"."+strconv.Itoa(i), "body", m.AaaaRecord[i].String(), 1); err != nil {
 			return err
 		}
 
@@ -103,14 +103,13 @@ func (m *DNSConfigRecord) validateAaaaRecord(formats strfmt.Registry) error {
 }
 
 func (m *DNSConfigRecord) validateCnameRecord(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.CnameRecord) { // not required
 		return nil
 	}
 
 	for i := 0; i < len(m.CnameRecord); i++ {
 
-		if err := validate.MinLength("cname_record"+"."+strconv.Itoa(i), "body", string(m.CnameRecord[i]), 1); err != nil {
+		if err := validate.MinLength("cname_record"+"."+strconv.Itoa(i), "body", m.CnameRecord[i], 1); err != nil {
 			return err
 		}
 
@@ -121,14 +120,19 @@ func (m *DNSConfigRecord) validateCnameRecord(formats strfmt.Registry) error {
 
 func (m *DNSConfigRecord) validateDomain(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("domain", "body", string(m.Domain)); err != nil {
+	if err := validate.RequiredString("domain", "body", m.Domain); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("domain", "body", string(m.Domain), 1); err != nil {
+	if err := validate.MinLength("domain", "body", m.Domain, 1); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this dns config record based on context it is used
+func (m *DNSConfigRecord) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

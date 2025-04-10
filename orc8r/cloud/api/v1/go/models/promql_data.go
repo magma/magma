@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PromqlData promql data
+//
 // swagger:model promql_data
 type PromqlData struct {
 
@@ -22,6 +24,7 @@ type PromqlData struct {
 	Result PromqlResult `json:"result"`
 
 	// result type
+	// Example: vector
 	// Required: true
 	ResultType *string `json:"resultType"`
 }
@@ -53,6 +56,8 @@ func (m *PromqlData) validateResult(formats strfmt.Registry) error {
 	if err := m.Result.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("result")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("result")
 		}
 		return err
 	}
@@ -63,6 +68,34 @@ func (m *PromqlData) validateResult(formats strfmt.Registry) error {
 func (m *PromqlData) validateResultType(formats strfmt.Registry) error {
 
 	if err := validate.Required("resultType", "body", m.ResultType); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// ContextValidate validate this promql data based on the context it is used
+func (m *PromqlData) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateResult(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *PromqlData) contextValidateResult(ctx context.Context, formats strfmt.Registry) error {
+
+	if err := m.Result.ContextValidate(ctx, formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("result")
+		} else if ce, ok := err.(*errors.CompositeError); ok {
+			return ce.ValidateName("result")
+		}
 		return err
 	}
 

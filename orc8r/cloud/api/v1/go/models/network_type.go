@@ -6,14 +6,23 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
+
+	"github.com/go-openapi/strfmt"
 )
 
 // NetworkType The type of the network
+// Example: LTE
+//
 // swagger:model network_type
 type NetworkType string
 
 // Validate validates this network type
 func (m NetworkType) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this network type based on context it is used
+func (m NetworkType) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

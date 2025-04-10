@@ -6,14 +6,23 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
+
+	"github.com/go-openapi/strfmt"
 )
 
 // APNList APNs that are allowed for this subscriber
+// Example: ["internet","ims"]
+//
 // swagger:model apn_list
 type APNList []string
 
 // Validate validates this apn list
 func (m APNList) Validate(formats strfmt.Registry) error {
+	return nil
+}
+
+// ContextValidate validates this apn list based on context it is used
+func (m APNList) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

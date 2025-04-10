@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutNetworksNetworkIDPrometheusAlertConfigBulkReader is a Reader for the PutNetworksNetworkIDPrometheusAlertConfigBulk structure.
@@ -47,7 +46,8 @@ func NewPutNetworksNetworkIDPrometheusAlertConfigBulkOK() *PutNetworksNetworkIDP
 	return &PutNetworksNetworkIDPrometheusAlertConfigBulkOK{}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertConfigBulkOK handles this case with default header values.
+/*
+PutNetworksNetworkIDPrometheusAlertConfigBulkOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -58,7 +58,6 @@ type PutNetworksNetworkIDPrometheusAlertConfigBulkOK struct {
 func (o *PutNetworksNetworkIDPrometheusAlertConfigBulkOK) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/prometheus/alert_config/bulk][%d] putNetworksNetworkIdPrometheusAlertConfigBulkOK  %+v", 200, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDPrometheusAlertConfigBulkOK) GetPayload() *models.AlertBulkUploadResponse {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewPutNetworksNetworkIDPrometheusAlertConfigBulkDefault(code int) *PutNetwo
 	}
 }
 
-/*PutNetworksNetworkIDPrometheusAlertConfigBulkDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDPrometheusAlertConfigBulkDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *PutNetworksNetworkIDPrometheusAlertConfigBulkDefault) Code() int {
 func (o *PutNetworksNetworkIDPrometheusAlertConfigBulkDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/prometheus/alert_config/bulk][%d] PutNetworksNetworkIDPrometheusAlertConfigBulk default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDPrometheusAlertConfigBulkDefault) GetPayload() *models.Error {
 	return o.Payload
 }

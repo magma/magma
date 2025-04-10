@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetFegNetworkIDClusterStatusReader is a Reader for the GetFegNetworkIDClusterStatus structure.
@@ -47,7 +46,8 @@ func NewGetFegNetworkIDClusterStatusOK() *GetFegNetworkIDClusterStatusOK {
 	return &GetFegNetworkIDClusterStatusOK{}
 }
 
-/*GetFegNetworkIDClusterStatusOK handles this case with default header values.
+/*
+GetFegNetworkIDClusterStatusOK describes a response with status code 200, with default header values.
 
 Cluster status of Federation Network
 */
@@ -58,7 +58,6 @@ type GetFegNetworkIDClusterStatusOK struct {
 func (o *GetFegNetworkIDClusterStatusOK) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/cluster_status][%d] getFegNetworkIdClusterStatusOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegNetworkIDClusterStatusOK) GetPayload() *models.FederationNetworkClusterStatus {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetFegNetworkIDClusterStatusDefault(code int) *GetFegNetworkIDClusterSta
 	}
 }
 
-/*GetFegNetworkIDClusterStatusDefault handles this case with default header values.
+/*
+GetFegNetworkIDClusterStatusDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetFegNetworkIDClusterStatusDefault) Code() int {
 func (o *GetFegNetworkIDClusterStatusDefault) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/cluster_status][%d] GetFegNetworkIDClusterStatus default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegNetworkIDClusterStatusDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetChannelsChannelIDReader is a Reader for the GetChannelsChannelID structure.
@@ -47,7 +46,8 @@ func NewGetChannelsChannelIDOK() *GetChannelsChannelIDOK {
 	return &GetChannelsChannelIDOK{}
 }
 
-/*GetChannelsChannelIDOK handles this case with default header values.
+/*
+GetChannelsChannelIDOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -58,7 +58,6 @@ type GetChannelsChannelIDOK struct {
 func (o *GetChannelsChannelIDOK) Error() string {
 	return fmt.Sprintf("[GET /channels/{channel_id}][%d] getChannelsChannelIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetChannelsChannelIDOK) GetPayload() *models.ReleaseChannel {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetChannelsChannelIDDefault(code int) *GetChannelsChannelIDDefault {
 	}
 }
 
-/*GetChannelsChannelIDDefault handles this case with default header values.
+/*
+GetChannelsChannelIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetChannelsChannelIDDefault) Code() int {
 func (o *GetChannelsChannelIDDefault) Error() string {
 	return fmt.Sprintf("[GET /channels/{channel_id}][%d] GetChannelsChannelID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetChannelsChannelIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

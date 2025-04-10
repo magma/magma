@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetEventsNetworkIDAboutCountReader is a Reader for the GetEventsNetworkIDAboutCount structure.
@@ -47,7 +46,8 @@ func NewGetEventsNetworkIDAboutCountOK() *GetEventsNetworkIDAboutCountOK {
 	return &GetEventsNetworkIDAboutCountOK{}
 }
 
-/*GetEventsNetworkIDAboutCountOK handles this case with default header values.
+/*
+GetEventsNetworkIDAboutCountOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -58,7 +58,6 @@ type GetEventsNetworkIDAboutCountOK struct {
 func (o *GetEventsNetworkIDAboutCountOK) Error() string {
 	return fmt.Sprintf("[GET /events/{network_id}/about/count][%d] getEventsNetworkIdAboutCountOK  %+v", 200, o.Payload)
 }
-
 func (o *GetEventsNetworkIDAboutCountOK) GetPayload() int64 {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetEventsNetworkIDAboutCountDefault(code int) *GetEventsNetworkIDAboutCo
 	}
 }
 
-/*GetEventsNetworkIDAboutCountDefault handles this case with default header values.
+/*
+GetEventsNetworkIDAboutCountDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetEventsNetworkIDAboutCountDefault) Code() int {
 func (o *GetEventsNetworkIDAboutCountDefault) Error() string {
 	return fmt.Sprintf("[GET /events/{network_id}/about/count][%d] GetEventsNetworkIDAboutCount default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetEventsNetworkIDAboutCountDefault) GetPayload() *models.Error {
 	return o.Payload
 }

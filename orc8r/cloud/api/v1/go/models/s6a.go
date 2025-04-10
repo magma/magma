@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // S6a s6a configuration
+//
 // swagger:model s6a
 type S6a struct {
 
@@ -45,22 +46,21 @@ func (m *S6a) Validate(formats strfmt.Registry) error {
 }
 
 func (m *S6a) validatePlmnIds(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.PlmnIds) { // not required
 		return nil
 	}
 
 	for i := 0; i < len(m.PlmnIds); i++ {
 
-		if err := validate.MinLength("plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), 5); err != nil {
+		if err := validate.MinLength("plmn_ids"+"."+strconv.Itoa(i), "body", m.PlmnIds[i], 5); err != nil {
 			return err
 		}
 
-		if err := validate.MaxLength("plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), 6); err != nil {
+		if err := validate.MaxLength("plmn_ids"+"."+strconv.Itoa(i), "body", m.PlmnIds[i], 6); err != nil {
 			return err
 		}
 
-		if err := validate.Pattern("plmn_ids"+"."+strconv.Itoa(i), "body", string(m.PlmnIds[i]), `^(\d{5,6})$`); err != nil {
+		if err := validate.Pattern("plmn_ids"+"."+strconv.Itoa(i), "body", m.PlmnIds[i], `^(\d{5,6})$`); err != nil {
 			return err
 		}
 
@@ -70,7 +70,6 @@ func (m *S6a) validatePlmnIds(formats strfmt.Registry) error {
 }
 
 func (m *S6a) validateServer(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Server) { // not required
 		return nil
 	}
@@ -79,6 +78,38 @@ func (m *S6a) validateServer(formats strfmt.Registry) error {
 		if err := m.Server.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("server")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("server")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ContextValidate validate this s6a based on the context it is used
+func (m *S6a) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateServer(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *S6a) contextValidateServer(ctx context.Context, formats strfmt.Registry) error {
+
+	if m.Server != nil {
+		if err := m.Server.ContextValidate(ctx, formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("server")
+			} else if ce, ok := err.(*errors.CompositeError); ok {
+				return ce.ValidateName("server")
 			}
 			return err
 		}

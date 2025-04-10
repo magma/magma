@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteNetworksNetworkIDPrometheusAlertReceiverReader is a Reader for the DeleteNetworksNetworkIDPrometheusAlertReceiver structure.
@@ -47,7 +46,8 @@ func NewDeleteNetworksNetworkIDPrometheusAlertReceiverOK() *DeleteNetworksNetwor
 	return &DeleteNetworksNetworkIDPrometheusAlertReceiverOK{}
 }
 
-/*DeleteNetworksNetworkIDPrometheusAlertReceiverOK handles this case with default header values.
+/*
+DeleteNetworksNetworkIDPrometheusAlertReceiverOK describes a response with status code 200, with default header values.
 
 Deleted
 */
@@ -70,7 +70,8 @@ func NewDeleteNetworksNetworkIDPrometheusAlertReceiverDefault(code int) *DeleteN
 	}
 }
 
-/*DeleteNetworksNetworkIDPrometheusAlertReceiverDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDPrometheusAlertReceiverDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteNetworksNetworkIDPrometheusAlertReceiverDefault) Code() int {
 func (o *DeleteNetworksNetworkIDPrometheusAlertReceiverDefault) Error() string {
 	return fmt.Sprintf("[DELETE /networks/{network_id}/prometheus/alert_receiver][%d] DeleteNetworksNetworkIDPrometheusAlertReceiver default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteNetworksNetworkIDPrometheusAlertReceiverDefault) GetPayload() *models.Error {
 	return o.Payload
 }

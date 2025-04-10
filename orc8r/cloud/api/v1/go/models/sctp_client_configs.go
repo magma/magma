@@ -6,22 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // SctpClientConfigs SCTP Configuration of the CSFB service
+//
 // swagger:model sctp_client_configs
 type SctpClientConfigs struct {
 
 	// local address
+	// Example: :56789
 	// Pattern: [^\:]+(:[0-9]{1,5})?
 	LocalAddress string `json:"local_address,omitempty"`
 
 	// server address
+	// Example: foo.bar.com:5555
 	// Pattern: [^\:]+(:[0-9]{1,5})?
 	ServerAddress string `json:"server_address,omitempty"`
 }
@@ -45,12 +49,11 @@ func (m *SctpClientConfigs) Validate(formats strfmt.Registry) error {
 }
 
 func (m *SctpClientConfigs) validateLocalAddress(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.LocalAddress) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("local_address", "body", string(m.LocalAddress), `[^\:]+(:[0-9]{1,5})?`); err != nil {
+	if err := validate.Pattern("local_address", "body", m.LocalAddress, `[^\:]+(:[0-9]{1,5})?`); err != nil {
 		return err
 	}
 
@@ -58,15 +61,19 @@ func (m *SctpClientConfigs) validateLocalAddress(formats strfmt.Registry) error 
 }
 
 func (m *SctpClientConfigs) validateServerAddress(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.ServerAddress) { // not required
 		return nil
 	}
 
-	if err := validate.Pattern("server_address", "body", string(m.ServerAddress), `[^\:]+(:[0-9]{1,5})?`); err != nil {
+	if err := validate.Pattern("server_address", "body", m.ServerAddress, `[^\:]+(:[0-9]{1,5})?`); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this sctp client configs based on context it is used
+func (m *SctpClientConfigs) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

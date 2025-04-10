@@ -6,14 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // AlertSilenceStatus alert silence status
+//
 // swagger:model alert_silence_status
 type AlertSilenceStatus struct {
 
@@ -42,6 +44,11 @@ func (m *AlertSilenceStatus) validateState(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this alert silence status based on context it is used
+func (m *AlertSilenceStatus) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 
