@@ -39,10 +39,6 @@ ENV CCACHE_DIR ${MAGMA_ROOT}/.cache/gateway/ccache
 ENV MAGMA_DEV_MODE 0
 ENV XDG_CACHE_HOME ${MAGMA_ROOT}/.cache
 
-# [TODO_GPG_KEY_WORKAROUND] Temporary steps to be removed once GPG public key issue has been fixed.
-RUN echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories \
-    && echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
-
 RUN apt-get update && \
   # Setup necessary tools for adding the Magma repository
   apt-get install -y apt-utils software-properties-common apt-transport-https gnupg wget && \
@@ -97,10 +93,7 @@ RUN apt-get update && apt-get install -y \
 
 # Add the magma apt repo
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-#[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
-#RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN echo "deb [trusted=yes] https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" \
-    > /etc/apt/sources.list.d/magma.list
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 RUN apt-get update && apt-get install -y \
   grpc-dev \
   libfolly-dev \
@@ -173,10 +166,6 @@ ENV C_BUILD /build/c
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# [TODO_GPG_KEY_WORKAROUND] Temporary steps to be removed once GPG public key issue has been fixed.
-RUN echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories \
-    && echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
-
 # Install runtime dependencies
 RUN apt-get update \
   && DEBIAN_FRONTEND=noninteractive apt-get install -y \
@@ -204,10 +193,7 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-#[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
-#RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN echo "deb [trusted=yes] https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" \
-    > /etc/apt/sources.list.d/magma.list
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 
 RUN apt-get update && apt-get install -y \
   libopenvswitch \
