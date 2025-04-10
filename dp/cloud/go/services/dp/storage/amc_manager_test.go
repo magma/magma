@@ -304,8 +304,10 @@ func TestWithinTx(t *testing.T) {
 
 func (s *AmcManagerTestSuite) TestGetState() {
 	registeredId := s.enumMaps[storage.CbsdStateTable][registered]
+	unregisteredId := s.enumMaps[storage.CbsdStateTable][unregistered]
 	grantedId := s.enumMaps[storage.GrantStateTable][granted]
 	authorizedId := s.enumMaps[storage.GrantStateTable][authorized]
+	idleId := s.enumMaps[storage.GrantStateTable][idle]
 	grantReqId := s.enumMaps[storage.RequestTypeTable]["grant"]
 	preferences := []uint32{0b10101100, 0b00110, 0b0100000, 0b11010}
 	availableFreqs := []uint32{0b10111100, 0b010110, 0b01001011, 0b11110}
@@ -966,6 +968,41 @@ func (s *AmcManagerTestSuite) TestGetState() {
 					registered).
 				WithAmcGrant(granted, 3600, time.Unix(119, 0).UTC(), someGrantId, 1).
 				WithAmcGrant(authorized, 3600, time.Unix(120, 0).UTC(), someGrantId, 1).
+				Details,
+		},
+	}, {
+		name: "test get state with idle grant",
+		input: []db.Model{
+			b.NewDBCbsdBuilder().
+				WithNetworkId(someNetwork).
+				WithSerialNumber(someSerialNumber).
+				WithId(0).
+				WithCbsdId(someCbsdIdStr).
+				WithStateId(unregisteredId).
+				WithDesiredStateId(unregisteredId).
+				WithAntennaGain(20).
+				Cbsd,
+			b.NewDBGrantBuilder().
+				WithDefaultTestValues().
+				WithCbsdId(2).
+				WithStateId(idleId).
+				Grant,
+		},
+		expected: []*storage.DetailedCbsd{
+			b.NewDetailedDBCbsdBuilder().
+				WithCbsd(
+					b.NewDBCbsdBuilder().
+						WithId(0).
+						WithSerialNumber(someSerialNumber).
+						WithCbsdId(someCbsdIdStr).
+						WithIndoorDeployment(false).
+						WithShouldDeregister(false).
+						WithShouldRelinquish(false).
+						WithIsDeleted(false).
+						WithAntennaGain(20).
+						Cbsd,
+					unregistered,
+					unregistered).
 				Details,
 		},
 	}}
