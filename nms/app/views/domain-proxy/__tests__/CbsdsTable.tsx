@@ -85,6 +85,11 @@ const cbsds = [
   },
 ];
 
+const cbsdsResponse = {
+  cbsds,
+  total_count: 2,
+};
+
 const cbsdState = {
   state: {
     isLoading: false,
@@ -94,7 +99,7 @@ const cbsdState = {
     cbsds,
   },
   setPaginationOptions: jest.fn(),
-  refetch: jest.fn(),
+  refetch: () => Promise.resolve(cbsdsResponse),
   create: jest.fn(),
   update: jest.fn(),
   deregister: jest.fn(),
