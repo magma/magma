@@ -335,14 +335,24 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
 
   if (amf_ue_context_p->guti_ue_context_htbl.get(*guti_p, &amf_ue_ngap_id64) ==
       magma::MAP_OK) {
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "Entry found for GUTI identified [%u] with amf_ue_ngap_id [%lu]\n",
+        guti_p->m_tmsi, amf_ue_ngap_id64);
     ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(
         (amf_ue_ngap_id_t)amf_ue_ngap_id64);
     if (ue_context_p) {
+      OAILOG_DEBUG(LOG_AMF_APP, "Context found cm_state [%d], mm_state [%d]\n",
+                   ue_context_p->cm_state, ue_context_p->mm_state);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, ue_context_p);
+    } else {
+      OAILOG_DEBUG(LOG_AMF_APP, "Context not found, returning NULL\n");
     }
   } else {
-    OAILOG_WARNING(LOG_AMF_APP, " No GUTI hashtable for GUTI: [%u] \n",
-                   guti_p->m_tmsi);
+    OAILOG_WARNING(
+        LOG_AMF_APP, " No GUTI hashtable for GUTI:" PLMN_FMT "%u.%u.%u.%u \n",
+        PLMN_ARG(&guti_p->guamfi.plmn), guti_p->guamfi.amf_regionid,
+        guti_p->guamfi.amf_set_id, guti_p->guamfi.amf_pointer, guti_p->m_tmsi);
   }
 
   OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
@@ -828,7 +838,7 @@ void amf_ue_context_update_ue_sig_connection_state(
     OAILOG_DEBUG_UE(
         LOG_AMF_APP, ue_context_p->amf_context.imsi64,
         "AMF_APP: UE Connection State changed to CONNECTED.enb_ue_s1ap_id "
-        "=" GNB_UE_NGAP_ID_FMT ", mme_ue_s1ap_id = " AMF_UE_NGAP_ID_FMT "\n",
+        "=" GNB_UE_NGAP_ID_FMT ", amf_ue_ngap_id = " AMF_UE_NGAP_ID_FMT "\n",
         ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id);
     // Set PPF flag to true whenever UE moves from M5GCM_IDLE to M5GCM_CONNECTED
     // state

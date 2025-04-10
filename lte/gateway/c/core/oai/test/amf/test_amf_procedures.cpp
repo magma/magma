@@ -737,54 +737,38 @@ TEST_F(AMFAppProcedureTest, TestRegistrationProcGutiBasedEncryption) {
 TEST_F(AMFAppProcedureTest, TestMobileUpdatingRegistrationProcGutiBased) {
   amf_ue_ngap_id_t ue_id = 0;
   std::vector<MessagesIds> expected_Ids{
-      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // new registration notification
-                                            // indication to ngap
-      NGAP_NAS_DL_DATA_REQ,                 // Authentication Request to UE
-      NGAP_NAS_DL_DATA_REQ,  // Security Command Mode Request to UE
-      NGAP_NAS_DL_DATA_REQ,
-      NGAP_INITIAL_CONTEXT_SETUP_REQ,  // Initial Conext Setup Request to UE &
-                                       // Registration Accept
-      NGAP_UE_CONTEXT_RELEASE_COMMAND  // UEContextReleaseCommand
+      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // Initial Registration
+      NGAP_NAS_DL_DATA_REQ,                 // Authentication Request
+      NGAP_NAS_DL_DATA_REQ,                 // Security Mode Request
+      NGAP_INITIAL_CONTEXT_SETUP_REQ,       // Initial Context Setup
+      NGAP_UE_CONTEXT_RELEASE_COMMAND,      // Context Release
+      AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,  // New Mobile Updating registration
+                                            // notification indication to ngap
+      NGAP_UE_CONTEXT_RELEASE_COMMAND       // UEContextReleaseCommand
   };
 
-  /* Send the initial UE message */
+  // Send the initial UE message
   imsi64_t imsi64 = 0;
-  uint32_t m_tmsi = 0x8f719f0e;
-  ue_id = send_initial_ue_message_with_tmsi(
-      amf_app_desc_p, 36, 1, 1, 0, plmn, m_tmsi, mu_initial_ue_message_hexbuf,
-      sizeof(mu_initial_ue_message_hexbuf));
+  int rc = RETURNerror;
+  amf_ue_ngap_id_t init_ue_id = 0;
 
-  EXPECT_TRUE(validate_identification_procedure(0, &ue_id));
+  imsi64 = send_initial_ue_message_no_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn,
+                                           initial_ue_message_hexbuf,
+                                           sizeof(initial_ue_message_hexbuf));
 
-  int rc = RETURNok;
-  rc = send_uplink_nas_identity_response_message(amf_app_desc_p, ue_id, plmn,
-                                                 identity_response,
-                                                 sizeof(identity_response));
+  // Check if UE Context is created with correct imsi
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &init_ue_id));
+
+  // Send the authentication response message from subscriberdb
+  rc = send_proc_authentication_info_answer(imsi, init_ue_id, true);
   EXPECT_TRUE(rc == RETURNok);
-
-  ue_m5gmm_context_t* ue_context_p =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  ASSERT_NE(ue_context_p, nullptr);
-  EXPECT_TRUE(ue_context_p->amf_context.imsi64 == stoul(imsi));
-
-  /* Send the authentication response message from subscriberdb */
-  rc = send_proc_authentication_info_answer(imsi, ue_id, true);
-  EXPECT_TRUE(rc == RETURNok);
-
-  /* Validate if authentication procedure is initialized as expected */
-  EXPECT_TRUE(validate_auth_procedure(ue_id, 0));
-
-  /* Send uplink nas message for auth response from UE */
+  // Send uplink nas message for auth response from UE
   rc = send_uplink_nas_message_ue_auth_response(
-      amf_app_desc_p, ue_id, plmn, ue_auth_response_hexbuf,
+      amf_app_desc_p, init_ue_id, plmn, ue_auth_response_hexbuf,
       sizeof(ue_auth_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
-
-  /* Check whether security mode procedure is initiated */
-  EXPECT_TRUE(validate_smc_procedure(ue_id, 0));
-
-  /* Send uplink nas message for security mode complete response from UE */
-  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, ue_id, plmn,
+  // Send uplink nas message for security mode complete response from UE
+  rc = send_uplink_nas_message_ue_smc_response(amf_app_desc_p, init_ue_id, plmn,
                                                ue_smc_response_hexbuf,
                                                sizeof(ue_smc_response_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
@@ -793,13 +777,41 @@ TEST_F(AMFAppProcedureTest, TestMobileUpdatingRegistrationProcGutiBased) {
   rc = amf_handle_s6a_update_location_ans(&ula_ans);
   EXPECT_EQ(rc, RETURNok);
 
+  send_initial_context_response(amf_app_desc_p, init_ue_id);
+
   /* Send uplink nas message for registration complete response from UE */
   rc = send_uplink_nas_registration_complete(
-      amf_app_desc_p, ue_id, plmn, ue_registration_complete_hexbuf,
+      amf_app_desc_p, init_ue_id, plmn, ue_registration_complete_hexbuf,
       sizeof(ue_registration_complete_hexbuf));
   EXPECT_TRUE(rc == RETURNok);
 
-  amf_app_handle_deregistration_req(ue_id);
+  send_initial_context_response(amf_app_desc_p, init_ue_id);
+
+  send_ue_context_release_request_message(amf_app_desc_p, 1, 1, init_ue_id);
+
+  send_ue_context_release_complete_message(amf_app_desc_p, 1, 1, init_ue_id);
+
+  ue_m5gmm_context_s* ue_context_p = nullptr;
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(init_ue_id);
+  uint32_t m_tmsi = ue_context_p->amf_context.m5_guti.m_tmsi;
+
+  // UE was released. Now the UE will send a Registration Request with
+  // type MobilityUpdating using GUTI idendification. The AMF
+  // must fetch the context from the GUTI and accept the registration
+  // request
+
+  send_initial_ue_message_with_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn, m_tmsi,
+                                    mu_initial_ue_message_hexbuf,
+                                    sizeof(mu_initial_ue_message_hexbuf));
+
+  // Check if UE Context is created with correct imsi
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &init_ue_id));
+
+  send_initial_context_response(amf_app_desc_p, init_ue_id);
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(init_ue_id);
+  EXPECT_TRUE(ue_context_p != NULL);
+
+  amf_app_handle_deregistration_req(init_ue_id);
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
 }
 
@@ -2598,7 +2610,7 @@ TEST_F(AMFAppProcedureTest, ServiceRequestSignalWithPDU) {
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
 }
 
-TEST_F(AMFAppProcedureTest, PeriodicRegistraionNoTmsi) {
+TEST_F(AMFAppProcedureTest, PeriodicRegistrationGutiBased) {
   int rc = RETURNerror;
   amf_ue_ngap_id_t init_ue_id = 0;
   std::vector<MessagesIds> expected_Ids{AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
@@ -2607,9 +2619,6 @@ TEST_F(AMFAppProcedureTest, PeriodicRegistraionNoTmsi) {
                                         NGAP_INITIAL_CONTEXT_SETUP_REQ,
                                         NGAP_UE_CONTEXT_RELEASE_COMMAND,
                                         AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
-                                        NGAP_NAS_DL_DATA_REQ,
-                                        NGAP_NAS_DL_DATA_REQ,
-                                        NGAP_UE_CONTEXT_RELEASE_COMMAND,
                                         NGAP_UE_CONTEXT_RELEASE_COMMAND};
   // Send the initial UE message
   imsi64_t imsi64 = 0;
@@ -2652,19 +2661,21 @@ TEST_F(AMFAppProcedureTest, PeriodicRegistraionNoTmsi) {
 
   send_ue_context_release_complete_message(amf_app_desc_p, 1, 1, init_ue_id);
   ue_m5gmm_context_s* ue_context_p = nullptr;
+
+  // UE was released. Now the UE will send a Registration Request with
+  // type PeriodicRegistration using GUTI idendification. The AMF
+  // must fetch the context from the GUTI and accept the registration
+  // request.
+
   ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(init_ue_id);
-  delete ue_context_p;
-  uint32_t m_tmsi = 0x42db2a42;
+  uint32_t m_tmsi = ue_context_p->amf_context.m5_guti.m_tmsi;
   send_initial_ue_message_with_tmsi(amf_app_desc_p, 36, 1, 1, 0, plmn, m_tmsi,
                                     initial_ue_periodic_reg,
                                     sizeof(initial_ue_periodic_reg));
 
-  EXPECT_TRUE(validate_identification_procedure(0, &init_ue_id));
-
-  rc = send_uplink_nas_message_ue_auth_response(
-      amf_app_desc_p, init_ue_id, plmn, ue_auth_response_hexbuf,
-      sizeof(ue_auth_response_hexbuf));
-  EXPECT_TRUE(rc == RETURNok);
+  EXPECT_TRUE(get_ue_id_from_imsi(amf_app_desc_p, imsi64, &init_ue_id));
+  send_initial_context_response(amf_app_desc_p, init_ue_id);
+  ue_context_p = amf_ue_context_exists_amf_ue_ngap_id(init_ue_id);
 
   amf_app_handle_deregistration_req(init_ue_id);
   EXPECT_TRUE(expected_Ids == AMFClientServicer::getInstance().msgtype_stack);
