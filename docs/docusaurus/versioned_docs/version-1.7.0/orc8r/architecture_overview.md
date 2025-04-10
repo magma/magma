@@ -17,7 +17,7 @@ Magma's Orchestrator is a centralized controller for a set of networks. Orchestr
 configuration and metrics for network devices
 - **A southbound interface** which applies device configuration and reports device status
 
-![Orc8r Overview](assets/orc8r/orc8r_overview.png)
+![Orc8r Overview](../../../../readmes/assets/orc8r/orc8r_overview.png)
 
 At a lower level, Orchestrator supports the following functionality
 
@@ -36,20 +36,20 @@ Orchestrator follows a modular design. Core Orchestrator services (located at `o
 
 Every Orchestrator service is deployed with its own Kubernetes service and pod.
 
-![Orc8r Service Mesh Architecture](assets/orc8r/orc8r_service_mesh.png)
+![Orc8r Service Mesh Architecture](../../../../readmes/assets/orc8r/orc8r_service_mesh.png)
 
 ### Configuration
 
 The following diagram displays an example call flow for LTE gateway
 configuration
 
-![Orc8r Configuration](assets/orc8r/orc8r_configuration.png)
+![Orc8r Configuration](../../../../readmes/assets/orc8r/orc8r_configuration.png)
 
 ### Metrics
 
 The following diagram displays the call flow for the metrics pipeline
 
-![Orc8r Metrics](assets/orc8r/orc8r_metrics.png)
+![Orc8r Metrics](../../../../readmes/assets/orc8r/orc8r_metrics.png)
 
 ### Services
 

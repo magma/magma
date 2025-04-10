@@ -102,7 +102,7 @@ This section lists some of the commonly asked questions related to Magma operati
 
 ### Where can I get more information about services running in Magma?
 
-- <https://github.com/magma/magma/tree/master/docs/readmes/lte>
+- https://github.com/magma/magma/tree/master/docs/readmes/lte
 
 ### How can I detach/purge a subscriber from AGW?
 

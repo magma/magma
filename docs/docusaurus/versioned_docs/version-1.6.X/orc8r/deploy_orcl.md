@@ -17,7 +17,7 @@ Orcl is the Orchestrator CLI. It is used for managing an Orc8r deployment. It pr
 - Cleanup
 - Debug (perhaps in the future)
 
-![Orcl Big Picture](assets/orc8r/orcl.png)
+![Orcl Big Picture](../../../../readmes/assets/orc8r/orcl.png)
 
 Orcl is packaged within orc8r_deployer. Orc8r deployer is a docker image which contains all the necessary prerequisites to deploy orc8r. The only requirements for running orc8r_deployer is that the the host machine must have [docker engine installed](https://docs.docker.com/get-docker/).
 

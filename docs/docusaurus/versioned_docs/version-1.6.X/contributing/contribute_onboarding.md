@@ -126,7 +126,7 @@ After completing the above steps, restart your IDE and ensure the environment is
 1. Open "Project" on the left toolbar, and display "Project Files". All the files in the root `magma` directory should be displayed *without* a yellow background. This indicates IntelliJ recognizes the files as part of the module.
 2. At the top-right corner of your IDE, you should see a drop-down menu showing a list of run configurations for the Magma test suites, with a green triangular button that allows you to run the selected test. Alternatively, when you open your run configurations (`Run > Edit Configurations`), you should see something like the below
 
-![intellij_initial_run_configs](assets/intellij_initial_run_configs.png)
+<!-- ![intellij_initial_run_configs](../../../../readmes/assets/intellij_initial_run_configs.png) -->
 
 You can now run all (Orchestrator) tests in one click.
 

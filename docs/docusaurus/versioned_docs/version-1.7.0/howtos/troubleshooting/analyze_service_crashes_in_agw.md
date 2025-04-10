@@ -61,7 +61,7 @@ service:
   Dec 5 22:25:59 magma systemd[1]: magma@mme.service: Main process exited, code=killed, status=11/SEGV
   ```
 
-- Service crashes with a segmentation fault will create coredumps in `/var/core/` folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in <https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps>
+- Service crashes with a segmentation fault will create coredumps in `/var/core/` folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps
 
 **5. Get the backtrace using the coredumps**. To analyze the coredumps, you need 3 requirements.
 

@@ -4,9 +4,9 @@ services:
   docusaurus:
     volumes:
       - ./../docusaurus:/app/website
-      - ./../readmes:/app/docs
+      - ./../readmes:/app/readmes
     ports:
       - 3000:3000/tcp
       - 35729:35729/tcp
     image: magma_docusaurus
-    command: bash -c 'yarn install && yarn start'
+    command: bash -c 'npm install && npm start -- --host 0.0.0.0'

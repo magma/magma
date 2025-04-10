@@ -19,7 +19,7 @@ This feature is currently built to enable post-pay charging.
 Metering information is available through our metrics REST endpoint.
 The metric name used is `ue_traffic`.
 
-![Swagger REST API Endpoint](assets/ue_metering.png)
+![Swagger REST API Endpoint](../../../../readmes/assets/ue_metering.png)
 
 ## Configuring Metering
 

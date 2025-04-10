@@ -40,7 +40,7 @@ allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
 If you are running into build/test failures with Go that report "signal killed", you
 likely need to increase Docker's allocated resources.
 
-![Increasing docker engine resources](assets/docker-config.png)
+![Increasing docker engine resources](../../../../readmes/assets/docker-config.png)
 
 ## Downloading Magma
 

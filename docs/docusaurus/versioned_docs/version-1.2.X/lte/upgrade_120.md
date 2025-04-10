@@ -24,9 +24,9 @@ tier to `1.2.0-1600052642-41609608`.
 The AGWs in this tier will pull this configuration and upgrade automatically.
 By default, we check for an upgrade every 5 minutes.
 
-![1.2.0 upgrade](assets/agw_120_1.png)
+![1.2.0 upgrade](../../../../readmes/assets/agw_120_1.png)
 
-![1.2.0 upgrade](assets/agw_120_2.png)
+![1.2.0 upgrade](../../../../readmes/assets/agw_120_2.png)
 
 When the gateway completes its upgrade, you should see that its reported
 software version in. If it hasn't changed, something probably went wrong with

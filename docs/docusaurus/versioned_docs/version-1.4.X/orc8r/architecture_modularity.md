@@ -84,7 +84,7 @@ We currently support 7 extensions
 The interface between core service and extension implementation is defined per extension. Beyond that interface, functionality depends on
 the particular extension. For a concrete example, consider the state indexing codepath
 
-![State indexing codepath](assets/orc8r/state_indexing_codepath.png)
+![State indexing codepath](../../../../readmes/assets/orc8r/state_indexing_codepath.png)
 
 ## Extending Orchestrator
 

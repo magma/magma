@@ -112,7 +112,7 @@ debian_commands:
 
 ### How to add a new role ?
 
-Roles include tasks that can be built-in ansible modules or community ones. In this example we will look into the role that collects files already set in the variable called “*paths_to_collect*”. This uses a built-in module to work with the specified files. (<https://docs.ansible.com/ansible/2.8/modules/list_of_files_modules.html>)
+Roles include tasks that can be built-in ansible modules or community ones. In this example we will look into the role that collects files already set in the variable called “*paths_to_collect*”. This uses a built-in module to work with the specified files. (https://docs.ansible.com/ansible/2.8/modules/list_of_files_modules.html)
 *NOTE*: *report_dir_output.stdout* is the variable containing the dynamic report dir to be used across all roles and is being created on role *destdir.*
 
 ```yaml
@@ -165,4 +165,4 @@ grep "Command:" -A 3 report.magma.2020-11-29T14:21:42Z/commands_output.log
 
 ## References
 
-<https://docs.ansible.com/ansible/2.8/modules/modules_by_category.html> - all ansible modules by category. <https://docs.ansible.com/ansible/2.8/user_guide/playbooks.html> - ansible user guide on playbooks.
+https://docs.ansible.com/ansible/2.8/modules/modules_by_category.html - all ansible modules by category. https://docs.ansible.com/ansible/2.8/user_guide/playbooks.html - ansible user guide on playbooks.

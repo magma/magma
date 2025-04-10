@@ -70,7 +70,7 @@ is a fresh Orchestrator install, you will be prompted to create your first
 network. Otherwise, select "Create Network" from the network selection icon
 at the bottom of the left sidebar.
 
-![Creating a network](assets/nms/createnetwork_12.png)
+![Creating a network](../../../../readmes/assets/nms/createnetwork_12.png)
 
 Fill out the network creation modal with the parameters that you want. There
 are 3 steps in the modal window, but the network will be created after you hit

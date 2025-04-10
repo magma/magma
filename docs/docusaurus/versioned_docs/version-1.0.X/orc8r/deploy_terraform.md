@@ -34,7 +34,7 @@ worker nodes of the EKS cluster. This can be found in the EC2 dashboard under
 "Key Pairs". If you're creating a new key pair, make sure not to lose the
 private key, you won't be able to recover it from AWS.
 
-![creating an AWS keypair](assets/keypair.png)
+![creating an AWS keypair](../../../../readmes/assets/keypair.png)
 
 Next, create a `vars.tfvars` file in your directory, *add it to your source
 control's .ignore*, and specify your desired RDS password and the name of the

@@ -41,7 +41,7 @@ In order to have NSA support over S1-AP interface, We have upgraded the existing
 
 - In the Initial Context Setup Request message sent by MME to the eNB over S1AP, MME adds Extended UE-AMBR UL and Extended UE-AMBR DL values in order to accommodate AMBR values larger than 10Gb/s in the uplink and downlink direction respectively. This feature is currently under development and will be added in the next release.
 
-![NSA IEs Addition](assets/lte/NSA-IE-Addition.png?raw=true "NSA IEs Addition")
+![NSA IEs Addition](../../../../readmes/assets/lte/NSA-IE-Addition.png?raw=true "NSA IEs Addition")
 
 ## 3GPP References
 

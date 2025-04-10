@@ -23,7 +23,7 @@ By default, TLS is mutually terminated at the edge of both Orc8r and gateways
 
 In the default configuration, with a registered and fully bootstrapped gateway, TLS termination looks like this
 
-![Orc8r proxying](assets/orc8r/orc8r_proxying.png)
+![Orc8r proxying](../../../../readmes/assets/orc8r/orc8r_proxying.png)
 
 ### Certificates
 
