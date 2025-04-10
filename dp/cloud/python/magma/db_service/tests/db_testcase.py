@@ -44,7 +44,7 @@ class DBTestCaseBlueprint(unittest.TestCase):
     @classmethod
     def set_up_db_test_case(cls, **kwargs: Optional[Dict]):
         cls.engine = cls.get_test_db_engine(**kwargs)
-        cls.session = Session(bind=cls.engine)
+        cls.session = Session(bind=cls.engine, autoflush=False)
         cls.bind_engine()
 
     @staticmethod

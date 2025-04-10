@@ -145,9 +145,8 @@ class DBGrant(Base):
         Return string representation of DB object
         """
         class_name = self.__class__.__name__
-        state_name = self.state.name
+        # state_name = self.state.name
         return f"<{class_name}(id='{self.id}', " \
-            f"state='{state_name}', " \
             f"cbsd_id='{self.cbsd_id}', " \
             f"grant_id='{self.grant_id}', " \
             f"grant_expire_time='{self.grant_expire_time}', " \
