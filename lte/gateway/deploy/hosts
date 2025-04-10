@@ -15,3 +15,10 @@ magma_test ansible_ssh_host=192.168.60.141 ansible_ssh_port=22 ansible_user=vagr
 
 [atom_box]
 10.0.4.1 ansible_user=magma ansible_ssh_pass=magma ansible_become_pass=magma
+
+[s1aptester]
+arm_s1aptester ansible_ssh_host=192.168.60.141 ansible_ssh_port=22 ansible_user=ubuntu
+
+[iperfserver]
+arm_trfserver ansible_ssh_host=192.168.60.144 ansible_ssh_port=22 ansible_user=ubuntu
+
