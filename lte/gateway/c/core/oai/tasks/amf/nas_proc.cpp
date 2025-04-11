@@ -763,7 +763,8 @@ status_code_e amf_nas_proc_authentication_info_answer(
 
   if (!(amf_ctxt_p)) {
     OAILOG_ERROR(LOG_NAS_AMF,
-                 "That's embarrassing as we don't know this IMSI\n");
+                 "AMF context not found for UE ID: " AMF_UE_NGAP_ID_FMT ". ",
+                 aia->ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
@@ -885,16 +886,41 @@ int amf_decrypt_msin_info_answer(itti_amf_decrypted_msin_info_ans_t* aia) {
   supi_imsi.plmn.mnc_digit3 =
       ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit3;
 
-  supi_imsi.msin[0] =
-      (uint8_t)(((aia->msin[0] - '0') << 4) | (aia->msin[1] - '0'));
-  supi_imsi.msin[1] =
-      (uint8_t)(((aia->msin[2] - '0') << 4) | (aia->msin[3] - '0'));
-  supi_imsi.msin[2] =
-      (uint8_t)(((aia->msin[4] - '0') << 4) | (aia->msin[5] - '0'));
-  supi_imsi.msin[3] =
-      (uint8_t)(((aia->msin[6] - '0') << 4) | (aia->msin[7] - '0'));
-  supi_imsi.msin[4] =
-      (uint8_t)(((aia->msin[8] - '0') << 4) | (aia->msin[9] - '0'));
+  // Copy and print PLMN information for validation
+  memcpy(&supi_imsi.plmn, &ue_context->amf_context.m5_guti.guamfi.plmn,
+         sizeof(plmn_t));
+
+  OAILOG_DEBUG(LOG_AMF_APP, "PLMN for IMSI: MCC %d%d%d, MNC %d%d",
+               supi_imsi.plmn.mcc_digit1, supi_imsi.plmn.mcc_digit2,
+               supi_imsi.plmn.mcc_digit3, supi_imsi.plmn.mnc_digit1,
+               supi_imsi.plmn.mnc_digit2);
+
+  OAILOG_DEBUG(LOG_AMF_APP, "Aia->msin contents:");
+  for (int i = 0; i < MSIN_BCD_DIGITS_MAX; i++) {
+    OAILOG_DEBUG(LOG_AMF_APP, "aia->msin[%d]: 0x%02x ('%c')", i,
+                 (uint8_t)aia->msin[i], aia->msin[i]);
+  }
+
+  for (int i = 0; i < (MSIN_BCD_DIGITS_MAX / 2); i++) {
+    uint8_t swapped =
+        (uint8_t)(((aia->msin[i] & 0x0F) << 4) | ((aia->msin[i] & 0xF0) >> 4));
+
+    uint8_t high_nibble = (swapped >> 4) & 0x0F;
+    uint8_t low_nibble = swapped & 0x0F;
+
+    // Ensure that each nibble is valid
+    if (high_nibble > 9 || low_nibble > 9) {
+      OAILOG_ERROR(LOG_AMF_APP, "Invalid BCD digit in MSIN byte %d: 0x%02x", i,
+                   swapped);
+    }
+
+    supi_imsi.msin[i] = swapped;
+
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "MSIN[%d]: original 0x%02x, swapped 0x%02x (high: %d, low: %d)", i,
+        aia->msin[i], supi_imsi.msin[i], high_nibble, low_nibble);
+  }
 
   // Copy entire supi_imsi to param->imsi->u.value
   memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
