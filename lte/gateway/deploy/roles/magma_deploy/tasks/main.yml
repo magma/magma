@@ -57,23 +57,12 @@
     - agwc
     - base
 
-- name: Add unvalidated Apt signing key.
+- name: Download Magma Certificate key
   when: magma_pkgrepo_key_fingerprint == ""
   become: true
-  block:
-    - name: Download key
-      apt_key:
-        url: "{{ magma_pkgrepo_key }}"
-        state: present
-        validate_certs: no
-    - name: Ignore server ssl cert
-      copy:
-        dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
-        content: |
-          Acquire::https::{{ magma_pkgrepo_host }} {
-          Verify-Peer "false";
-          Verify-Host "false";
-          };
+  ansible.builtin.get_url:
+    url: "{{ magma_pkgrepo_key }}"
+    dest: /etc/apt/trusted.gpg.d/magma.asc
   tags:
     - agwc
     - base

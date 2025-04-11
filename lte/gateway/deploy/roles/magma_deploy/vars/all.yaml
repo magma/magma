@@ -18,6 +18,6 @@ magma_pkgrepo_dist: focal-1.8.0
 magma_pkgrepo_component: main
 magma_pkgrepo_name: "magma"
 
-magma_pkgrepo_key: "https://linuxfoundation.jfrog.io/artifactory/api/security/keypair/magmaci/public"
+magma_pkgrepo_key: "https://raw.githubusercontent.com/magma/magma/refs/heads/master/keys/linux_foundation_registry_key.asc"
 magma_pkgrepo_key_fingerprint: ""
 magma_use_pkgrepo: yes
