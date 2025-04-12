@@ -13,8 +13,8 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "lfds710",
-    srcs = glob(["liblfds/liblfds7.1.0/liblfds710/src/**"]),
-    hdrs = glob(["liblfds/liblfds7.1.0/liblfds710/inc/**"]),
-    includes = ["liblfds/liblfds7.1.0/liblfds710/inc"],
+    hdrs = glob(["include/**/*.h"]),
+    includes = ["include"],  # So <liblfds710.h> is directly resolvable
+    linkopts = ["-Llib", "-llfds710"],
     visibility = ["//visibility:public"],
 )

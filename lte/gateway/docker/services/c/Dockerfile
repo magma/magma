@@ -108,6 +108,13 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/* \
   && rm /etc/apt/sources.list.d/magma.list
 
+# Create Bazel-visible mirror
+RUN mkdir -p /opt/liblfds710/include && \
+    cp /usr/local/include/liblfds710.h /opt/liblfds710/include/ && \
+    cp -r /usr/local/include/liblfds710 /opt/liblfds710/include/ && \
+    mkdir -p /opt/liblfds710/lib && \
+    cp /usr/local/lib/liblfds710.so /opt/liblfds710/lib/
+
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
 
