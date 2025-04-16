@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     # Map a step output to a job output
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
@@ -50,7 +50,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cwag pre-commit job
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       GO111MODULE: on
       MAGMA_ROOT: "${{ github.workspace }}"

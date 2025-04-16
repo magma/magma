@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       cc: ${{ steps.filter.outputs.cc }}
       rc: ${{ steps.filter.outputs.rc }}
@@ -93,7 +93,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.cc == 'true' }}
     name: "Configuration controller unit tests"
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}"
@@ -138,7 +138,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.rc == 'true' }}
     name: "Radio controller unit tests"
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
@@ -215,7 +215,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.db == 'true' }}
     name: "Domain proxy db migration test"
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     continue-on-error: false
     defaults:
       run:
@@ -257,7 +257,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.db == 'true' }}
     name: "DB service unit tests"
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
@@ -304,7 +304,7 @@ jobs:
 
   integration_tests_orc8r:
     name: "Domain proxy integration tests with orc8r"
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: path_filter
     if: ${{ needs.path_filter.outputs.integration_tests_orc8r == 'true' }}
     continue-on-error: false
@@ -319,7 +319,7 @@ jobs:
     name: "Helm chart smoke tests"
     needs: path_filter
     if: ${{ needs.path_filter.outputs.helm == 'true' }}
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: dp

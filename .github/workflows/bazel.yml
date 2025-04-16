@@ -47,7 +47,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       files_changed: ${{ steps.changes.outputs.files_changed }}
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
@@ -77,7 +77,7 @@ jobs:
   bazel_diff:
     needs: path_filter
     name: Bazel-Diff Job
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       bazel_diff_ran: ${{ steps.bazel_diff_outputs.outputs.bazel_diff_ran }}
       run_package_job: ${{ steps.bazel_diff_outputs.outputs.run_package_job }}
@@ -231,7 +231,7 @@ jobs:
             bazel-target-rule: "cc_test"
             docker-image-cache: "ghcr.io/magma/magma/bazel-cache-prod:latest"
     name: Bazel Test Job
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Print variables
         run: |
@@ -369,7 +369,7 @@ jobs:
   if_bazel_build_and_test_success:
     name: Run when bazel successful
     needs: bazel_build_and_test
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: success() # Only run after all matrix jobs have passed
     # See https://github.com/magma/magma/wiki/How-to-set-up-a-required-matrix-workflow-on-GitHub-actions
     # or https://github.com/magma/magma/pull/13562 for more details.
@@ -382,7 +382,7 @@ jobs:
 
   report_result_bazel_build_and_test:
     name: Bazel build and test status
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: always()
     # This job always needs to run. It will be green if the bazel_build_and_test
     # job was successful in all matrix jobs or if the job was skipped.
@@ -426,7 +426,7 @@ jobs:
       needs.path_filter.outputs.files_changed == 'true' ||
       github.event_name == 'workflow_dispatch'
     name: Bazel Starlark Format Job
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
@@ -457,7 +457,7 @@ jobs:
       needs.bazel_diff.outputs.bazel_diff_ran == 'false' ||
       (needs.bazel_diff.outputs.bazel_diff_ran == 'true' && needs.bazel_diff.outputs.py_service_targets != '')
     name: Bazel Python Import Check
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
@@ -541,7 +541,7 @@ jobs:
       needs.bazel_diff.outputs.bazel_diff_ran == 'false' ||
       (needs.bazel_diff.outputs.bazel_diff_ran == 'true' && needs.bazel_diff.outputs.run_package_job == 'true')
     name: Bazel Package Job
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       artifacts: ${{ steps.publish_agw_deb_pkg.outputs.artifacts }}
     steps:
@@ -696,7 +696,7 @@ jobs:
       github.repository_owner == 'magma' &&
       ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
     name: Sentry release
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
@@ -765,7 +765,7 @@ jobs:
 
   python_file_check:
     name: Check if there are not bazelified python files
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out Repo
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -787,7 +787,7 @@ jobs:
 
   c_cpp_file_check:
     name: Check if there are non-bazelified c or c++ files
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out Repo
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0

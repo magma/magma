@@ -24,7 +24,7 @@ jobs:
   # Build images on ubuntu which is faster than MacOs.
   docker-build-orc8r:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -50,7 +50,7 @@ jobs:
 
   docker-build-feg:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:

@@ -45,7 +45,7 @@ concurrency:
 
 jobs:
   AutoLabelPR:
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
         with:

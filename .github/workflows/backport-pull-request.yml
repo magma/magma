@@ -25,7 +25,7 @@ on:
 jobs:
   backport:
     name: Backport
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: >
       github.event.pull_request.merged
       && contains(join(github.event.pull_request.labels.*.name, ', '), 'apply-')

@@ -35,7 +35,7 @@ env:
 
 jobs:
   path_filter:
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
@@ -58,7 +58,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: C / C++ code coverage
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
@@ -127,7 +127,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Python code coverage
-    runs-on: magma-ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Maximize build space
