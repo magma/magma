@@ -60,7 +60,7 @@ jobs:
     outputs:
       image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
       registry: ${{ steps.set-registry.outputs.registry }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
 
@@ -154,7 +154,7 @@ jobs:
       - run: echo "docker-builder-go conclusion = ${{ steps.docker-builder-go.conclusion }}"
 
   build-containers-ghz:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: build-containers
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -244,7 +244,7 @@ jobs:
     secrets: inherit
 
   publish-container-test-results:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: always() && github.event_name == 'push'
     needs: [test-containers-precommit, test-containers-extended, test-containers-extended-long]
     steps:
