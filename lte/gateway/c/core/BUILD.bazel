@@ -1041,6 +1041,7 @@ MME_DEPS = [
     ":asn1_r15",
     ":asn1_r16",
     ":sentry_log",
+    ":liblfds710_sys",
     "//feg/protos:csfb_cpp_grpc",
     "//feg/protos:s6a_proxy_cpp_grpc",
     "//feg/protos:s8_proxy_cpp_grpc",
@@ -1067,7 +1068,6 @@ MME_DEPS = [
     "//orc8r/gateway/c/common/service303",
     "//orc8r/protos:redis_cpp_proto",
     "@cpp_redis",
-    "@liblfds//:lfds710",
     "@system_libraries//:czmq",
     "@system_libraries//:libconfig",
     "@system_libraries//:libfd",
@@ -1154,6 +1154,14 @@ S11_C = [
 UDP_C = [
     "oai/tasks/udp/udp_primitives_server.c",
 ]
+
+cc_library(
+    name = "liblfds710_sys",
+    hdrs = [],  # You can put an optional dummy.h if Bazel complains
+    includes = ["/usr/local/include"],
+    linkopts = ["-L/usr/local/lib", "-llfds710"],
+    visibility = ["//visibility:public"],
+)
 
 # TODO(#11892): Giant Bazel label is bad practice, break this up
 cc_library(

@@ -43,7 +43,7 @@ on:
 
 jobs:
   build_dependencies:
-    runs-on: ubuntu-20.04
+    runs-on: magma-ubuntu-20.04
     container: ghcr.io/magma/magma/devcontainer:sha-dd43cff
     env:
       repository: magma-packages-test
