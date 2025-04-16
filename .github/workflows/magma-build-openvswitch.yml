@@ -41,7 +41,7 @@ on:
 
 jobs:
   build-packages:
-    runs-on: ubuntu-20.04
+    runs-on: magma-ubuntu-20.04
     env:
       MAGMA_ROOT: ${{ github.workspace }}
       DEST: ${{ github.workspace }}/deb_packages

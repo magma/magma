@@ -108,6 +108,9 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/* \
   && rm /etc/apt/sources.list.d/magma.list
 
+RUN ls -l /usr/local/include/liblfds710.h && \
+    ls -l /usr/local/lib/liblfds710.so
+
 ENV MAGMA_ROOT /magma
 WORKDIR /magma
 
