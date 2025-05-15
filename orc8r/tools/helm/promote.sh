@@ -15,7 +15,6 @@
 
 set -eou pipefail
 
-env > /tmp/github.env
 
 promote_artifact () {
   ARTIFACT="$1"
