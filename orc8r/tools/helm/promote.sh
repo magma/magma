@@ -15,6 +15,8 @@
 
 set -eou pipefail
 
+env > /tmp/github.env
+
 promote_artifact () {
   ARTIFACT="$1"
   curl --request POST --user "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
