@@ -136,7 +136,7 @@ override the following parameters
 - `orc8r_db_engine_version` on fresh Orc8r installs, target Postgres `12.6`
 
 Make sure that the `source` variables for the module definitions point to
-`github.com/magma/magma//orc8r/cloud/deploy/terraform/MODULE?ref=v1.8`.
+`github.com/magma/magma//orc8r/cloud/deploy/terraform/MODULE?ref=v1.9`.
 Adjust any other parameters as you see fit. Check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.
 You can [override values](./deploy_terraform_options.md#override-terraform-module-values)

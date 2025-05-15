@@ -176,25 +176,25 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.8.0"
+  default     = "1.9.0"
 }
 
 variable "cwf_orc8r_chart_version" {
   description = "Version of the orchestrator cwf module Helm chart to install."
   type        = string
-  default     = "1.8.0"
+  default     = "1.9.0"
 }
 
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string
-  default     = "1.8.0"
+  default     = "1.9.0"
 }
 
 variable "lte_orc8r_chart_version" {
   description = "Version of the orchestrator lte module Helm chart to install."
   type        = string
-  default     = "1.8.0"
+  default     = "1.9.0"
 }
 
 variable "wifi_orc8r_chart_version" {
@@ -206,13 +206,13 @@ variable "wifi_orc8r_chart_version" {
 variable "dp_orc8r_chart_version" {
   description = "Version of the orchestrator domain proxy module Helm chart to install."
   type        = string
-  default     = "1.8.0"
+  default     = "1.9.0"
 }
 
 variable "orc8r_tag" {
   description = "Image tag for Orchestrator components."
   type        = string
-  default     = "1.8.0"
+  default     = "1.9.0"
 }
 
 variable "magma_uuid" {
