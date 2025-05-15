@@ -43,7 +43,7 @@ jobs:
           echo "User is not a member of the team"
           exit 1
       - run: |
-          wget https://github.com/magma/magma/raw/master/orc8r/tools/helm/promote.sh
+          wget https://github.com/magma/magma/raw/v1.9/orc8r/tools/helm/promote.sh
           chmod 755 promote.sh
           # Promote Helm charts
           ./promote.sh orc8r-${MAGMA_VERSION}.tgz
