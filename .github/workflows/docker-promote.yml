@@ -39,7 +39,7 @@ jobs:
         with:
           username: ${{ github.actor }}
           team: 'approvers-ci'
-          GITHUB_TOKEN: ${{ secrets.github_token }}
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN_TEMP }}
       - if: ${{ steps.checkUserMember.outputs.isTeamMember == 'false' }}
         run: |
           echo "User is not a member of the team"
