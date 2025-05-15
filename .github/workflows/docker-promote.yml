@@ -27,7 +27,7 @@ on:
 
 jobs:
   docker-promote:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       BRANCH_TAG: ${{ inputs.branch_tag }}
       RELEASE_TAG: ${{ inputs.release_tag }}
