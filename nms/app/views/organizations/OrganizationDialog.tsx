@@ -183,7 +183,7 @@ export default function (props: Props) {
         return;
       }
 
-      if ((!user?.password ?? false) && !ssoEnabled && !user.id) {
+      if (!user?.password && !ssoEnabled && !user.id) {
         setCreateError('Password cannot be empty');
         return;
       }

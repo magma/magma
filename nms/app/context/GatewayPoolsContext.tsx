@@ -206,7 +206,7 @@ async function updateGatewayPoolRecords(params: GatewayPoolsStateParams) {
             {
               networkId: networkId,
               gatewayId: gateway_id,
-              resource: [gatewayConfig] || [],
+              resource: gatewayConfig ? [gatewayConfig] : [],
             },
           )
         ).data;

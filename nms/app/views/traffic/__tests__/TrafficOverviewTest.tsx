@@ -322,9 +322,9 @@ describe('<TrafficDashboard APNs/>', () => {
   beforeEach((): void => {
     // @ts-ignore
     delete window.location;
-    window.location = {
+    (window as any).location = {
       pathname: '/nms/test/traffic/apn',
-    } as Location;
+    };
 
     mockAPI(MagmaAPI.apns, 'lteNetworkIdApnsGet', apns);
 
@@ -343,7 +343,7 @@ describe('<TrafficDashboard APNs/>', () => {
   });
 
   afterEach((): void => {
-    window.location = location;
+    (window as any).location = location;
   });
 
   const Wrapper = () => (

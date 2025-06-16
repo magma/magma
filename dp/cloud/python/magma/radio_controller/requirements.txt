@@ -1,7 +1,7 @@
-APScheduler==3.7.0
-grpcio==1.53.2
-grpcio-tools==1.37.1
+APScheduler==3.10.4
+grpcio==1.63.0
+grpcio-tools==1.63.0
 prometheus_client==0.3.1
-psycopg2-binary==2.8.6
+psycopg2-binary==2.9.9
 requests==2.32.2
 sqlalchemy==1.4.15

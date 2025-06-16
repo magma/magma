@@ -63,7 +63,7 @@ export default function EditSubscriberApnStaticIps(props: EditSubscriberProps) {
     <div>
       <Button
         onClick={props.onAddApnStaticIP}
-        disabled={!staticIpAssignments ?? false}
+        disabled={!(staticIpAssignments ?? false)}
         className={classes.apnButton}>
         Add New APN Static IP
         <AddIcon />

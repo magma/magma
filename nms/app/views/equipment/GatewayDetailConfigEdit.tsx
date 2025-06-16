@@ -1028,6 +1028,8 @@ export function ApnResourcesEdit(props: Props) {
     }
   };
 
+  const isMultiApnDisabled =
+    !(lteCtx.state.cellular?.epc.mobility?.enable_multi_apn_ip_allocation ?? false);
   return (
     <>
       <DialogContent data-testid="apnResourcesEdit">
@@ -1037,13 +1039,11 @@ export function ApnResourcesEdit(props: Props) {
               <FormLabel error>{error}</FormLabel>
             </AltFormField>
           )}
+  
           <Button
             data-testid="apnResourcesAdd"
             onClick={addApnResource}
-            disabled={
-              !lteCtx.state.cellular!.epc.mobility
-                ?.enable_multi_apn_ip_allocation ?? false
-            }>
+            disabled={isMultiApnDisabled}>
             Add New APN Resource
             <AddIcon />
           </Button>

@@ -54,7 +54,7 @@ struct CreditKey {
       if (service_identifier) {
         rule->mutable_service_identifier()->set_value(service_identifier);
       } else {
-        rule->release_service_identifier();
+        (void)rule->release_service_identifier();
       }
     }
   }
@@ -73,7 +73,7 @@ struct CreditKey {
       if (service_identifier) {
         usage->mutable_service_identifier()->set_value(service_identifier);
       } else {
-        usage->release_service_identifier();
+        (void)usage->release_service_identifier();
       }
     }
   }

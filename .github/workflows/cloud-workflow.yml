@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
@@ -68,7 +68,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cloud-tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       GO111MODULE: 'on'
@@ -76,7 +76,7 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
-          python-version: '3.8.10'
+          python-version: '3.12.3'
       - name: deploy-sync-checkin
         if: always()
         id: deploy-sync-checkin

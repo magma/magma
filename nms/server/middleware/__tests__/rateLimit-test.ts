@@ -10,13 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import express, {
-  Request,
-  Response,
-  request as middlewareRequest,
-} from 'express';
-import {agent as request} from 'supertest';
 
+import express, {Request, Response} from 'express';
+import {agent as request} from 'supertest';
 import {rateLimitMiddleware} from '..';
 
 const config = {
@@ -26,46 +22,48 @@ const config = {
   },
 };
 
-Object.defineProperty(global, 'performance', {
-  writable: true,
-});
-
-jest.useFakeTimers();
 jest.mock('../../../config/config', () => config);
 
 describe('Rate limit test', () => {
-  const app = express();
-  app.use(rateLimitMiddleware);
-  app.get('/', (_request: Request, res: Response) => res.send('Hi there!'));
-
   const client1 = '1.2.3.4';
   const client2 = '2.3.4.5';
 
-  it('disallows request after 2 requests within 15 seconds for a given ip', async () => {
-    jest.spyOn(middlewareRequest, 'ip', 'get').mockReturnValue(client1);
-    await request(app).get('/').expect(200);
+  let app: express.Express;
+  let now = Date.now();
 
-    jest.spyOn(middlewareRequest, 'ip', 'get').mockReturnValue(client2);
-    await request(app).get('/').expect(200);
+  beforeEach(() => {
+    jest.useFakeTimers({legacyFakeTimers: true});
+    jest.spyOn(Date, 'now').mockImplementation(() => now);
 
-    jest.spyOn(middlewareRequest, 'ip', 'get').mockReturnValue(client1);
-    await request(app).get('/').expect(200);
+    app = express();
+    app.set('trust proxy', true); // Needed to respect X-Forwarded-For
+    app.use(rateLimitMiddleware);
+    app.get('/', (_req: Request, res: Response) => res.send('Hi there!'));
+  });
 
-    jest.spyOn(middlewareRequest, 'ip', 'get').mockReturnValue(client2);
-    await request(app).get('/').expect(200);
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.clearAllMocks();
+  });
 
-    jest.spyOn(middlewareRequest, 'ip', 'get').mockReturnValue(client1);
-    await request(app).get('/').expect(429);
+  it('disallows request after 2 requests within 15 seconds for a given IP', async () => {
+    // Client 1
+    await request(app).get('/').set('X-Forwarded-For', client1).expect(200);
+    await request(app).get('/').set('X-Forwarded-For', client1).expect(200);
+    await request(app).get('/').set('X-Forwarded-For', client1).expect(429);
 
-    jest.spyOn(middlewareRequest, 'ip', 'get').mockReturnValue(client2);
-    await request(app).get('/').expect(429);
+    // Client 2
+    await request(app).get('/').set('X-Forwarded-For', client2).expect(200);
+    await request(app).get('/').set('X-Forwarded-For', client2).expect(200);
+    await request(app).get('/').set('X-Forwarded-For', client2).expect(429);
 
-    jest.advanceTimersByTime(16_000);
+    // Advance virtual time by 16 seconds
+    now += 16000;
+    jest.advanceTimersByTime(16000);
 
-    jest.spyOn(middlewareRequest, 'ip', 'get').mockReturnValue(client1);
-    await request(app).get('/').expect(200);
-
-    jest.spyOn(middlewareRequest, 'ip', 'get').mockReturnValue(client2);
-    await request(app).get('/').expect(200);
+    // Should be allowed again after window resets
+    await request(app).get('/').set('X-Forwarded-For', client1).expect(200);
+    await request(app).get('/').set('X-Forwarded-For', client2).expect(200);
   });
 });
+
