@@ -59,8 +59,8 @@ def traceroute(params):
     )
 
 
-@asyncio.coroutine
-def traceroute_async(params, loop=None):
+
+async def traceroute_async(params, loop=None):
     """
     Execute some `traceroute` commands asynchronously and return results.
     Args:

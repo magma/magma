@@ -56,12 +56,12 @@ class ConfigManagerTest(TestCase):
             'magma_services': ['magmad', 'metricsd'],
         }
 
-        @asyncio.coroutine
-        def _mock_restart_services():
+        
+        async def _mock_restart_services():
             return "blah"
 
-        @asyncio.coroutine
-        def _mock_update_dynamic_services():
+        
+        async def _mock_update_dynamic_services():
             return "mockResponse"
 
         service_manager_mock = MagicMock()

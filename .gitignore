@@ -97,7 +97,7 @@ orc8r/cloud/test-results/
 
 # VS Code
 .vscode/
-.venv/
+/venv
 
 # FB internal
 fb

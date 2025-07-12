@@ -41,14 +41,12 @@ class SubprocessWorkflowTests(unittest.TestCase):
     def _mock_arg_factory(param):
         return [param, 'a', 'b']
 
-    @asyncio.coroutine
     # pylint: disable=unused-argument
-    def _mock_process_communicate(self, *args, **kwargs):
+    async def _mock_process_communicate(self, *args, **kwargs):
         return 'stdout', 'stderr'
 
-    @asyncio.coroutine
     # pylint: disable=unused-argument
-    def _mock_async_subprocess(self, *args, **kwargs):
+    async def _mock_async_subprocess(self, *args, **kwargs):
         return self.process_mock
 
     @mock.patch('subprocess.Popen')
@@ -115,9 +113,9 @@ class SubprocessWorkflowTests(unittest.TestCase):
             ])
 
     def test_async_subprocess_exec_exception(self):
-        @asyncio.coroutine
+        
         # pylint: disable=unused-argument
-        def mock_subprocess_raises(*args, **kwargs):
+        async def mock_subprocess_raises(*args, **kwargs):
             raise ValueError('oops')
 
         with mock.patch.object(
@@ -136,9 +134,9 @@ class SubprocessWorkflowTests(unittest.TestCase):
             self.assertEqual('oops', e.exception.args[0])
 
     def test_async_subprocess_communicate_exception(self):
-        @asyncio.coroutine
+        
         # pylint: disable=unused-argument
-        def mock_communicate_raises(*args, **kwargs):
+        async def mock_communicate_raises(*args, **kwargs):
             raise ValueError('oops')
         self.process_mock.configure_mock(communicate=mock_communicate_raises)
 

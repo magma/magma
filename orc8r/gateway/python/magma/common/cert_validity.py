@@ -30,12 +30,12 @@ class TCPClientProtocol(asyncio.Protocol):
         transport.close()
 
 
-@asyncio.coroutine
-def create_tcp_connection(host, port, loop):
+
+async def create_tcp_connection(host, port, loop):
     """
     Creates tcp connection
     """
-    tcp_conn = yield from loop.create_connection(
+    tcp_conn = await loop.create_connection(
         TCPClientProtocol,
         host,
         port,
@@ -43,8 +43,8 @@ def create_tcp_connection(host, port, loop):
     return tcp_conn
 
 
-@asyncio.coroutine
-def create_ssl_connection(host, port, certfile, keyfile, loop):
+
+async def create_ssl_connection(host, port, certfile, keyfile, loop):
     """
     Creates ssl connection.
     """
@@ -54,7 +54,7 @@ def create_ssl_connection(host, port, certfile, keyfile, loop):
         keyfile=keyfile,
     )
 
-    ssl_conn = yield from loop.create_connection(
+    ssl_conn = await loop.create_connection(
         TCPClientProtocol,
         host,
         port,
@@ -63,8 +63,8 @@ def create_ssl_connection(host, port, certfile, keyfile, loop):
     return ssl_conn
 
 
-@asyncio.coroutine
-def cert_is_invalid(host, port, certfile, keyfile, loop):
+
+async def cert_is_invalid(host, port, certfile, keyfile, loop):
     """
     Asynchronously test if both a TCP and SSL connection can be made to host
     on port. If the TCP connection is successful, but the SSL connection fails,
@@ -86,7 +86,7 @@ def cert_is_invalid(host, port, certfile, keyfile, loop):
 
     coros = tcp_coro, ssl_coro
     asyncio.set_event_loop(loop)
-    res = yield from asyncio.gather(*coros, return_exceptions=True)
+    res = await asyncio.gather(*coros, return_exceptions=True)
     tcp_res, ssl_res = res
 
     if isinstance(tcp_res, Exception):

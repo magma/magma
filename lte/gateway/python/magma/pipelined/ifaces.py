@@ -18,8 +18,8 @@ from magma.pipelined.metrics import NETWORK_IFACE_STATUS
 POLL_INTERVAL_SECONDS = 3
 
 
-@asyncio.coroutine
-def monitor_ifaces(iface_names):
+
+async def monitor_ifaces(iface_names):
     """
     Call to poll the network interfaces and set the corresponding metric
     """
@@ -28,7 +28,7 @@ def monitor_ifaces(iface_names):
         for iface in iface_names:
             status = 1 if iface in active else 0
             NETWORK_IFACE_STATUS.labels(iface_name=iface).set(status)
-        yield from asyncio.sleep(POLL_INTERVAL_SECONDS)
+        await asyncio.sleep(POLL_INTERVAL_SECONDS)
 
 
 def get_mac_address_from_iface(interface_name: str) -> str:

@@ -40,8 +40,8 @@ def get_kernel_versions():
     )
 
 
-@asyncio.coroutine
-def get_kernel_versions_async(loop=None):
+
+async def get_kernel_versions_async(loop=None):
     """
     Execute dpkg commands asynchronously.
 
