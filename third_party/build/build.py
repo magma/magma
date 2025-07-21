@@ -101,10 +101,17 @@ def buildrequires(package_name, env=None):
     )
     return req
 
-
 def build(package_name, env=None, install=True):
+    """
+    Build and optionally install a package from its build script.
+
+    Args:
+        package_name (str): Name of the package to build.
+        env (dict, optional): Environment variables to pass. Defaults to None.
+        install (bool, optional): Whether to install the built package. Defaults to True.
+    """
     script = buildscript(package_name)
-    outputfilename = subprocess.check_output([script, '-F'], env=env).decode('utf-8').strip()
+    outputfilename = subprocess.check_output([script, '-F'], env=env).decode('utf-8')
     if not os.path.exists('./' + outputfilename):
         subprocess.run([script], check=True, env=env)
     else:
