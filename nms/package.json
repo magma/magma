@@ -42,7 +42,7 @@
     "express-rate-limit": "^7.1.5",
     "express-session": "^1.15.6",
     "filefy": "^0.1.11",
-    "form-data": "4.0.0",
+    "form-data": "4.0.4",
     "grafana-dash-gen": "^3.1.0",
     "helmet": "^4.0.0",
     "https": "^1.0.0",
