@@ -13,6 +13,7 @@ FROM fluent/fluentd:v1.14.6-debian-1.0
 USER root
 RUN gem install \
     elasticsearch:7.13.0 \
+    multi_json:1.15.0 \
     excon:1.2.5 \
     fluent-plugin-elasticsearch:5.2.1 \
     fluent-plugin-multi-format-parser:1.0.0 \
