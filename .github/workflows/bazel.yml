@@ -13,6 +13,7 @@
 # purpose: Unit testing and packaging the AGW with Bazel. Starlark format checking.
 # remediation: https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
 
+
 name: AGW Build, Format & Test Bazel
 on:
   # yamllint disable-line rule:truthy
