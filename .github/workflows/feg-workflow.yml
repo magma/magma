@@ -64,6 +64,7 @@ jobs:
     env:
       GO111MODULE: on
       MAGMA_ROOT: "${{ github.workspace }}"
+      GOCACHE: ${{ github.workspace }}/.cache/go-build
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
