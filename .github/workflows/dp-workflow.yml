@@ -329,14 +329,18 @@ jobs:
         run: |
           echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV
 
+      - name: Get current user
+        run: echo "USER=$(whoami)" >> $GITHUB_ENV
+
       - name: Install Minikube
         uses: manusa/actions-setup-minikube@4582844dcacbf482729f8d7ef696f515d2141bb9 # pin@v2.7.1
         with:
           minikube version: 'v1.21.0'
           kubernetes version: 'v1.20.7'
           github token: ${{ secrets.GITHUB_TOKEN }}
-          start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server"
+          start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server --force"
           driver: "docker"
+
 
       - name: Setup Minikube
         run: |

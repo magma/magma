@@ -15,6 +15,10 @@ ARG TERRAFORM_VERSION="0.15.5"
 ARG KUBECTL_VERSION="1.20.2"
 ARG ANSIBLE_VERSION="3.0.0"
 
+# Update sources to use the Debian archive for Buster
+RUN sed -i 's|deb.debian.org|archive.debian.org|g' /etc/apt/sources.list && sed -i 's|security.debian.org|archive.debian.org|g' /etc/apt/sources.list
+
+
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
