@@ -335,7 +335,7 @@ jobs:
           minikube version: 'v1.21.0'
           kubernetes version: 'v1.20.7'
           github token: ${{ secrets.GITHUB_TOKEN }}
-          start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server"
+          start args: "--memory=$MINIKUBE_DP_MAX_MEMORY --addons=metrics-server --force"
           driver: "docker"
 
       - name: Setup Minikube
