@@ -69,11 +69,11 @@ endif
 
 .PHONY: start_minikube
 start_minikube:
-	minikube start --addons=metrics-server --kubernetes-version=$(KUBERNETES_VERSION)
+	minikube start --addons=metrics-server --kubernetes-version=$(KUBERNETES_VERSION) --force
 
 .PHONY: start_minikube_orc8r
 start_minikube_orc8r:
-	minikube start --addons=metrics-server --memory='8g' --cpus=6 --kubernetes-version=$(KUBERNETES_VERSION)
+	minikube start --addons=metrics-server --memory='8g' --cpus=6 --kubernetes-version=$(KUBERNETES_VERSION) --force
 	minikube ssh sudo ip link set docker0 promisc on
 
 .PHONY: _switch_k8s_context
