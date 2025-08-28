@@ -63,6 +63,8 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       GO111MODULE: on
+      HOME: ${{ github.workspace }}
+      GOPATH: ${{ github.workspace }}/go
       MAGMA_ROOT: "${{ github.workspace }}"
       GOCACHE: ${{ github.workspace }}/.cache/go-build
       GOMODCACHE: ${{ github.workspace }}/.cache/go-mod
@@ -76,6 +78,7 @@ jobs:
         run: |
           mkdir -p $GOCACHE
           mkdir -p $GOMODCACHE
+          mkdir -p $GOPATH
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry
@@ -96,6 +99,7 @@ jobs:
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
+      - run: ls -l ${HOME}
       - name: Install gotestsum
         if: always()
         run: |
