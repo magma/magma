@@ -45,6 +45,7 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
           python3 build.py --generate
+          USER=$(whoami)
           sudo chown -R $USER $MAGMA_ROOT/*
           git add .
           echo GIT_STATUS=$(git status) >> $GITHUB_ENV

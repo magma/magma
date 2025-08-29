@@ -37,7 +37,7 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       EVENT_NAME: "${{ github.event_name }}"
       ISSUE_NUMBER: "${{ github.event.number }}"
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       # Version is github job run number when running on master
@@ -545,59 +545,3 @@ jobs:
           python -m pip install --upgrade pip
           pip3 install pyrebase4
           python ci-scripts/firebase_publish.py
-  domain-proxy-build:
-    if: github.repository_owner == 'magma'
-    name: domain proxy build job
-    runs-on: ubuntu-20.04
-    outputs:
-      artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
-    env:
-      MAGMA_ROOT: "${{ github.workspace }}"
-    steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - name: Prepare tools
-        working-directory: "${{ github.workspace }}/dp"
-        run: |
-          make _install_skaffold_ci
-      - name: Create and Push Release Tag
-        if: startsWith(github.ref, 'refs/heads/v1')  
-        run: |
-          RELEASE_TAG="${GITHUB_REF_NAME}"
-          echo "Creating release tag for version ${RELEASE_TAG}"
-          echo "TAG=${RELEASE_TAG}" >> $GITHUB_ENV  
-      - name: Tag and push to Jfrog Registry
-        id: publish_artifacts
-        if: startsWith(github.ref, 'refs/heads/v1')
-        working-directory: "${{ github.workspace }}/dp"
-        env:
-          DOCKER_REGISTRY: "linuxfoundation.jfrog.io/magma-docker-orc8r-test"
-          DOCKER_USER: "${{ secrets.LF_JFROG_USERNAME }}"
-          DOCKER_PASSWORD: "${{ secrets.LF_JFROG_PASSWORD }}"
-        run: |
-          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USER}" -p "${DOCKER_PASSWORD}"
-          skaffold build --default-repo="${DOCKER_REGISTRY}" --tag="${TAG}" --push --profile=remote-push
-      - name: Notify failure to Slack
-        if: failure() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        # yamllint enable
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Github action domain-proxy-build failed"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-      # Notify ci channel when push succeeds
-      - name: Notify success to Slack
-        if: success() && github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL_ARTIFACTS }}
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_OSS }}
-          SLACK_TITLE: "*Domain proxy images have been published*"
-          SLACK_MESSAGE: ${{ github.event.head_commit.message || github.event.pull_request.title }}
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":heavy_check_mark:"
-          SLACK_COLOR: "#00FF00"
-          SLACK_FOOTER: ' '

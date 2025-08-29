@@ -117,7 +117,9 @@ RUN apt-get -y update && apt-get -y install \
     td-agent-bit
 
 # Install docker.
-RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && \
+# The below sed removes the docker-model-plugin package from the script. This is a temporary fix to make the workflow work.
+# TODO: Remove the sed command
+RUN curl -sSL https://get.docker.com/ > /tmp/get_docker.sh && sed -i 's/docker-model-plugin//g' /tmp/get_docker.sh && \
     sh /tmp/get_docker.sh && \
     rm /tmp/get_docker.sh
 
