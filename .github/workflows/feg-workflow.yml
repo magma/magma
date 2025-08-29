@@ -99,7 +99,6 @@ jobs:
         with:
           files: '${{ env.MAGMA_ROOT}}/feg/gateway/coverage/feg.gocov'
           flags: feg-lint
-      - run: ls -l ${HOME}
       - name: Install gotestsum
         if: always()
         run: |
