@@ -14,6 +14,7 @@
 # remediation: https://magma.github.io/magma/docs/next/feg/dev_testing
 
 name: FeG Lint & Test
+
 on:
   push:
     branches:
