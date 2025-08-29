@@ -121,7 +121,7 @@ setup(
         'idna==3.3',
         'python-dateutil>=2.8.2',
         'six>=1.16.0',
-        'eventlet==0.30.2',
+        'eventlet==0.40.3',
         'h2==3.2.0',
         'hpack>=3.0.0,<4.0.0',
         'freezegun>=1.2.1',
