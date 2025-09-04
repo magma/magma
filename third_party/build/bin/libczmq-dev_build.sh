@@ -40,7 +40,7 @@ cd "$WORK_DIR"
 
 # Download necessary .deb files for libczmq if not available in apt repositories
 wget https://linuxfoundation.jfrog.io/artifactory/magma-packages-test/pool/focal-1.8.0/libczmq-dev_4.2.0-2_amd64.deb
-wget http://ftp.us.debian.org/debian/pool/main/c/czmq/libczmq4_4.2.0-2_amd64.deb
+wget http://snapshot.debian.org/archive/debian/20200908T032855Z/pool/main/c/czmq/libczmq4_4.2.0-2_amd64.deb
 
 cp libczmq-dev_4.2.0-2_amd64.deb $SCRIPT_DIR/../
 
