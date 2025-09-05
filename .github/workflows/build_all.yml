@@ -130,6 +130,9 @@ jobs:
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'
+      - name: Clean up build context
+        run: |
+          rm -rf /tmp/magma_orc8r_build
       - name: Run build.py
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
