@@ -79,6 +79,10 @@ jobs:
           mkdir -p ${{ github.workspace }}/.cache/go-build
           mkdir -p ${{ github.workspace }}/.cache/go-mod
           mkdir -p ${{ github.workspace }}/.cache/golangci-lint
+      - name: Create test results directory with proper permissions
+        run: |
+          mkdir -p /tmp/test-results
+          chmod -R 777 /tmp/test-results
       - name: Run golang_before_install.sh script
         run: ./.github/workflows/scripts/golang_before_install.sh
       - name: Run go mod download with retry
