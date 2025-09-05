@@ -85,6 +85,10 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
           ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
+      - name: Clean up build context
+        if: always()
+        run: |
+          rm -rf /tmp/magma_orc8r_build
       - name: Lint cloud Go code
         if: always()
         id: cloud-lint-lint
