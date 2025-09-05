@@ -120,8 +120,13 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - name: Run apt-get update
-        run: sudo apt-get update
+      - name: Run apt-get update and install Helm
+        run: |
+          sudo sed -i '/baltocdn.com\/helm/d' /etc/apt/sources.list
+          sudo apt-get update
+          curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+          chmod 700 get_helm.sh
+          ./get_helm.sh
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
           python-version: '3.8.10'

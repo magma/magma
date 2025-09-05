@@ -813,5 +813,3 @@ jobs:
           SLACK_COLOR: "#FF0000"
           SLACK_FOOTER: ' '
           MSG_MINIMAL: actions url,commit
-
-
