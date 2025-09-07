@@ -132,7 +132,7 @@ jobs:
           python-version: '3.8.10'
       - name: Clean up build context
         run: |
-          rm -rf /tmp/magma_orc8r_build
+          sudo rm -rf /tmp/magma_orc8r_build
       - name: Run build.py
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/docker
