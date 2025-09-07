@@ -328,6 +328,11 @@ jobs:
               echo "ERROR: 'bazel test' failed!"
               exit 1
             fi
+      - name: Show failed test logs
+        if: failure()
+        run: |
+          echo "Collecting test logs..."
+          find bazel-testlogs/ -name "test.log" -print -exec cat {} \;
       - name: Create merged test-result XML file
         if: always()
         run: |
