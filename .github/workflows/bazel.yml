@@ -302,7 +302,7 @@ jobs:
               bazel test \
                 $TEST_TARGETS \
                 ${{ matrix.bazel-config }} \
-                --test_output=errors \
+                --test_output=all \
                 --profile=Bazel_test_all_profile || TEST_FAILED="true"
             else
               printf '\r%s\r' 'No test targets of type ${{ matrix.bazel-target-rule }} are impacted by the changes.' 1>&2
@@ -323,14 +323,17 @@ jobs:
 
             if [[ "${TEST_FAILED}" == "true" ]];
             then
+              echo "=================================="
+              echo "COLLECTING TEST LOGS FOR DEBUGGING"
+              echo "=================================="
+
+              # Show specific failed test logs
+              find bazel-testlogs/ -name "test.log" -type f -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || echo "No test logs found"
+
+              echo "=================================="
               echo "ERROR: 'bazel test' failed!"
               exit 1
             fi
-      - name: Show failed test logs
-        if: failure()
-        run: |
-          echo "Collecting test logs..."
-          find bazel-testlogs/ -name "test.log" -print -exec cat {} \;
       - name: Create merged test-result XML file
         if: always()
         run: |
