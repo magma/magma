@@ -302,7 +302,7 @@ jobs:
               bazel test \
                 $TEST_TARGETS \
                 ${{ matrix.bazel-config }} \
-                --test_output=all \
+                --test_output=errors \
                 --profile=Bazel_test_all_profile || TEST_FAILED="true"
             else
               printf '\r%s\r' 'No test targets of type ${{ matrix.bazel-target-rule }} are impacted by the changes.' 1>&2
