@@ -73,6 +73,8 @@ jobs:
           # If this step fails, then you should remove it and run the build manually (see below)
       - name: Autobuild
         uses: github/codeql-action/autobuild@ec3cf9c605b848da5f1e41e8452719eb1ccfb9a6 # pin@v2.1.29
+        env:
+          GOCACHE: ${{ github.workspace }}/.cache/go-build
 
       # ℹ️ Command-line programs to run using the OS shell.
       # 📚 https://git.io/JvXDl
