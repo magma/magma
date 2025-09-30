@@ -40,5 +40,6 @@ Any other relevant information to support your request, such as prior contributi
 - **Allocation Period**: Approved kits are loaned for 3 months, renewable up to 3 times (maximum 1 year). Renewal requests must be submitted before expiry and are evaluated similarly, with a slight advantage due to no shipping costs.
 - **Shipping Costs**: Requesters are responsible for shipping fees, taxes, and paperwork unless the TSC and Outreach committee decide otherwise.
 - **Return Policy**: Kits must be returned after the allocation period (or maximum 1 year), with requesters covering return costs unless exempted by the TSC and Outreach committee. Non-compliance may result in sanctions (e.g., Linux Foundation good standing policy, debt registration, litigation).
-- **Keeping the Kit**: Requesters may keep the kit by donating its nominal value (last round’s acquisition cost increased by 10%) to the Magma Project.
+- **Keeping the Kit**: TSC might or might not decide to permanently assign a StarterKit to a requester. Magma Project cannot request for donations in echange for that, but we encourage donations to be made.
+- **Contributions**: The main purpose of the StarterKit is to foster contributions and awareness of Magma, that being said, we encourage contributions from the StarterKit holder, technical and monetary.
 -->
