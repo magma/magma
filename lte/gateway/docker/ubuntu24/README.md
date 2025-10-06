@@ -32,7 +32,7 @@ sudo cp ~/rootCA.pem /var/opt/magma/certs/
 sudo cp ~/rootCA.key /var/opt/magma/certs/
 ls -l /var/opt/magma/certs/
 ```
-# Step 2: Clone Magma Repository
+## Step 2: Clone Magma Repository
 Navigate to your Dockerfile directory:
 
 ```
@@ -49,7 +49,7 @@ docker compose build gateway_c gateway_python
 ```
 ### 3.1 Tag the images for reference
 ```
-docker tag agw-gateway_c:latest linuxfoundation.jfrog.io/magma-docker/agw_gateway_c:1.89.0
+docker tag agw-gateway_c:latest linuxfoundation.jfrog.io/magma-docker/agw_gateway_c:1.9.0
 docker tag agw-gateway_python:latest linuxfoundation.jfrog.io/magma-docker/agw_gateway_python:1.9.0
 ```
 
