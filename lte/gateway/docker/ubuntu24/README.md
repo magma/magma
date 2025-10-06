@@ -26,41 +26,35 @@ openssl genrsa -out rootCA.key 4096
 openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 1024 -out rootCA.pem
 ```
 ### Prepare Certificates Directory
-
+```
 sudo mkdir -p /var/opt/magma/certs
 sudo cp ~/rootCA.pem /var/opt/magma/certs/
 sudo cp ~/rootCA.key /var/opt/magma/certs/
 ls -l /var/opt/magma/certs/
-# Step 2: Build the Docker Container
+```
+# Step 2: Clone Magma Repository
 Navigate to your Dockerfile directory:
 
 ```
-cd ../docker/ubuntu24
-```
-
-Build the image:
-
-```
-docker build -t magma-agw-ubuntu24 .
+cd $HOME
+git clone https://github.com/magma/magma.git
+cd magma/lte/gateway/docker
 ```
 ## Step 3: Run the Container
-Run interactively with privileged access:
+Step 3: Build AGW Docker Images (Optional)
 
-```docker run -it --privileged --name magma-agw magma-agw-ubuntu24 bash ```
- Container name conflict? Remove existing container:
-
-``` docker rm -f magma-agw
-docker run -it --privileged --name magma-agw magma-agw-ubuntu24 bash
+If you want to build AGW images locally instead of pulling official images:
 ```
-## Step 4: AGW Installation Inside Container
+docker compose build gateway_c gateway_python
 ```
-wget https://github.com/magma/magma/raw/v1.8/lte/gateway/deploy/agw_install_docker.sh
-bash agw_install_docker.sh
-
-reboot
+### 3.1 Tag the images for reference
+```
+docker tag agw-gateway_c:latest linuxfoundation.jfrog.io/magma-docker/agw_gateway_c:1.89.0
+docker tag agw-gateway_python:latest linuxfoundation.jfrog.io/magma-docker/agw_gateway_python:1.9.0
 ```
 
-## Step 5: Configure AGW
+
+## Step 4: Configure AGW
 ```
 cat << EOF | sudo tee /var/opt/magma/configs/control_proxy.yml
 fluentd_address: fluentd.orc8r.magmacore.link
@@ -69,7 +63,7 @@ fluentd_port: 24224
 rootca_cert: /var/opt/magma/certs/rootCA.pem
 EOF
 ```
-## Step 6: Start AGW Services on Host
+## Step 5: Start AGW Services on Host
 Use Docker Compose v2+ on the host (not inside the container):
 
 ```
