@@ -13,7 +13,15 @@
 # purpose: Check if the Python precommit image can be built
 # remediation: -
 
-name: AGW Build Docker Image Python Precommit
+# Combined workflow: AGW Python Precommit Docker + PacketRusher Build
+# Licensed under BSD-style license. See LICENSE file.
+#
+# owner: @magma/approvers-gw / @packetRusher/approvers
+# purpose: Build AGW Python precommit Docker image and setup PacketRusher on a VM
+# remediation: -
+
+name: AGW & PacketRusher CI
+
 on:
   push:
     branches:
@@ -22,6 +30,7 @@ on:
       - lte/gateway/docker/python-precommit/Dockerfile
       - .github/workflows/docker-builder-python-precommit.yml
       - .github/workflows/composite/**
+      - .github/workflows/packet-rusher-vm.yml
   pull_request:
     types:
       - opened
@@ -31,24 +40,74 @@ on:
       - lte/gateway/docker/python-precommit/Dockerfile
       - .github/workflows/docker-builder-python-precommit.yml
       - .github/workflows/composite/**
+      - .github/workflows/packet-rusher-vm.yml
   schedule:
     - cron: '0 0,6,12,18 * * *'
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io
   IMAGE_STREAM: ${{ github.repository }}/python-precommit
   IMAGE_TAGS: type=sha
   DOCKERFILE: lte/gateway/docker/python-precommit/Dockerfile
+  PACKETRUSHER_DIR: ${{ github.workspace }}/PacketRusher
 
 jobs:
+  # -----------------------------
+  # Job 1: AGW Python Precommit Docker
+  # -----------------------------
   build_dockerfile:
     runs-on: ubuntu-20.04
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - uses: ./.github/workflows/composite/docker-builder
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Build Python Precommit Docker
+        uses: ./.github/workflows/composite/docker-builder
         with:
           REGISTRY: ${{ env.REGISTRY }}
           IMAGE_STREAM: ${{ env.IMAGE_STREAM }}
           IMAGE_TAGS: ${{ env.IMAGE_TAGS }}
           DOCKERFILE: ${{ env.DOCKERFILE }}
           PUSH_TO_REGISTRY: false
+
+  # -----------------------------
+  # Job 2: PacketRusher VM Setup & Build
+  # -----------------------------
+  build_packet_rusher:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt update && sudo apt upgrade -y
+          sudo apt install -y build-essential linux-headers-$(uname -r) make git wget tar linux-modules-extra-$(uname -r)
+
+      - name: Install Go 1.24.1
+        run: |
+          wget https://go.dev/dl/go1.24.1.linux-amd64.tar.gz
+          sudo rm -rf /usr/local/go
+          sudo tar -C /usr/local -xzf go1.24.1.linux-amd64.tar.gz
+          echo 'export PATH=$PATH:/usr/local/go/bin' >> $GITHUB_ENV
+
+      - name: Clone PacketRusher
+        run: |
+          git clone https://github.com/HewlettPackard/PacketRusher $PACKETRUSHER_DIR
+          echo "export PACKETRUSHER=$PACKETRUSHER_DIR" >> $GITHUB_ENV
+
+      - name: Build gtp5g kernel module
+        run: |
+          cd $PACKETRUSHER_DIR/lib/gtp5g
+          make clean && make && sudo make install
+
+      - name: Build PacketRusher
+        run: |
+          cd $PACKETRUSHER_DIR
+          go mod download
+          go build cmd/packetrusher.go
+
+      - name: Run PacketRusher Help
+        run: |
+          cd $PACKETRUSHER_DIR
+          ./packetrusher --help
