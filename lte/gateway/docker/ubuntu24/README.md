@@ -57,6 +57,7 @@ docker tag agw-gateway_python:latest linuxfoundation.jfrog.io/magma-docker/agw_g
 ## Step 4: Configure AGW
 ```
 cat << EOF | sudo tee /var/opt/magma/configs/control_proxy.yml
+
 fluentd_address: fluentd.orc8r.magmacore.link
 fluentd_port: 24224
 
