@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  router_agw_proxy:
+    build:
+      context: /tmp/magma_orc8r_build
+      dockerfile: Dockerfile
+    container_name: router_agw_proxy
+    ports:
+      - "9097:9097"
+    env_file:
+      - .env
+    restart: unless-stopped

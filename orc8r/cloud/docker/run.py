@@ -70,8 +70,30 @@ def main() -> None:
     print("Running '%s'..." % ' '.join(cmd))
     try:
         subprocess.run(cmd, check=True)
+
+        if not args.down:
+            _copy_to_router_agw_proxy()
+
     except subprocess.CalledProcessError as err:
         exit(err.returncode)
+
+
+def _copy_to_router_agw_proxy() -> None:
+    """
+    Copy certificates to router_agw_proxy container.
+    """
+    container_name = "router_agw_proxy"
+
+    src_path = "/home/ubuntu/magma/.cache/test_certs"         
+    dest_path = "/var/opt"      
+
+    try:
+        subprocess.run(
+            ["docker", "cp", src_path, f"{container_name}:{dest_path}"],
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Failed copying certificates to {container_name}: {e}\n")
 
 
 def _clear_line(file: str, search: str) -> None:

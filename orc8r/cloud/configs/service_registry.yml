@@ -195,3 +195,8 @@ services:
     port: 9180
     protected_port: 9190
     proxy_type: "clientcert"
+
+  router_agw_proxy:
+    host: "localhost"
+    port: 9097
+    proxy_type: "clientcert"

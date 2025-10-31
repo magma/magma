@@ -68,6 +68,14 @@ export const apnTemplate = variableTemplate({
   includeAll: true,
 });
 
+export const imeiTemplate = variableTemplate({
+  name: 'name',
+  query: `label_values(imei)`,
+  regex: `/.+/`,
+  sort: 'num-asc',
+  includeAll: true,
+});
+
 export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
   return {
     title: 'Networks',
@@ -889,6 +897,95 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
                 legendFormat: '{{networkID}} - {{gatewayID}}-{{service_name}}',
               },
             ],
+          },
+        ],
+      },
+    ],
+  };
+};
+
+
+export const RouterDBData = (networkIDs: Array<string>): GrafanaDBData => {
+  return {
+    title: 'Router',
+    description:
+      'Metrics relevant to the ALMS routers. Do not edit: edits will be overwritten. Save this dashboard under another name to copy and edit.',
+    templates: [getNetworkTemplate(networkIDs), imeiTemplate],
+    rows: [
+      {
+        title: '',
+        panels: [
+          {
+            title: 'SNR',
+            targets: [
+              {
+                expr: 'device_snr',
+                legendFormat: '{{networkID}} - {{name}}',
+              },
+            ],
+            yMin: null,
+            unit: 'dB',
+          },
+          {
+            title: 'Device Speed',
+            targets: [
+              {
+                expr: 'device_speed',
+                legendFormat: '{{networkID}} - {{name}}',
+              },
+            ],
+          },
+          {
+            title: 'RSRP',
+            targets: [
+              {
+                expr: 'device_rsrp',
+                legendFormat: '{{networkID}} - {{name}}',
+              },
+            ],
+            yMin: null,
+            unit: 'dBm',
+          },
+          {
+            title: 'Temperature',
+            targets: [
+              {
+                expr: '(device_radio_module_temp * 9 / 5) + 32',
+                legendFormat: '{{networkID}} - {{name}}',
+              },
+            ],
+            unit: 'fahrenheit',
+          },
+          {
+            title: 'RSRQ',
+            targets: [
+              {
+                expr: 'device_rsrq',
+                legendFormat: '{{networkID}} - {{name}}',
+              },
+            ],
+            yMin: null,
+            unit: 'dB',
+          },
+          {
+            title: 'Throughput DL',
+            targets: [
+              {
+                expr: '(device_bytes_received - device_bytes_received offset 15m) * 8 / (15 * 60 * 1000)',
+                legendFormat: '{{networkID}} - {{name}}',
+              },
+            ],
+            unit: 'kbps',
+          },
+          {
+            title: 'Throughput UL',
+            targets: [
+              {
+                expr: '(device_bytes_sent - device_bytes_sent offset 15m) * 8 / (15 * 60 * 1000)',
+                legendFormat: '{{networkID}} - {{name}}',
+              },
+            ],
+            unit: 'kbps',
           },
         ],
       },

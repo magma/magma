@@ -29,6 +29,7 @@ import {
   GatewayDBData,
   InternalDBData,
   NetworkDBData,
+  RouterDBData,
   SubscriberDBData,
   createDashboard,
 } from './dashboards/Dashboards';
@@ -494,6 +495,7 @@ export async function syncDashboards(
     dashboardData(createDashboard(NetworkDBData(networks)).generate()),
     dashboardData(createDashboard(GatewayDBData(networks)).generate()),
     dashboardData(createDashboard(InternalDBData(networks)).generate()),
+    dashboardData(createDashboard(RouterDBData(networks)).generate()),
   ];
   posts.push(
     dashboardData(createDashboard(SubscriberDBData(networks)).generate()),

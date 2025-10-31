@@ -27,6 +27,7 @@ import {Theme} from '@mui/material/styles';
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@mui/styles';
 import {subDays} from 'date-fns';
+import { DevicesMap } from '../../../components/DevicesMap';
 
 const useStyles = makeStyles<Theme>(theme => ({
   dashboardRoot: {
@@ -110,6 +111,9 @@ function LteNetworkDashboard({startEnd}: {startEnd: [Date, Date]}) {
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
+        <Grid item xs={12}>
+            <DevicesMap />
+        </Grid>
         <Grid item xs={12}>
           <EventAlertChart startEnd={startEnd} />
         </Grid>
