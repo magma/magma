@@ -1,5 +1,0 @@
-!.eslintrc.js
-
-**/node_modules/**
-generated/*.ts
-**/__generated__/**

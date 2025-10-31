@@ -1,6 +1,0 @@
-layout:
-  models:
-    - name: definition
-      source: asset:model
-      target: "{{ joinFilePath .Target .ModelPackage }}"
-      file_name: "{{ (snakize (pascalize .Name)) }}_swaggergen.actual"
