@@ -92,7 +92,7 @@ ebpf/
 
 ### Pre-installation Steps
 - OS: Ubuntu 20.04 LTS
-- RAM: 8 GB
+- RAM: 16 GB
 - STORAGE: 50GB
 - CORES: 8
 - INTERFACES: 2
