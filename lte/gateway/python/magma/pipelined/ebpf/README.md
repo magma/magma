@@ -13,6 +13,10 @@ The eBPF GTP implementation provides:
 
 ## Architecture
 
+![eBPF GTP Architecture](images/ebpf_gtp_architecture.png)
+
+
+
 ### Phase 1 Implementation Status
 
 **Completed:**
@@ -25,13 +29,12 @@ The eBPF GTP implementation provides:
 - PipelineD integration framework
 
 **Phase 2:**
-- Full OVS bridge integration
-- SessionD PFCP rule programming
-- Complete OpenFlow pipeline integration
-- Complete uplink and downlink flow i.e. uplink and downlink packet will be tested with ran & ue simulator where internet should work
-
+- Full OVS bridge integra
 ### Current Datapath Flow
 
+***Flow for uplink:*** Packet come to NIC(eth1), there is tc filter to redirect packet to gtp_veth1 where tc decap program attached after that decap packet goes to gtp_veth0 where we restore the marked metadata and forwarded it to OVS thrpugh ovs-bridge and packets goes to internet 
+
+***For Downlink:*** Packet come from OVS to gtp_veth0 where tc encap program is attached. And redirect encap packet to NIC and to RAN. And the internet/ping should works on simulated ue (phase2)
 
 ### eBPF Programs
 
