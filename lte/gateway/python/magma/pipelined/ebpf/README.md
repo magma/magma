@@ -91,6 +91,11 @@ ebpf/
 ## Deployment
 
 ### Pre-installation Steps
+- OS: Ubuntu 20.04 LTS
+- RAM: 8 GB
+- STORAGE: 50GB
+- CORES: 8
+- INTERFACES: 2
 
 1. **Become root user:**
    ```bash
@@ -136,10 +141,29 @@ ls /opt/magma
 cd /opt/magma/lte/gateway/docker
 docker compose --compatibility build
 ```
+Then push the newly build images to dockerhub or any registry 
+
+### Configure AGW
+Create control_proxy.yml file with your orc8r details(Update the files value according to your configuration of orc8r):
+```
+cat << EOF | sudo tee /var/opt/magma/configs/control_proxy.yml
+cloud_address: controller.orc8r.magmacore.link
+cloud_port: 443
+bootstrap_address: bootstrapper-controller.orc8r.magmacore.link
+bootstrap_port: 443
+fluentd_address: fluentd.orc8r.magmacore.link
+fluentd_port: 24224
+
+rootca_cert: /var/opt/magma/certs/rootCA.pem
+EOF
+```
+**Note:** After this AGW and Orc8r will be connected after that add subscriber
 
 ### Deploy Magma AGW
 
 1. **Update `.env` file:**
+   Update the image tag and registry name according to your setup
+   
    ```bash
    cd /opt/magma/lte/gateway/docker
    vim .env
@@ -328,13 +352,6 @@ tc filter show dev eth1 ingress
 tcpdump -i eth1 udp port 2152 -c 10
 ```
 
-## Performance
-
-- **Decapsulation**: ~5-10 µs per packet (vs 15-20 µs kernel GTP)
-- **Encapsulation**: ~8-12 µs per packet
-- **Map lookups**: O(1) hash map operations
-- **Zero-copy**: Direct packet manipulation in kernel
-
 ## Phase 1 vs Phase 2 Features
 
 ### Phase 1 (Current - Complete)
@@ -356,14 +373,9 @@ tcpdump -i eth1 udp port 2152 -c 10
 - Automatic session programming via PFCP
 - Complete OpenFlow pipeline integration
 - Advanced QoS flow matching
-- IPv6 support
+- IPv support
 - Extension header parsing (full)
 - Telemetry and monitoring
 - Complete packet flow for uplink + downlink testing with simulated ran & ue with internet working
-
-## Development
-
-### Build eBPF Programs
-
-Compilation is handled automatically by BCC at runtime.
+- Few more to update
 
