@@ -38,6 +38,9 @@
     - "/etc/magma"
     - "/etc/magma/templates/"
     - "/var/opt/magma/docker"
+    - "/var/opt/magma/ebpf"
+    - "/var/opt/magma/fluent-bit"
+    - "/var/opt/magma/tmp"
 
 - name: Enable IP forwarding
   become: true
@@ -91,7 +94,7 @@
     - agwc
 
 - name: update nat interface
-  shell: cp -f /etc/magma/pipelined.yml_prod /etc/magma/pipelined.yml
+  shell: cp -f /etc/magma/pipelined_ebpf_gtp.yml /etc/magma/pipelined.yml
   tags:
     - agwc
     - base
@@ -124,6 +127,10 @@
     src: agw_upgrade.sh
     dest: /var/opt/magma/docker/
     mode: '0755'
+  tags:
+    - agwc
+
+- include_tasks: ebpf_gtp.yml
   tags:
     - agwc
 

@@ -238,3 +238,12 @@ py_library(
         requirement("dpkt"),
     ],
 )
+
+py_library(
+    name = "ebpf_gtp_manager",
+    srcs = ["ebpf_gtp_manager.py"],
+    deps = [
+        ":base",
+        "//lte/gateway/python/magma/pipelined/ebpf:ebpf_gtp_manager",
+    ],
+)

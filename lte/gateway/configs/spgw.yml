@@ -61,3 +61,6 @@ s1_ipv6_enabled: true
 
 # Enabled eBPF map operations
 ebpf_enabled: false
+
+# Enable eBPF GTP mode (replaces kernel GTP module)
+ebpf_gtp_enabled: true

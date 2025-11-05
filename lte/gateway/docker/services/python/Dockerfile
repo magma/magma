@@ -126,18 +126,46 @@ RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test f
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
 
+# Install OVS and other base packages
 RUN apt-get update && apt-get install -y \
-  bcc-tools \
   libopenvswitch \
   openvswitch-datapath-dkms \
   openvswitch-common \
   openvswitch-switch \
   td-agent-bit \
   wireguard \
+  software-properties-common \
+  wget \
   && rm -rf /var/lib/apt/lists/*
+
+# Enable universe repository and install eBPF/BCC packages for Ubuntu 20.04
+RUN add-apt-repository universe && \
+    apt-get update && \
+    apt-get install -y \
+    bpfcc-tools \
+    python3-bpfcc \
+    libbpfcc \
+    libbpfcc-dev \
+    linux-headers-generic \
+    llvm-10 \
+    clang-10 \
+    libelf-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create symlinks for LLVM/Clang
+RUN ln -sf /usr/bin/llvm-config-10 /usr/bin/llvm-config && \
+    ln -sf /usr/bin/clang-10 /usr/bin/clang
+
+# Download pre-built bpftool binary (faster than building from source)
+RUN ARCH=$(dpkg --print-architecture) && \
+    wget -O /usr/local/bin/bpftool \
+    https://github.com/libbpf/bpftool/releases/download/v7.0.0/bpftool-${ARCH} && \
+    chmod +x /usr/local/bin/bpftool || \
+    echo "WARNING: Could not download bpftool for ${ARCH}"
 
 COPY ./lte/gateway/python/dhcp_helper_cli/dhcp_helper_cli.py /usr/local/bin/
 RUN mkdir -p /var/opt/magma/
+RUN mkdir -p /var/opt/magma/ebpf/
 
 # Copy the build artifacts.
 COPY --from=builder /magma/bazel-bin/lte/gateway/release/magma_python_executables.tar.gz \

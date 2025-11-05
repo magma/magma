@@ -24,17 +24,16 @@ pkg_filegroup(
 pkg_mklink(
     name = "pipelined_symlink",
     link_name = "/etc/magma/pipelined.yml",
-    target = "/etc/magma/pipelined.yml_prod",
+    target = "/etc/magma/pipelined_ebpf_gtp.yml",
 )
 
 pkg_mklink(
     name = "sessiond_symlink",
     link_name = "/etc/magma/sessiond.yml",
-    target = "/etc/magma/sessiond.yml_prod",
+    target = "/etc/magma/sessiond.yml",
 )
 
 # The files pipelined.yml and sessiond.yml are not packaged for a production .deb.
-# Symbolic links are created to pipelined.yml_prod and sessiond.yml_prod.
 # TODO control_proxy.yml is packaged as default - but is a possible parameter.
 pkg_files(
     name = "lte_configs",
@@ -56,7 +55,7 @@ pkg_files(
         ":mme.yml",
         ":mobilityd.yml",
         ":monitord.yml",
-        ":pipelined.yml_prod",
+        ":pipelined_ebpf_gtp.yml",
         ":policydb.yml",
         ":redirectd.yml",
         ":redis.yml",
