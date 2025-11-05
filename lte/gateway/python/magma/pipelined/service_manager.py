@@ -74,7 +74,9 @@ from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.uplink_bridge import UplinkBridgeController
 from magma.pipelined.app.vlan_learn import VlanLearnController
+from magma.pipelined.app.ebpf_gtp_manager import EbpfGtpManagerController
 from magma.pipelined.ebpf.ebpf_manager import get_ebpf_manager
+from magma.pipelined.ebpf.ebpf_gtp_manager import get_ebpf_gtp_manager
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
 from magma.pipelined.qos.common import QosManager
@@ -307,6 +309,7 @@ class ServiceManager:
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
     LI_MIRROR_SERVICE_NAME = 'li_mirror'
+    EBPF_GTP_MANAGER_SERVICE_NAME = 'ebpf_gtp_manager'
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
     CLASSIFIER_NAME = 'classifier'
     HE_CONTROLLER_NAME = 'proxy'
@@ -458,6 +461,14 @@ class ServiceManager:
                 order_priority=900,
             ),
         ],
+        EBPF_GTP_MANAGER_SERVICE_NAME: [
+            App(
+                name=EbpfGtpManagerController.APP_NAME,
+                module=EbpfGtpManagerController.__module__,
+                type=EbpfGtpManagerController.APP_TYPE,
+                order_priority=0,
+            ),
+        ],
         UPLINK_BRIDGE_NAME: [
             App(
                 name=UplinkBridgeController.APP_NAME,
@@ -492,6 +503,7 @@ class ServiceManager:
         StartupFlows.APP_NAME,
         UplinkBridgeController.APP_NAME,
         NGServiceController.APP_NAME,
+        EbpfGtpManagerController.APP_NAME,
     ]
 
     def __init__(self, magma_service: MagmaService):
@@ -532,6 +544,7 @@ class ServiceManager:
         self.interface_to_prefix_mapper = InterfaceIDToPrefixMapper()
         self.restart_info_store = RestartInfoStore()
         self.ebpf = get_ebpf_manager(magma_service.config)
+        self.ebpf_gtp = None  # Will be set by EbpfGtpManagerController
 
         apps = self._get_static_apps()
         apps.extend(self._get_dynamic_apps())
@@ -633,6 +646,7 @@ class ServiceManager:
         contexts['loop'] = self._magma_service.loop
         contexts['service_manager'] = self
         contexts['qos_manager'] = QosManager(self._magma_service.loop, self._magma_service.config)
+        contexts['ebpf_gtp_manager'] = self.ebpf_gtp
 
         sessiond_chan = ServiceRegistry.get_rpc_channel(
             'sessiond', ServiceRegistry.LOCAL,
