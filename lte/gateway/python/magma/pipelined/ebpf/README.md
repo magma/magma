@@ -157,7 +157,7 @@ fluentd_port: 24224
 rootca_cert: /var/opt/magma/certs/rootCA.pem
 EOF
 ```
-**Note:** After this AGW and Orc8r will be connected after that add subscriber
+**Note:** Please follow Magma docs to connect AGW and Orc8r. Also add subscriber
 
 ### Deploy Magma AGW
 
@@ -202,6 +202,7 @@ EOF
    ```
 
 2. **Start AGW services:**
+   Comment line no. 289 i.e.  #- BPF  in /opt/magma/lte/gateway/docker/docker-compose.yaml. Then run below command.
    ```bash
    docker compose --compatibility up -d
    ```
