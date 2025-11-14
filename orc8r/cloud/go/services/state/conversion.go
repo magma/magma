@@ -17,7 +17,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 )
@@ -47,13 +47,13 @@ func IdAndVersionsToTKs(IDs []*protos.IDAndVersion) storage.TKs {
 	return ids
 }
 
-func BlobsToStates(blobs blobstore.Blobs) []*protos.State {
+func JsonsToStates(Jsons JsonStore.Jsons) []*protos.State {
 	var states []*protos.State
-	for _, b := range blobs {
+	for _, b := range Jsons {
 		st := &protos.State{
 			Type:     b.Type,
 			DeviceID: b.Key,
-			Value:    b.Value,
+			Value:    []byte(b.Value),
 			Version:  b.Version,
 		}
 		states = append(states, st)
@@ -61,11 +61,11 @@ func BlobsToStates(blobs blobstore.Blobs) []*protos.State {
 	return states
 }
 
-func StateToBlob(state *protos.State) blobstore.Blob {
-	return blobstore.Blob{
+func StateToJson(state *protos.State) JsonStore.Json {
+	return JsonStore.Json{
 		Type:    state.GetType(),
 		Key:     state.GetDeviceID(),
-		Value:   state.GetValue(),
+		Value:   string(state.GetValue()),
 		Version: state.GetVersion(),
 	}
 }

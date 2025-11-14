@@ -124,7 +124,7 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 		return ret, status.Errorf(codes.Internal, "failed to unmarshal json-encoded state proto value")
 	}
 	dr := &types.DirectoryRecord{}
-	err = dr.UnmarshalBinary(serialized.SerializedReportedState)
+	err = dr.UnmarshalBinary([]byte(serialized.SerializedReportedState))
 	if err != nil {
 		return ret, status.Errorf(codes.Internal, "failed to unmarshal DirectoryRecord: %v", err)
 	}

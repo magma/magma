@@ -21,18 +21,18 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/services/state"
 	servicers "magma/orc8r/cloud/go/services/state/servicers/southbound"
 	"magma/orc8r/lib/go/protos"
 )
 
 type cloudStateServicer struct {
-	factory blobstore.StoreFactory
+	factory JsonStore.StoreFactory
 }
 
 // NewCloudStateServicer returns a state server backed by storage passed in.
-func NewCloudStateServicer(factory blobstore.StoreFactory) (protos.CloudStateServiceServer, error) {
+func NewCloudStateServicer(factory JsonStore.StoreFactory) (protos.CloudStateServiceServer, error) {
 	if factory == nil {
 		return nil, errors.New("storage factory is nil")
 	}
@@ -52,28 +52,28 @@ func (srv *cloudStateServicer) GetStates(ctx context.Context, req *protos.GetSta
 func (srv *cloudStateServicer) getStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, internalErr(err, "GetStates (get) blobstore start transaction")
+		return nil, internalErr(err, "GetStates (get) Jsonstore start transaction")
 	}
 
 	ids := state.IdsToTKs(req.GetIds())
-	blobs, err := store.GetMany(req.GetNetworkID(), ids)
+	jsons, err := store.GetMany(req.GetNetworkID(), ids)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, internalErr(err, "GetStates (get) blobstore get many")
+		return nil, internalErr(err, "GetStates (get) Jsonstore get many")
 	}
 
 	err = store.Commit()
 	if err != nil {
-		return nil, internalErr(err, "GetStates (get) blobstore commit transaction")
+		return nil, internalErr(err, "GetStates (get) Jsonstore commit transaction")
 	}
 
-	return &protos.GetStatesResponse{States: state.BlobsToStates(blobs)}, nil
+	return &protos.GetStatesResponse{States: state.JsonsToStates(jsons)}, nil
 }
 
 func (srv *cloudStateServicer) searchStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, internalErr(err, "GetStates (search) blobstore start transaction")
+		return nil, internalErr(err, "GetStates (search) Jsonstore start transaction")
 	}
 
 	var idPrefix *string
@@ -81,18 +81,18 @@ func (srv *cloudStateServicer) searchStates(_ context.Context, req *protos.GetSt
 		idPrefix = &req.IdPrefix
 	}
 	searchResults, err := store.Search(
-		blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter, idPrefix),
-		blobstore.LoadCriteria{LoadValue: req.LoadValues},
+		JsonStore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter, idPrefix),
+		JsonStore.LoadCriteria{LoadValue: req.LoadValues},
 	)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, internalErr(err, "GetStates (search) blobstore search")
+		return nil, internalErr(err, "GetStates (search) Jsonstore search")
 	}
 
 	err = store.Commit()
 	if err != nil {
-		return nil, internalErr(err, "GetStates (search) blobstore commit transaction")
+		return nil, internalErr(err, "GetStates (search) Jsonstore commit transaction")
 	}
 
-	return &protos.GetStatesResponse{States: state.BlobsToStates(searchResults[req.NetworkID])}, nil
+	return &protos.GetStatesResponse{States: state.JsonsToStates(searchResults[req.NetworkID])}, nil
 }
