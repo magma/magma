@@ -1,0 +1,30 @@
+ebpf_install_packages:
+  - clang
+  - llvm
+  - libelf-dev
+  - build-essential
+  - linux-headers-{{ ansible_kernel | default('') }}
+  - bpftool
+  - iproute2
+  - make
+  - git
+
+# Paths
+ebpf_source_path: /opt/magma/lte/gateway/ebpf
+ebpf_deploy_path: /var/opt/magma/ebpf
+ebpf_bin_path: "{{ ebpf_deploy_path }}/bin"
+ebpf_conf_path: "{{ ebpf_deploy_path }}/config"
+
+# Build options
+ebpf_make_target: all
+
+# Systemd services
+ebpf_loader_service: magma-ebpf-loader.service
+ebpf_manager_service: magma-ebpf-manager.service
+
+# Map sizes
+map_size_session: 4096
+map_size_stats: 8192
+
+# Runtime flags
+enable_tc_program: true

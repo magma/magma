@@ -1,0 +1,51 @@
+---
+
+- name: Generate vmlinux.h
+  command: "{{ ebpf_source_path }}/scripts/gen_vmlinux.sh"
+  args:
+    chdir: "{{ ebpf_source_path }}/scripts"
+  register: vmlinux_gen
+  ignore_errors: false
+
+- name: Copy vmlinux.h to deploy path
+  copy:
+    src: "{{ ebpf_source_path }}/bpf/vmlinux.h"
+    dest: "{{ ebpf_deploy_path }}/bpf/vmlinux.h"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Build eBPF programs using Makefile
+  make:
+    chdir: "{{ ebpf_source_path }}/bpf"
+    target: "{{ ebpf_make_target }}"
+  register: make_result
+
+- name: Copy compiled eBPF programs to deploy path
+  copy:
+    src: "{{ ebpf_source_path }}/bpf/{{ item }}"
+    dest: "{{ ebpf_bin_path }}/{{ item }}"
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - tc_core.bpf.o
+    - maps.bpf.o
+
+- name: Deploy helper scripts
+  copy:
+    src: "{{ item }}"
+    dest: "{{ ebpf_bin_path }}/{{ item | basename }}"
+    mode: '0755'
+  loop:
+    - "{{ ebpf_source_path }}/scripts/load_tc.sh"
+    - "{{ ebpf_source_path }}/scripts/unload_tc.sh"
+    - "{{ ebpf_source_path }}/scripts/start_monitoring.sh"
+
+- name: Deploy configuration template
+  template:
+    src: magma_bpf.conf.j2
+    dest: "{{ ebpf_conf_path }}/magma_bpf.conf"
+    owner: root
+    group: root
+    mode: '0644'

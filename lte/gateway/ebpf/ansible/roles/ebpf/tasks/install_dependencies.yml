@@ -1,0 +1,44 @@
+---
+# Install all required system dependencies for building and running eBPF
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Install eBPF dependencies (clang, llvm, bpftool, kernel headers, etc.)
+  apt:
+    name: "{{ ebpf_install_packages }}"
+    state: present
+  when: ansible_os_family == "Debian"
+
+- name: Ensure bpftool exists
+  command: which bpftool
+  register: bpftool_check
+  ignore_errors: true
+
+- name: Install bpftool from source (fallback)
+  block:
+    - name: Install git for bpftool build
+      apt:
+        name: git
+        state: present
+
+    - name: Clone linux-tools repository
+      git:
+        repo: https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+        dest: /tmp/linux-src
+        depth: 1
+
+    - name: Build bpftool
+      make:
+        chdir: /tmp/linux-src/tools/bpf/bpftool
+        target: all
+
+    - name: Install bpftool binary
+      copy:
+        src: /tmp/linux-src/tools/bpf/bpftool/bpftool
+        dest: /usr/local/bin/bpftool
+        mode: '0755'
+
+  when: bpftool_check.rc != 0

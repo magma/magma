@@ -1,0 +1,29 @@
+---
+
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+
+- name: Enable and start magma-ebpf-loader service
+  systemd:
+    name: "{{ ebpf_loader_service }}"
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Enable and start magma-ebpf-manager service
+  systemd:
+    name: "{{ ebpf_manager_service }}"
+    enabled: yes
+    state: started
+    daemon_reload: yes
+
+- name: Restart services if configuration changed
+  systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop:
+    - "{{ ebpf_loader_service }}"
+    - "{{ ebpf_manager_service }}"
+  when: deploy_bpf.changed

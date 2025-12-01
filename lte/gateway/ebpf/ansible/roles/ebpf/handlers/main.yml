@@ -1,0 +1,11 @@
+- name: Restart magma-ebpf-loader service
+  systemd:
+    name: "{{ ebpf_loader_service }}"
+    state: restarted
+    daemon_reload: yes
+
+- name: Restart magma-ebpf-manager service
+  systemd:
+    name: "{{ ebpf_manager_service }}"
+    state: restarted
+    daemon_reload: yes
