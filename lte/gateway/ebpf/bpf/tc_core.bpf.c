@@ -1,5 +1,3 @@
-
-
 #include <linux/bpf.h>
 #include <linux/if_ether.h>
 #include <linux/ip.h>
@@ -41,11 +39,11 @@ struct ue_ip_key {
 
 /* Session value stored in maps */
 struct session_value {
-    __u32 ifindex;        /* interface index to redirect to (if action == REDIRECT_IFINDEX) */
-    __u32 rx_packets;     /* simple counters kept in user-space but mirrored here */
+    __u32 ifindex;
+    __u32 rx_packets;
     __u64 rx_bytes;
-    __u32 action;         /* enum session_action */
-    __u32 flags;          /* misc session flags */
+    __u32 action;
+    __u32 flags;
 } __attribute__((packed));
 
 /* Counters map indexed by a small id (0..N-1). Could be per-UE or global */
@@ -76,7 +74,7 @@ struct {
     __type(value, struct session_value);
 } ue_ip_map SEC(".maps");
 
-/* dev map (optional) for redirect via devmap/ifindex) - user-space can populate */
+/* dev map (optional) for redirect via devmap/ifindex */
 struct {
     __uint(type, BPF_MAP_TYPE_DEVMAP);
     __uint(key_size, sizeof(__u32));
@@ -100,10 +98,10 @@ struct {
 } perf_events SEC(".maps");
 
 /* Event pushed to perf */
-struct perf_event {
+struct my_perf_event {   // <-- Renamed to avoid conflict
     __u32 type;
-    __u32 reason;     /* more details */
-    __u32 ifindex;    /* where we would redirect or the ingress ifindex */
+    __u32 reason;
+    __u32 ifindex;
     __u32 pad;
     __u64 pkt_len;
     __u32 teid;
@@ -155,7 +153,7 @@ static __always_inline struct gtpu_hdr *parse_gtpu(void *cursor, void *data_end)
     return g;
 }
 
-/* Update counters in counters_map for key 0 (global) - keep it tiny for verifier */
+/* Update counters in counters_map for key 0 (global) */
 static __always_inline void update_global_counters(__u64 bytes)
 {
     struct counter_key key = { .id = 0 };
@@ -173,7 +171,7 @@ static __always_inline void update_global_counters(__u64 bytes)
 /* Emit perf event */
 static __always_inline void emit_perf_event(struct __sk_buff *skb, enum event_type type, __u32 ifindex, __u32 teid, __u32 src_ip, __u32 dst_ip)
 {
-    struct perf_event evt = {};
+    struct my_perf_event evt = {};   // <-- updated here
     evt.type = (uint32_t)type;
     evt.ifindex = ifindex;
     evt.pkt_len = skb->len;
@@ -181,11 +179,10 @@ static __always_inline void emit_perf_event(struct __sk_buff *skb, enum event_ty
     evt.src_ip = src_ip;
     evt.dst_ip = dst_ip;
 
-    /* index 0 for cpu mapping; pfunc handles per-cpu delivery */
     bpf_perf_event_output(skb, &perf_events, BPF_F_CURRENT_CPU, &evt, sizeof(evt));
 }
 
-/* The main TC program. We'll attach this to both ingress/egress as needed. */
+/* The main TC program */
 SEC("tc")
 int tc_core_prog(struct __sk_buff *skb)
 {
@@ -194,24 +191,19 @@ int tc_core_prog(struct __sk_buff *skb)
     struct ethhdr *eth;
     void *cursor;
     __u16 eth_proto;
-    __u64 offset = 0;
 
-    /* parse eth */
     cursor = parse_eth(skb, data, data_end, &eth);
     if (!cursor)
         return TC_ACT_OK;
 
     eth_proto = bpf_ntohs(eth->h_proto);
-    /* skip VLANs (simple) */
     if (eth_proto == ETH_P_8021Q || eth_proto == ETH_P_8021AD) {
-        /* 802.1Q: 4 bytes VLAN tag */
         if ((void *)cursor + 4 > data_end)
             return TC_ACT_OK;
         eth_proto = bpf_ntohs(*(__u16 *)((__u8 *)cursor + 2));
         cursor = (void *)cursor + 4;
     }
 
-    /* handle IPv4 only for now */
     if (eth_proto != ETH_P_IP)
         return TC_ACT_OK;
 
@@ -219,22 +211,16 @@ int tc_core_prog(struct __sk_buff *skb)
     if (!iph)
         return TC_ACT_OK;
 
-    /* compute ip header length */
     __u32 ihl = iph->ihl * 4;
     if (ihl < sizeof(struct iphdr))
         return TC_ACT_OK;
-
     if ((void *)iph + ihl > data_end)
         return TC_ACT_OK;
 
-    /* only handle UDP for GTP-U */
     if (iph->protocol != IPPROTO_UDP) {
-        /* non-UDP: could come from UE towards SGi; do UE-IP map lookup */
-        struct ue_ip_key ukey = {};
-        ukey.ip4 = iph->saddr; /* network order */
+        struct ue_ip_key ukey = { .ip4 = iph->saddr };
         struct session_value *sval = bpf_map_lookup_elem(&ue_ip_map, &ukey);
         if (sval) {
-            /* session found for UE IP: take action */
             update_global_counters(skb->len);
             emit_perf_event(skb, EVT_SESSION_LOOKUP_HIT, skb->ifindex, 0, iph->saddr, iph->daddr);
 
@@ -242,56 +228,38 @@ int tc_core_prog(struct __sk_buff *skb)
                 emit_perf_event(skb, EVT_DROPPED_BY_POLICY, skb->ifindex, 0, iph->saddr, iph->daddr);
                 return TC_ACT_SHOT;
             } else if (sval->action == ACTION_REDIRECT_IFINDEX) {
-                /* attempt a redirect via devmap (preferred) or clone redirect */
-                /* try devmap redirect first: key is ifindex */
                 __u32 key = sval->ifindex;
-                /* bpf_redirect_map is preferable, but here we call bpf_redirect_map via dev_map helper by writing to dev_map */
-                /* dev_map will be configured in user-space to map indices to devices; use bpf_redirect_map helper (libbpf provides wrapper) */
                 int ret = bpf_redirect_map(&dev_map, key, 0);
-                /* if redirect helper returned non-zero, verify: TC expects us to return action codes */
-                if (ret == 0)
-                    return TC_ACT_OK; /* redirected */
-                else
-                    return TC_ACT_OK;
-            } else {
-                /* count only */
                 return TC_ACT_OK;
             }
+            return TC_ACT_OK;
         } else {
-            /* not found: let packet pass */
             emit_perf_event(skb, EVT_SESSION_LOOKUP_MISS, skb->ifindex, 0, iph->saddr, iph->daddr);
             return TC_ACT_OK;
         }
     }
 
-    /* For UDP, parse udp header */
     struct udphdr *udph = (void *)iph + ihl;
     if ((void *)(udph + 1) > data_end)
         return TC_ACT_OK;
 
     __u16 udp_dport = bpf_ntohs(udph->dest);
     __u16 udp_sport = bpf_ntohs(udph->source);
-
-    /* GTP-U typically uses dest port 2152 */
     if (udp_dport != GTPU_UDP_PORT && udp_sport != GTPU_UDP_PORT)
         return TC_ACT_OK;
 
-    /* locate GTP-U header */
     struct gtpu_hdr *g = (void *)(udph + 1);
     if (!g || (void *)(g + 1) > data_end)
         return TC_ACT_OK;
 
-    /* read TEID (network order in header) */
     __u32 teid = bpf_ntohl(g->teid);
     struct teid_key tkey = { .teid = teid };
     struct session_value *s = bpf_map_lookup_elem(&teid_map, &tkey);
     if (!s) {
-        /* missing session: count miss and pass */
         emit_perf_event(skb, EVT_SESSION_LOOKUP_MISS, skb->ifindex, teid, iph->saddr, iph->daddr);
         return TC_ACT_OK;
     }
 
-    /* session hit: update counters & take action */
     update_global_counters(skb->len);
     emit_perf_event(skb, EVT_SESSION_LOOKUP_HIT, skb->ifindex, teid, iph->saddr, iph->daddr);
 
@@ -300,19 +268,10 @@ int tc_core_prog(struct __sk_buff *skb)
         return TC_ACT_SHOT;
     } else if (s->action == ACTION_REDIRECT_IFINDEX) {
         __u32 dst_if = s->ifindex;
-        /* Try redirect using devmap if populated */
         int r = bpf_redirect_map(&dev_map, dst_if, 0);
-        /* bpf_redirect_map returns TC_ACT_* semantics; if that isn't available, fallback to clone redirect */
         if (r == TC_ACT_OK || r == TC_ACT_SHOT)
             return r;
-        /* fallback: clone/redirect to ifindex */
-        /* NOTE: clone redirect returns 0 on success and we must return TC_ACT_SHOT or OK depending on policy.
-         * Use bpf_clone_redirect when preserving original expected behaviour is needed.
-         */
         bpf_clone_redirect(skb, dst_if, 0);
-        return TC_ACT_OK;
-    } else {
-        /* ACTION_COUNT_ONLY or unknown: just pass */
         return TC_ACT_OK;
     }
 
