@@ -3,7 +3,7 @@
 
 BPF_CLANG ?= clang
 KERNEL_HEADERS ?= /usr/src/linux-headers-$(shell uname -r)
-BPF_CFLAGS ?= -O2 -target bpf -Wall -Werror -I$(KERNEL_HEADERS)/include -I$(KERNEL_HEADERS)/include/uapi
+BPF_CFLAGS ?= -O2 -target bpf -Wall -Werror -Wno-unused-function -I$(KERNEL_HEADERS)/include -I$(KERNEL_HEADERS)/include/uapi
 
 # Files
 SRC = tc_core.bpf.c

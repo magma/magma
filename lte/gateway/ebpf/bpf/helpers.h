@@ -1,4 +1,3 @@
-
 // helpers.h
 #ifndef HELPERS_H
 #define HELPERS_H
@@ -15,7 +14,7 @@
     ({ char ____fmt[] = fmt; bpf_printk(____fmt, ##__VA_ARGS__); })
 
 // Compute simple checksum over data
-static __always_inline __u16 csum16(const void *data, __u32 len) {
+static __always_inline __maybe_unused __u16 csum16(const void *data, __u32 len) {
     const __u16 *buf = data;
     __u32 sum = 0;
 
@@ -35,7 +34,7 @@ static __always_inline __u16 csum16(const void *data, __u32 len) {
 }
 
 // Helper to parse Ethernet header
-static __always_inline int parse_ethhdr(void *data, void *data_end, struct ethhdr **ethh) {
+static __always_inline __maybe_unused int parse_ethhdr(void *data, void *data_end, struct ethhdr **ethh) {
     struct ethhdr *eth = data;
     if ((void *)(eth + 1) > data_end)
         return -1;
@@ -44,7 +43,7 @@ static __always_inline int parse_ethhdr(void *data, void *data_end, struct ethhd
 }
 
 // Helper to parse IPv4 header
-static __always_inline int parse_iphdr(void *data, void *data_end, struct iphdr **iph) {
+static __always_inline __maybe_unused int parse_iphdr(void *data, void *data_end, struct iphdr **iph) {
     struct iphdr *ip = data;
     if ((void *)(ip + 1) > data_end)
         return -1;
@@ -53,7 +52,7 @@ static __always_inline int parse_iphdr(void *data, void *data_end, struct iphdr 
 }
 
 // Helper to parse UDP header
-static __always_inline int parse_udphdr(void *data, void *data_end, struct udphdr **udph) {
+static __always_inline __maybe_unused int parse_udphdr(void *data, void *data_end, struct udphdr **udph) {
     struct udphdr *udp = data;
     if ((void *)(udp + 1) > data_end)
         return -1;
@@ -62,7 +61,7 @@ static __always_inline int parse_udphdr(void *data, void *data_end, struct udphd
 }
 
 // Helper to parse TCP header
-static __always_inline int parse_tcphdr(void *data, void *data_end, struct tcphdr **tcph) {
+static __always_inline __maybe_unused int parse_tcphdr(void *data, void *data_end, struct tcphdr **tcph) {
     struct tcphdr *tcp = data;
     if ((void *)(tcp + 1) > data_end)
         return -1;
