@@ -2,8 +2,8 @@
 # Target: tc_core.bpf.o
 
 BPF_CLANG ?= clang
-BPF_CFLAGS ?= -O2 -target bpf -Wall -Werror
-BPF_LD_FLAGS ?=
+KERNEL_HEADERS ?= /usr/src/linux-headers-$(shell uname -r)
+BPF_CFLAGS ?= -O2 -target bpf -Wall -Werror -I$(KERNEL_HEADERS)/include -I$(KERNEL_HEADERS)/include/uapi
 
 # Files
 SRC = tc_core.bpf.c

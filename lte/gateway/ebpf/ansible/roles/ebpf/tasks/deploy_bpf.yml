@@ -1,11 +1,30 @@
 ---
 
-- name: Generate vmlinux.h
-  command: "{{ ebpf_source_path }}/scripts/gen_vmlinux.sh"
+- name: Ensure dwarves/pahole is installed
+  package:
+    name: dwarves
+    state: present
+
+- name: Check if kernel BTF exists
+  stat:
+    path: /sys/kernel/btf/vmlinux
+  register: btf_stat
+
+- name: Download prebuilt BTF if missing
+  when: not btf_stat.stat.exists
+  get_url:
+    url: "https://github.com/aquasecurity/btfhub-archive/raw/main/ubuntu/{{ ansible_kernel }}/vmlinux.btf"
+    dest: "/tmp/vmlinux.btf"
+    mode: '0644'
+
+- name: Set BTF file path
+  set_fact:
+    btf_file: "{{ '/sys/kernel/btf/vmlinux' if btf_stat.stat.exists else '/tmp/vmlinux.btf' }}"
+
+- name: Generate vmlinux.h from BTF
+  command: "bpftool btf dump file {{ btf_file }} > {{ ebpf_source_path }}/bpf/vmlinux.h"
   args:
-    chdir: "{{ ebpf_source_path }}/scripts"
-  register: vmlinux_gen
-  ignore_errors: false
+    creates: "{{ ebpf_source_path }}/bpf/vmlinux.h"
 
 - name: Copy vmlinux.h to deploy path
   copy:
