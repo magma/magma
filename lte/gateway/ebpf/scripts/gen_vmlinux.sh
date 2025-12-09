@@ -1,5 +1,4 @@
-
-
+#!/usr/bin/env bash
 set -euo pipefail
 
 # Output path for vmlinux.h
