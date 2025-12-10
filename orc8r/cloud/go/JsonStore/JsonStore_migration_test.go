@@ -26,7 +26,7 @@ import (
 func TestJsonStoreImplMigrations(t *testing.T) {
 	makeJsonStores := func() (JsonStore.StoreFactory, JsonStore.StoreFactory){
 		var tableName = "states"
-		db, err := sqorc.Open("sqlite",":memory:")
+		db, err := sqorc.Open("sqlite3",":memory:")
 		assert.NoError(t, err)
 
 		sqlFact := JsonStore.NewSQLStoreFactory(tableName, db, sqorc.GetSqlBuilder())
