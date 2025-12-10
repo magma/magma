@@ -178,6 +178,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 			LocationHistory: dr.LocationHistory,
 			Fields:          map[string]string{},
 		}
+		fmt.Printf("this is hte record that we have received %s", pdr.String())
 		for k, iV := range dr.Identifiers {
 			if v, ok := iV.(string); ok {
 				pdr.Fields[k] = v
