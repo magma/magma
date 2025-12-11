@@ -15,6 +15,8 @@ function isWebpack(caller) {
   return !!(caller && caller.name === 'babel-loader');
 }
 
+
+
 module.exports = api => {
   const enableReactRefresh = api.caller(isWebpack) && !api.env('production');
 
