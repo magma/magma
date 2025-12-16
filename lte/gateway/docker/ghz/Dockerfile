@@ -34,9 +34,9 @@ RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
 
 WORKDIR ${MAGMA_ROOT}
 
-RUN git clone --depth 1 ${GHZ_REPO}
-
+RUN git clone ${GHZ_REPO}
 WORKDIR ${MAGMA_ROOT}/ghz
+RUN git checkout v0.120.0
 
 RUN make build
 
@@ -62,7 +62,9 @@ ENV MAGMA_ROOT /magma
 
 WORKDIR ${MAGMA_ROOT}
 
-RUN git clone --depth 1 ${GHZ_REPO}
+RUN git clone ${GHZ_REPO}
+WORKDIR ${MAGMA_ROOT}/ghz
+RUN git checkout v0.120.0
 
 WORKDIR ${MAGMA_ROOT}/ghz
 
