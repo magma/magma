@@ -27,6 +27,6 @@ mkdir "$WORK_DIR"
 cd "$WORK_DIR"
 
 wget http://ftp.us.debian.org/debian/pool/main/o/openssl/libssl1.1_1.1.1w-0+deb11u1_amd64.deb
-wget https://apt.fluentbit.io/debian/bullseye/pool/main/t/td-agent-bit/td-agent-bit_1.8.11_amd64.deb
+wget -O td-agent-bit_1.9.10_amd64.deb https://packagecloud.io/instructure/insops/packages/ubuntu/jammy/td-agent-bit_1.9.10_amd64.deb/download
 
-cp td-agent-bit_1.8.11_amd64.deb $SCRIPT_DIR/../
+cp td-agent-bit_1.9.10_amd64.deb "$SCRIPT_DIR/../"
