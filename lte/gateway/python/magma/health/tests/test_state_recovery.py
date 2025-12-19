@@ -61,3 +61,28 @@ class TestStateRecovery(unittest.TestCase):
         job._get_service_status = MagicMock(return_value=None)
         last_services_restarts = job._get_last_service_restarts()
         self.assertDictEqual({services[0]: 0}, last_services_restarts)
+
+    def test_get_last_service_restarts_with_exception(self):
+        """
+        Test that if the underlying service wrapper raises a KeyError/ConnectionError,
+        the job handles it gracefully and assumes 0 restarts.
+        """
+        services = ["service1"]
+        mock_service_state = MagicMock()
+
+        job = StateRecoveryJob(
+            mock_service_state,
+            MagicMock(),
+            services,
+            MagicMock(),
+            MagicMock(),
+            MagicMock(),
+            MagicMock(),
+        )
+
+        mock_service_state.get_service_status.side_effect = KeyError("Service not found")
+
+        # pylint: disable=protected-access
+        last_services_restarts = job._get_last_service_restarts()  # noqa: WPS450
+
+        self.assertDictEqual({services[0]: 0}, last_services_restarts)
