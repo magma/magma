@@ -62,7 +62,7 @@ The Magma materials are provided in accordance with the licenses made available 
 
 ## Security
 
-Responsible disclosures from independent researchers are gratefully accepted. See the [Security Policy](/magma/magma/security/policy) for submission details and [Security Overview for Contributors](https://github.com/magma/magma/wiki/Security-Overview-for-Contributors) to learn about other ways of contributing.
+Responsible disclosures from independent researchers are gratefully accepted. See the [Security Policy](SECURITY.md) for submission details and [Security Overview for Contributors](https://github.com/magma/magma/wiki/Security-Overview-for-Contributors) to learn about other ways of contributing.
 
 We appreciate very much the valuable disclosures (and often fixes) from the following security researchers:
 
