@@ -36,8 +36,6 @@ on:
       - .devcontainer/Dockerfile
       - .github/workflows/docker-builder-devcontainer.yml
       - .github/workflows/composite/**
-  schedule:
-    - cron: '17 4 * * 6' # At 04:17 on Saturday
 
 env:
   REGISTRY: ghcr.io
