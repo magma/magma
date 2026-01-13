@@ -631,7 +631,9 @@ const (
 	// Number of check-in intervals used for gateway health checks. If the
 	// last check-in of a gateway was longer ago than N check-in intervals,
 	// this indicates a problem.
-	graceFactor = 5
+	// Increased from 5 to 10 to reduce status fluctuation near the boundary.
+	// See: https://github.com/magma/magma/issues/15725
+	graceFactor = 10
 
 	// Check-in interval that is used if no config can be found
 	defaultCheckinInterval = time.Minute

@@ -27,6 +27,25 @@ import (
 	"magma/orc8r/lib/go/merrors"
 )
 
+const (
+	// metricsGracePeriodSeconds is the grace period for gateway health check.
+	// If a gateway's last check-in was longer ago than this value, it is
+	// considered unhealthy and reported as status=0 in Prometheus metrics.
+	//
+	// This value should match the API's grace period calculation in
+	// orc8r/cloud/go/services/orchestrator/obsidian/models/conversion.go:
+	//   graceFactor (10) * defaultCheckinInterval (60s) = 600 seconds
+	//
+	// NOTE: This is a simplified constant that assumes the default checkin_interval.
+	// For deployments with custom checkin_interval, this may not exactly match
+	// the API's dynamic calculation. See Issue #15725 for details.
+	//
+	// Previously this was hardcoded as 60*5=300 seconds, which caused status
+	// fluctuation in the NMS UI when a gateway was between 300-600 seconds
+	// since last check-in.
+	metricsGracePeriodSeconds = 10 * 60 // 600 seconds
+)
+
 func PeriodicallyReportGatewayStatus(dur time.Duration) {
 	for range time.Tick(dur) {
 		err := reportGatewayStatus()
@@ -66,8 +85,8 @@ func reportGatewayStatus() error {
 				}
 				continue
 			}
-			// last check in more than 5 minutes ago
-			if (time.Now().Unix() - int64(status.CheckinTime)/1000) > 60*5 {
+			// Check if last check-in was too long ago
+			if (time.Now().Unix() - int64(status.CheckinTime)/1000) > metricsGracePeriodSeconds {
 				gwCheckinStatus.WithLabelValues(networkID, gatewayID).Set(0)
 			} else {
 				gwCheckinStatus.WithLabelValues(networkID, gatewayID).Set(1)
