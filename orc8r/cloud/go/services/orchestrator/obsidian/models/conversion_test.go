@@ -113,8 +113,7 @@ func TestLastGatewayCheckInWasRecent_BoundaryConditions(t *testing.T) {
 
 	// exactly at boundary - may be true or false due to ms-level timing
 	gatewayStatus.CheckinTime = uint64(time.Now().Add(-200 * time.Second).UnixMilli())
-	result := models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig)
-	_ = result // boundary value is not strictly asserted
+	_ = models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig) // boundary value not asserted due to timing uncertainty
 
 	// 1 second past boundary - should be unhealthy
 	gatewayStatus.CheckinTime = uint64(time.Now().Add(-201 * time.Second).UnixMilli())
@@ -186,12 +185,15 @@ func TestLastGatewayCheckInWasRecent_ZeroInterval(t *testing.T) {
 	}
 
 	// with interval=0, grace period is also 0
-	// just verify it doesn't panic
-	_ = models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig)
+	// gateway should be considered unhealthy even with current timestamp
+	// because time.Now().Before(checkinTime.Add(0)) is false when time has elapsed
+	assert.False(t, models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig),
+		"with zero interval, gateway should be unhealthy even with current timestamp")
 }
 
 // TestLastGatewayCheckInWasRecent_ExtendedGracePeriod tests the extended grace period
-// Issue #15725: to reduce status fluctuation, grace factor was increased from 5 to 10
+// Issue #15725: the grace factor was increased from 5 to 10 and the metrics threshold
+// was aligned from 300s to 600s to eliminate status fluctuation caused by inconsistent thresholds.
 // With default 60s interval, grace period is now 10 * 60 = 600s
 func TestLastGatewayCheckInWasRecent_ExtendedGracePeriod(t *testing.T) {
 	// use nil config to test with default interval (60s)
