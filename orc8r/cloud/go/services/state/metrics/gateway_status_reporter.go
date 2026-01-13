@@ -86,7 +86,9 @@ func reportGatewayStatus() error {
 				continue
 			}
 			// Check if last check-in was too long ago
-			if (time.Now().Unix() - int64(status.CheckinTime)/1000) > metricsGracePeriodSeconds {
+			// Use >= to match the API behavior in conversion.go which uses time.Now().Before()
+			// At the exact boundary, both API and metrics should report unhealthy
+			if (time.Now().Unix() - int64(status.CheckinTime)/1000) >= metricsGracePeriodSeconds {
 				gwCheckinStatus.WithLabelValues(networkID, gatewayID).Set(0)
 			} else {
 				gwCheckinStatus.WithLabelValues(networkID, gatewayID).Set(1)

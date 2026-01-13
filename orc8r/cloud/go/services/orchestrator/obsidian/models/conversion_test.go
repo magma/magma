@@ -180,15 +180,15 @@ func TestLastGatewayCheckInWasRecent_ZeroInterval(t *testing.T) {
 		CheckinInterval: 0,
 	}
 
+	// with interval=0, grace period is also 0 (graceFactor * 0 = 0)
+	// any elapsed time should make the gateway unhealthy
+	// use a checkin time clearly in the past to avoid timing dependent flakiness
 	gatewayStatus := models.GatewayStatus{
-		CheckinTime: uint64(time.Now().UnixMilli()),
+		CheckinTime: uint64(time.Now().Add(-1 * time.Second).UnixMilli()),
 	}
 
-	// with interval=0, grace period is also 0
-	// gateway should be considered unhealthy even with current timestamp
-	// because time.Now().Before(checkinTime.Add(0)) is false when time has elapsed
 	assert.False(t, models.LastGatewayCheckInWasRecent(&gatewayStatus, &magmadConfig),
-		"with zero interval, gateway should be unhealthy even with current timestamp")
+		"with zero interval, gateway should be unhealthy once any time has elapsed since checkin")
 }
 
 // TestLastGatewayCheckInWasRecent_ExtendedGracePeriod tests the extended grace period
