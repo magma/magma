@@ -106,7 +106,7 @@ def cpp_repositories():
 
     http_archive(
         name = "liblfds",
-        urls = ["https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.zip"],
+        urls = ["https://web.archive.org/web/20211022085046/https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.zip"],
         sha256 = "1b1938db2c6928cd8668087effcf4a1211585d24310ab2a82fe446442473c1c4",
         build_file = "//bazel/external:liblfds.BUILD",
     )
