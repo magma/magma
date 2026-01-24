@@ -1,12 +1,12 @@
 ---
 id: deploy_install
-title: Install Orchestrator
+title: Install Orchestrator on AWS
 hide_title: true
 ---
 
-# Install Orchestrator
+# Install Orchestrator on AWS
 
-This page walks through a full, vanilla Orchestrator install.
+This page walks through a full, vanilla Orchestrator install on AWS.
 
 If you want to install a specific release version, see the notes in the
 [deployment intro](./deploy_intro.md).

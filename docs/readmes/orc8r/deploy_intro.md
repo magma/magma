@@ -10,7 +10,9 @@ This section walks through installing a production Orchestrator deployment.
 
 We assume you will use the versioned artifacts provided by the project's official artifactory at [linuxfoundation.jfrog.io](https://linuxfoundation.jfrog.io/). If you would like to build and host your own artifacts, see the [Build Orchestrator](./dev_build.md) page.
 
-To deploy orc8r, see the [Manual installation](./deploy_install.md) page.
+To deploy orc8r on AWS, see the [AWS Deployment](./deploy_install.md) page.
+
+To deploy orc8r on Bare Metal or a standard Linux VM, see the [Ansible Deployment](./deploy_using_ansible.md) page.
 
 ## Prerequisites
 
@@ -24,9 +26,10 @@ Before deployment, it may be useful to read through the [Magma prerequisites](..
 
 Familiarity with the following is assumed
 
-- AWS
 - Kubernetes
-- Terraform
+- AWS (if deploying on AWS)
+- Terraform (if deploying on AWS)
+- Ansible (if deploying on Bare Metal)
 
 The instructions in this section have been tested on macOS and Linux. If you are deploying from a Windows host, some shell commands will likely require adjustments.
 
