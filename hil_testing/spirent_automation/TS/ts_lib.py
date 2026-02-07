@@ -434,7 +434,7 @@ class TSBase(object):
                         else:
                             not_enriched += 1
                     except Exception as e:
-                        logging.error(f"pcap parsing faild: {e}")
+                        logging.error(f"pcap parsing failed: {e}")
 
                 enriched_pct = enriched / (enriched + not_enriched)
                 logging.info(
