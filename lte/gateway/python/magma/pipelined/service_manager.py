@@ -304,7 +304,7 @@ class ServiceManager:
     CONNTRACK_SERVICE_NAME = 'conntrack'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
     RYU_REST_APP_NAME = 'ryu_rest_app'
-    STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
+    STARTUP_FLOWS_RECEIVER_CONTROLLER = 'startup_flows'
     CHECK_QUOTA_SERVICE_NAME = 'check_quota'
     LI_MIRROR_SERVICE_NAME = 'li_mirror'
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
@@ -418,7 +418,7 @@ class ServiceManager:
                 order_priority=0,
             ),
         ],
-        STARTUP_FLOWS_RECIEVER_CONTROLLER: [
+        STARTUP_FLOWS_RECEIVER_CONTROLLER: [
             App(
                 name=StartupFlows.APP_NAME,
                 module=StartupFlows.__module__,
