@@ -754,7 +754,7 @@ void log_flush_message(struct shared_log_queue_item_s* item_p) {
       if (g_oai_log.log_fd) {
         rv_put = fputs((const char*)item_p->bstr->data, g_oai_log.log_fd);
         if (rv_put < 0) {
-          // error occured
+          // error occurred
           OAI_FPRINTF_ERR("Error while writing log %d\n", rv_put);
           rv = fclose(g_oai_log.log_fd);
           if (rv != 0) {

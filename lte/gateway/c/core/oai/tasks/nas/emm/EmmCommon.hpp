@@ -65,7 +65,7 @@ Description Defines callback functions executed within EMM common procedures
  * procedure has been initiated by the ongoing EMM procedure.
  * - The EMM common procedure successfully completed
  * - The EMM common procedure failed or is rejected
- * - Lower layer failure occured before the EMM common procedure completion
+ * - Lower layer failure occurred before the EMM common procedure completion
  */
 typedef status_code_e (*emm_common_success_callback_t)(void*);
 typedef status_code_e (*emm_common_reject_callback_t)(void*);

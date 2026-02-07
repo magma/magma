@@ -162,7 +162,7 @@ static status_code_e security_request(nas_emm_smc_proc_t* const smc_proc);
  **             rity mode control procedure fails or is    **
  **             rejected                                   **
  **      failure:   Callback function executed whener a lower  **
- **             layer failure occured before the security  **
+ **             layer failure occurred before the security  **
  **             mode control procedure completes          **
  **      Others:    None                                       **
  **                                                                        **

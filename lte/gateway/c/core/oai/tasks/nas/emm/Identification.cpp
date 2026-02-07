@@ -110,7 +110,7 @@ static status_code_e identification_request(nas_emm_ident_proc_t* const proc);
  **      reject:    Callback function executed when the identi-    **
  **             fication procedure fails or is rejected            **
  **      failure:   Callback function executed whener a lower      **
- **             layer failure occured before the identifi-         **
+ **             layer failure occurred before the identifi-         **
  **             cation procedure completes                         **
  **      Others:    None                                           **
  **                                                                **

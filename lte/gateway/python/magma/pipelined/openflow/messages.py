@@ -88,7 +88,7 @@ class MsgReply(object):
 
     def ok(self) -> bool:
         """
-        Return true if no exception occured
+        Return true if no exception occurred
         """
         return self._exception is None
 
@@ -123,7 +123,7 @@ class MessageHub(object):
     MessageHub can send flow modifications and and returns a channel
     to synchronously wait for any results (in the same vein as a Go channel).
     It does this by sending messages and barrier requests and responding with
-    any errors that occured before the barrier response. The app can call
+    any errors that occurred before the barrier response. The app can call
     `send` to send any message synchronously and wait for the result.
 
     IMPORTANT: To use the message hub, the app that contains it must call

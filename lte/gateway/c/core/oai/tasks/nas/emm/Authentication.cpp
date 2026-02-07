@@ -147,7 +147,7 @@ static void nas_itti_auth_info_req(const mme_ue_s1ap_id_t ue_idP,
  **      reject:    Callback function executed when the authen-            **
  **             tication procedure fails or is rejected                    **
  **      failure:   Callback function executed whener a lower              **
- **             layer failure occured before the authenti-                 **
+ **             layer failure occurred before the authenti-                 **
  **             cation procedure comnpletes                                **
  **      Others:    None                                                   **
  **                                                                        **
