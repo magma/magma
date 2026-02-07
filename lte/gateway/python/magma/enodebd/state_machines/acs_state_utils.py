@@ -117,7 +117,7 @@ def _get_param_values_by_path(
 ) -> Dict[str, Any]:
     if not hasattr(inform, 'ParameterList') or \
             not hasattr(inform.ParameterList, 'ParameterValueStruct'):
-        raise ConfigurationError('Did not receive ParamterList in Inform')
+        raise ConfigurationError('Did not receive ParameterList in Inform')
     param_values_by_path = {}
     for param_value in inform.ParameterList.ParameterValueStruct:
         path = param_value.Name
