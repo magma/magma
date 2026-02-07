@@ -477,7 +477,7 @@ static int esm_sap_recv(int msg_type, unsigned int ue_id, bool is_standalone,
            */
           is_discarded = true;
         } else {
-          increment_counter("ue_pdn_connection", 1, 1, "result", "sucessful");
+          increment_counter("ue_pdn_connection", 1, 1, "result", "successful");
         }
         break;
 
