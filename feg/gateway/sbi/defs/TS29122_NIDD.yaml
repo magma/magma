@@ -398,7 +398,7 @@ paths:
               $ref: '#/components/schemas/NiddDownlinkDataTransfer'
       responses:
         '200':
-          description: The pending NIDD downlink data is replaced sucessfully but delivery is pending.
+          description: The pending NIDD downlink data is replaced successfully but delivery is pending.
           content:
             application/json:
               schema:
