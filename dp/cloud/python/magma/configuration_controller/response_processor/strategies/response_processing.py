@@ -55,7 +55,7 @@ def unregister_cbsd_on_response_condition(process_response_func) -> Callable:
     """
     def process_response_wrapper(obj: ResponseDBProcessor, response: DBResponse, session: Session) -> None:
         if response.response_code in {ResponseCodes.DEREGISTER.value, ResponseCodes.INVALID_VALUE.value}:
-            logger.info(f'SAS {response.payload} implies CBSD immedaite unregistration')
+            logger.info(f'SAS {response.payload} implies CBSD immediate unregistration')
             _unregister_cbsd(response, session)
             return
         process_response_func(obj, response, session)
