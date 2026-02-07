@@ -92,7 +92,7 @@ extern "C" {
  **              3GPP TS 24.301, section 5.6.3.2                           **
  **      Upon receiving an UPLINK NAS TRANSPORT message, the MME shall  **
  **      send the available imsi,imeisv,ue time zone,                   **
- **      mobilestationclassmark2,tai,ecgi and recieved nas message      **
+ **      mobilestationclassmark2,tai,ecgi and received nas message      **
  **      container(SMS) to MSC/VLR.                                        **
  **                                                                        **
  ** Inputs:  ue_id:      UE lower layer identifier                  **

@@ -1693,7 +1693,7 @@ int emm_send_emm_information(const emm_as_data_t* msg,
  ** Description: Builds Downlink Nas Transport message                     **
  **                                                                        **
  **              The Downlink Nas Transport message is sent by the         **
- **              network to the UE to transfer the SMS recieved from MSC   **
+ **              network to the UE to transfer the SMS received from MSC   **
  **              This function is used to send DL NAS Transport message    **
  **              via S1AP DL NAS Transport message.                        **
  **                                                                        **

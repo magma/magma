@@ -99,7 +99,7 @@ status_code_e mme_app_send_s6a_update_location_req(
   /*
    * Check if we already have UE data
    * set the skip subscriber data flag as true in case we are sending ULR
-   * against recieved HSS Reset
+   * against received HSS Reset
    */
   if (ue_context_p->location_info_confirmed_in_hss == true) {
     s6a_ulr_p->skip_subscriber_data = 1;

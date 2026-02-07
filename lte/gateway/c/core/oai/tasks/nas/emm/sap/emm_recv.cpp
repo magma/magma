@@ -432,7 +432,7 @@ status_code_e emm_recv_attach_request(
   params->decode_status = *decode_status;
 
   /*
-   * Send the mobile station classmark2 information in recieved in Attach
+   * Send the mobile station classmark2 information in received in Attach
    * request This will be required for SMS and SGS service request procedure
    */
   MobileStationClassmark2 mob_stsn_clsMark2 = {0};
@@ -802,7 +802,7 @@ status_code_e emm_recv_service_request(
     service_type = PARENT_STRUCT(emm_ctx, struct ue_mm_context_s, emm_context)
                        ->sgs_context->csfb_service_type;
     /*
-     * if service request is recieved for either MO SMS or PS data,
+     * if service request is received for either MO SMS or PS data,
      * and if neaf flag is true then send the itti message to SGS
      * For triggering SGS ue activity indication message towards MSC.
      */

@@ -1034,7 +1034,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         local_f_teid_ng = request.local_f_teid
 
-        # PDR is deleted with ActiveRules or DelActive rules recieved
+        # PDR is deleted with ActiveRules or DelActive rules received
         if pdr_entry.pdr_state == PdrState.Value('REMOVE'):
             qos_enforce_rule = pdr_entry.del_qos_enforce_rule
             if qos_enforce_rule.ip_addr:

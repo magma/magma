@@ -647,7 +647,7 @@ status_code_e mme_app_handle_sgs_imsi_detach_ack(
     }
     /*
      * Send the S1AP NAS DL DATA REQ in case of IMSI or combined EPS/IMSI detach
-     * once the SGS IMSI Detach Ack recieved from SGS task.
+     * once the SGS IMSI Detach Ack received from SGS task.
      */
     if ((ue_context_p->sgs_detach_type ==
          SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||

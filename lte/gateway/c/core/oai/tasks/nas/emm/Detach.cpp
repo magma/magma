@@ -380,7 +380,7 @@ status_code_e emm_proc_detach_request(mme_ue_s1ap_id_t ue_id,
     increment_counter("ue_detach", 1, 1, "action", "detach_accept_sent");
     detach_success_event(emm_ctx->_imsi64, "detach_accept_sent");
     /*
-     * If Detach request is recieved for IMSI only then don't trigger session
+     * If Detach request is received for IMSI only then don't trigger session
      * release and don't clear emm context return from here
      */
     if (params->type == EMM_DETACH_TYPE_IMSI) {

@@ -171,7 +171,7 @@ status_code_e emm_proc_extended_service_request(
       ue_id);
 
   /*
-   * if CSFB Response is recieved for MT CSFB as accepted by ue,
+   * if CSFB Response is received for MT CSFB as accepted by ue,
    * and if neaf flag is true then send the itti message to SGS
    * For triggering SGS ue activity indication message towards MSC.
    * In case of Csfb as rejected by ue ,then SGS paging reject shall be sent.

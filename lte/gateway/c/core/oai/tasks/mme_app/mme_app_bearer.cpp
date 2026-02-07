@@ -325,14 +325,14 @@ void mme_app_handle_conn_est_cnf(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   emm_context_p = &ue_context_p->emm_context;
-  /* Check that if Service Request is recieved in response to SGS Paging for MT
+  /* Check that if Service Request is received in response to SGS Paging for MT
    * SMS */
   if (ue_context_p->sgs_context) {
     /*
      * Move the UE to ECM Connected State.
      */
     /*
-     * Check that if SGS paging is recieved without LAI then
+     * Check that if SGS paging is received without LAI then
      * send IMSI Detach towads UE to re-attach for non-eps services
      * otherwise send itti SGS Service request message to SGS
      */
@@ -3829,7 +3829,7 @@ void mme_app_handle_path_switch_request(
       (ue_network_capability.eia !=
        ue_context_p->emm_context._ue_network_capability.eia)) {
     /* clear ue security capabilities and store security capabilities
-     * recieved in PATH_SWITCH REQUEST */
+     * received in PATH_SWITCH REQUEST */
     emm_ctx_clear_ue_nw_cap(&ue_context_p->emm_context);
     emm_ctx_set_valid_ue_nw_cap(&ue_context_p->emm_context,
                                 &ue_network_capability);

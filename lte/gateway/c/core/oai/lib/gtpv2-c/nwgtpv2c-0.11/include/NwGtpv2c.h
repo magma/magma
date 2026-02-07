@@ -167,9 +167,9 @@ typedef enum nw_gtpv2c_ulp_api_type_e {
 
   NW_GTPV2C_ULP_API_INITIAL_REQ_IND,   /**< Receive a initial message from stack
                                         */
-  NW_GTPV2C_ULP_API_TRIGGERED_RSP_IND, /**< Recieve a triggered rsp message from
+  NW_GTPV2C_ULP_API_TRIGGERED_RSP_IND, /**< Receive a triggered rsp message from
                                           stack */
-  NW_GTPV2C_ULP_API_TRIGGERED_REQ_IND, /**< Recieve a triggered req message from
+  NW_GTPV2C_ULP_API_TRIGGERED_REQ_IND, /**< Receive a triggered req message from
                                           stack */
   NW_GTPV2C_ULP_API_TRIGGERED_ACK_IND, /**< Receive a triggered ACK from stack
                                         */

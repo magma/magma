@@ -369,7 +369,7 @@ status_code_e emm_proc_tracking_area_update_request(
     }
   }
   /*
-   * Store the mobile station classmark2 information recieved in Tracking Area
+   * Store the mobile station classmark2 information received in Tracking Area
    * Update request This wil be required for SMS and SGS service request
    * procedure
    */

@@ -701,7 +701,7 @@ status_code_e nas_proc_sgs_release_req(
   }
   /*
    * As per spec 29.118 section 5.11.4
-   * Check the SGS cause recieved in SGS Release Request
+   * Check the SGS cause received in SGS Release Request
    * if sgs cause is "IMSI unknown" or "IMSI detached for non-EPS services"
    * set the "VLR-Reliable" MM context variable to "false"
    * MME requests the UE to re-attach for non-EPS services
