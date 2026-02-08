@@ -460,6 +460,147 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         # Then
         self.assertEqual(expected_avail_freq, cbsd.available_frequencies)
 
+    @responses.activate
+    def test_grant_not_deleted_on_non_success_relinquishment_response(self):
+        """
+        Test that when a relinquishment response has a non-success code,
+        the grant is updated (not deleted) and remains in the database.
+        This tests the previously untested code path in process_relinquishment_response.
+        """
+        # Given
+        requests_fixtures = [_fake_requests_map[RELINQUISHMENT_REQ][0]]
+        db_requests = self._create_db_requests(RELINQUISHMENT_REQ, requests_fixtures)
+
+        # Create a pre-existing grant that should NOT be deleted on failure
+        grant_id = db_requests[0].payload.get('grantId')
+        grant = DBGrant(
+            cbsd=db_requests[0].cbsd,
+            state_id=1,
+            grant_id=grant_id,
+            low_frequency=3560000000,
+            high_frequency=3580000000,
+            max_eirp=15,
+        )
+        self.session.add(grant)
+        self.session.commit()
+
+        # Use a non-success response code (e.g., MISSING_PARAM = 102)
+        response = self._prepare_response_from_db_requests(
+            db_requests=db_requests,
+            response_code=ResponseCodes.MISSING_PARAM.value,
+        )
+
+        # When
+        self._process_response(
+            request_type_name=RELINQUISHMENT_REQ,
+            response=response,
+            db_requests=db_requests,
+        )
+
+        # Then - grant should still exist (not deleted)
+        remaining_grants = self.session.query(DBGrant).all()
+        self.assertEqual(1, len(remaining_grants))
+        self.assertEqual(grant_id, remaining_grants[0].grant_id)
+
+    @responses.activate
+    def test_grant_updated_with_response_fields_on_non_success_relinquishment(self):
+        """
+        Test that when a relinquishment response has a non-success code,
+        the grant is updated with any fields present in the response payload
+        (grantExpireTime, heartbeatInterval, transmitExpireTime, channelType).
+        """
+        # Given
+        requests_fixtures = [_fake_requests_map[RELINQUISHMENT_REQ][0]]
+        db_requests = self._create_db_requests(RELINQUISHMENT_REQ, requests_fixtures)
+
+        grant_id = db_requests[0].payload.get('grantId')
+        grant = DBGrant(
+            cbsd=db_requests[0].cbsd,
+            state_id=1,
+            grant_id=grant_id,
+            low_frequency=3560000000,
+            high_frequency=3580000000,
+            max_eirp=15,
+            heartbeat_interval=None,
+            grant_expire_time=None,
+        )
+        self.session.add(grant)
+        self.session.commit()
+
+        expected_heartbeat_interval = 120
+        expected_grant_expire_time = "2025-12-31T23:59:59Z"
+        expected_transmit_expire_time = "2025-12-30T23:59:59Z"
+        expected_channel_type = "GAA"
+
+        extra_fields = {
+            "heartbeatInterval": expected_heartbeat_interval,
+            "grantExpireTime": expected_grant_expire_time,
+            "transmitExpireTime": expected_transmit_expire_time,
+            "channelType": expected_channel_type,
+        }
+
+        response = self._prepare_response_from_db_requests_with_extra_fields(
+            db_requests=db_requests,
+            response_code=ResponseCodes.MISSING_PARAM.value,
+            extra_response_fields=extra_fields,
+        )
+
+        # When
+        self._process_response(
+            request_type_name=RELINQUISHMENT_REQ,
+            response=response,
+            db_requests=db_requests,
+        )
+
+        # Then - grant should be updated with the response fields
+        updated_grant = self.session.query(DBGrant).filter(DBGrant.grant_id == grant_id).first()
+        self.assertIsNotNone(updated_grant)
+        self.assertEqual(expected_heartbeat_interval, updated_grant.heartbeat_interval)
+        self.assertEqual(expected_grant_expire_time, updated_grant.grant_expire_time)
+        self.assertEqual(expected_transmit_expire_time, updated_grant.transmit_expire_time)
+        self.assertEqual(expected_channel_type, updated_grant.channel_type)
+
+    @responses.activate
+    def test_non_success_relinquishment_handles_missing_grant_gracefully(self):
+        """
+        Test that when a relinquishment response has a non-success code
+        and no grant exists, the code handles this gracefully without errors.
+        """
+        # Given - create request but NO grant
+        requests_fixtures = [_fake_requests_map[RELINQUISHMENT_REQ][0]]
+        db_requests = self._create_db_requests(RELINQUISHMENT_REQ, requests_fixtures)
+
+        # Ensure no grant exists
+        self.assertEqual(0, self.session.query(DBGrant).count())
+
+        # Use a non-success response code
+        response = self._prepare_response_from_db_requests(
+            db_requests=db_requests,
+            response_code=ResponseCodes.MISSING_PARAM.value,
+        )
+
+        # When - should not raise an exception
+        self._process_response(
+            request_type_name=RELINQUISHMENT_REQ,
+            response=response,
+            db_requests=db_requests,
+        )
+
+        # Then - no grants should exist (and no error occurred)
+        self.assertEqual(0, self.session.query(DBGrant).count())
+
+    def _prepare_response_from_db_requests_with_extra_fields(
+            self, db_requests, response_code, extra_response_fields,
+    ):
+        req_type = db_requests[0].type.name
+        response_payload = self._create_response_payload_from_db_requests(
+            response_type_name=request_response[req_type],
+            db_requests=db_requests,
+            sas_response_code=response_code,
+            extra_response_fields=extra_response_fields,
+        )
+        return self._prepare_response_from_payload(response_payload)
+
     def _process_response(self, request_type_name, response, db_requests):
         processor = self._get_response_processor(request_type_name)
 
@@ -591,7 +732,7 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
         return db_requests
 
     @staticmethod
-    def _create_response_payload_from_db_requests(response_type_name, db_requests, sas_response_code=0, sas_response_data=None):
+    def _create_response_payload_from_db_requests(response_type_name, db_requests, sas_response_code=0, sas_response_data=None, extra_response_fields=None):
         response_payload = {response_type_name: []}
         for i, db_request in enumerate(db_requests):
             response_json = {
@@ -610,6 +751,11 @@ class DefaultResponseDBProcessorTestCase(LocalDBTestCase):
                 response_json[GRANT_ID] = db_request.payload.get(GRANT_ID)
             elif response_type_name == request_response[GRANT_REQ]:
                 response_json[GRANT_ID] = f'test_grant_id_for_{db_request.cbsd_id}'
+
+            # Add any extra fields to the response (e.g., grantExpireTime, heartbeatInterval)
+            if extra_response_fields:
+                response_json.update(extra_response_fields)
+
             response_payload[response_type_name].append(response_json)
 
         return response_payload
