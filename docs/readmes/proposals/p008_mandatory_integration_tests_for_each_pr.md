@@ -1,5 +1,5 @@
 ---
-id: p006_mandatory_integration_tests_for_each_PR.md
+id: p006_mandatory_integration_tests_for_each_pr.md
 title: Enable integration tests as a mandatory check required to merge any PR
 hide_title: true
 ---
