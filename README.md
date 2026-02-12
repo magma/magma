@@ -66,6 +66,7 @@ Responsible disclosures from independent researchers are gratefully accepted. Se
 
 We appreciate very much the valuable disclosures (and often fixes) from the following security researchers:
 
+- Barak Haryati (JFrog), who shared validation details for a high severity issue, as well as a a proof of concept and a pull request
 - Nathaniel Bennett (University of Florida). The contributions by Mr. Bennett required deep knowledge of code, networking, security, and Magma. We're grateful.
 - Yilu Dong, Tianchang Yang, Abdullah Al Ishtiaq, Syed Md Mukit Rashid, Ali Ranjbar, Kai Tu, Tianwei Wu, Md Sultan Mahmud, Syed Rafiul Hussain (The Pennsylvania State University)
 - Guarang Maheta
