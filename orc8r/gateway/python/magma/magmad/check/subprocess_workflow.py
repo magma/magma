@@ -53,8 +53,7 @@ def exec_and_parse_subprocesses(params, arg_list_func, result_parser_func):
     return _parse_results(params, outputs, result_parser_func)
 
 
-@asyncio.coroutine
-def exec_and_parse_subprocesses_async(
+async def exec_and_parse_subprocesses_async(
     params, arg_list_func, result_parser_func,
     loop=None,
 ):
@@ -78,8 +77,8 @@ def exec_and_parse_subprocesses_async(
             stderr=asyncio.subprocess.PIPE,
         ) for param in params
     ]
-    subprocs = yield from asyncio.gather(*futures)
-    outputs = yield from asyncio.gather(
+    subprocs = await asyncio.gather(*futures)
+    outputs = await asyncio.gather(
         *[subproc.communicate() for subproc in subprocs],
     )
     return _parse_results(params, outputs, result_parser_func)
