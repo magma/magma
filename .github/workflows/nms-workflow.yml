@@ -35,7 +35,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
@@ -62,7 +62,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-typescript job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: "${{ github.workspace }}/nms"
@@ -94,7 +94,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-eslint job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -135,7 +135,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-yarn-test job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -165,7 +165,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: nms-e2e-test job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       NMS_ROOT: "${{ github.workspace }}/nms"
