@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostLTENetworkIDNetworkProbeDestinationsReader is a Reader for the PostLTENetworkIDNetworkProbeDestinations structure.
@@ -47,7 +46,8 @@ func NewPostLTENetworkIDNetworkProbeDestinationsCreated() *PostLTENetworkIDNetwo
 	return &PostLTENetworkIDNetworkProbeDestinationsCreated{}
 }
 
-/*PostLTENetworkIDNetworkProbeDestinationsCreated handles this case with default header values.
+/*
+PostLTENetworkIDNetworkProbeDestinationsCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPostLTENetworkIDNetworkProbeDestinationsDefault(code int) *PostLTENetwor
 	}
 }
 
-/*PostLTENetworkIDNetworkProbeDestinationsDefault handles this case with default header values.
+/*
+PostLTENetworkIDNetworkProbeDestinationsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PostLTENetworkIDNetworkProbeDestinationsDefault) Code() int {
 func (o *PostLTENetworkIDNetworkProbeDestinationsDefault) Error() string {
 	return fmt.Sprintf("[POST /lte/{network_id}/network_probe/destinations][%d] PostLTENetworkIDNetworkProbeDestinations default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostLTENetworkIDNetworkProbeDestinationsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

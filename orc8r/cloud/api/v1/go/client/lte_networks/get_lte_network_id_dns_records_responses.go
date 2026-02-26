@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDDNSRecordsReader is a Reader for the GetLTENetworkIDDNSRecords structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDDNSRecordsOK() *GetLTENetworkIDDNSRecordsOK {
 	return &GetLTENetworkIDDNSRecordsOK{}
 }
 
-/*GetLTENetworkIDDNSRecordsOK handles this case with default header values.
+/*
+GetLTENetworkIDDNSRecordsOK describes a response with status code 200, with default header values.
 
 Custom DNS records for the network
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDDNSRecordsOK struct {
 func (o *GetLTENetworkIDDNSRecordsOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/dns/records][%d] getLteNetworkIdDnsRecordsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDDNSRecordsOK) GetPayload() []*models.DNSConfigRecord {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetLTENetworkIDDNSRecordsDefault(code int) *GetLTENetworkIDDNSRecordsDef
 	}
 }
 
-/*GetLTENetworkIDDNSRecordsDefault handles this case with default header values.
+/*
+GetLTENetworkIDDNSRecordsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetLTENetworkIDDNSRecordsDefault) Code() int {
 func (o *GetLTENetworkIDDNSRecordsDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/dns/records][%d] GetLTENetworkIDDNSRecords default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDDNSRecordsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

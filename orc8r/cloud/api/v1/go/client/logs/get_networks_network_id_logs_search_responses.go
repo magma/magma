@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDLogsSearchReader is a Reader for the GetNetworksNetworkIDLogsSearch structure.
@@ -47,7 +46,8 @@ func NewGetNetworksNetworkIDLogsSearchOK() *GetNetworksNetworkIDLogsSearchOK {
 	return &GetNetworksNetworkIDLogsSearchOK{}
 }
 
-/*GetNetworksNetworkIDLogsSearchOK handles this case with default header values.
+/*
+GetNetworksNetworkIDLogsSearchOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -58,7 +58,6 @@ type GetNetworksNetworkIDLogsSearchOK struct {
 func (o *GetNetworksNetworkIDLogsSearchOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/logs/search][%d] getNetworksNetworkIdLogsSearchOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDLogsSearchOK) GetPayload() []*models.ElasticHit {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetNetworksNetworkIDLogsSearchDefault(code int) *GetNetworksNetworkIDLog
 	}
 }
 
-/*GetNetworksNetworkIDLogsSearchDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDLogsSearchDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetNetworksNetworkIDLogsSearchDefault) Code() int {
 func (o *GetNetworksNetworkIDLogsSearchDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/logs/search][%d] GetNetworksNetworkIDLogsSearch default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDLogsSearchDefault) GetPayload() *models.Error {
 	return o.Payload
 }

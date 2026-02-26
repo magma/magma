@@ -6,22 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PingRequest ping request
+//
 // swagger:model ping_request
 type PingRequest struct {
 
 	// hosts
+	// Example: ["example.com"]
 	// Required: true
 	Hosts []string `json:"hosts"`
 
 	// packets
+	// Example: 4
 	// Minimum: 1
 	Packets int32 `json:"packets,omitempty"`
 }
@@ -54,7 +58,6 @@ func (m *PingRequest) validateHosts(formats strfmt.Registry) error {
 }
 
 func (m *PingRequest) validatePackets(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Packets) { // not required
 		return nil
 	}
@@ -63,6 +66,11 @@ func (m *PingRequest) validatePackets(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this ping request based on context it is used
+func (m *PingRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

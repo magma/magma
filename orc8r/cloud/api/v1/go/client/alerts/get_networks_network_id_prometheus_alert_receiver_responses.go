@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDPrometheusAlertReceiverReader is a Reader for the GetNetworksNetworkIDPrometheusAlertReceiver structure.
@@ -47,7 +46,8 @@ func NewGetNetworksNetworkIDPrometheusAlertReceiverOK() *GetNetworksNetworkIDPro
 	return &GetNetworksNetworkIDPrometheusAlertReceiverOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertReceiverOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusAlertReceiverOK describes a response with status code 200, with default header values.
 
 List of alert receivers
 */
@@ -58,7 +58,6 @@ type GetNetworksNetworkIDPrometheusAlertReceiverOK struct {
 func (o *GetNetworksNetworkIDPrometheusAlertReceiverOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/prometheus/alert_receiver][%d] getNetworksNetworkIdPrometheusAlertReceiverOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPrometheusAlertReceiverOK) GetPayload() []*models.AlertReceiverConfig {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetNetworksNetworkIDPrometheusAlertReceiverDefault(code int) *GetNetwork
 	}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertReceiverDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusAlertReceiverDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetNetworksNetworkIDPrometheusAlertReceiverDefault) Code() int {
 func (o *GetNetworksNetworkIDPrometheusAlertReceiverDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/prometheus/alert_receiver][%d] GetNetworksNetworkIDPrometheusAlertReceiver default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPrometheusAlertReceiverDefault) GetPayload() *models.Error {
 	return o.Payload
 }

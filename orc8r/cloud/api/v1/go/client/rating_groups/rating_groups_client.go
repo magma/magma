@@ -7,12 +7,11 @@ package rating_groups
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new rating groups API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,33 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteNetworksNetworkIDRatingGroupsRatingGroupID(params *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDRatingGroupsRatingGroupIDNoContent, error)
+
+	GetNetworksNetworkIDRatingGroups(params *GetNetworksNetworkIDRatingGroupsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDRatingGroupsOK, error)
+
+	GetNetworksNetworkIDRatingGroupsRatingGroupID(params *GetNetworksNetworkIDRatingGroupsRatingGroupIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDRatingGroupsRatingGroupIDOK, error)
+
+	PostNetworksNetworkIDRatingGroups(params *PostNetworksNetworkIDRatingGroupsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDRatingGroupsCreated, error)
+
+	PutNetworksNetworkIDRatingGroupsRatingGroupID(params *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
 DeleteNetworksNetworkIDRatingGroupsRatingGroupID deletes a rating group
 */
-func (a *Client) DeleteNetworksNetworkIDRatingGroupsRatingGroupID(params *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams) (*DeleteNetworksNetworkIDRatingGroupsRatingGroupIDNoContent, error) {
+func (a *Client) DeleteNetworksNetworkIDRatingGroupsRatingGroupID(params *DeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteNetworksNetworkIDRatingGroupsRatingGroupIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteNetworksNetworkIDRatingGroupsRatingGroupIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteNetworksNetworkIDRatingGroupsRatingGroupID",
 		Method:             "DELETE",
 		PathPattern:        "/networks/{network_id}/rating_groups/{rating_group_id}",
@@ -42,9 +58,15 @@ func (a *Client) DeleteNetworksNetworkIDRatingGroupsRatingGroupID(params *Delete
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteNetworksNetworkIDRatingGroupsRatingGroupIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -60,13 +82,12 @@ func (a *Client) DeleteNetworksNetworkIDRatingGroupsRatingGroupID(params *Delete
 /*
 GetNetworksNetworkIDRatingGroups lists rating groups
 */
-func (a *Client) GetNetworksNetworkIDRatingGroups(params *GetNetworksNetworkIDRatingGroupsParams) (*GetNetworksNetworkIDRatingGroupsOK, error) {
+func (a *Client) GetNetworksNetworkIDRatingGroups(params *GetNetworksNetworkIDRatingGroupsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDRatingGroupsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDRatingGroupsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDRatingGroups",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/rating_groups",
@@ -75,9 +96,15 @@ func (a *Client) GetNetworksNetworkIDRatingGroups(params *GetNetworksNetworkIDRa
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDRatingGroupsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -93,13 +120,12 @@ func (a *Client) GetNetworksNetworkIDRatingGroups(params *GetNetworksNetworkIDRa
 /*
 GetNetworksNetworkIDRatingGroupsRatingGroupID gets rating group
 */
-func (a *Client) GetNetworksNetworkIDRatingGroupsRatingGroupID(params *GetNetworksNetworkIDRatingGroupsRatingGroupIDParams) (*GetNetworksNetworkIDRatingGroupsRatingGroupIDOK, error) {
+func (a *Client) GetNetworksNetworkIDRatingGroupsRatingGroupID(params *GetNetworksNetworkIDRatingGroupsRatingGroupIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetNetworksNetworkIDRatingGroupsRatingGroupIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetNetworksNetworkIDRatingGroupsRatingGroupIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetNetworksNetworkIDRatingGroupsRatingGroupID",
 		Method:             "GET",
 		PathPattern:        "/networks/{network_id}/rating_groups/{rating_group_id}",
@@ -108,9 +134,15 @@ func (a *Client) GetNetworksNetworkIDRatingGroupsRatingGroupID(params *GetNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetNetworksNetworkIDRatingGroupsRatingGroupIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -126,13 +158,12 @@ func (a *Client) GetNetworksNetworkIDRatingGroupsRatingGroupID(params *GetNetwor
 /*
 PostNetworksNetworkIDRatingGroups adds a new rating group
 */
-func (a *Client) PostNetworksNetworkIDRatingGroups(params *PostNetworksNetworkIDRatingGroupsParams) (*PostNetworksNetworkIDRatingGroupsCreated, error) {
+func (a *Client) PostNetworksNetworkIDRatingGroups(params *PostNetworksNetworkIDRatingGroupsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostNetworksNetworkIDRatingGroupsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostNetworksNetworkIDRatingGroupsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostNetworksNetworkIDRatingGroups",
 		Method:             "POST",
 		PathPattern:        "/networks/{network_id}/rating_groups",
@@ -141,9 +172,15 @@ func (a *Client) PostNetworksNetworkIDRatingGroups(params *PostNetworksNetworkID
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostNetworksNetworkIDRatingGroupsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -159,13 +196,12 @@ func (a *Client) PostNetworksNetworkIDRatingGroups(params *PostNetworksNetworkID
 /*
 PutNetworksNetworkIDRatingGroupsRatingGroupID modifies a rating group
 */
-func (a *Client) PutNetworksNetworkIDRatingGroupsRatingGroupID(params *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams) (*PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent, error) {
+func (a *Client) PutNetworksNetworkIDRatingGroupsRatingGroupID(params *PutNetworksNetworkIDRatingGroupsRatingGroupIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutNetworksNetworkIDRatingGroupsRatingGroupIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutNetworksNetworkIDRatingGroupsRatingGroupID",
 		Method:             "PUT",
 		PathPattern:        "/networks/{network_id}/rating_groups/{rating_group_id}",
@@ -174,9 +210,15 @@ func (a *Client) PutNetworksNetworkIDRatingGroupsRatingGroupID(params *PutNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutNetworksNetworkIDRatingGroupsRatingGroupIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

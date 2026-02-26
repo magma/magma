@@ -7,12 +7,11 @@ package federation_gateways
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new federation gateways API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,43 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDGatewaysGatewayIDNoContent, error)
+
+	DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent, error)
+
+	GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDGatewaysOK, error)
+
+	GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDGatewaysGatewayIDOK, error)
+
+	GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDGatewaysGatewayIDFederationOK, error)
+
+	GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDGatewaysGatewayIDHealthStatusOK, error)
+
+	PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegNetworkIDGatewaysCreated, error)
+
+	PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegNetworkIDGatewaysGatewayIDFederationCreated, error)
+
+	PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDGatewaysGatewayIDNoContent, error)
+
+	PutFegNetworkIDGatewaysGatewayIDFederation(params *PutFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDGatewaysGatewayIDFederationOK, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
 DeleteFegNetworkIDGatewaysGatewayID deletes a federation gateway
 */
-func (a *Client) DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDGatewaysGatewayIDParams) (*DeleteFegNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegNetworkIDGatewaysGatewayID",
 		Method:             "DELETE",
 		PathPattern:        "/feg/{network_id}/gateways/{gateway_id}",
@@ -42,9 +68,15 @@ func (a *Client) DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDG
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -60,13 +92,12 @@ func (a *Client) DeleteFegNetworkIDGatewaysGatewayID(params *DeleteFegNetworkIDG
 /*
 DeleteFegNetworkIDGatewaysGatewayIDFederation deletes gateway federation configs
 */
-func (a *Client) DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFegNetworkIDGatewaysGatewayIDFederationParams) (*DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent, error) {
+func (a *Client) DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteFegNetworkIDGatewaysGatewayIDFederationNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteFegNetworkIDGatewaysGatewayIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteFegNetworkIDGatewaysGatewayIDFederation",
 		Method:             "DELETE",
 		PathPattern:        "/feg/{network_id}/gateways/{gateway_id}/federation",
@@ -75,9 +106,15 @@ func (a *Client) DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFeg
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteFegNetworkIDGatewaysGatewayIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -91,15 +128,14 @@ func (a *Client) DeleteFegNetworkIDGatewaysGatewayIDFederation(params *DeleteFeg
 }
 
 /*
-GetFegNetworkIDGateways lists all federation gateways for a federation network
+GetFegNetworkIDGateways lists all gateways for a federation network
 */
-func (a *Client) GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams) (*GetFegNetworkIDGatewaysOK, error) {
+func (a *Client) GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDGatewaysOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDGateways",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/gateways",
@@ -108,9 +144,15 @@ func (a *Client) GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -126,13 +168,12 @@ func (a *Client) GetFegNetworkIDGateways(params *GetFegNetworkIDGatewaysParams) 
 /*
 GetFegNetworkIDGatewaysGatewayID gets a specific federation gateway
 */
-func (a *Client) GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGatewaysGatewayIDParams) (*GetFegNetworkIDGatewaysGatewayIDOK, error) {
+func (a *Client) GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDGatewaysGatewayIDOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDGatewaysGatewayID",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/gateways/{gateway_id}",
@@ -141,9 +182,15 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGateway
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -159,13 +206,12 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayID(params *GetFegNetworkIDGateway
 /*
 GetFegNetworkIDGatewaysGatewayIDFederation retrieves gateway federation configs
 */
-func (a *Client) GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetworkIDGatewaysGatewayIDFederationParams) (*GetFegNetworkIDGatewaysGatewayIDFederationOK, error) {
+func (a *Client) GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDGatewaysGatewayIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDGatewaysGatewayIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDGatewaysGatewayIDFederation",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/gateways/{gateway_id}/federation",
@@ -174,9 +220,15 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDGatewaysGatewayIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -192,13 +244,12 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayIDFederation(params *GetFegNetwor
 /*
 GetFegNetworkIDGatewaysGatewayIDHealthStatus retrieves health status of a federation gateway
 */
-func (a *Client) GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams) (*GetFegNetworkIDGatewaysGatewayIDHealthStatusOK, error) {
+func (a *Client) GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetworkIDGatewaysGatewayIDHealthStatusParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetFegNetworkIDGatewaysGatewayIDHealthStatusOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetFegNetworkIDGatewaysGatewayIDHealthStatusParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetFegNetworkIDGatewaysGatewayIDHealthStatus",
 		Method:             "GET",
 		PathPattern:        "/feg/{network_id}/gateways/{gateway_id}/health_status",
@@ -207,9 +258,15 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetFegNetworkIDGatewaysGatewayIDHealthStatusReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -225,13 +282,12 @@ func (a *Client) GetFegNetworkIDGatewaysGatewayIDHealthStatus(params *GetFegNetw
 /*
 PostFegNetworkIDGateways registers a new federation gateway
 */
-func (a *Client) PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams) (*PostFegNetworkIDGatewaysCreated, error) {
+func (a *Client) PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegNetworkIDGatewaysCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegNetworkIDGatewaysParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostFegNetworkIDGateways",
 		Method:             "POST",
 		PathPattern:        "/feg/{network_id}/gateways",
@@ -240,9 +296,15 @@ func (a *Client) PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegNetworkIDGatewaysReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -258,13 +320,12 @@ func (a *Client) PostFegNetworkIDGateways(params *PostFegNetworkIDGatewaysParams
 /*
 PostFegNetworkIDGatewaysGatewayIDFederation creates gateway federation configs
 */
-func (a *Client) PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetworkIDGatewaysGatewayIDFederationParams) (*PostFegNetworkIDGatewaysGatewayIDFederationCreated, error) {
+func (a *Client) PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostFegNetworkIDGatewaysGatewayIDFederationCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostFegNetworkIDGatewaysGatewayIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostFegNetworkIDGatewaysGatewayIDFederation",
 		Method:             "POST",
 		PathPattern:        "/feg/{network_id}/gateways/{gateway_id}/federation",
@@ -273,9 +334,15 @@ func (a *Client) PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetw
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostFegNetworkIDGatewaysGatewayIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -291,13 +358,12 @@ func (a *Client) PostFegNetworkIDGatewaysGatewayIDFederation(params *PostFegNetw
 /*
 PutFegNetworkIDGatewaysGatewayID updates an entire federation gateway record
 */
-func (a *Client) PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGatewaysGatewayIDParams) (*PutFegNetworkIDGatewaysGatewayIDNoContent, error) {
+func (a *Client) PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGatewaysGatewayIDParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDGatewaysGatewayIDNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDGatewaysGatewayIDParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegNetworkIDGatewaysGatewayID",
 		Method:             "PUT",
 		PathPattern:        "/feg/{network_id}/gateways/{gateway_id}",
@@ -306,9 +372,15 @@ func (a *Client) PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGateway
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDGatewaysGatewayIDReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -324,13 +396,12 @@ func (a *Client) PutFegNetworkIDGatewaysGatewayID(params *PutFegNetworkIDGateway
 /*
 PutFegNetworkIDGatewaysGatewayIDFederation modifies gateway federation configs
 */
-func (a *Client) PutFegNetworkIDGatewaysGatewayIDFederation(params *PutFegNetworkIDGatewaysGatewayIDFederationParams) (*PutFegNetworkIDGatewaysGatewayIDFederationOK, error) {
+func (a *Client) PutFegNetworkIDGatewaysGatewayIDFederation(params *PutFegNetworkIDGatewaysGatewayIDFederationParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutFegNetworkIDGatewaysGatewayIDFederationOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutFegNetworkIDGatewaysGatewayIDFederationParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutFegNetworkIDGatewaysGatewayIDFederation",
 		Method:             "PUT",
 		PathPattern:        "/feg/{network_id}/gateways/{gateway_id}/federation",
@@ -339,9 +410,15 @@ func (a *Client) PutFegNetworkIDGatewaysGatewayIDFederation(params *PutFegNetwor
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutFegNetworkIDGatewaysGatewayIDFederationReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

@@ -6,16 +6,17 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"strconv"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // AlertRoutingTree alert routing tree
+//
 // swagger:model alert_routing_tree
 type AlertRoutingTree struct {
 
@@ -32,10 +33,10 @@ type AlertRoutingTree struct {
 	GroupWait string `json:"group_wait,omitempty"`
 
 	// match
-	Match *AlertRoutingTreeMatch `json:"match,omitempty"`
+	Match map[string]string `json:"match,omitempty"`
 
 	// match re
-	MatchRe *AlertRoutingTreeMatchRe `json:"match_re,omitempty"`
+	MatchRe map[string]string `json:"match_re,omitempty"`
 
 	// receiver
 	// Required: true
@@ -52,14 +53,6 @@ type AlertRoutingTree struct {
 func (m *AlertRoutingTree) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := m.validateMatch(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateMatchRe(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateReceiver(formats); err != nil {
 		res = append(res, err)
 	}
@@ -74,42 +67,6 @@ func (m *AlertRoutingTree) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *AlertRoutingTree) validateMatch(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Match) { // not required
-		return nil
-	}
-
-	if m.Match != nil {
-		if err := m.Match.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("match")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *AlertRoutingTree) validateMatchRe(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.MatchRe) { // not required
-		return nil
-	}
-
-	if m.MatchRe != nil {
-		if err := m.MatchRe.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("match_re")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
 func (m *AlertRoutingTree) validateReceiver(formats strfmt.Registry) error {
 
 	if err := validate.Required("receiver", "body", m.Receiver); err != nil {
@@ -120,7 +77,6 @@ func (m *AlertRoutingTree) validateReceiver(formats strfmt.Registry) error {
 }
 
 func (m *AlertRoutingTree) validateRoutes(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Routes) { // not required
 		return nil
 	}
@@ -134,6 +90,42 @@ func (m *AlertRoutingTree) validateRoutes(formats strfmt.Registry) error {
 			if err := m.Routes[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("routes" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("routes" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// ContextValidate validate this alert routing tree based on the context it is used
+func (m *AlertRoutingTree) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
+	var res []error
+
+	if err := m.contextValidateRoutes(ctx, formats); err != nil {
+		res = append(res, err)
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
+func (m *AlertRoutingTree) contextValidateRoutes(ctx context.Context, formats strfmt.Registry) error {
+
+	for i := 0; i < len(m.Routes); i++ {
+
+		if m.Routes[i] != nil {
+			if err := m.Routes[i].ContextValidate(ctx, formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("routes" + "." + strconv.Itoa(i))
+				} else if ce, ok := err.(*errors.CompositeError); ok {
+					return ce.ValidateName("routes" + "." + strconv.Itoa(i))
 				}
 				return err
 			}
@@ -155,74 +147,6 @@ func (m *AlertRoutingTree) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *AlertRoutingTree) UnmarshalBinary(b []byte) error {
 	var res AlertRoutingTree
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// AlertRoutingTreeMatch alert routing tree match
-// swagger:model AlertRoutingTreeMatch
-type AlertRoutingTreeMatch struct {
-
-	// label
-	Label string `json:"label,omitempty"`
-
-	// value
-	Value string `json:"value,omitempty"`
-}
-
-// Validate validates this alert routing tree match
-func (m *AlertRoutingTreeMatch) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *AlertRoutingTreeMatch) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *AlertRoutingTreeMatch) UnmarshalBinary(b []byte) error {
-	var res AlertRoutingTreeMatch
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// AlertRoutingTreeMatchRe alert routing tree match re
-// swagger:model AlertRoutingTreeMatchRe
-type AlertRoutingTreeMatchRe struct {
-
-	// label
-	Label string `json:"label,omitempty"`
-
-	// value
-	Value string `json:"value,omitempty"`
-}
-
-// Validate validates this alert routing tree match re
-func (m *AlertRoutingTreeMatchRe) Validate(formats strfmt.Registry) error {
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *AlertRoutingTreeMatchRe) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *AlertRoutingTreeMatchRe) UnmarshalBinary(b []byte) error {
-	var res AlertRoutingTreeMatchRe
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

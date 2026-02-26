@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteCwfNetworkIDHaPairsHaPairIDReader is a Reader for the DeleteCwfNetworkIDHaPairsHaPairID structure.
@@ -47,7 +46,8 @@ func NewDeleteCwfNetworkIDHaPairsHaPairIDNoContent() *DeleteCwfNetworkIDHaPairsH
 	return &DeleteCwfNetworkIDHaPairsHaPairIDNoContent{}
 }
 
-/*DeleteCwfNetworkIDHaPairsHaPairIDNoContent handles this case with default header values.
+/*
+DeleteCwfNetworkIDHaPairsHaPairIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteCwfNetworkIDHaPairsHaPairIDDefault(code int) *DeleteCwfNetworkIDHa
 	}
 }
 
-/*DeleteCwfNetworkIDHaPairsHaPairIDDefault handles this case with default header values.
+/*
+DeleteCwfNetworkIDHaPairsHaPairIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteCwfNetworkIDHaPairsHaPairIDDefault) Code() int {
 func (o *DeleteCwfNetworkIDHaPairsHaPairIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /cwf/{network_id}/ha_pairs/{ha_pair_id}][%d] DeleteCwfNetworkIDHaPairsHaPairID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteCwfNetworkIDHaPairsHaPairIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }
