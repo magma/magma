@@ -360,7 +360,7 @@
 
 - name: Download golang tar
   get_url:
-    url: "https://linuxfoundation.jfrog.io/artifactory/magma-blob/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    url: "https://go.dev/dl//go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
     dest: "{{ all_vars.WORK_DIR }}"
     mode: 0440
   when: preburn

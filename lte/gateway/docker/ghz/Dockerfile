@@ -25,9 +25,9 @@ RUN apt-get update && apt-get install -y \
 
 # Install golang
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.20.1"
+ARG GOLANG_VERSION="1.24.1"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
- && curl https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} --remote-name --location \
+ && curl https://go.dev/dl//${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && ln -s /usr/local/go/bin/go /usr/local/bin/go \
  && rm ${GO_TARBALL}
@@ -51,9 +51,9 @@ RUN apt-get update && apt-get install -y \
 
 # Install golang
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.20.1"
+ARG GOLANG_VERSION="1.24.1"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
- && curl https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} --remote-name --location \
+ && curl https://go.dev/dl//${GO_TARBALL} --remote-name --location \
  && tar -xzf ${GO_TARBALL} \
  && ln -s /usr/local/go/bin/go /usr/local/bin/go \
  && rm ${GO_TARBALL}

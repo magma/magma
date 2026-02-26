@@ -33,7 +33,7 @@
     - role: ovs
     - role: golang
       vars:
-        golang_tar: go1.20.1.linux-amd64.tar.gz
+        golang_tar: go1.24.1.linux-amd64.tar.gz
         golang_tar_checksum: 'sha256:000a5b1fca4f75895f78befeb2eecf10bfff3c428597f3f1e69133b63b911b02'
 #    - role: cwag
 

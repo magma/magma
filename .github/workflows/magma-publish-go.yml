@@ -20,7 +20,7 @@ on:
     inputs:
       version:
         description: Version to upload?
-        default: 1.20.1
+        default: 1.24.1
         required: true
 
 env:
