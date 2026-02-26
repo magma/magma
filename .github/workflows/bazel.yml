@@ -13,6 +13,7 @@
 # purpose: Unit testing and packaging the AGW with Bazel. Starlark format checking.
 # remediation: https://magma.github.io/magma/docs/next/bazel/agw_with_bazel
 
+
 name: AGW Build, Format & Test Bazel
 on:
   # yamllint disable-line rule:truthy
@@ -322,6 +323,14 @@ jobs:
 
             if [[ "${TEST_FAILED}" == "true" ]];
             then
+              echo "=================================="
+              echo "COLLECTING TEST LOGS FOR DEBUGGING"
+              echo "=================================="
+
+              # Show specific failed test logs
+              find bazel-testlogs/ -name "test.log" -type f -exec echo "=== {} ===" \; -exec cat {} \; 2>/dev/null || echo "No test logs found"
+
+              echo "=================================="
               echo "ERROR: 'bazel test' failed!"
               exit 1
             fi
@@ -342,6 +351,10 @@ jobs:
         with:
           name: Bazel unit-test results ${{ matrix.bazel-config }}
           path: lte/gateway/test_results/merged_unit_test_reports.xml
+      - name: Ensure pip is installed
+        run: |
+          python3 -m ensurepip --upgrade || sudo apt-get update && sudo apt-get install -y python3-pip
+          python3 -m pip install --upgrade pip
       - name: Publish Bazel unit-test results ${{ matrix.bazel-config }}
         if: always()
         uses: EnricoMi/publish-unit-test-result-action/composite@46ab8d49369d898e381a607119161771bc65c2a6 # pin@v2.2.0
@@ -767,6 +780,10 @@ jobs:
     name: Check if there are not bazelified python files
     runs-on: ubuntu-20.04
     steps:
+      - name: Check user
+        shell: bash
+        run: |
+          id
       - name: Check Out Repo
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - name: Execute check

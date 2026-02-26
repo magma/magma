@@ -71,6 +71,8 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
+      GOMODCACHE: ${{ github.workspace }}/.cache/go-mod
+      GOCACHE: ${{ github.workspace }}/.cache/go-build
       GO111MODULE: 'on'
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -83,6 +85,10 @@ jobs:
         run: |
           cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
           ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
+      - name: Clean up build context
+        if: always()
+        run: |
+          rm -rf /tmp/magma_orc8r_build
       - name: Lint cloud Go code
         if: always()
         id: cloud-lint-lint
