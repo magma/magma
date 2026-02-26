@@ -141,7 +141,7 @@ registered with the Orchestrator. At this time, NMS support for FeG
 registration is still in-progress.
 
 To register the FeG, go to the Orchestrator's Swagger UI in your browser.
-(i.e. <https://controller.url.sample:9443/swagger/v1/ui/>).
+(i.e. https://controller.url.sample:9443/swagger/v1/ui/).
 
 Now, create a Federation Network. This is found at `/feg` under the
 **Federation Networks** section. If you have not registered any gateways before, you

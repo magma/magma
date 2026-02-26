@@ -1,144 +1,144 @@
 {
-  "version-1.4.X-docs": {
+  "version_1_4_X_docs": {
     "Basics": [
-      "version-1.4.X-basics/introduction",
-      "version-1.4.X-basics/prerequisites",
-      "version-1.4.X-basics/quick_start_guide"
+      "basics/version-1.4.X-introduction",
+      "basics/version-1.4.X-prerequisites",
+      "basics/version-1.4.X-quick_start_guide"
     ],
     "Orchestrator": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Architecture",
-        "ids": [
-          "version-1.4.X-orc8r/architecture_overview",
-          "version-1.4.X-orc8r/architecture_modularity",
-          "version-1.4.X-orc8r/architecture_security"
+        "items": [
+          "orc8r/version-1.4.X-architecture_overview",
+          "orc8r/version-1.4.X-architecture_modularity",
+          "orc8r/version-1.4.X-architecture_security"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploy Orchestrator",
-        "ids": [
-          "version-1.4.X-orc8r/deploy_intro",
-          "version-1.4.X-orc8r/deploy_build",
-          "version-1.4.X-orc8r/deploy_install",
-          "version-1.4.X-orc8r/deploy_faq"
+        "items": [
+          "orc8r/version-1.4.X-deploy_intro",
+          "orc8r/version-1.4.X-deploy_build",
+          "orc8r/version-1.4.X-deploy_install",
+          "orc8r/version-1.4.X-deploy_faq"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Upgrade Orchestrator",
-        "ids": [
-          "version-1.4.X-orc8r/upgrade_intro",
-          "version-1.4.X-orc8r/upgrade_1_4",
-          "version-1.4.X-orc8r/upgrade_1_3",
-          "version-1.4.X-orc8r/upgrade_1_2",
-          "version-1.4.X-orc8r/upgrade_1_1"
+        "items": [
+          "orc8r/version-1.4.X-upgrade_intro",
+          "orc8r/version-1.4.X-upgrade_1_4",
+          "orc8r/version-1.4.X-upgrade_1_3",
+          "orc8r/version-1.4.X-upgrade_1_2",
+          "orc8r/version-1.4.X-upgrade_1_1"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Development",
-        "ids": [
-          "version-1.4.X-orc8r/dev_security",
-          "version-1.4.X-orc8r/dev_testing_tips",
-          "version-1.4.X-orc8r/dev_minikube_deployment"
+        "items": [
+          "orc8r/version-1.4.X-dev_security",
+          "orc8r/version-1.4.X-dev_testing_tips",
+          "orc8r/version-1.4.X-dev_minikube_deployment"
         ]
       }
     ],
     "NMS": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS Usage",
-        "ids": [
-          "version-1.4.X-nms/setup",
-          "version-1.4.X-nms/overview",
-          "version-1.4.X-nms/dashboard",
-          "version-1.4.X-nms/equipment",
-          "version-1.4.X-nms/network",
-          "version-1.4.X-nms/subscriber",
-          "version-1.4.X-nms/traffic",
-          "version-1.4.X-nms/metrics",
-          "version-1.4.X-nms/alerts",
-          "version-1.4.X-nms/tips_and_tricks"
+        "items": [
+          "nms/version-1.4.X-setup",
+          "nms/version-1.4.X-overview",
+          "nms/version-1.4.X-dashboard",
+          "nms/version-1.4.X-equipment",
+          "nms/version-1.4.X-network",
+          "nms/version-1.4.X-subscriber",
+          "nms/version-1.4.X-traffic",
+          "nms/version-1.4.X-metrics",
+          "nms/version-1.4.X-alerts",
+          "nms/version-1.4.X-tips_and_tricks"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS Development",
-        "ids": [
-          "version-1.4.X-nms/developer"
+        "items": [
+          "nms/version-1.4.X-developer"
         ]
       }
     ],
     "Access Gateway": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploy AGWs",
-        "ids": [
-          "version-1.4.X-lte/setup_deb",
-          "version-1.4.X-lte/config_agw",
-          "version-1.4.X-lte/enodebd",
-          "version-1.4.X-lte/config_apn",
-          "version-1.4.X-lte/ha_setup",
-          "version-1.4.X-lte/agw_140_upgrade",
-          "version-1.4.X-lte/agw_130_upgrade",
-          "version-1.4.X-lte/agw_120_upgrade",
-          "version-1.4.X-lte/agw_110_upgrade"
+        "items": [
+          "lte/version-1.4.X-setup_deb",
+          "lte/version-1.4.X-config_agw",
+          "lte/version-1.4.X-enodebd",
+          "lte/version-1.4.X-config_apn",
+          "lte/version-1.4.X-ha_setup",
+          "lte/version-1.4.X-agw_140_upgrade",
+          "lte/version-1.4.X-agw_130_upgrade",
+          "lte/version-1.4.X-agw_120_upgrade",
+          "lte/version-1.4.X-agw_110_upgrade"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "AGW Development",
-        "ids": [
-          "version-1.4.X-lte/tr069",
-          "version-1.4.X-lte/s1ap_tests",
-          "version-1.4.X-lte/dev_notes",
-          "version-1.4.X-lte/eventd"
+        "items": [
+          "lte/version-1.4.X-tr069",
+          "lte/version-1.4.X-s1ap_tests",
+          "lte/version-1.4.X-dev_notes",
+          "lte/version-1.4.X-eventd"
         ]
       }
     ],
     "Feature Guides": [
-      "version-1.4.X-howtos/ue_metering",
-      "version-1.4.X-howtos/config_agw_bridged",
-      "version-1.4.X-howtos/thanos",
-      "version-1.4.X-howtos/call_tracing",
-      "version-1.4.X-howtos/events_monitoring",
-      "version-1.4.X-howtos/header_enrichment.md"
+      "howtos/version-1.4.X-ue_metering",
+      "howtos/version-1.4.X-config_agw_bridged",
+      "howtos/version-1.4.X-thanos",
+      "howtos/version-1.4.X-call_tracing",
+      "howtos/version-1.4.X-events_monitoring",
+      "howtos/version-1.4.X-he_api"
     ],
     "Debugging Tools": [
-      "version-1.4.X-debugging_tools/show_tech"
+      "debugging_tools/version-1.4.X-show_tech"
     ],
     "Federation Gateway": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploy FeG",
-        "ids": [
-          "version-1.4.X-feg/deploy_intro",
-          "version-1.4.X-feg/deploy_build",
-          "version-1.4.X-feg/deploy_install",
-          "version-1.4.X-feg/federated_FWA_setup_guide"
+        "items": [
+          "feg/version-1.4.X-deploy_intro",
+          "feg/version-1.4.X-deploy_build",
+          "feg/version-1.4.X-deploy_install",
+          "feg/version-1.4.X-federated_FWA_setup_guide"
         ]
       }
     ],
     "Contribute": [
-      "version-1.4.X-contributing/contribute_onboarding",
-      "version-1.4.X-contributing/contribute_workflow",
-      "version-1.4.X-contributing/contribute_conventions",
-      "version-1.4.X-contributing/contribute_codeowners"
+      "contributing/version-1.4.X-contribute_onboarding",
+      "contributing/version-1.4.X-contribute_workflow",
+      "contributing/version-1.4.X-contribute_conventions",
+      "contributing/version-1.4.X-contribute_codeowners"
     ],
     "FAQ": [
-      "version-1.4.X-faq/faq_magma"
+      "faq/version-1.4.X-faq_magma"
     ],
     "Proposals": [
-      "version-1.4.X-proposals/p001_vpn_config_from_api",
-      "version-1.4.X-proposals/p002_scaled_prometheus_pipeline",
-      "version-1.4.X-proposals/p003_qos_enforcement",
-      "version-1.4.X-proposals/p004_fua_restrict_feature",
-      "version-1.4.X-proposals/p005_call_tracing",
-      "version-1.4.X-proposals/p007_header_enrichment",
-      "version-1.4.X-proposals/p008_apn_correction",
-      "version-1.4.X-proposals/p009_nms_mariadb_migration"
+      "proposals/version-1.4.X-p001_vpn_config_from_api",
+      "proposals/version-1.4.X-p002_scaled_prometheus_pipeline",
+      "proposals/version-1.4.X-p003_qos_enforcement",
+      "proposals/version-1.4.X-p004_fua_restrict_feature",
+      "proposals/version-1.4.X-p005_call_tracing",
+      "proposals/version-1.4.X-p007_header_enrichment",
+      "proposals/version-1.4.X-p008_apn_correction",
+      "proposals/version-1.4.X-p009_nms_mariadb_migration"
     ]
   }
 }

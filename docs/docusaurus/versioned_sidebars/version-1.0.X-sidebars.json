@@ -1,44 +1,39 @@
 {
-  "version-1.0.X-docs": {
+  "version_1_0_X_docs": {
     "Basics": [
-      "version-1.0.X-basics/introduction",
-      "version-1.0.X-basics/prerequisites",
-      "version-1.0.X-basics/quick_start_guide"
+      "basics/version-1.0.X-introduction",
+      "basics/version-1.0.X-prerequisites",
+      "basics/version-1.0.X-quick_start_guide"
     ],
     "Orchestrator": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploying Orchestrator",
-        "ids": [
-          "version-1.0.X-orc8r/deploy_intro",
-          "version-1.0.X-orc8r/deploy_build",
-          "version-1.0.X-orc8r/deploy_terraform",
-          "version-1.0.X-orc8r/deploy_install",
-          "version-1.0.X-orc8r/deploy_dns"
+        "items": [
+          "orc8r/version-1.0.X-deploy_intro",
+          "orc8r/version-1.0.X-deploy_build",
+          "orc8r/version-1.0.X-deploy_terraform",
+          "orc8r/version-v1.0.X-deploy_install",
+          "orc8r/version-1.0.X-deploy_dns"
         ]
       }
     ],
     "Access Gateway": [
-      "version-1.0.X-lte/setup_deb",
-      "version-1.0.X-lte/config_agw",
-      "version-1.0.X-lte/enodebd",
-      "version-1.0.X-lte/tr069"
+      "lte/version-1.0.X-setup_deb",
+      "lte/version-1.0.X-config_agw",
+      "lte/version-1.0.X-enodebd",
+      "lte/version-1.0.X-tr069"
     ],
     "Federation Gateway": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Deploying FeG",
-        "ids": [
-          "version-1.0.X-feg/deploy_intro",
-          "version-1.0.X-feg/deploy_build",
-          "version-1.0.X-feg/deploy_install"
+        "items": [
+          "feg/version-1.0.X-deploy_intro",
+          "feg/version-1.0.X-deploy_build",
+          "feg/version-1.0.X-deploy_install"
         ]
       }
-    ],
-    "Symphony": [
-      "version-1.0.X-symphony/quick_start",
-      "version-1.0.X-symphony/download_requirements",
-      "version-1.0.X-symphony/building_the_symphony_agent"
     ]
   }
 }

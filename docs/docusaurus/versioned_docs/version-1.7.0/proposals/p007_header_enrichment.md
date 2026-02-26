@@ -94,7 +94,7 @@ following reason:
 
 #### Various components involved in header enrichment
 
-![AGW Header enrichment components](assets/he_block_diagram.png)
+![AGW Header enrichment components](../../../../readmes/assets/he_block_diagram.png)
 
 ## Datapath design
 
@@ -109,7 +109,7 @@ header enrichment policy would result in four datapath flows rather than two.
 Following diagram shows various tables involved in handling the flows. For this feature new table is added that handles
 tagging the flow so that it can be steered to correct port on egress table.
 
-![datapath for in Envoy proxy](assets/envoy-dp-pipeline.png)
+![datapath for in Envoy proxy](../../../../readmes/assets/envoy-dp-pipeline.png)
 
 ## Performance
 

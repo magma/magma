@@ -11,7 +11,7 @@ Author(s): [@amarpad]
 
 Last updated: [07/20/2021]
 
-Discussion at <https://github.com/magma/magma/issues/8196>.
+Discussion at https://github.com/magma/magma/issues/8196.
 
 ## Context & scope
 
@@ -28,11 +28,11 @@ orchestrator has been a primary goal of Magma.
 
 ## Goal
 
-- Allow enodebs to obtain spectrum leases from SAS on bring up  
+- Allow enodebs to obtain spectrum leases from SAS on bring up
 - Allow enodebs to heartbeat to the SAS and if needed the SAS can revoke the
-  grant  
-- Deregister a cbrs eNB from the SAS when it is deleted from magma  
-- Relinquish a grant if the eNB stops radiating  
+  grant
+- Deregister a cbrs eNB from the SAS when it is deleted from magma
+- Relinquish a grant if the eNB stops radiating
 
 ## Non-goals / simplifications
 
