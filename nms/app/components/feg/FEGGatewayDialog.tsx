@@ -400,7 +400,7 @@ export default function FEGGatewayDialog(props: Props) {
         value={tab}
         className={classes.tabBar}
         indicatorColor="primary"
-        onChange={(event, tab) => setTab(tab as string)}>
+        onChange={(event, tab) => setTab(tab as "general" | "gx" | "gy" | "swx" | "s6a" | "s8" | "csfb")}>
         {!editingGateway && <Tab label="General" value="general" />}
         <Tab label="Gx" value="gx" />
         <Tab label="Gy" value="gy" />

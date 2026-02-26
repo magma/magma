@@ -99,6 +99,21 @@ const currTime = Date.now();
 
 describe('<Gateway />', () => {
   beforeEach(() => {
+    HTMLCanvasElement.prototype.getContext = jest.fn().mockReturnValue({
+      getImageData: jest.fn(),
+      putImageData: jest.fn(),
+      createLinearGradient: jest.fn(),
+      createPattern: jest.fn(),
+      beginPath: jest.fn(),
+      clearRect: jest.fn(),
+      arc: jest.fn(),
+      lineTo: jest.fn(),
+      moveTo: jest.fn(),
+      closePath: jest.fn(),
+      stroke: jest.fn(),
+      fill: jest.fn(),
+      fillText: jest.fn(),
+    });
     mockAPI(
       MagmaAPI.metrics,
       'networksNetworkIdPrometheusQueryRangeGet',

@@ -28,7 +28,7 @@ build:production --define=production=1
 common --experimental_allow_tags_propagation
 
 # C/C++ CONFIGS
-build --cxxopt=-std=c++14
+build --cxxopt=-std=c++17
 # Create debug information only for magma binaries (not for external dependencies).
 # --compilation_mode=dbg would also create debug information of external dependencies 
 # and increase the size of artifacts drastically.

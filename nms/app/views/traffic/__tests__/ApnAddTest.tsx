@@ -72,16 +72,20 @@ describe('<TrafficDashboard />', () => {
   });
 
   const {location} = window;
-  beforeAll((): void => {
-    // @ts-ignore
-    delete window.location;
-    window.location = {
-      pathname: '/nms/test/traffic/apn',
-    } as Location;
+  beforeAll(() => {
+    Object.defineProperty(window, 'location', {
+      value: {
+        pathname: '/nms/test/traffic/apn',
+      },
+      writable: true,
+    });
   });
 
-  afterAll((): void => {
-    window.location = location;
+  afterAll(() => {
+    Object.defineProperty(window, 'location', {
+      value: location,
+      writable: true,
+    });
   });
 
   const ApnWrapper = () => (
