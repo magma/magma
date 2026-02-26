@@ -50,43 +50,46 @@ RUN echo "Install general purpose packages" && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
-        autoconf \
-        automake \
-        clang-12 \
-        clang-format-12 \
-        clang-tidy-12 \
-        clangd-12 \
-        g++-9 \
-        gcc-9 \
-        gdb \
-        lcov \
-        libclang-12-dev \
-        lldb-12 \
-        llvm-12-dev \
-        make \
-        ninja-build \
-        openjdk-8-jdk \
-        perl \
-        pkg-config \
-        python3-pip \
-        python3-venv \
-        redis-server \
-        ruby \
-        rubygems \
-        ruby-dev \
-        software-properties-common \
-        tzdata \
-        virtualenv=20.0.17-1ubuntu0.4
-RUN gem install dotenv -v 2.8.1 && \
+    autoconf \
+    automake \
+    clang-12 \
+    clang-format-12 \
+    clang-tidy-12 \
+    clangd-12 \
+    g++-9 \
+    gcc-9 \
+    gdb \
+    lcov \
+    libclang-12-dev \
+    lldb-12 \
+    llvm-12-dev \
+    make \
+    ninja-build \
+    openjdk-8-jdk \
+    perl \
+    pkg-config \
+    python3-pip \
+    python3-venv \
+    redis-server \
+    ruby \
+    rubygems \
+    ruby-dev \
+    software-properties-common \
+    tzdata \
+    virtualenv=20.0.17-1ubuntu0.4 && \
+    gem install dotenv -v 2.8.1 && \
     gem install fpm
 
-# Install golang
+# Install Golang
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.20.1"
+ARG GOLANG_VERSION="1.21.0"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
-    && curl https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} --remote-name --location \
+    && curl https://golang.org/dl/${GO_TARBALL} --remote-name --location \
     && tar -xzf ${GO_TARBALL} \
+    && ln -s /usr/local/go/bin/go /usr/local/bin/go \
+    && ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt \
     && rm ${GO_TARBALL}
+
 ENV PATH=${PATH}:/usr/local/go/bin
 
 # /home/vscode/go/bin doesn't exist initially, but for example orc8r/cloud/go/Makefile
@@ -97,37 +100,37 @@ RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
     echo "Install FMT lib requirements" && \
     apt-get -y install --no-install-recommends \
-        libunwind8-dev \
-        libelf-dev \
-        libdwarf-dev \
-        bzip2 && \
+    libunwind8-dev \
+    libelf-dev \
+    libdwarf-dev \
+    bzip2 && \
     echo "Install Folly requirements" && \
     apt-get -y install --no-install-recommends \
-        liblz4-dev \
-        liblzma-dev \
-        libsnappy-dev \
-        binutils-dev \
-        libjemalloc-dev \
-        pkg-config \
-        libunwind-dev && \
+    liblz4-dev \
+    liblzma-dev \
+    libsnappy-dev \
+    binutils-dev \
+    libjemalloc-dev \
+    pkg-config \
+    libunwind-dev && \
     echo "Install check for test support" && \
     apt-get -y install --no-install-recommends \
-        check && \
+    check && \
     echo "Install gtest for test support" && \
     apt-get -y install --no-install-recommends \
-        libgtest-dev && \
+    libgtest-dev && \
     echo "Install Nettle requirements" && \
     apt-get -y install --no-install-recommends \
-        libxml2-dev \
-        libyaml-cpp-dev \
-        nlohmann-json3-dev && \
+    libxml2-dev \
+    libyaml-cpp-dev \
+    nlohmann-json3-dev && \
     echo "GRPC and it's dependencies" && \
     apt-get -y install --no-install-recommends \
-        grpc-dev \
-        libprotobuf-dev \
-        libprotoc-dev \
-        protobuf-compiler \
-        prometheus-cpp-dev
+    grpc-dev \
+    libprotobuf-dev \
+    libprotoc-dev \
+    protobuf-compiler \
+    prometheus-cpp-dev
 
 ##### Useful for logfile modification e.g. pruning all /magma/... prefix from GCC warning logs
 RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd && \
@@ -135,9 +138,9 @@ RUN GOBIN="/usr/bin/" go install github.com/ezekg/xo@0f7f076932dd && \
 
 # install magma dependencies
 RUN apt-get install -y --no-install-recommends \
-        libtins-dev \
-        magma-cpp-redis \
-        python3-aioeventlet
+    libtins-dev \
+    magma-cpp-redis \
+    python3-aioeventlet
 
 ##### libgtpnl
 # review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
