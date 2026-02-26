@@ -24,7 +24,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer/index"
@@ -33,11 +33,11 @@ import (
 )
 
 type stateServicer struct {
-	factory blobstore.StoreFactory
+	factory JsonStore.StoreFactory
 }
 
 // NewStateServicer returns a state server backed by storage passed in.
-func NewStateServicer(factory blobstore.StoreFactory) (protos.StateServiceServer, error) {
+func NewStateServicer(factory JsonStore.StoreFactory) (protos.StateServiceServer, error) {
 	if factory == nil {
 		return nil, errors.New("storage factory is nil")
 	}
@@ -64,23 +64,23 @@ func (srv *stateServicer) ReportStates(ctx context.Context, req *protos.ReportSt
 	certExpiry := protos.GetClientCertExpiration(ctx)
 	timeMs := uint64(clock.Now().UnixNano()) / uint64(time.Millisecond)
 
-	states, err := addWrapperAndMakeBlobs(req.States, hwID, timeMs, certExpiry)
+	states, err := addWrapperAndMakeJsons(req.States, hwID, timeMs, certExpiry)
 	if err != nil {
-		return nil, state.InternalErr(err, "ReportStates convert to blobs")
+		return nil, state.InternalErr(err, "ReportStates convert to Jsons")
 	}
 
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, state.InternalErr(err, "ReportStates blobstore start transaction")
+		return nil, state.InternalErr(err, "ReportStates Jsonstore start transaction")
 	}
 	err = store.Write(networkID, states)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, state.InternalErr(err, "ReportStates blobstore create or update")
+		return nil, state.InternalErr(err, "ReportStates Jsonstore create or update")
 	}
 	err = store.Commit()
 	if err != nil {
-		return nil, state.InternalErr(err, "ReportStates blobstore commit transaction")
+		return nil, state.InternalErr(err, "ReportStates Jsonstore commit transaction")
 	}
 
 	byID, err := state_types.MakeSerializedStatesByID(req.States)
@@ -124,16 +124,16 @@ func (srv *stateServicer) DeleteStates(ctx context.Context, req *protos.DeleteSt
 
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, state.InternalErr(err, "DeleteStates blobstore start transaction")
+		return nil, state.InternalErr(err, "DeleteStates Jsonstore start transaction")
 	}
 	err = store.Delete(networkID, ids)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, state.InternalErr(err, "DeleteStates blobstore delete")
+		return nil, state.InternalErr(err, "DeleteStates Jsonstore delete")
 	}
 	err = store.Commit()
 	if err != nil {
-		return nil, state.InternalErr(err, "DeleteStates blobstore commit transaction")
+		return nil, state.InternalErr(err, "DeleteStates Jsonstore commit transaction")
 	}
 
 	return &protos.Void{}, nil
@@ -156,17 +156,17 @@ func (srv *stateServicer) SyncStates(ctx context.Context, req *protos.SyncStates
 	tkIds := state.IdAndVersionsToTKs(req.GetStates())
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, state.InternalErr(err, "SyncStates blobstore start transaction")
+		return nil, state.InternalErr(err, "SyncStates Jsonstore start transaction")
 	}
-	blobs, err := store.GetMany(networkID, tkIds)
+	jsons, err := store.GetMany(networkID, tkIds)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, state.InternalErr(err, "SyncStates blobstore get many")
+		return nil, state.InternalErr(err, "SyncStates Jsonstore get many")
 	}
-	// Pre-sort the blobstore results for faster syncing
+	// Pre-sort the jsonstore results for faster syncing
 	statesByDeviceID := map[string][]*protos.State{}
-	for _, blob := range blobs {
-		st := &protos.State{Type: blob.Type, DeviceID: blob.Key, Version: blob.Version}
+	for _, json := range jsons {
+		st := &protos.State{Type: json.Type, DeviceID: json.Key, Version: json.Version}
 		statesByDeviceID[st.DeviceID] = append(statesByDeviceID[st.DeviceID], st)
 	}
 	var unsyncedStates []*protos.IDAndVersion
@@ -183,7 +183,7 @@ func (srv *stateServicer) SyncStates(ctx context.Context, req *protos.SyncStates
 	}
 	err = store.Commit()
 	if err != nil {
-		return nil, state.InternalErr(err, "SyncStates blobstore commit transaction")
+		return nil, state.InternalErr(err, "SyncStates Jsonstore commit transaction")
 	}
 
 	return &protos.SyncStatesResponse{UnsyncedStates: unsyncedStates}, nil
@@ -192,22 +192,22 @@ func (srv *stateServicer) SyncStates(ctx context.Context, req *protos.SyncStates
 func (srv *stateServicer) getStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return nil, state.InternalErr(err, "GetStates (get) blobstore start transaction")
+		return nil, state.InternalErr(err, "GetStates (get) Jsonstore start transaction")
 	}
 
 	ids := state.IdsToTKs(req.GetIds())
-	blobs, err := store.GetMany(req.GetNetworkID(), ids)
+	jsons, err := store.GetMany(req.GetNetworkID(), ids)
 	if err != nil {
 		_ = store.Rollback()
-		return nil, state.InternalErr(err, "GetStates (get) blobstore get many")
+		return nil, state.InternalErr(err, "GetStates (get) Jsonstore get many")
 	}
 
 	err = store.Commit()
 	if err != nil {
-		return nil, state.InternalErr(err, "GetStates (get) blobstore commit transaction")
+		return nil, state.InternalErr(err, "GetStates (get) Jsonstore commit transaction")
 	}
 
-	return &protos.GetStatesResponse{States: state.BlobsToStates(blobs)}, nil
+	return &protos.GetStatesResponse{States: state.JsonsToStates(jsons)}, nil
 }
 
 func isStateSynced(deviceIdToStates map[string][]*protos.State, reqIdAndVersion *protos.IDAndVersion) (bool, uint64) {
@@ -229,7 +229,7 @@ func wrapStateWithAdditionalInfo(st *protos.State, hwID string, time uint64, cer
 	wrap := state_types.SerializedState{
 		ReporterID:              hwID,
 		TimeMs:                  time,
-		SerializedReportedState: st.Value,
+		SerializedReportedState: string(st.Value),
 	}
 	ret, err := json.Marshal(wrap)
 	if err != nil {
@@ -238,15 +238,15 @@ func wrapStateWithAdditionalInfo(st *protos.State, hwID string, time uint64, cer
 	return ret, nil
 }
 
-func addWrapperAndMakeBlobs(states []*protos.State, hwID string, timeMs uint64, certExpiry int64) (blobstore.Blobs, error) {
-	var blobs blobstore.Blobs
+func addWrapperAndMakeJsons(states []*protos.State, hwID string, timeMs uint64, certExpiry int64) (JsonStore.Jsons, error) {
+	var Jsons JsonStore.Jsons
 	for _, st := range states {
 		wrappedValue, err := wrapStateWithAdditionalInfo(st, hwID, timeMs, certExpiry)
 		if err != nil {
 			return nil, err
 		}
 		st.Value = wrappedValue
-		blobs = append(blobs, state.StateToBlob(st))
+		Jsons = append(Jsons, state.StateToJson(st))
 	}
-	return blobs, nil
+	return Jsons, nil
 }

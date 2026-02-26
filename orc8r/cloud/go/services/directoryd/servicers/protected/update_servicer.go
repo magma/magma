@@ -124,7 +124,7 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 		return ret, status.Errorf(codes.Internal, "failed to unmarshal json-encoded state proto value")
 	}
 	dr := &types.DirectoryRecord{}
-	err = dr.UnmarshalBinary(serialized.SerializedReportedState)
+	err = dr.UnmarshalBinary([]byte(serialized.SerializedReportedState))
 	if err != nil {
 		return ret, status.Errorf(codes.Internal, "failed to unmarshal DirectoryRecord: %v", err)
 	}
@@ -178,6 +178,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 			LocationHistory: dr.LocationHistory,
 			Fields:          map[string]string{},
 		}
+		fmt.Printf("this is hte record that we have received %s", pdr.String())
 		for k, iV := range dr.Identifiers {
 			if v, ok := iV.(string); ok {
 				pdr.Fields[k] = v

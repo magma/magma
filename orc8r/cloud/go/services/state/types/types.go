@@ -71,7 +71,7 @@ type IDsByNetwork map[string]IDs
 type SerializedState struct {
 	// SerializedReportedState is the actual state reported by the device,
 	// serialized.
-	SerializedReportedState []byte
+	SerializedReportedState string
 
 	// Version is the reported version of the state.
 	Version uint64
@@ -246,7 +246,7 @@ func MakeState(p *protos.State, serdes serde.Registry) (State, *protos.IDAndErro
 	}
 
 	// Recover reported state within state struct
-	st.ReportedState, err = serde.Deserialize(serialized.SerializedReportedState, p.Type, serdes)
+	st.ReportedState, err = serde.Deserialize([]byte(serialized.SerializedReportedState), p.Type, serdes)
 	if err != nil {
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil

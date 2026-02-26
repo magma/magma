@@ -186,7 +186,7 @@ func assertEqualStatus(t *testing.T, recv interface{}, sid state_types.ID) {
 	recvStates := recv.(state_types.SerializedStatesByID)
 	assert.Len(t, recvStates, 1)
 	assert.Equal(t, hwid, recvStates[sid].ReporterID)
-	actualReported, err := serde.Deserialize(recvStates[sid].SerializedReportedState, orc8r.GatewayStateType, serdes.State)
+	actualReported, err := serde.Deserialize([]byte(recvStates[sid].SerializedReportedState), orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	assert.Equal(t, reported, actualReported)
 }

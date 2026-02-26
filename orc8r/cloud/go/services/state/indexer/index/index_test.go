@@ -127,7 +127,7 @@ func serialize(t *testing.T, states state_types.StatesByID) state_types.Serializ
 		}
 		rep, err := serde.Serialize(st.ReportedState, id.Type, serdes.State)
 		assert.NoError(t, err)
-		s.SerializedReportedState = rep
+		s.SerializedReportedState = string(rep)
 		serialized[id] = s
 	}
 	return serialized
