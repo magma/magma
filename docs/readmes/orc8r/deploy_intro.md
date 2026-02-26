@@ -12,6 +12,10 @@ We assume you will use the versioned artifacts provided by the project's officia
 
 To deploy orc8r, see the [Manual installation](./deploy_install.md) page.
 
+To deploy orc8r on **Windows using WSL2**, see the [WSL2 deployment guide](./deploy_wsl2.md) page.
+
+To deploy orc8r on **Windows using WSL2**, see the [WSL2 deployment guide](./deploy_wsl2.md) page.
+
 ## Prerequisites
 
 Throughout this guide we assume the `MAGMA_ROOT` environment variable is set to the local directory where you cloned the Magma repository
