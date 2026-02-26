@@ -31,7 +31,7 @@ class EnodebdLogger:
 
     @staticmethod
     def init() -> None:
-        if logging.root.level is not logging.DEBUG:
+        if logging.root.level != logging.DEBUG:
             EnodebdLogger._LOGGER.propagate = False
         handler = RotatingFileHandler(
             LOG_FILE,
