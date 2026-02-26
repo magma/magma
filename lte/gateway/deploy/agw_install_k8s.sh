@@ -13,7 +13,7 @@
 MAGMA_USER=magma
 
 echo "Generate key for SSH access"
-ssh-keygen -f -t rsa
+ssh-keygen -t rsa -f /home/$MAGMA_USER/.ssh/id_rsa
 
 apt-get install curl zip python3-pip net-tools sudo ca-certificates gnupg lsb-release sshpass -y
 
