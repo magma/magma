@@ -29,7 +29,10 @@
 		"ryuta46.multi-command",
 		"coolchyni.beyond-debug"
 	],
-	"image": "ghcr.io/magma/magma/devcontainer:sha-84cfceb",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
 	"settings": {
 		"search.followSymlinks": false,
 		"terminal.integrated.profiles.linux": {
