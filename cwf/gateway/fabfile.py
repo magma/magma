@@ -56,7 +56,9 @@ def integ_test(
     rerun_fails="1",
 ):
     """
-    Run the integration tests. This defaults to running on local vagrant
+    Run the integration tests.
+
+    This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
     passing "address:port" as arguments
 
@@ -210,7 +212,8 @@ def transfer_artifacts(
     services="sessiond session_proxy", get_core_dump=False,
 ):
     """
-    Fetches service logs from Docker and optionally gets core dumps
+    Fetch service logs from Docker and optionally get core dumps.
+
     Args:
         c: Fabric connection
         gateway_vm: VM to fetch logs from
@@ -281,7 +284,7 @@ def _transfer_docker_images(c_cwf, skip_docker_load, tar_path):
 
 
 def _set_cwag_configs(c_vm, configfile):
-    """ Set the necessary config overrides """
+    """Set the necessary config overrides."""
     c_vm.run('sudo mkdir -p /var/opt/magma/configs')
     c_vm.run(f"sudo cp {CWAG_INTEG_ROOT}/{configfile} /var/opt/magma/configs/gateway.mconfig")
 
@@ -296,7 +299,7 @@ def _get_br_mac(c_vm, bridge_name):
 
 
 def _set_cwag_test_configs(c_test):
-    """ Set the necessary test configs """
+    """Set the necessary test configs."""
     c_test.run('sudo mkdir -p /etc/magma')
     # Create empty uesim config
     c_test.run('sudo touch /etc/magma/uesim.yml')
@@ -304,7 +307,7 @@ def _set_cwag_test_configs(c_test):
 
 
 def _start_ipfix_controller(c_test):
-    """ Start the IPFIX collector"""
+    """Start the IPFIX collector."""
     with c_test.cd("$MAGMA_ROOT"):
         c_test.run('mkdir -p records')
         c_test.run('rm -rf records/*')
@@ -323,8 +326,7 @@ def _set_cwag_test_networking(c_test, mac):
 
 
 def _add_networkhost_docker(c_cwf):
-    """ Add network host to docker engine """
-
+    """Add network host to docker engine."""
     local_host = "unix:///var/run/docker.sock"
     nw_host = "tcp://0.0.0.0:2375"
     tmp_daemon_json_fn = "/tmp/daemon.json"
@@ -351,7 +353,7 @@ def _add_networkhost_docker(c_cwf):
 
 
 def _stop_gateway(c_cwf):
-    """ Stop the gateway docker images """
+    """Stop the gateway docker images."""
     with c_cwf.cd(CWAG_ROOT + '/docker'):
         c_cwf.run(
             ' docker compose'
@@ -363,7 +365,7 @@ def _stop_gateway(c_cwf):
 
 
 def _build_gateway(c_cwf):
-    """ Builds the gateway docker images """
+    """Build the gateway docker images."""
     with c_cwf.cd(CWAG_ROOT + '/docker'):
         c_cwf.run(
             ' docker compose'
@@ -377,7 +379,7 @@ def _build_gateway(c_cwf):
 
 
 def _run_gateway(c_cwf):
-    """ Runs the gateway's docker images """
+    """Run the gateway's docker images."""
     with c_cwf.cd(CWAG_ROOT + '/docker'):
         c_cwf.run(
             ' docker compose'
@@ -392,7 +394,7 @@ def _run_gateway(c_cwf):
 def _check_docker_services(c_cwf, ignore_list):
     with c_cwf.cd(CWAG_ROOT + "/docker"):
         grep_ignore = "| grep --invert-match '" + \
-            '\\|'.join(ignore_list) + "'" if ignore_list else ""
+    	    r'\|'.join(ignore_list) + "'" if ignore_list else ""
         count = 0
         while count < 5:
             # force wait to make sure docker logs are up
@@ -414,7 +416,7 @@ def _check_docker_services(c_cwf, ignore_list):
 
 
 def _start_ue_simulator(c_test):
-    """ Starts the UE Sim Service and logs into uesim.log"""
+    """Start the UE Sim Service and log into uesim.log."""
     with c_test.cd(CWAG_ROOT + '/services/uesim/uesim'):
         c_test.run(
             env={'PATH': '$PATH:/usr/local/go/bin:/home/vagrant/go/bin'},
@@ -423,14 +425,14 @@ def _start_ue_simulator(c_test):
 
 
 def _start_trfserver(c_trf):
-    """ Starts the traffic gen server"""
+    """Start the traffic gen server."""
     trf_cmd = f'nohup iperf3 -s --json -B {TRF_SERVER_IP} > /dev/null &'
     c_trf.run('sudo apt-get install -y dtach')
     c_trf.run(f"sudo dtach -n `mktemp -u /tmp/dtach.XXXX` {trf_cmd}")
 
 
 def _run_unit_tests(c_cwf):
-    """ Run the cwag unit tests """
+    """Run the cwag unit tests."""
     with c_cwf.cd(CWAG_ROOT):
         c_cwf.run(
             'make test',
@@ -450,7 +452,7 @@ def _run_integ_tests(
     test_host, trf_host, tests_to_run: SubTests, test_re, count,
     test_result_xml, rerun_fails, c_test_vm, c_trf,
 ):
-    """ Run the integration tests """
+    """Run the integration tests."""
     # add docker host environment as well
     shell_env_vars = {
         "DOCKER_HOST": f"tcp://{CWAG_IP}:2375",
@@ -493,4 +495,6 @@ def _clean_up(c_test_vm, c_trf):
 
 
 class FabricException(Exception):
+    """Custom exception for Fabric-related errors."""
+
     pass
