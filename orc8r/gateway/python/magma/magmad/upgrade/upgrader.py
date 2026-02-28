@@ -61,8 +61,7 @@ class UpgraderFactory(object):
         raise NotImplementedError('create_upgrader must be implemented')
 
 
-@asyncio.coroutine
-def start_upgrade_loop(magmad_service, upgrader):
+async def start_upgrade_loop(magmad_service, upgrader):
     """
     Check an Upgrader implementation in a loop and upgrade if the Upgrader
     indicates that the software needs to be upgraded.

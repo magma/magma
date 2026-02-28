@@ -69,8 +69,7 @@ class GTPStatsCollector(Job):
         self._loop = service_loop
         logging.info("Running GTP stats collector...")
 
-    @asyncio.coroutine
-    def _ovsdb_dump_async(self, table: str, columns: List[str]):
+    async def _ovsdb_dump_async(self, table: str, columns: List[str]):
         """
         Execute ovsdb-client dump command asynchronously and parse stdout
         results.
