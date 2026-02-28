@@ -125,6 +125,13 @@ def _get_ping_params(config):
 
 
 async def metrics_collection_loop(service_config, loop=None):
+    """
+    Collect metrics in a loop based on the network monitor configuration.
+    
+    Args:
+        service_config (dict): Service configuration containing network monitor config
+        loop (asyncio.AbstractEventLoop, optional): Event loop to use for async operations
+    """
     if 'network_monitor_config' not in service_config:
         return
 
@@ -239,11 +246,9 @@ async def monitor_unattended_upgrade_status():
         if os.path.isfile(auto_upgrade_file_name):
             try:
                 # Use asyncio.to_thread with proper file context manager for non-blocking file operations
-                def read_file_content():
-                    with open(auto_upgrade_file_name, encoding='utf-8') as f:
-                        return f.read()
-                
-                file_content = await asyncio.to_thread(read_file_content)
+                file_content = await asyncio.to_thread(
+                    lambda: open(auto_upgrade_file_name, encoding='utf-8').read()
+                )
                 for line in file_content.splitlines():
                     package_name, flag = line.strip().strip(';').split()
                     if package_name == "APT::Periodic::Unattended-Upgrade":
@@ -271,14 +276,14 @@ async def _collect_service_metrics():
             proc = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, stderr = await proc.communicate()
-            
+
             if proc.returncode != 0:
                 logging.warning('Failed to get service metrics for %s: %s', service, stderr.decode('utf-8'))
                 continue
-                
+
             output_str = stdout.decode('utf-8').strip().replace("MainPID=", "").replace("MemoryCurrent=", "").replace("MemoryAccounting=", "").replace("MemoryLimit=", "")
             properties = output_str.split("\n")
             pid = int(properties[0])
@@ -290,13 +295,11 @@ async def _collect_service_metrics():
                 try:
                     p = psutil.Process(pid=pid)
                     cpu_percentage = p.cpu_percent(interval=1)
-                except psutil.NoSuchProcess:
-                    logging.warning("When collecting CPU usage for service %s: Process with PID %d no longer exists.", service, pid)
-                    continue
-                else:
                     SERVICE_CPU_PERCENTAGE.labels(
                         service_name=service,
                     ).set(cpu_percentage)
+                except psutil.NoSuchProcess:
+                    logging.warning("When collecting CPU usage for service %s: Process with PID %d no longer exists.", service, pid)
 
             if not memory.isnumeric():
                 continue
@@ -310,7 +313,6 @@ async def _collect_service_metrics():
                 SERVICE_MEMORY_PERCENTAGE.labels(
                     service_name=service,
                 ).set(int(memory) / int(memory_limit))
-                
         except (ValueError, IndexError) as e:
             logging.warning('Failed to parse service metrics for %s: %s', service, e)
         except Exception as e:
