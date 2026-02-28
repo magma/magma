@@ -242,8 +242,19 @@ def monitor_unattended_upgrade_status():
         status = 0
         auto_upgrade_file_name = '/etc/apt/apt.conf.d/20auto-upgrades'
         if os.path.isfile(auto_upgrade_file_name):
+<<<<<<< HEAD
             with open(auto_upgrade_file_name, encoding='utf-8') as auto_upgrade_file:
                 for line in auto_upgrade_file:
+=======
+            try:
+                # Use asyncio.to_thread with proper file context manager for non-blocking file operations
+                def read_file_content():
+                    with open(auto_upgrade_file_name, encoding='utf-8') as f:
+                        return f.read()
+                
+                file_content = await asyncio.to_thread(read_file_content)
+                for line in file_content.splitlines():
+>>>>>>> c25390e9f (fix(magmad): improve async file handling with proper context manager)
                     package_name, flag = line.strip().strip(';').split()
                     if package_name == "APT::Periodic::Unattended-Upgrade":
                         if flag == '"1"':
