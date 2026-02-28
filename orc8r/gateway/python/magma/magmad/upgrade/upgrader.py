@@ -78,7 +78,7 @@ async def start_upgrade_loop(magmad_service, upgrader):
     # even the first checkin. Delay a little bit so the device can
     # record stats/checkin/give someone an opportunity to disable
     logging.info("Waiting before checking for updates for the first time...")
-    yield from asyncio.sleep(120)
+    await asyncio.sleep(120)
 
     while True:
         logging.info('Checking for upgrade...')
@@ -100,7 +100,7 @@ async def start_upgrade_loop(magmad_service, upgrader):
                     'Error encountered while upgrading, '
                     'will try again after %s seconds', poll_interval,
                 )
-        yield from asyncio.sleep(poll_interval)
+        await asyncio.sleep(poll_interval)
 
 
 def _get_target_version(magmad_mconfig):
