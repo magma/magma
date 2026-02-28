@@ -17,7 +17,6 @@ import os
 import subprocess
 from collections import OrderedDict
 
-import aiofiles
 import psutil
 from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from magma.common.service import MagmaService
@@ -246,9 +245,14 @@ async def monitor_unattended_upgrade_status():
         auto_upgrade_file_name = '/etc/apt/apt.conf.d/20auto-upgrades'
         if os.path.isfile(auto_upgrade_file_name):
             try:
-                # Use aiofiles for asynchronous file operations
-                async with aiofiles.open(auto_upgrade_file_name, encoding='utf-8') as f:
-                    file_content = await f.read()
+                # Use asyncio.run_in_executor for proper async file operations
+                def read_file_sync():
+                    with open(auto_upgrade_file_name, encoding='utf-8') as f:
+                        return f.read()
+                
+                file_content = await asyncio.get_running_loop().run_in_executor(
+                    None, read_file_sync
+                )
                 for line in file_content.splitlines():
                     package_name, flag = line.strip().strip(';').split()
                     if package_name == "APT::Periodic::Unattended-Upgrade":
