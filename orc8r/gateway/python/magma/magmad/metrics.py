@@ -251,7 +251,7 @@ async def monitor_unattended_upgrade_status():
                         return f.read()
                 
                 file_content = await asyncio.get_running_loop().run_in_executor(
-                    None, read_file_sync
+                    None, read_file_sync,
                 )
                 for line in file_content.splitlines():
                     package_name, flag = line.strip().strip(';').split()
