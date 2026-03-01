@@ -246,8 +246,12 @@ async def monitor_unattended_upgrade_status():
         if os.path.isfile(auto_upgrade_file_name):
             try:
                 # Use asyncio.run_in_executor for proper async file operations
+                def read_file_sync():
+                    with open(auto_upgrade_file_name, encoding='utf-8') as f:
+                        return f.read()
+                
                 file_content = await asyncio.get_running_loop().run_in_executor(
-                    None, lambda: open(auto_upgrade_file_name, encoding='utf-8').read()
+                    None, read_file_sync
                 )
                 for line in file_content.splitlines():
                     package_name, flag = line.strip().strip(';').split()
