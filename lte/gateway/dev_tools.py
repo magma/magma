@@ -25,10 +25,10 @@ from tools.fab.hosts import vagrant_connection
 
 LTE_NETWORK_TYPE = 'lte'
 FEG_LTE_NETWORK_TYPE = 'feg_lte'
-NIDS_BY_TYPE = {
+NIDS_BY_TYPE = (
     LTE_NETWORK_TYPE: 'test',
     FEG_LTE_NETWORK_TYPE: 'feg_lte_test',
-}
+)
 
 FEG_FAB_PATH = '../../feg/gateway/'
 
@@ -38,6 +38,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 @task
 def register_vm(c):
+    """Register the VM with the orchestrator."""
     network_payload = LTENetwork(
         id=NIDS_BY_TYPE[LTE_NETWORK_TYPE],
         name='Test Network', description='Test Network',
@@ -75,6 +76,12 @@ def register_vm_remote(c, certs_dir, network_id, url):
     """
     Register local VM gateway with remote controller.
 
+    Args:
+        c: fabric connection
+        certs_dir: directory containing certificates
+        network_id: network identifier
+        url: orchestrator URL
+
     Example usage:
     fab register-vm-remote --certs-dir=~/certs --network-id=test --url=https://api.stable.magmaeng.org
     """
@@ -102,6 +109,7 @@ def register_vm_remote(c, certs_dir, network_id, url):
 
 @task
 def register_federated_vm(c):
+    """Register federated VM gateway."""
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     network_payload = FederatedLTENetwork(
         id=NIDS_BY_TYPE[FEG_LTE_NETWORK_TYPE],
@@ -148,37 +156,32 @@ def deregister_agw(c):
 
 @task
 def deregister_federated_agw(c):
-    """
-    Remove AGW gateway from orc8r and remove certs from FEG gateway
-    """
+    """Remove AGW gateway from orc8r and remove certs from FEG gateway."""
     dev_utils.delete_gateway_certs_from_vagrant(c, 'magma')
     _deregister_agw(c, FEG_LTE_NETWORK_TYPE)
 
 
 @task
 def register_feg_gw(c):
-    """
-    Registers FEG AGW gateway on orc8r
-    """
+    """Register FEG AGW gateway on orc8r."""
     subprocess.check_call(
-        'fab register-feg-gw', shell=True, cwd=FEG_FAB_PATH,
+        '/usr/bin/fab register-feg-gw', shell=True, cwd=FEG_FAB_PATH,
     )
 
 
 @task
 def deregister_feg_gw(c):
-    """
-    Remove FEG gateway from orc8r and remove certs from FEG gateway
-    """
+    """Remove FEG gateway from orc8r and remove certs from FEG gateway."""
     subprocess.check_call(
-        'fab deregister-feg-gw', shell=True, cwd=FEG_FAB_PATH,
+        '/usr/bin/fab deregister-feg-gw', shell=True, cwd=FEG_FAB_PATH,
     )
 
 
 @task
 def check_agw_cloud_connectivity(c, timeout=10):
     """
-    Check connectivity of AGW with the cloud using checkin_cli.py
+    Check connectivity of AGW with the cloud using checkin_cli.py.
+
     Args:
         c: fabric connection
         timeout: amount of time the command will retry
@@ -191,7 +194,8 @@ def check_agw_cloud_connectivity(c, timeout=10):
 @task
 def check_agw_feg_connectivity(c, timeout=10):
     """
-    Check connectivity of AGW with FEG feg_hello_cli.py
+    Check connectivity of AGW with FEG using feg_hello_cli.py.
+
     Args:
         c: fabric connection
         timeout: amount of time the command will retry
@@ -234,9 +238,9 @@ def _register_agw(
     )
     if already_registered:
         print()
-        print(f'===========================================')
+        print('===========================================')
         print(f'VM is already registered as {registered_as}')
-        print(f'===========================================')
+        print('===========================================')
         return
 
     gw_id = dev_utils.get_next_available_gateway_id(
@@ -265,9 +269,9 @@ def _register_agw(
         admin_cert=admin_cert,
     )
     print()
-    print(f'=========================================')
+    print('=========================================')
     print(f'Gateway {gw_id} successfully provisioned!')
-    print(f'=========================================')
+    print('=========================================')
 
 
 def _deregister_agw(c: Connection, network_type: str):

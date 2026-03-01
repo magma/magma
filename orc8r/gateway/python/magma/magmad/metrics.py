@@ -127,7 +127,7 @@ def _get_ping_params(config):
 async def metrics_collection_loop(service_config, loop=None):
     """
     Collect metrics in a loop based on the network monitor configuration.
-    
+
     Args:
         service_config (dict): Service configuration containing network monitor config
         loop (asyncio.AbstractEventLoop, optional): Event loop to use for async operations
@@ -246,12 +246,8 @@ async def monitor_unattended_upgrade_status():
         if os.path.isfile(auto_upgrade_file_name):
             try:
                 # Use asyncio.run_in_executor for proper async file operations
-                def read_file_sync():
-                    with open(auto_upgrade_file_name, encoding='utf-8') as f:
-                        return f.read()
-                
                 file_content = await asyncio.get_running_loop().run_in_executor(
-                    None, read_file_sync,
+                    None, lambda: open(auto_upgrade_file_name, encoding='utf-8').read()
                 )
                 for line in file_content.splitlines():
                     package_name, flag = line.strip().strip(';').split()
