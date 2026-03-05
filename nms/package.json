@@ -47,7 +47,7 @@
     "helmet": "^4.0.0",
     "https": "^1.0.0",
     "https-proxy-agent": "^2.2.1",
-    "immutable": "^4.0.0-rc.12",
+    "immutable": "^4.3.8",
     "inquirer": "^8.0.0",
     "lodash": "^4.17.21",
     "mariadb": "^2.4.2",
