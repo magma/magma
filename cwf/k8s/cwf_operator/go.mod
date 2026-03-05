@@ -26,7 +26,7 @@
 //
 module magma/cwf/k8s/cwf_operator
 
-go 1.20
+go 1.23.0
 
 require (
 	github.com/go-logr/glogr v0.1.0
@@ -66,7 +66,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/deislabs/oras v0.8.1 // indirect
-	github.com/docker/cli v20.10.9+incompatible // indirect
+	github.com/docker/cli v29.2.0+incompatible // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/docker/docker v20.10.27+incompatible // indirect
 	github.com/docker/docker-credential-helpers v0.6.3 // indirect
