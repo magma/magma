@@ -149,13 +149,13 @@ message PipelineD {
 
     message HEConfig {
         enum EncryptionAlgorithm {
-            RC4 = 0;
-            AES256_CBC_HMAC_MD5 = 1;
-            AES256_ECB_HMAC_MD5 = 2;
+            RC4 = 0 [deprecated = true]; // Deprecated 2026-03: cryptographically broken (RFC 7465)
+            AES256_CBC_HMAC_MD5 = 1 [deprecated = true]; // Deprecated 2026-03: uses MD5
+            AES256_ECB_HMAC_MD5 = 2 [deprecated = true]; // Deprecated 2026-03: uses ECB mode and MD5
             GZIPPED_AES256_ECB_SHA1 = 3;
         }
         enum HashFunction{
-            MD5 = 0;
+            MD5 = 0 [deprecated = true]; // Deprecated 2026-03: cryptographically broken
             HEX = 1;
             SHA256 = 2;
         }
