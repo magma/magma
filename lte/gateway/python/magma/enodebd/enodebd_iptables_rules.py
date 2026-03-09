@@ -64,8 +64,8 @@ async def check_and_apply_iptables_rules(
     enodebd_public_ip: str,
     enodebd_ip: str,
 ) -> None:
-    command = 'sudo iptables -t nat -L'
-    output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, check=True)
+    command = ['sudo', 'iptables', '-t', 'nat', '-L']
+    output = subprocess.run(command, stdout=subprocess.PIPE, check=True)
     command_output = output.stdout.decode('utf-8').strip()
     prerouting_rules = _get_prerouting_rules(command_output)
     if not prerouting_rules:
@@ -120,9 +120,13 @@ def check_rules(
 
 
 async def run(cmd):
-    """Fork shell and run command NOTE: Popen is non-blocking"""
+    """Fork and run command as a subprocess. NOTE: Popen is non-blocking"""
     cmd = shlex.split(cmd)
-    proc = await asyncio.create_subprocess_shell(" ".join(cmd))
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
     await proc.communicate()
     if proc.returncode != 0:
         # This can happen because the NAT prerouting rule didn't exist
