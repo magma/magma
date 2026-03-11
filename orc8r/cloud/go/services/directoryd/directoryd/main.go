@@ -34,7 +34,7 @@ package main
 import (
 	"github.com/golang/glog"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/directoryd"
@@ -59,13 +59,13 @@ func main() {
 		glog.Fatalf("Error opening db connection: %s", err)
 	}
 
-	fact := blobstore.NewSQLStoreFactory(dstorage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := JsonStore.NewSQLStoreFactory(dstorage.DirectorydTableJsonstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing directory storage: %s", err)
 	}
 
-	store := dstorage.NewDirectorydBlobstore(fact)
+	store := dstorage.NewDirectorydJsonstore(fact)
 
 	// Add servicers
 	// Cloud lookup service

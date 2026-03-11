@@ -30,6 +30,35 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
+// Helper to fetch network ID and state client
+func getNetworkAndStateClient(ctx context.Context, cloud bool) (string, error, interface{}) {
+	networkId, err := identity.GetClientNetworkID(ctx)
+	if err != nil {
+		return "", err, nil
+	}
+	if cloud {
+		client, err := state.GetCloudStateClient()
+		return networkId, err, client
+	}
+	client, err := state.GetStateClient()
+	return networkId, err, client
+}
+
+// Helper to unmarshal DirectoryRecord from state
+func unmarshalDirectoryRecord(value []byte) (*types.DirectoryRecord, error) {
+	serialized := &state_types.SerializedState{}
+	err := json.Unmarshal(value, serialized)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal json-encoded state proto value")
+	}
+	dr := &types.DirectoryRecord{}
+	err = dr.UnmarshalBinary([]byte(serialized.SerializedReportedState))
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal DirectoryRecord: %v", err)
+	}
+	return dr, nil
+}
+
 type directoryUpdateServicer struct {
 }
 
@@ -50,10 +79,11 @@ func (d *directoryUpdateServicer) UpdateRecord(c context.Context, r *protos.Upda
 		gw := protos.GetClientGateway(c)
 		r.Location = gw.GetHardwareId()
 	}
-	client, err := state.GetStateClient()
+	_, err, client := getNetworkAndStateClient(c, false)
 	if err != nil {
 		return ret, err
 	}
+	stateClient := client.(protos.StateServiceClient)
 	dr := &types.DirectoryRecord{LocationHistory: []string{r.GetLocation()}, Identifiers: map[string]interface{}{}}
 	for k, v := range r.GetFields() {
 		dr.Identifiers[k] = v
@@ -64,10 +94,13 @@ func (d *directoryUpdateServicer) UpdateRecord(c context.Context, r *protos.Upda
 		DeviceID: r.Id,
 		Value:    serialized,
 	}
-	res, err := client.ReportStates(makeOutgoingCtx(c), &protos.ReportStatesRequest{States: []*protos.State{st}})
+	res, err := stateClient.ReportStates(makeOutgoingCtx(c), &protos.ReportStatesRequest{States: []*protos.State{st}})
 	if err != nil {
 		return ret, err
 	}
+	fmt.Printf("UpdateRecord: reported state for id=%s location=%s\n", r.Id, r.Location)
+	nid, _ := identity.GetClientNetworkID(c)
+	fmt.Printf("UpdateRecord: networkId from context=%s\n", nid)
 	if len(res.GetUnreportedStates()) > 0 {
 		return ret, fmt.Errorf(res.GetUnreportedStates()[0].Error)
 	}
@@ -80,15 +113,15 @@ func (d *directoryUpdateServicer) DeleteRecord(c context.Context, r *protos.Dele
 	if r == nil || len(r.GetId()) == 0 {
 		return ret, nil
 	}
-	client, err := state.GetStateClient()
+	_, err, client := getNetworkAndStateClient(c, false)
 	if err != nil {
 		return ret, err
 	}
-	_, err = client.DeleteStates(
+	stateClient := client.(protos.StateServiceClient)
+	_, err = stateClient.DeleteStates(
 		makeOutgoingCtx(c),
 		&protos.DeleteStatesRequest{Ids: []*protos.StateID{{Type: orc8r.DirectoryRecordType, DeviceID: r.Id}}},
 	)
-
 	return ret, err
 }
 
@@ -97,15 +130,12 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 	c context.Context, r *protos.GetDirectoryFieldRequest) (*protos.DirectoryField, error) {
 
 	ret := &protos.DirectoryField{Key: r.GetFieldKey()}
-	networkId, err := identity.GetClientNetworkID(c)
+	networkId, err, client := getNetworkAndStateClient(c, true)
 	if err != nil {
 		return ret, err
 	}
-	client, err := state.GetCloudStateClient()
-	if err != nil {
-		return ret, err
-	}
-	res, err := client.GetStates(
+	cloudClient := client.(protos.CloudStateServiceClient)
+	res, err := cloudClient.GetStates(
 		makeOutgoingCtx(c),
 		&protos.GetStatesRequest{
 			NetworkID: networkId,
@@ -118,15 +148,9 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 	if len(res.GetStates()) != 1 {
 		return ret, status.Errorf(codes.NotFound, "directory record for ID: %s is not found", r.GetId())
 	}
-	serialized := &state_types.SerializedState{}
-	err = json.Unmarshal(res.States[0].Value, serialized)
+	dr, err := unmarshalDirectoryRecord(res.States[0].Value)
 	if err != nil {
-		return ret, status.Errorf(codes.Internal, "failed to unmarshal json-encoded state proto value")
-	}
-	dr := &types.DirectoryRecord{}
-	err = dr.UnmarshalBinary([]byte(serialized.SerializedReportedState))
-	if err != nil {
-		return ret, status.Errorf(codes.Internal, "failed to unmarshal DirectoryRecord: %v", err)
+		return ret, status.Errorf(codes.Internal, "%v", err)
 	}
 	if dr.Identifiers != nil {
 		iVal, found := dr.Identifiers[r.GetFieldKey()]
@@ -146,16 +170,14 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 	c context.Context, r *protos.Void) (*protos.AllDirectoryRecords, error) {
 
 	ret := &protos.AllDirectoryRecords{}
-	networkId, err := identity.GetClientNetworkID(c)
+	networkId, err, client := getNetworkAndStateClient(c, true)
+	fmt.Printf("GetAllDirectoryRecords: %s, %v\n", networkId, err)
 	if err != nil {
 		return ret, err
 	}
-	client, err := state.GetCloudStateClient()
-	if err != nil {
-		return ret, err
-	}
-	res, err := client.GetStates(
-		makeOutgoingCtx(c),
+	cloudClient := client.(protos.CloudStateServiceClient)
+	res, err := cloudClient.GetStates(
+		context.Background(),
 		&protos.GetStatesRequest{
 			NetworkID:  networkId,
 			TypeFilter: []string{orc8r.DirectoryRecordType},
@@ -168,8 +190,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 		if st == nil {
 			continue
 		}
-		dr := &types.DirectoryRecord{}
-		err = dr.UnmarshalBinary(st.Value)
+		dr, err := unmarshalDirectoryRecord(st.Value)
 		if err != nil {
 			continue
 		}

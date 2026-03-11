@@ -188,14 +188,14 @@ func (store *sqlStore) Search(filter SearchFilter, criteria LoadCriteria) (map[s
 	}
 
 	if !funk.IsEmpty(filter.Types) {
-		whereCondition = append(whereCondition, sq.Eq{typeCol: filter.GetKeys()})
+		whereCondition = append(whereCondition, sq.Eq{typeCol: filter.GetTypes()})
 	}
 	// Apply only one of prefix or match predicates; prefix takes precedence
 	if !funk.IsEmpty(filter.KeyPrefix) {
 		whereCondition = append(whereCondition, sq.Like{keyCol: fmt.Sprintf("%s%%", *filter.KeyPrefix)})
 	} else {
 		if !funk.IsEmpty(filter.Keys) {
-			whereCondition = append(whereCondition, sq.Eq{keyCol: filter.GetKeys()})
+			whereCondition = append(whereCondition, sq.Eq{keyCol: filter.GetTypes()})
 		}
 	}
 
