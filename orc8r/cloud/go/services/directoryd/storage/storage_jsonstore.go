@@ -140,7 +140,7 @@ func (d *directorydJsonstore) getFromStore(networkID, tkType, key string) (strin
 	if err != nil {
 		return "", fmt.Errorf("failed to get %s from %s: %w", key, tkType, err)
 	}
-	return string(json.Value), store.Commit()
+	return json.Value, store.Commit()
 }
 
 func (d *directorydJsonstore) mapToStore(networkID, tkType string, keyToValueMap map[string]string) error {

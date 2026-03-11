@@ -21,7 +21,8 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"magma/orc8r/cloud/go/JsonStore"
-	"magma/orc8r/cloud/go/jsonstore/mocks"
+	"magma/orc8r/cloud/go/JsonStore/mocks"
+	
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/merrors"
