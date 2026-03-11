@@ -20,8 +20,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/blobstore/mocks"
+	"magma/orc8r/cloud/go/JsonStore"
+	"magma/orc8r/cloud/go/jsonstore/mocks"
 	dstorage "magma/orc8r/cloud/go/services/directoryd/storage"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/merrors"
@@ -31,78 +31,78 @@ const (
 	placeholderNetworkID = "placeholder_network"
 )
 
-func TestDirectorydBlobstoreStorage_GetHostnameForHWID(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_GetHostnameForHWID(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	hwid := "some_hwid"
 	tk := storage.TK{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwid}
 
 	hostname := "some_hostname"
-	blob := blobstore.Blob{
+	json := JsonStore.Json{
 		Type:  tk.Type,
 		Key:   tk.Key,
-		Value: []byte(hostname),
+		Value: hostname,
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err := store.GetHostnameForHWID(hwid)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with ErrNotFound
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", placeholderNetworkID, tk).Return(blobstore.Blob{}, merrors.ErrNotFound).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", placeholderNetworkID, tk).Return(JsonStore.Json{}, merrors.ErrNotFound).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err = store.GetHostnameForHWID(hwid)
 	assert.Exactly(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error other than ErrNotFound
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", placeholderNetworkID, tk).Return(blobstore.Blob{}, someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", placeholderNetworkID, tk).Return(JsonStore.Json{}, someErr).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err = store.GetHostnameForHWID(hwid)
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", placeholderNetworkID, tk).Return(blob, nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", placeholderNetworkID, tk).Return(json, nil).Once()
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	hostnameRecvd, err := store.GetHostnameForHWID(hwid)
 	assert.NoError(t, err)
 	assert.Equal(t, hostname, hostnameRecvd)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstoreStorage_MapHWIDToHostname(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_MapHWIDToHostname(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	hwids := []string{"some_hwid_0", "some_hwid_1"}
@@ -117,63 +117,63 @@ func TestDirectorydBlobstoreStorage_MapHWIDToHostname(t *testing.T) {
 		{Type: dstorage.DirectorydTypeHWIDToHostname, Key: hwids[1]},
 	}
 
-	blobs := blobstore.Blobs{
+	jsons := JsonStore.Jsons{
 		{
 			Type:  tks[0].Type,
 			Key:   tks[0].Key,
-			Value: []byte(hostnames[0]),
+			Value: hostnames[0],
 		},
 		{
 			Type:  tks[1].Type,
 			Key:   tks[1].Key,
-			Value: []byte(hostnames[1]),
+			Value: hostnames[1],
 		},
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err := store.MapHWIDsToHostnames(hwidToHostname)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.PutRecord fails
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Write", placeholderNetworkID, mock.Anything, mock.Anything).
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Write", placeholderNetworkID, mock.Anything, mock.Anything).
 		Return(someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.MapHWIDsToHostnames(hwidToHostname)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Write", placeholderNetworkID, blobs).
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Write", placeholderNetworkID, jsons).
 		Return(nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.MapHWIDsToHostnames(hwidToHostname)
 	assert.NoError(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstoreStorage_DeMapHWIDToHostname(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_DeMapHWIDToHostname(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	hwid0 := "some_hwid_0"
@@ -183,48 +183,48 @@ func TestDirectorydBlobstoreStorage_DeMapHWIDToHostname(t *testing.T) {
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err := store.UnmapHWIDsToHostnames([]string{hwid0})
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Delete", placeholderNetworkID, tks).Return(someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Delete", placeholderNetworkID, tks).Return(someErr).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.UnmapHWIDsToHostnames([]string{hwid0})
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Delete", placeholderNetworkID, tks).Return(nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Delete", placeholderNetworkID, tks).Return(nil).Once()
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.UnmapHWIDsToHostnames([]string{hwid0})
 	assert.NoError(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstoreStorage_GetIMSIForSessionID(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_GetIMSIForSessionID(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -233,69 +233,69 @@ func TestDirectorydBlobstoreStorage_GetIMSIForSessionID(t *testing.T) {
 	tk := storage.TK{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sid}
 
 	imsi := "some_imsi"
-	blob := blobstore.Blob{
+	json := JsonStore.Json{
 		Type:  tk.Type,
 		Key:   tk.Key,
-		Value: []byte(imsi),
+		Value: imsi,
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err := store.GetIMSIForSessionID(nid, sid)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with ErrNotFound
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blobstore.Blob{}, merrors.ErrNotFound).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(JsonStore.Json{}, merrors.ErrNotFound).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err = store.GetIMSIForSessionID(nid, sid)
 	assert.Exactly(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blobstore.Blob{}, someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(JsonStore.Json{}, someErr).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err = store.GetIMSIForSessionID(nid, sid)
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blob, nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(json, nil).Once()
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	imsiRecvd, err := store.GetIMSIForSessionID(nid, sid)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi, imsiRecvd)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstoreStorage_MapSessionIDToIMSI(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_MapSessionIDToIMSI(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -312,63 +312,63 @@ func TestDirectorydBlobstoreStorage_MapSessionIDToIMSI(t *testing.T) {
 		{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sids[1]},
 	}
 
-	blobs := blobstore.Blobs{
+	jsons := JsonStore.Jsons{
 		{
 			Type:  tks[0].Type,
 			Key:   tks[0].Key,
-			Value: []byte(imsis[0]),
+			Value: imsis[0],
 		},
 		{
 			Type:  tks[1].Type,
 			Key:   tks[1].Key,
-			Value: []byte(imsis[1]),
+			Value: imsis[1],
 		},
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err := store.MapSessionIDsToIMSIs(nid, sidToIMSI)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.PutRecord fails
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Write", nid, mock.Anything, mock.Anything).
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Write", nid, mock.Anything, mock.Anything).
 		Return(someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.MapSessionIDsToIMSIs(nid, sidToIMSI)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Write", nid, blobs).
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Write", nid, jsons).
 		Return(nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.MapSessionIDsToIMSIs(nid, sidToIMSI)
 	assert.NoError(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstoreStorage_DeMapSessionIDToIMSI(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_DeMapSessionIDToIMSI(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -377,48 +377,48 @@ func TestDirectorydBlobstoreStorage_DeMapSessionIDToIMSI(t *testing.T) {
 	tks := storage.TKs{{Type: dstorage.DirectorydTypeSessionIDToIMSI, Key: sid}}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err := store.UnmapSessionIDsToIMSIs(nid, []string{sid})
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Delete", nid, tks).Return(someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Delete", nid, tks).Return(someErr).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.UnmapSessionIDsToIMSIs(nid, []string{sid})
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Delete", nid, tks).Return(nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Delete", nid, tks).Return(nil).Once()
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.UnmapSessionIDsToIMSIs(nid, []string{sid})
 	assert.NoError(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstoreStorage_GetHWIDForSgwCTeid(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_GetHWIDForSgwCTeid(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -427,69 +427,69 @@ func TestDirectorydBlobstoreStorage_GetHWIDForSgwCTeid(t *testing.T) {
 	tk := storage.TK{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: teid}
 
 	hwId := "hwId_1"
-	blob := blobstore.Blob{
+	json := JsonStore.Json{
 		Type:  tk.Type,
 		Key:   tk.Key,
-		Value: []byte(hwId),
+		Value: hwId,
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err := store.GetHWIDForSgwCTeid(nid, teid)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with ErrNotFound
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blobstore.Blob{}, merrors.ErrNotFound).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(JsonStore.Json{}, merrors.ErrNotFound).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err = store.GetHWIDForSgwCTeid(nid, teid)
 	assert.Exactly(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error other than ErrNotFound
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blobstore.Blob{}, someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(JsonStore.Json{}, someErr).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err = store.GetHWIDForSgwCTeid(nid, teid)
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blob, nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(json, nil).Once()
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	hwIdRecvd, err := store.GetHWIDForSgwCTeid(nid, teid)
 	assert.NoError(t, err)
 	assert.Equal(t, hwId, hwIdRecvd)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstoreStorage_MapSgwCTeidToHWID(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_MapSgwCTeidToHWID(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -506,63 +506,63 @@ func TestDirectorydBlobstoreStorage_MapSgwCTeidToHWID(t *testing.T) {
 		{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: teids[1]},
 	}
 
-	blobs := blobstore.Blobs{
+	jsons := JsonStore.Jsons{
 		{
 			Type:  tks[0].Type,
 			Key:   tks[0].Key,
-			Value: []byte(hwIds[0]),
+			Value: hwIds[0],
 		},
 		{
 			Type:  tks[1].Type,
 			Key:   tks[1].Key,
-			Value: []byte(hwIds[1]),
+			Value: hwIds[1],
 		},
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err := store.MapSgwCTeidToHWID(nid, teidsToHwIds)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.PutRecord fails
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Write", nid, mock.Anything, mock.Anything).
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Write", nid, mock.Anything, mock.Anything).
 		Return(someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.MapSgwCTeidToHWID(nid, teidsToHwIds)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Write", nid, blobs).
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Write", nid, jsons).
 		Return(nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.MapSgwCTeidToHWID(nid, teidsToHwIds)
 	assert.NoError(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstoreStorage_UnmapSgwCTeidToHWID(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstoreStorage_UnmapSgwCTeidToHWID(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -571,48 +571,48 @@ func TestDirectorydBlobstoreStorage_UnmapSgwCTeidToHWID(t *testing.T) {
 	tks := storage.TKs{{Type: dstorage.DirectorydTypeSgwCteidToHwid, Key: teid}}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err := store.UnmapSgwCTeidToHWID(nid, []string{teid})
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Delete", nid, tks).Return(someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Delete", nid, tks).Return(someErr).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.UnmapSgwCTeidToHWID(nid, []string{teid})
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Delete", nid, tks).Return(nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Delete", nid, tks).Return(nil).Once()
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.UnmapSgwCTeidToHWID(nid, []string{teid})
 	assert.NoError(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstore_GetHWIDForSgwUTeid(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstore_GetHWIDForSgwUTeid(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -621,69 +621,69 @@ func TestDirectorydBlobstore_GetHWIDForSgwUTeid(t *testing.T) {
 	tk := storage.TK{Type: dstorage.DirectorydTypeSgwUteidToHwid, Key: teid}
 
 	hwId := "hwId_1"
-	blob := blobstore.Blob{
+	json := JsonStore.Json{
 		Type:  tk.Type,
 		Key:   tk.Key,
-		Value: []byte(hwId),
+		Value: hwId,
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err := store.GetHWIDForSgwUTeid(nid, teid)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with ErrNotFound
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blobstore.Blob{}, merrors.ErrNotFound).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(JsonStore.Json{}, merrors.ErrNotFound).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err = store.GetHWIDForSgwUTeid(nid, teid)
 	assert.Exactly(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error other than ErrNotFound
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blobstore.Blob{}, someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(JsonStore.Json{}, someErr).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	_, err = store.GetHWIDForSgwUTeid(nid, teid)
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Get", nid, tk).Return(blob, nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Get", nid, tk).Return(json, nil).Once()
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	hwIdRecvd, err := store.GetHWIDForSgwUTeid(nid, teid)
 	assert.NoError(t, err)
 	assert.Equal(t, hwId, hwIdRecvd)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstore_MapSgwUTeidToHWID(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstore_MapSgwUTeidToHWID(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -700,63 +700,63 @@ func TestDirectorydBlobstore_MapSgwUTeidToHWID(t *testing.T) {
 		{Type: dstorage.DirectorydTypeSgwUteidToHwid, Key: teids[1]},
 	}
 
-	blobs := blobstore.Blobs{
+	jsons := JsonStore.Jsons{
 		{
 			Type:  tks[0].Type,
 			Key:   tks[0].Key,
-			Value: []byte(hwIds[0]),
+			Value: hwIds[0],
 		},
 		{
 			Type:  tks[1].Type,
 			Key:   tks[1].Key,
-			Value: []byte(hwIds[1]),
+			Value: hwIds[1],
 		},
 	}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err := store.MapSgwUTeidToHWID(nid, teidsToHwIds)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.PutRecord fails
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Write", nid, mock.Anything, mock.Anything).
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Write", nid, mock.Anything, mock.Anything).
 		Return(someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.MapSgwUTeidToHWID(nid, teidsToHwIds)
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Write", nid, blobs).
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Write", nid, jsons).
 		Return(nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.MapSgwUTeidToHWID(nid, teidsToHwIds)
 	assert.NoError(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
 
-func TestDirectorydBlobstore_UnmapSgwUTeidToHWID(t *testing.T) {
-	var blobFactMock *mocks.StoreFactory
-	var blobStoreMock *mocks.Store
+func TestDirectorydJsonstore_UnmapSgwUTeidToHWID(t *testing.T) {
+	var jsonFactMock *mocks.StoreFactory
+	var jsonStoreMock *mocks.Store
 	someErr := errors.New("generic error")
 
 	nid := "some_networkid"
@@ -765,41 +765,41 @@ func TestDirectorydBlobstore_UnmapSgwUTeidToHWID(t *testing.T) {
 	tks := storage.TKs{{Type: dstorage.DirectorydTypeSgwUteidToHwid, Key: teid}}
 
 	// Fail to start transaction
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
-	store := dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(nil, someErr).Once()
+	store := dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err := store.UnmapSgwUTeidToHWID(nid, []string{teid})
 	assert.Error(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// store.Get fails with error
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Delete", nid, tks).Return(someErr).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Delete", nid, tks).Return(someErr).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.UnmapSgwUTeidToHWID(nid, []string{teid})
 	assert.Error(t, err)
 	assert.NotEqual(t, merrors.ErrNotFound, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 
 	// Success
-	blobFactMock = &mocks.StoreFactory{}
-	blobStoreMock = &mocks.Store{}
-	blobFactMock.On("StartTransaction", mock.Anything).Return(blobStoreMock, nil).Once()
-	blobStoreMock.On("Rollback").Return(nil).Once()
-	blobStoreMock.On("Delete", nid, tks).Return(nil).Once()
-	blobStoreMock.On("Commit").Return(nil).Once()
-	store = dstorage.NewDirectorydBlobstore(blobFactMock)
+	jsonFactMock = &mocks.StoreFactory{}
+	jsonStoreMock = &mocks.Store{}
+	jsonFactMock.On("StartTransaction", mock.Anything).Return(jsonStoreMock, nil).Once()
+	jsonStoreMock.On("Rollback").Return(nil).Once()
+	jsonStoreMock.On("Delete", nid, tks).Return(nil).Once()
+	jsonStoreMock.On("Commit").Return(nil).Once()
+	store = dstorage.NewDirectorydJsonstore(jsonFactMock)
 
 	err = store.UnmapSgwUTeidToHWID(nid, []string{teid})
 	assert.NoError(t, err)
-	blobFactMock.AssertExpectations(t)
-	blobStoreMock.AssertExpectations(t)
+	jsonFactMock.AssertExpectations(t)
+	jsonStoreMock.AssertExpectations(t)
 }
