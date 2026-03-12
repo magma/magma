@@ -27,7 +27,7 @@ from magma.magmad.upgrade.upgrader2 import (
     run_command,
 )
 
-MAGMA_GITHUB_PATH = "/tmp/magma_upgrade"
+MAGMA_GITHUB_PATH = "/tmp/magma_upgrade"  # noqa: S108
 MAGMA_GITHUB_URL = "https://github.com/magma/magma.git"
 
 
@@ -40,7 +40,6 @@ class DockerUpgrader(Upgrader2):
         """
         Target version comes from tier configuration currently.
         """
-
         if self.upgrade_task and not self.upgrade_task.done():
             logging.info("Not starting another upgrade, upgrade in progress")
             return
@@ -48,7 +47,10 @@ class DockerUpgrader(Upgrader2):
 
     async def get_upgrade_intent(self) -> UpgradeIntent:
         """
-        Returns the desired version tag for the gateway.
+        Get the desired version tag for the gateway.
+
+        Returns:
+            UpgradeIntent: Object containing stable/canary versions.
         """
         version_info = await asyncio.gather(self.get_versions())
         current_version = version_info[0].current_version
@@ -67,8 +69,11 @@ class DockerUpgrader(Upgrader2):
         return UpgradeIntent(stable=VersionT(tgt_version), canary=VersionT(""))
 
     async def get_versions(self) -> VersionInfo:
-        """ Returns the current version by parsing the IMAGE_VERSION in the
-        .env file
+        """
+        Get the current version by parsing the IMAGE_VERSION in .env.
+
+        Returns:
+            VersionInfo: Object containing the current version.
         """
         with open('/var/opt/magma/docker/.env', 'r', encoding='utf-8') as env:
             for line in env:
@@ -113,10 +118,13 @@ class DockerUpgrader(Upgrader2):
     async def upgrade(
             self, version: VersionT, path_to_image: pathlib.Path,
     ) -> None:
-        """Upgrade is a no-op as an external process (e.g. cron) must
-        trigger it
         """
-        pass
+        Execute the transition to the target version.
+
+        Args:
+            version: The version to target.
+            path_to_image: Path to the image data.
+        """
 
     async def do_docker_upgrade(self) -> None:
         """
@@ -164,8 +172,8 @@ class DockerUpgrader(Upgrader2):
             )
         else:
             logging.info(
-                'Service is currently on image tag %s, '
-                'ignoring upgrade to tag %s, since they\'re equal.',
+                "Service is currently on image tag %s, "
+                "ignoring upgrade to tag %s, since they're equal.",
                 current_version, target_image,
             )
 
@@ -237,4 +245,14 @@ class DockerUpgraderFactory(UpgraderFactory):
         magmad_service: MagmaService,
         loop: asyncio.AbstractEventLoop,
     ) -> DockerUpgrader:
+        """
+        Create the DockerUpgrader instance.
+
+        Args:
+            magmad_service: The service context.
+            loop: The event loop.
+
+        Returns:
+            DockerUpgrader: An instance of DockerUpgrader.
+        """
         return DockerUpgrader(magmad_service)
