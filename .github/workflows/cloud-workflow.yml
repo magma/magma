@@ -76,7 +76,7 @@ jobs:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
         with:
-          python-version: '3.8.10'
+          python-version: '3.10.12'
       - name: deploy-sync-checkin
         if: always()
         id: deploy-sync-checkin
