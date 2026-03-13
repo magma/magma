@@ -49,7 +49,7 @@ runs:
         echo "Context:    ${{ inputs.CONTEXT }}"
       shell: bash
 
-    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
 
     - uses: docker/setup-buildx-action@8c0edbc76e98fa90f69d9a2c020dcb50019dc325 # pin@v2.2.1
 

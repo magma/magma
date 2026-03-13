@@ -46,13 +46,13 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       files_changed: ${{ steps.changes.outputs.files_changed }}
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     steps:
       # Need to get git on push event
-      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # pin@v3
         if: github.event_name == 'pull_request'
         id: changes
         with:
@@ -76,7 +76,7 @@ jobs:
   bazel_diff:
     needs: path_filter
     name: Bazel-Diff Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       bazel_diff_ran: ${{ steps.bazel_diff_outputs.outputs.bazel_diff_ran }}
       run_package_job: ${{ steps.bazel_diff_outputs.outputs.run_package_job }}
@@ -92,7 +92,7 @@ jobs:
         # This is necessary for overlays into the Docker container below.
         # The value of fetch-depth needs to exceed the maximum number of commits
         # on all PRs. This is needed for bazel-diff to check out the merge-base.
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
         with:
           fetch-depth: 100
       - name: Setup Bazel Base Image
@@ -231,7 +231,7 @@ jobs:
             bazel-target-rule: "cc_test"
             docker-image-cache: "ghcr.io/magma/magma/bazel-cache-prod:latest"
     name: Bazel Test Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Print variables
         run: |
@@ -244,7 +244,7 @@ jobs:
           echo "needs.bazel_diff.outputs.cc_unit_test_targets: ${{ needs.bazel_diff.outputs.cc_unit_test_targets }}"
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Docker Image
@@ -331,13 +331,13 @@ jobs:
           mkdir -p lte/gateway/test_results/
           python3 lte/gateway/python/scripts/runtime_report.py -i "[^\/]+\.xml" -w "bazel_unit_test_results" -o "lte/gateway/test_results/merged_unit_test_reports.xml"
       - name: Publish bazel test profile
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: ${{ always() && github.event.inputs.publish_bazel_profile == 'true' }}
         with:
           name: Bazel test all profile ${{ matrix.bazel-config }}
           path: Bazel_test_all_profile
       - name: Upload Bazel unit-test results ${{ matrix.bazel-config }}
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: always()
         with:
           name: Bazel unit-test results ${{ matrix.bazel-config }}
@@ -369,7 +369,7 @@ jobs:
   if_bazel_build_and_test_success:
     name: Run when bazel successful
     needs: bazel_build_and_test
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: success() # Only run after all matrix jobs have passed
     # See https://github.com/magma/magma/wiki/How-to-set-up-a-required-matrix-workflow-on-GitHub-actions
     # or https://github.com/magma/magma/pull/13562 for more details.
@@ -382,7 +382,7 @@ jobs:
 
   report_result_bazel_build_and_test:
     name: Bazel build and test status
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: always()
     # This job always needs to run. It will be green if the bazel_build_and_test
     # job was successful in all matrix jobs or if the job was skipped.
@@ -426,11 +426,11 @@ jobs:
       needs.path_filter.outputs.files_changed == 'true' ||
       github.event_name == 'workflow_dispatch'
     name: Bazel Starlark Format Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Run starlark format check
         shell: bash
         run: |
@@ -457,11 +457,11 @@ jobs:
       needs.bazel_diff.outputs.bazel_diff_ran == 'false' ||
       (needs.bazel_diff.outputs.bazel_diff_ran == 'true' && needs.bazel_diff.outputs.py_service_targets != '')
     name: Bazel Python Import Check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Docker Image
@@ -541,13 +541,13 @@ jobs:
       needs.bazel_diff.outputs.bazel_diff_ran == 'false' ||
       (needs.bazel_diff.outputs.bazel_diff_ran == 'true' && needs.bazel_diff.outputs.run_package_job == 'true')
     name: Bazel Package Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       artifacts: ${{ steps.publish_agw_deb_pkg.outputs.artifacts }}
     steps:
       - name: Check Out Repo
         # This is necessary for overlays into the Docker container below.
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Setup Bazel Docker Image
@@ -591,7 +591,7 @@ jobs:
             mv ./bazel-bin/lte/gateway/c/session_manager/sessiond ./sentry_services/sessiond
 
       - name: Upload services for sentry_release job
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: |
           github.repository_owner == 'magma' &&
           ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
@@ -663,7 +663,7 @@ jobs:
           COMMIT_MESSAGE: ${{ toJSON(github.event.head_commit.message) }}
 
       - name: Publish bazel profile
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: |
           always() &&
           github.event.inputs.publish_bazel_profile == 'true'
@@ -696,13 +696,13 @@ jobs:
       github.repository_owner == 'magma' &&
       ( github.ref_name == 'master' || startsWith(github.ref_name, 'v1.') )
     name: Sentry release
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
         with:
           fetch-depth: 0
       - run: mkdir sentry_services
-      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # pin@v4
         with:
           name: sentry_services
           path: sentry_services
@@ -765,10 +765,10 @@ jobs:
 
   python_file_check:
     name: Check if there are not bazelified python files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Execute check
         shell: bash
         run: |
@@ -787,10 +787,10 @@ jobs:
 
   c_cpp_file_check:
     name: Check if there are non-bazelified c or c++ files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Execute check
         shell: bash
         run: |
