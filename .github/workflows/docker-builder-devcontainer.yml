@@ -53,9 +53,9 @@ env:
 
 jobs:
   build_dockerfile_bazel_base:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - uses: ./.github/workflows/composite/docker-builder
@@ -84,9 +84,9 @@ jobs:
 
   build_dockerfile_devcontainer:
     needs: build_dockerfile_bazel_base
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - uses: ./.github/workflows/composite/docker-builder
@@ -121,7 +121,7 @@ jobs:
       github.repository_owner == 'magma'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - uses: ./.github/workflows/composite/docker-builder
@@ -161,7 +161,7 @@ jobs:
       github.repository_owner == 'magma'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - uses: ./.github/workflows/composite/docker-builder
@@ -200,7 +200,7 @@ jobs:
       github.repository_owner == 'magma'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - uses: ./.github/workflows/composite/docker-builder

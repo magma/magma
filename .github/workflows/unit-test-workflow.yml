@@ -28,12 +28,12 @@ on:
 jobs:
   skip_check:
     name: Job to retrieve the value in pr/skipped file
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
       - name: 'Download artifact'
-        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # pin@v7
         with:
           script: |
             var artifacts = await github.rest.actions.listWorkflowRunArtifacts({
@@ -55,7 +55,7 @@ jobs:
       - run: unzip pr.zip
       - name: Check if the workflow is skipped
         id: skip_check
-        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # pin@v7
         with:
           script: |
             var fs = require('fs');
@@ -70,7 +70,7 @@ jobs:
   unit-test-results:
     name: Upload unit test for ${{ github.event.workflow.name }}
     needs: skip_check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: >
       github.event.workflow_run.conclusion != 'skipped' &&
         github.event.workflow_run.head_repository.full_name != github.repository &&

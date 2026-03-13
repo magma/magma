@@ -41,14 +41,14 @@ on:
 
 jobs:
   build-packages:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MAGMA_ROOT: ${{ github.workspace }}
       DEST: ${{ github.workspace }}/deb_packages
       repository: magma-packages-test
       distribution: ${{ inputs.distribution || 'focal-ci' }}
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
 
       - name: Build openvswitch
         working-directory: third_party/gtp_ovs/ovs-gtp-patches/2.15

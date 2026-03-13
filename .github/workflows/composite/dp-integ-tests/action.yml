@@ -24,7 +24,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+    - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
 
     - name: Set env
       shell: bash
@@ -76,7 +76,7 @@ runs:
 
     - name: Upload integration test results
       if: always()
-      uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
       with:
         name: ${{ inputs.make_tests_target }}-results
         path: ${{ inputs.test_dir }}

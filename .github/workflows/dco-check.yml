@@ -25,7 +25,7 @@ concurrency:
 jobs:
   reverted-pr-check:
     name: Reverted PR Check Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       PR_TITLE: "${{ github.event.pull_request.title }}"
     # Map a step output to a job output
@@ -34,7 +34,7 @@ jobs:
     steps:
       - name: Check if PR is a Reverted PR
         id: reverted_pr_check
-        uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # pin@v7
         with:
           script: |
             if( process.env.PR_TITLE.startsWith('Revert') ) {
@@ -49,7 +49,7 @@ jobs:
           mkdir -p ./pr
           echo -n ${{ steps.reverted_pr_check.outputs.is_reverted_pr }} > ./pr/is_reverted_pr
           echo -n "false" > ./pr/skipped
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: always()
         with:
           name: reverted check pr
@@ -59,7 +59,7 @@ jobs:
     needs: reverted-pr-check
     if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
     name: DCO Check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Get PR Commits
         id: 'get-pr-commits'
@@ -76,7 +76,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: always()
         with:
           name: dco check job pr

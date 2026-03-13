@@ -37,9 +37,9 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       EVENT_NAME: "${{ github.event_name }}"
       ISSUE_NUMBER: "${{ github.event.number }}"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       # Version is github job run number when running on master
       # Or is branch name when on release branch
       - name: Set Helm chart version
@@ -60,7 +60,7 @@ jobs:
             orc8r/tools/helm/package.sh --deployment-type all
           fi
       - name: Upload charts as artifacts
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: github.event_name == 'pull_request'
         with:
           name: helm-charts
@@ -72,7 +72,7 @@ jobs:
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
           echo "false" > ./pr/skipped
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         with:
           name: jobs pr
           path: pr/
@@ -113,16 +113,16 @@ jobs:
   orc8r-build:
     if: github.repository_owner == 'magma'
     name: orc8r build job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Run apt-get update
         run: sudo apt-get update
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5
         with:
           python-version: '3.8.10'
       - name: Run build.py
@@ -177,10 +177,10 @@ jobs:
 
   cloud-upload:
     name: cloud upload job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: github.event_name == 'push' && github.repository_owner == 'magma'
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Install SwaggerHub CLI
         run: npm install --global swaggerhub-cli
       - name: Publish SwaggerHub API
@@ -217,14 +217,14 @@ jobs:
   cwag-deploy:
     if: github.repository_owner == 'magma'
     name: cwag deploy job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
       - name: Check Out Repo
-        uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Run docker compose
@@ -260,7 +260,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         with:
           name: deploy pr
           path: pr/
@@ -314,11 +314,11 @@ jobs:
   cwf-operator-build:
     if: github.repository_owner == 'magma'
     name: cwf operator build job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Run docker compose build
         env:
           DOCKER_REGISTRY: cwf_
@@ -331,7 +331,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         with:
           name: operator pr
           path: pr/
@@ -383,14 +383,14 @@ jobs:
   feg-build:
     if: github.repository_owner == 'magma'
     name: feg-build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5
         with:
           python-version: '3.8.10'
       - name: generate test certs and snowflake
@@ -465,14 +465,14 @@ jobs:
   nms-build:
     if: github.repository_owner == 'magma'
     name: nms-build job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       NMS_ROOT: "${{ github.workspace }}/nms"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Run docker compose
         id: nms-docker-compose
         # yamllint disable rule:line-length
@@ -529,7 +529,7 @@ jobs:
   Publish_to_firebase:
     name: Publish to firebase
     if: always() && github.event_name == 'push' && github.repository_owner == 'magma'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs:
       [
         agw-build,
@@ -539,8 +539,8 @@ jobs:
         nms-build
       ]
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5
         with:
           python-version: '3.8.10'
       - name: Publish to
@@ -563,13 +563,13 @@ jobs:
   domain-proxy-build:
     if: github.repository_owner == 'magma'
     name: domain proxy build job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       artifacts: ${{ steps.publish_artifacts.outputs.artifacts }}
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Prepare tools
         working-directory: "${{ github.workspace }}/dp"
         run: |

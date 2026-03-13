@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       cc: ${{ steps.filter.outputs.cc }}
       rc: ${{ steps.filter.outputs.rc }}
@@ -40,9 +40,9 @@ jobs:
       helm: ${{ steps.filter.outputs.helm }}
       integration_tests_orc8r: ${{ steps.filter.outputs.integration_tests_orc8r }}
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # pin@v3
         id: filter
         with:
           filters: |
@@ -83,7 +83,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo -n ${{ steps.filter.outputs.integration_tests  == 'false' }} > ./pr/skipped
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: always()
         with:
           name: pr
@@ -93,7 +93,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.cc == 'true' }}
     name: "Configuration controller unit tests"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}"
@@ -102,8 +102,8 @@ jobs:
       run:
         working-directory: dp/cloud/python/magma/configuration_controller
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -138,7 +138,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.rc == 'true' }}
     name: "Radio controller unit tests"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
@@ -151,8 +151,8 @@ jobs:
         working-directory: dp/cloud/python/magma/radio_controller
 
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -217,7 +217,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.db == 'true' }}
     name: "Domain proxy db migration test"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     continue-on-error: false
     defaults:
       run:
@@ -236,8 +236,8 @@ jobs:
           POSTGRES_PASSWORD: postgres
 
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -259,7 +259,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.db == 'true' }}
     name: "DB service unit tests"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
@@ -272,8 +272,8 @@ jobs:
         working-directory: dp/cloud/python/magma/db_service
 
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -306,12 +306,12 @@ jobs:
 
   integration_tests_orc8r:
     name: "Domain proxy integration tests with orc8r"
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: path_filter
     if: ${{ needs.path_filter.outputs.integration_tests_orc8r == 'true' }}
     continue-on-error: false
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Run DP integration test (with orc8r)
         uses: ./.github/workflows/composite/dp-integ-tests
         with:
@@ -321,12 +321,12 @@ jobs:
     name: "Helm chart smoke tests"
     needs: path_filter
     if: ${{ needs.path_filter.outputs.helm == 'true' }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: dp
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Set env
         run: |
           echo "MINIKUBE_DP_MAX_MEMORY=$(grep MemTotal /proc/meminfo | awk '{printf "%dm",$2/1024 - 1}')" >> $GITHUB_ENV

@@ -32,15 +32,15 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     # Map a step output to a job output
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # pin@v3
         id: changes
         with:
           filters: |
@@ -50,13 +50,13 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cwag pre-commit job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       GO111MODULE: on
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
-      - uses: actions/setup-go@c4a742cab115ed795e34d4513e2cf7d472deb55f # pin@v3.3.1
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # pin@v5
         with:
           go-version: '1.21.12'
       - name: Run golang_before_install.sh script

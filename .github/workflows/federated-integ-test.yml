@@ -24,11 +24,11 @@ jobs:
   # Build images on ubuntu which is faster than MacOs.
   docker-build-orc8r:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Build Orc8r docker images
         run: |
           cd orc8r/cloud/docker
@@ -43,18 +43,18 @@ jobs:
           docker save orc8r_controller:latest  | gzip > fed_orc8r_controller.tar.gz
           docker save orc8r_fluentd:latest  | gzip > fed_orc8r_fluentd.tar.gz
           docker save orc8r_test:latest  | gzip > fed_orc8r_test.tar.gz
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         with:
           name: docker-build-orc8r-images
           path: images
 
   docker-build-feg:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: pre requisites to build feg
         run: |
           cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
@@ -70,7 +70,7 @@ jobs:
           cd images
           docker save feg_gateway_go:latest  | gzip > fed_feg_gateway_go.tar.gz
           docker save feg_gateway_python:latest  | gzip > fed_feg_gateway_python.tar.gz
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         with:
           name: docker-build-feg-images
           path: images
@@ -83,14 +83,14 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       AGW_ROOT: "${{ github.workspace }}/lte/gateway"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # pin@v1.3.1
         with:
           # this might remove tools that are actually needed,
           # when set to "true" but frees about 6 GB
           tool-cache: true
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5
         with:
           python-version: '3.10.12'
       - name: Install pre requisites
@@ -114,17 +114,17 @@ jobs:
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
       - name: Cache magma-deb-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # pin@v4
         with:
           path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
           key: vagrant-box-magma-deb-focal64-20220804.0.0
       - name: Cache magma-test-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # pin@v4
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
           key: vagrant-box-magma-test-v1.3.20221230
       - name: Cache magma-trfserver-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # pin@v4
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v1.3.20221230
@@ -154,11 +154,11 @@ jobs:
           [ -f ~/.ssh/id_rsa.pub ] || ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa -q
           fab install-agw
       # Download to local and delete artifacts from remote
-      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # pin@v4
         with:
           name: docker-build-orc8r-images
           path: ${{ env.AGW_ROOT }}
-      - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # pin@v4
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # pin@v4
         with:
           name: docker-build-feg-images
           path: ${{ env.AGW_ROOT }}
@@ -191,7 +191,7 @@ jobs:
           fab get-test-summaries --integration-tests
           ls -R
       - name: Upload test results
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: always()
         with:
           name: test_results
@@ -202,7 +202,7 @@ jobs:
           cd lte/gateway
           fab get-test-logs --gateway-host-name=magma_deb --dst-path=./logs.tar.gz
       - name: Upload test logs
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: always()
         with:
           name: test-logs

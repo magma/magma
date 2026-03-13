@@ -34,15 +34,15 @@ concurrency:
 
 jobs:
   pre_job:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
       files_changed: ${{ steps.changes.outputs.filesChanged_files }}
     steps:
       # Need to get git on push event
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
         if: github.event_name == 'push'
-      - uses: dorny/paths-filter@4512585405083f25c027a35db413c2b3b9006d50 # pin@v2.11.1
+      - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # pin@v3
         id: changes
         with:
           filters: |
@@ -57,7 +57,7 @@ jobs:
           echo -n ${{ github.event.number }} > ./pr/pr_number
           echo -n ${{ steps.changes.outputs.filesChanged == 'false' }} > ./pr/skipped
           echo -n "false" > ./pr/is_reverted_pr
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: always()
         with:
           name: pr
@@ -67,9 +67,9 @@ jobs:
     needs: pre_job
     if: ${{ needs.pre_job.outputs.should_not_skip == 'true' }}
     name: Python Format Check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # pin@v4
         with:
           fetch-depth: 0
       - name: Build the python-precommit Docker base image
@@ -103,7 +103,7 @@ jobs:
         run: |
           mkdir -p ./pr
           echo ${{ github.event.number }} > ./pr/pr_number
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # pin@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # pin@v4
         if: always()
         with:
           name: pr
