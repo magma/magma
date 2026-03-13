@@ -97,7 +97,7 @@ jobs:
     env:
       COVERAGE_RCFILE: ${{ github.workspace }}/dp/.coveragerc
       PYTHONPATH: "${{ github.workspace }}"
-      PYTHON_VERSION: 3.8.10
+      PYTHON_VERSION: 3.10.12
     defaults:
       run:
         working-directory: dp/cloud/python/magma/configuration_controller
@@ -144,7 +144,7 @@ jobs:
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
       MAGMA_ROOT: "${{ github.workspace }}"
       PYTHON_BUILD: "${{ github.workspace }}/build"
-      PYTHON_VERSION: 3.8.10
+      PYTHON_VERSION: 3.10.12
 
     defaults:
       run:
@@ -225,7 +225,7 @@ jobs:
     env:
       SQLALCHEMY_DB_URI: postgresql://postgres:postgres@localhost:5432/dp
       PYTHONPATH: ${{ github.workspace }}/dp/cloud/python
-      PYTHON_VERSION: 3.8.10
+      PYTHON_VERSION: 3.10.12
     services:
       postgres:
         image: postgres:13.3
@@ -265,7 +265,7 @@ jobs:
       PYTHONPATH: "${{ github.workspace }}:${{ github.workspace }}/build/gen"
       MAGMA_ROOT: "${{ github.workspace }}"
       PYTHON_BUILD: "${{ github.workspace }}/build"
-      PYTHON_VERSION: 3.8.10
+      PYTHON_VERSION: 3.10.12
 
     defaults:
       run:
