@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM node:16.14-alpine AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /usr/src/
 
@@ -22,7 +22,7 @@ RUN yarn install --mutex network --frozen-lockfile && yarn cache clean
 # Build our static files
 COPY . .
 
-FROM node:16.14-alpine
+FROM node:18-alpine
 
 # Install required binaries
 RUN apk add ca-certificates curl bash

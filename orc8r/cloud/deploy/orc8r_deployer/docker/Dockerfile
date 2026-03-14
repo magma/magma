@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.9-slim-buster
+FROM python:3.10-slim-bookworm
 ARG ENV=prod
 ARG TERRAFORM_VERSION="0.15.5"
 ARG KUBECTL_VERSION="1.20.2"
