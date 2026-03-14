@@ -90,13 +90,29 @@ type Props = {
 const HOST_PORTAL_TITLE = 'Magma Host Portal';
 const ORGANIZATION_PORTAL_TITLE = 'Magma Organization Portal';
 
-class LoginForm extends React.Component<Props> {
+class LoginForm extends React.Component<Props, {validationError: string}> {
   form: HTMLFormElement | null = null;
+
+  constructor(props: Props) {
+    super(props);
+    this.state = {validationError: ''};
+  }
+
+  validateSubmit = () => {
+    const email = document.getElementsByName('email')[0] as HTMLInputElement;
+    const password = document.getElementsByName('password')[0] as HTMLInputElement;
+    if (this.form && email.value !== '' && password.value !== '') {
+      this.form.submit();
+    }
+    else {
+      this.setState({validationError: 'Invalid email or password'});
+    }
+  };
 
   render() {
     const {classes, csrfToken, ssoEnabled, ssoAction} = this.props;
-    const error = this.props.error ? (
-      <FormLabel error>{this.props.error}</FormLabel>
+    const error = this.props.error || this.state.validationError ? (
+    <FormLabel error>{this.props.error || this.state.validationError}</FormLabel>
     ) : null;
 
     const params = new URLSearchParams(window.location.search);
@@ -168,7 +184,7 @@ class LoginForm extends React.Component<Props> {
                       placeholder="Email"
                       className={classes.input}
                       onKeyUp={key =>
-                        key.keyCode === ENTER_KEY && this.form!.submit()
+                        key.keyCode === ENTER_KEY && this.validateSubmit()
                       }
                     />
                   </AltFormField>
@@ -180,7 +196,7 @@ class LoginForm extends React.Component<Props> {
                       type="password"
                       className={classes.input}
                       onKeyUp={key =>
-                        key.keyCode === ENTER_KEY && this.form!.submit()
+                        key.keyCode === ENTER_KEY && this.validateSubmit()
                       }
                     />
                   </AltFormField>
@@ -190,7 +206,7 @@ class LoginForm extends React.Component<Props> {
                     color="primary"
                     variant="contained"
                     className={classes.submitButton}
-                    onClick={() => this.form!.submit()}>
+                    onClick={this.validateSubmit}>
                     Login
                   </Button>
                 </CardActions>
