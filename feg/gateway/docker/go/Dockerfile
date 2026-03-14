@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 # Development image for test, precommit, etc.
 # -----------------------------------------------------------------------------
-ARG baseImage="ubuntu:focal"
+ARG baseImage="ubuntu:jammy"
 FROM ${baseImage} AS base
 
 # Add the magma apt repo

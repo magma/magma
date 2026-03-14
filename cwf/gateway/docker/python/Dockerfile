@@ -12,7 +12,7 @@
 # -----------------------------------------------------------------------------
 # Builder image
 # -----------------------------------------------------------------------------
-FROM ubuntu:focal AS builder
+FROM ubuntu:jammy AS builder
 
 ARG DEB_PORT=amd64
 # workaround to avoid interactive tzdata configurtaion
@@ -67,7 +67,7 @@ RUN bazel build //lte/gateway/release:cwf_python_executables_tar
 # -----------------------------------------------------------------------------
 # Dev/Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:focal AS lte_gateway_python
+FROM ubuntu:jammy AS lte_gateway_python
 
 # Add the magma apt repo
 RUN apt-get update && \

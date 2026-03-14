@@ -11,7 +11,7 @@
 # limitations under the License.
 ################################################################################
 
-FROM ubuntu:focal AS builder
+FROM ubuntu:jammy AS builder
 
 ARG DEB_PORT=amd64
 # workaround to avoid interactive tzdata configuration
@@ -68,7 +68,7 @@ RUN bazel build //lte/gateway/release:feg_python_executables_tar
 # -----------------------------------------------------------------------------
 # Production image
 # -----------------------------------------------------------------------------
-FROM ubuntu:focal AS gateway_python
+FROM ubuntu:jammy AS gateway_python
 ARG MAGMA_BUILD_BRANCH=unknown
 ARG MAGMA_BUILD_TAG=unknown
 ARG MAGMA_BUILD_COMMIT_HASH=unknonw
