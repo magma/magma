@@ -19,14 +19,14 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/blobstore/mocks"
+	"magma/orc8r/cloud/go/JsonStore"
+	"magma/orc8r/cloud/go/JsonStore/mocks"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 )
 
 func TestIndexerServicer_GetAllIDs(t *testing.T) {
-	blobs := map[string]blobstore.Blobs{
+	blobs := map[string]JsonStore.Jsons{
 		"nid0": {{Type: "typeA", Key: "keyA"}},
 		"nid1": {{Type: "typeB", Key: "keyB"}},
 	}
@@ -37,8 +37,8 @@ func TestIndexerServicer_GetAllIDs(t *testing.T) {
 
 	store := &mocks.Store{}
 	store.On("Search",
-		blobstore.CreateSearchFilter(nil, nil, nil, nil),
-		blobstore.LoadCriteria{LoadValue: false},
+		JsonStore.CreateSearchFilter(nil, nil, nil, nil),
+		JsonStore.LoadCriteria{LoadValue: false},
 	).Return(blobs, nil)
 	store.On("Commit").Return(nil)
 	fact := &mocks.StoreFactory{}

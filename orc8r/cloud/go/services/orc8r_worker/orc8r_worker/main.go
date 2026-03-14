@@ -19,7 +19,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/orc8r_worker"
@@ -57,7 +57,7 @@ func startSingletonReindexer(srv *service.OrchestratorService) {
 	if err != nil {
 		glog.Fatalf("Error connecting to database: %v", err)
 	}
-	store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	store := JsonStore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing state database: %v", err)
@@ -67,7 +67,7 @@ func startSingletonReindexer(srv *service.OrchestratorService) {
 	indexer_protos.RegisterIndexerManagerServer(srv.ProtectedGrpcServer, indexerManagerServer)
 }
 
-func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
+func newSingletonIndexerManagerServicer(cfg *config.Map, db *sql.DB, store JsonStore.StoreFactory) indexer_protos.IndexerManagerServer {
 	versioner := reindex.NewVersioner(db, sqorc.GetSqlBuilder())
 	err := versioner.Initialize()
 	if err != nil {

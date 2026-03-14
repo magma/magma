@@ -19,7 +19,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/services/directoryd/protos"
 	servicers "magma/orc8r/cloud/go/services/directoryd/servicers/protected"
 	"magma/orc8r/cloud/go/services/directoryd/storage"
@@ -52,11 +52,11 @@ func newTestDirectoryLookupServicer(t *testing.T) protos.DirectoryLookupServer {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 
-	fact := blobstore.NewSQLStoreFactory(storage.DirectorydTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := JsonStore.NewSQLStoreFactory(storage.DirectorydTableJsonstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
 
-	store := storage.NewDirectorydBlobstore(fact)
+	store := storage.NewDirectorydJsonstore(fact)
 	srv, err := servicers.NewDirectoryLookupServicer(store)
 	assert.NoError(t, err)
 

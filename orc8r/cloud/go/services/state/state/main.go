@@ -20,7 +20,7 @@ import (
 
 	"github.com/golang/glog"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/state"
@@ -65,7 +65,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error connecting to database: %v", err)
 	}
-	store := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	store := JsonStore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		glog.Fatalf("Error initializing state database: %v", err)
@@ -92,7 +92,7 @@ func main() {
 	}
 }
 
-func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
+func newStateServicer(store JsonStore.StoreFactory) protos.StateServiceServer {
 	servicer, err := servicers.NewStateServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating state servicer: %v", err)
@@ -100,7 +100,7 @@ func newStateServicer(store blobstore.StoreFactory) protos.StateServiceServer {
 	return servicer
 }
 
-func newCloudStateServicer(store blobstore.StoreFactory) protos.CloudStateServiceServer {
+func newCloudStateServicer(store JsonStore.StoreFactory) protos.CloudStateServiceServer {
 	servicer, err := protected_servicers.NewCloudStateServicer(store)
 	if err != nil {
 		glog.Fatalf("Error creating state servicer: %v", err)
@@ -108,7 +108,7 @@ func newCloudStateServicer(store blobstore.StoreFactory) protos.CloudStateServic
 	return servicer
 }
 
-func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store blobstore.StoreFactory) indexer_protos.IndexerManagerServer {
+func newIndexerManagerServicer(cfg *config.Map, db *sql.DB, store JsonStore.StoreFactory) indexer_protos.IndexerManagerServer {
 	queue := reindex.NewSQLJobQueue(reindex.DefaultMaxAttempts, db, sqorc.GetSqlBuilder())
 	err := queue.Initialize()
 	if err != nil {

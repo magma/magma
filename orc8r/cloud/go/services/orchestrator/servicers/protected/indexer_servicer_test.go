@@ -118,7 +118,7 @@ func TestSessionIDIndexer(t *testing.T) {
 	assert.Equal(t, imsi1, imsi)
 
 	// No errs when can't deserialize state -- just logs
-	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: state_types.SerializedState{SerializedReportedState: []byte("0xdeadbeef")}})
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: state_types.SerializedState{SerializedReportedState: "0xdeadbeef"}})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err = directoryd.GetIMSIForSessionID(context.Background(), nid0, sid1)
@@ -254,6 +254,6 @@ func serialize(t *testing.T, st state_types.State, typ string) state_types.Seria
 	}
 	rep, err := serde.Serialize(st.ReportedState, typ, serdes.State)
 	assert.NoError(t, err)
-	s.SerializedReportedState = rep
+	s.SerializedReportedState = string(rep)
 	return s
 }
