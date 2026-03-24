@@ -26,7 +26,7 @@ from magma.magmad.generic_command.command_executor import (
 # Only these command names may be registered via config.
 # Generic shell access (bash, fab, echo) is intentionally excluded
 # to prevent arbitrary command execution via the Orchestrator API.
-COMMAND_ALLOWLIST = frozenset({
+COMMAND_ALLOWLIST = frozenset((
     'reboot_enodeb',
     'reboot_all_enodeb',
     'health',
@@ -35,7 +35,7 @@ COMMAND_ALLOWLIST = frozenset({
     'get_subscriber_table',
     'check_stateless',
     'configure_stateless',
-})
+))
 
 # Shell metacharacters that must not appear in command parameters.
 _SHELL_METACHAR_RE = re.compile(r'[;|&$`\n]')
@@ -44,7 +44,7 @@ _SHELL_METACHAR_RE = re.compile(r'[;|&$`\n]')
 class ShellCommandExecutor(CommandExecutor):
     """
     The shell command executor stores shell commands from the service config
-    into its dispatch table
+    into its dispatch table.
     """
 
     def __init__(
@@ -58,16 +58,29 @@ class ShellCommandExecutor(CommandExecutor):
     def get_command_dispatch(
             self,
     ) -> Dict[str, ExecutorFuncT]:
+        """Get the command dispatch table.
+
+        Returns:
+            Dict[str, ExecutorFuncT]: The dispatch table.
+        """
         return self._dispatch_table
 
 
 def get_shell_commands_from_config(
         config: Dict[str, Any],
 ) -> Dict[str, ExecutorFuncT]:
-    """
-    Gets a list of shell commands from the config. Creates subprocess
-    coroutines for each command and stores it in a dictionary.
-    Only commands whose name is in COMMAND_ALLOWLIST are registered.
+    """Get a list of shell commands from the config.
+
+    Creates subprocess coroutines for each command and stores it in a
+    dictionary. Only commands whose name is in COMMAND_ALLOWLIST are
+    registered.
+
+    Args:
+        config: The service configuration dictionary.
+
+    Returns:
+        Dict[str, ExecutorFuncT]: A dispatch table mapping command names
+            to functions.
     """
     shell_commands = config\
         .get('generic_command_config', {})\
@@ -113,14 +126,20 @@ async def _run_subprocess(
         allow_params: bool,
         params: Dict[str, ParamValueT],
 ) -> Dict[str, Any]:
-    """
-    Runs a command given params (optional), and returns the return code,
-    stdout, and stderr.
+    """Run a command given params and return results.
+
+    Args:
+        cmd: The shell command template to execute.
+        allow_params: Whether parameters are allowed to be formatted.
+        params: Dictionary of parameters for the command.
+
+    Returns:
+        Dict[str, Any]: Dictionary containing returncode, stdout, and stderr.
     """
     cmd_str = cmd
     if allow_params:
         shell_params = params.get('shell_params', [''])
-        if shell_params == []:
+        if not shell_params:
             shell_params = ['']
         _validate_shell_params(shell_params)
         cmd_str = cmd.format(*shell_params)

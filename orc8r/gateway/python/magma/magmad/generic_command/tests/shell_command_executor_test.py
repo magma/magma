@@ -88,7 +88,7 @@ class ShellCommandExecutorTest(unittest.TestCase):
                 'shell_commands': [
                     {
                         'name': 'health',
-                        'command': 'echo {} {}',
+                        'command': 'echo {0} {1}',
                         'allow_params': True,
                     },
                 ],
@@ -133,9 +133,9 @@ class ShellCommandExecutorTest(unittest.TestCase):
         self.service.config = {
             'generic_command_config': {
                 'shell_commands': [
-                    {'name': 'bash', 'command': 'bash {}', 'allow_params': True},
-                    {'name': 'fab', 'command': 'fab {}', 'allow_params': True},
-                    {'name': 'echo', 'command': 'echo {}', 'allow_params': True},
+                    {'name': 'bash', 'command': 'bash {0}', 'allow_params': True},
+                    {'name': 'fab', 'command': 'fab {0}', 'allow_params': True},
+                    {'name': 'echo', 'command': 'echo {0}', 'allow_params': True},
                 ],
             },
         }
@@ -163,7 +163,7 @@ class ShellCommandExecutorTest(unittest.TestCase):
                 'shell_commands': [
                     {
                         'name': 'health',
-                        'command': 'health_cli.py {}',
+                        'command': 'health_cli.py {0}',
                         'allow_params': True,
                     },
                 ],
