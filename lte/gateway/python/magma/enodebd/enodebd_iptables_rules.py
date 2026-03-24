@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 Copyright 2020 The Magma Authors.
 
@@ -17,7 +15,7 @@ limitations under the License.
 import asyncio
 import re
 import shlex
-import subprocess
+import subprocess  # noqa: S404 # subprocess is required for system iptables configuration
 from typing import List
 
 from magma.common.misc_utils import (
@@ -26,7 +24,7 @@ from magma.common.misc_utils import (
     get_ip_from_if,
 )
 from magma.configuration.service_configs import load_service_config
-from magma.enodebd.logger import EnodebdLogger as logger
+from magma.enodebd.logger import EnodebdLogger as logger  # noqa: N813
 
 IPTABLES_RULE_FMT = """sudo iptables -t nat
     -{add} PREROUTING
@@ -40,6 +38,7 @@ EXPECTED_MASK = '255.255.255.0'
 
 
 def get_iptables_rule(port, enodebd_public_ip, private_ip, add=True):
+    """Return the formatted iptables rule string."""
     return IPTABLES_RULE_FMT.format(
         add='A' if add else 'D',
         public_ip=enodebd_public_ip,
@@ -49,10 +48,12 @@ def get_iptables_rule(port, enodebd_public_ip, private_ip, add=True):
 
 
 def does_iface_config_match_expected(ip: str, netmask: str) -> bool:
+    """Check if the interface configuration matches the expected IP and mask."""
     return ip in EXPECTED_IP4 and netmask == EXPECTED_MASK
 
 
 def _get_prerouting_rules(output: str) -> List[str]:
+    """Parse the iptables output to extract PREROUTING chain rules."""
     prerouting_rules = output.split('\n\n')[0].split('\n')
     # Skipping the first two lines since it contains only column names
     prerouting_rules = prerouting_rules[2:]
@@ -64,8 +65,10 @@ async def check_and_apply_iptables_rules(
     enodebd_public_ip: str,
     enodebd_ip: str,
 ) -> None:
+    """Verify existing rules and apply the NAT rule if missing."""
     command = ['sudo', 'iptables', '-t', 'nat', '-L']
-    output = subprocess.run(command, stdout=subprocess.PIPE, check=True)
+    # noqa: S603 # command is a hardcoded list of safe strings
+    output = subprocess.run(command, stdout=subprocess.PIPE, check=True)  # noqa: S603
     command_output = output.stdout.decode('utf-8').strip()
     prerouting_rules = _get_prerouting_rules(command_output)
     if not prerouting_rules:
@@ -99,6 +102,7 @@ def check_rules(
     enodebd_public_ip: str,
     private_ip: str,
 ) -> bool:
+    """Compare active iptables rules against the expected configuration."""
     unexpected_rules = []
     expected_rules_present = False
     pattern = r'DNAT\s+tcp\s+--\s+anywhere\s+{pub_ip}\s+tcp\s+dpt:{dport} to:{ip}'.format(
