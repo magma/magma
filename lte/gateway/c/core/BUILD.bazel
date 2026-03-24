@@ -1164,6 +1164,7 @@ cc_library(
         "-DCMAKE_BUILD_TYPE=\\\"CMAKE_BUILD_TYPE\\\"",  # TODO(#11897): needs alternative approach or deprecation
         "-DEMBEDDED_SGW=1",
         "-DS6A_OVER_GRPC=1",
+        "-Wno-deprecated-declarations",
     ],
     deps = MME_DEPS + AGW_OF_DEPS,
 )
@@ -1177,6 +1178,7 @@ cc_library(
         "-DCMAKE_BUILD_TYPE=\\\"CMAKE_BUILD_TYPE\\\"",  # TODO(#11897): needs alternative approach or deprecation
         "-DEMBEDDED_SGW=0",
         "-DS6A_OVER_GRPC=0",
+        "-Wno-deprecated-declarations",
     ],
     tags = TAG_MME_OAI,
     deps = MME_DEPS,
