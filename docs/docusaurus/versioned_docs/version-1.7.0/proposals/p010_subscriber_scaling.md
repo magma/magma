@@ -290,7 +290,7 @@ This solution is not worth the complexity it would entail at this point, where w
 
 ### Scalability calculations
 
-To contextualize the proposed changes in this section, consider the [representative operator behaviors presented above](https://fb.quip.com/qqcBA5OMeaHA#RAHACA1mTTg), with a single-tenant Orc8r deployment with GA targets of 20k subscribers and 400 gateways over a 7-day period. We'll assume the southbound cache refresh occurs every 5 minutes, which means
+To contextualize the proposed changes in this section, consider the representative operator behaviors presented above [internal document — no longer available], with a single-tenant Orc8r deployment with GA targets of 20k subscribers and 400 gateways over a 7-day period. We'll assume the southbound cache refresh occurs every 5 minutes, which means
 
 - Previous architecture causes (1440\*7)(400) = 4,032,000 DB hits
 - Proposed caching pattern would result in (1440\*7/5)(1) = 2016 DB hits, **a 2000x improvement**
@@ -447,7 +447,7 @@ The latter solution doesn't resolve scenario A, but it does restrict the scope o
 
 ### Scalability calculations
 
-To contextualize the proposed changes in this section, consider the [representative operator behaviors presented above](https://fb.quip.com/qqcBA5OMeaHA#RAHACA1mTTg), with a single-tenant Orc8r deployment with GA targets of 20k subscribers and 400 gateways over a 7-day period. Under this context, the existing architecture results in (1440*7)(400)(20000) = **80 billion subscriber objects sent over the network over a 7-day period — that's 20 terabytes**. For the below calculations, we'll assume the new default southbound poll interval is 5 minutes, and that each gateway serves a uniform share of the subscribers (i.e. 50 subscribers at each gateway) with no subscriber mobility
+To contextualize the proposed changes in this section, consider the representative operator behaviors presented above [internal document — no longer available], with a single-tenant Orc8r deployment with GA targets of 20k subscribers and 400 gateways over a 7-day period. Under this context, the existing architecture results in (1440*7)(400)(20000) = **80 billion subscriber objects sent over the network over a 7-day period — that's 20 terabytes**. For the below calculations, we'll assume the new default southbound poll interval is 5 minutes, and that each gateway serves a uniform share of the subscribers (i.e. 50 subscribers at each gateway) with no subscriber mobility
 
 1. 🌟 1 write per day, 500 mutations each
     1. Read-through cache: (1440/5\*7)(400)(20000/400\*250b) = **10gb**

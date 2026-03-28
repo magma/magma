@@ -24,7 +24,7 @@ executed in worker node in FB lab. Reports and logs are pushed out to AWS S3 for
 
 ### Run tests
 
-To setup HIL worker follow [instruction](https://github.com/fbcinternal/ens_magma/tree/master/spirent_automation)
+To setup HIL worker follow instruction [internal repository — no longer available]
 Current Test categories supported are:
 
 1. Sanity (every new build, run time - 30 minutes) updates badge with latest result on magma main README

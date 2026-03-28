@@ -108,7 +108,7 @@ In Magma, we store config state in a persistent store and status information in 
 
 [Medium Term]
 
-We have some [_kludge with policydb_](https://fb.quip.com/kWZ3AIOc3lyb) persisting its config in redis. This has to be refactored and moved to the newly proposed Config DB. This will ensure consistency in the way we store our configs and will improve redis performance since we can eliminate it persisting the state.
+We have some _kludge with policydb_ [internal document — no longer available] persisting its config in redis. This has to be refactored and moved to the newly proposed Config DB. This will ensure consistency in the way we store our configs and will improve redis performance since we can eliminate it persisting the state.
 [Longer Term]
 We remove references to redis and sqlite in the code and abstract it behind our services such as ConfigDB service and state service.
 
