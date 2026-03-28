@@ -1,3 +1,7 @@
+> **Deprecation Notice:** The HIL (Hardware in Loop) testing infrastructure
+> is deprecated and scheduled for removal. This documentation is retained
+> for historical reference only.
+
 # Magma Spirent Testing
 
 NOTE: The code is submited as-is. At the time of writing this README file, the SANITY test suite was fully functional. As long as the architecture  described in this readme is replicated, the expectation is that the test cases will continue to function.

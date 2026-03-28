@@ -5,6 +5,10 @@ hide_title: true
 original_id: HIL_AGW_tests
 ---
 
+> **Deprecation Notice:** The HIL (Hardware in Loop) testing infrastructure
+> is deprecated and scheduled for removal. This documentation is retained
+> for historical reference only.
+
 # Hardware In Loop Tests
 
 Current testing workflow for HIL testing is using Spirent test center to emulate eNodeB, UE and Network host to run scale and performance tests. HIL is focusing on Magma AGW.

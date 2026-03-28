@@ -1,4 +1,7 @@
 
+> **Deprecation Notice:** The Cloudstrapper tool is deprecated and scheduled
+> for removal. This documentation is retained for historical reference only.
+
 # Chapter 1
 
 ## 0. Prerequisites

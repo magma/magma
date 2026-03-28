@@ -5,6 +5,10 @@ hide_title: true
 original_id: aws_cloudstrapper
 ---
 
+> **Deprecation Notice:** The Cloudstrapper tool under `experimental/cloudstrapper/`
+> is deprecated and scheduled for removal. This documentation is retained for
+> historical reference only.
+
 # Deploying Magma via Cloudstrapper
 
 There are two basic options for setting up Magma Cloudstrapper within Amazon Web Services: Marketplace or via private image.

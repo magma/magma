@@ -19,7 +19,7 @@ On an Arm architecture with the 5.4 kernel, the images can be built with `cd $MA
 ## Deploying the containerized AGW on AWS
 
 - Build the docker images and push them to a registry of your choice
-- Look at [the cloudstrapper readme](../../../experimental/cloudstrapper/README.md) for an AWS setup
+- Look at [the cloudstrapper readme](../../../experimental/cloudstrapper/README.md) for an AWS setup (note: Cloudstrapper is deprecated and scheduled for removal)
     - If you are only interested in running the AGW, you only need steps 1 and 5.1
         - Step 1 will produce required AWS resources like security groups, S3 buckets, and a keypair, and download the keypair to a local directory that you specify
         - Step 5.1 will start and customize an Ubuntu machine and create an AMI snapshot of that machine. The machine stays running after the snapshot is taken.
