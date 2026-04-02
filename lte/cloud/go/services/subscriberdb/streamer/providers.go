@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/any"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -102,7 +102,7 @@ func loadAPNs(ctx context.Context, gateway configurator.NetworkEntity) (map[stri
 func subscribersToUpdates(subs []*lte_protos.SubscriberData) ([]*protos.DataUpdate, error) {
 	ret := make([]*protos.DataUpdate, 0, len(subs))
 	for _, sub := range subs {
-		marshaledProto, err := proto.Marshal(sub)
+		marshaledProto, err := protojson.Marshal(sub)
 		if err != nil {
 			return nil, err
 		}

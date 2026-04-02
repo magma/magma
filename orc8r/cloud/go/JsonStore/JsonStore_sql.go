@@ -29,11 +29,11 @@ import (
 )
 
 const (
-	nidCol = "network_id"
-	typeCol= "type"
-	keyCol = "\"key\""
-	valCol = "value"
-	verCol = "version"
+	nidCol  = "network_id"
+	typeCol = "type"
+	keyCol  = "\"key\""
+	valCol  = "value"
+	verCol  = "version"
 )
 
 func NewSQLStoreFactory(tableName string, db *sql.DB, sqlBuilder sqorc.StatementBuilder) StoreFactory {
@@ -42,7 +42,7 @@ func NewSQLStoreFactory(tableName string, db *sql.DB, sqlBuilder sqorc.Statement
 
 type sqlStoreFactory struct {
 	tableName string
-	db 		  *sql.DB
+	db        *sql.DB
 	builder   sqorc.StatementBuilder
 }
 
@@ -120,7 +120,7 @@ func (store *sqlStore) Rollback() error {
 	return err
 }
 
-func (store *sqlStore) Get(networkID string, id storage.TK) (Json, error){
+func (store *sqlStore) Get(networkID string, id storage.TK) (Json, error) {
 	multiRet, err := store.GetMany(networkID, storage.TKs{id})
 	if err != nil {
 		return Json{}, err
@@ -145,9 +145,9 @@ func (store *sqlStore) GetMany(networkID string, ids storage.TKs) (Jsons, error)
 		Where(whereCondition).
 		RunWith(store.tx).
 		Query()
-	
+
 	if err != nil {
-		return nil ,err
+		return nil, err
 	}
 
 	defer sqorc.CloseRowsLogOnError(rows, "GetMany")
@@ -158,7 +158,7 @@ func (store *sqlStore) GetMany(networkID string, ids storage.TKs) (Jsons, error)
 
 		err = rows.Scan(&json.Type, &json.Key, &json.Value, &json.Version)
 		if err != nil {
-			return nil ,err
+			return nil, err
 		}
 		jsons = append(jsons, json)
 	}
@@ -172,23 +172,23 @@ func (store *sqlStore) GetMany(networkID string, ids storage.TKs) (Jsons, error)
 
 func (store *sqlStore) Search(filter SearchFilter, criteria LoadCriteria) (map[string]Jsons, error) {
 	ret := map[string]Jsons{}
-	if err := store.validateTx(); err!=nil {
-		return ret , err
+	if err := store.validateTx(); err != nil {
+		return ret, err
 	}
 
-	selectCols := []string{nidCol,typeCol, keyCol, verCol}
+	selectCols := []string{nidCol, typeCol, keyCol, verCol}
 	if criteria.LoadValue {
 		selectCols = append(selectCols, valCol)
 	}
 
 	whereCondition := sq.And{}
 	if filter.NetworkID != nil {
-		whereCondition =  append(whereCondition, sq.Eq{nidCol : *filter.NetworkID})
+		whereCondition = append(whereCondition, sq.Eq{nidCol: *filter.NetworkID})
 
 	}
 
 	if !funk.IsEmpty(filter.Types) {
-		whereCondition = append(whereCondition, sq.Eq{typeCol: filter.GetKeys()})
+		whereCondition = append(whereCondition, sq.Eq{typeCol: filter.GetTypes()})
 	}
 	// Apply only one of prefix or match predicates; prefix takes precedence
 	if !funk.IsEmpty(filter.KeyPrefix) {
@@ -441,4 +441,3 @@ func getSortedTKs(JsonToChange map[storage.TK]JsonChange) storage.TKs {
 	sort.Slice(ret, func(i, j int) bool { return ret[i].String() < ret[j].String() })
 	return ret
 }
-

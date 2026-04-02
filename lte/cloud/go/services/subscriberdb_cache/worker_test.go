@@ -30,7 +30,7 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/mproto"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -264,7 +264,7 @@ func subProtoFromID(sid string) *lte_protos.SubscriberData {
 func initializeSyncstore(t *testing.T) syncstore.SyncStore {
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := JsonStore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{TableNamePrefix: "subscriber", CacheWriterValidIntervalSecs: 150})
 	assert.NoError(t, err)

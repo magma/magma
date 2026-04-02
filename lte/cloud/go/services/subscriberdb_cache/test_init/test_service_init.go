@@ -21,7 +21,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/syncstore"
 	"magma/orc8r/cloud/go/test_utils"
@@ -40,7 +40,7 @@ func StartTestService(t *testing.T) {
 
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := JsonStore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{
 		TableNamePrefix:              subscriberdb.SyncstoreTableNamePrefix,

@@ -15,8 +15,8 @@ package syncstore
 
 import (
 	"database/sql"
-	"encoding/binary"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/Masterminds/squirrel"
@@ -25,7 +25,7 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -39,10 +39,10 @@ type syncStore struct {
 	tableNamePrefix              string
 	db                           *sql.DB
 	builder                      sqorc.StatementBuilder
-	fact                         blobstore.StoreFactory
+	fact                         JsonStore.StoreFactory
 }
 
-func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.StoreFactory, config Config) (SyncStore, error) {
+func NewSyncStore(db *sql.DB, builder sqorc.StatementBuilder, fact JsonStore.StoreFactory, config Config) (SyncStore, error) {
 	err := config.Validate(true)
 	if err != nil {
 		return nil, fmt.Errorf("invalid configs for syncstore: %w", err)
@@ -130,13 +130,13 @@ func (l *syncStore) RecordResync(network string, gateway string, t int64) error 
 	}
 	defer store.Rollback()
 
-	err = store.Write(network, blobstore.Blobs{{
+	err = store.Write(network, JsonStore.Jsons{{
 		Type:  lastResyncBlobstoreType,
 		Key:   gateway,
 		Value: encodeInt64(t),
 	}})
 	if err != nil {
-		return fmt.Errorf("set last resync time of network %+v, gateway %+v in blobstore: %w", network, gateway, err)
+		return fmt.Errorf("set last resync time of network %+v, gateway %+v in JsonStore: %w", network, gateway, err)
 	}
 
 	return store.Commit()
@@ -150,13 +150,13 @@ func (l *syncStore) recordCacheWriterStartTime(network string, writerID string) 
 	}
 	defer store.Rollback()
 
-	err = store.Write(network, blobstore.Blobs{{
+	err = store.Write(network, JsonStore.Jsons{{
 		Type:  cacheWriterBlobstoreType,
 		Key:   writerID,
 		Value: encodeInt64(clock.Now().Unix()),
 	}})
 	if err != nil {
-		return fmt.Errorf("set start time of network %+v, cachewriter %+v in blobstore: %w", network, writerID, err)
+		return fmt.Errorf("set start time of network %+v, cachewriter %+v in JsonStore: %w", network, writerID, err)
 	}
 	return store.Commit()
 }
@@ -226,15 +226,15 @@ func (l *syncStore) getStoredNetworksSQL(tx *sql.Tx, tableName string) ([]string
 	return storedNetworks, nil
 }
 
-func getStoredNetworksBlobstore(store blobstore.Store) ([]string, error) {
-	keysByNetwork, err := blobstore.ListKeysByNetwork(store)
+func getStoredNetworksJsonStore(store JsonStore.Store) ([]string, error) {
+	keysByNetwork, err := JsonStore.ListKeysByNetwork(store)
 	if err != nil {
-		return nil, fmt.Errorf("list blobstore keys by network: %w", err)
+		return nil, fmt.Errorf("list JsonStore keys by network: %w", err)
 	}
 	return funk.Keys(keysByNetwork).([]string), nil
 }
 
-// collectGarbageLastResync drops all lastResync type blobstore items unrelated
+// collectGarbageLastResync drops all lastResync type JsonStore items unrelated
 // to the tracked networks.
 func (l *syncStore) collectGarbageLastResync(tracked []string) error {
 	store, err := l.fact.StartTransaction(nil)
@@ -243,15 +243,15 @@ func (l *syncStore) collectGarbageLastResync(tracked []string) error {
 	}
 	defer store.Rollback()
 
-	stored, err := getStoredNetworksBlobstore(store)
+	stored, err := getStoredNetworksJsonStore(store)
 	if err != nil {
-		return fmt.Errorf("get all networks in blobstore: %w", err)
+		return fmt.Errorf("get all networks in JsonStore: %w", err)
 	}
 	deleted, _ := funk.DifferenceString(stored, tracked)
 
 	errs := &multierror.Error{}
 	for _, network := range deleted {
-		keys, err := blobstore.ListKeys(store, network, lastResyncBlobstoreType)
+		keys, err := JsonStore.ListKeys(store, network, lastResyncBlobstoreType)
 		if err != nil {
 			errs = multierror.Append(errs, err)
 			continue
@@ -272,22 +272,22 @@ func (l *syncStore) collectGarbageCacheWriter(tracked []string) error {
 		errs = multierror.Append(errs, fmt.Errorf("get invalid cache writers for tracked networks %+v: %w", tracked, err))
 	}
 
-	// Attempt to drop the tmp tables of all invalid cacheWriters, and only delete the blobstore records of those
+	// Attempt to drop the tmp tables of all invalid cacheWriters, and only delete the JsonStore records of those
 	// whose tables have been successfully dropped; the rest is left to be garbage collected in future runs
 	deletedByNetwork, err := l.dropInvalidCaches(invalidByNetwork)
 	if err != nil {
 		errs = multierror.Append(errs, fmt.Errorf("drop invalid cache writer tables %+v: %w", invalidByNetwork, err))
 	}
 
-	err = l.deleteCacheWriterBlobstoreRecords(deletedByNetwork)
+	err = l.deleteCacheWriterJsonStoreRecords(deletedByNetwork)
 	if err != nil {
-		errs = multierror.Append(errs, fmt.Errorf("delete cache writer blobstore records %+v: %w", deletedByNetwork, err))
+		errs = multierror.Append(errs, fmt.Errorf("delete cache writer JsonStore records %+v: %w", deletedByNetwork, err))
 	}
 
 	return errs.ErrorOrNil()
 }
 
-// getInvalidCacheWriter returns a list of cache writer IDs from blobstore that
+// getInvalidCacheWriter returns a list of cache writer IDs from JsonStore that
 // either belong to already deleted networks or have expired.
 func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidIntervalSecs int64) (map[string][]string, error) {
 	store, err := l.fact.StartTransaction(&storage.TxOptions{ReadOnly: true})
@@ -296,48 +296,59 @@ func (l *syncStore) getInvalidCacheWriter(tracked []string, cacheWriterValidInte
 	}
 	defer store.Rollback()
 
-	stored, err := getStoredNetworksBlobstore(store)
+	stored, err := getStoredNetworksJsonStore(store)
 	if err != nil {
-		return nil, fmt.Errorf("get all networks in blobstore: %w", err)
+		return nil, fmt.Errorf("get all networks in JsonStore: %w", err)
 	}
 
 	deleted, _ := funk.DifferenceString(stored, tracked)
 
 	invalidByNetwork := map[string][]string{}
 	errs := &multierror.Error{}
+	appendDeletedCacheWriters(store, deleted, invalidByNetwork, errs)
+	appendExpiredCacheWriters(store, tracked, cacheWriterValidIntervalSecs, invalidByNetwork, errs)
+	err = store.Commit()
+	errs = multierror.Append(errs, err)
+	return invalidByNetwork, errs.ErrorOrNil()
+}
+
+func appendDeletedCacheWriters(store JsonStore.Store, deleted []string, invalidByNetwork map[string][]string, errs *multierror.Error) {
 	for _, network := range deleted {
-		keys, err := blobstore.ListKeys(store, network, cacheWriterBlobstoreType)
+		keys, err := JsonStore.ListKeys(store, network, cacheWriterBlobstoreType)
 		if err != nil {
 			errs = multierror.Append(errs, fmt.Errorf("list cache writers of deleted network %+v: %w", network, err))
 			continue
 		}
 		invalidByNetwork[network] = keys
 	}
+}
 
+func appendExpiredCacheWriters(store JsonStore.Store, tracked []string, cacheWriterValidIntervalSecs int64, invalidByNetwork map[string][]string, errs *multierror.Error) {
 	for _, network := range tracked {
-		keys, err := blobstore.ListKeys(store, network, cacheWriterBlobstoreType)
+		keys, err := JsonStore.ListKeys(store, network, cacheWriterBlobstoreType)
 		if err != nil {
-			errs = multierror.Append(errs, fmt.Errorf("list all cache-writer-type blobstore keys of network %+v: %w", network, err))
+			errs = multierror.Append(errs, fmt.Errorf("list all cache-writer-type JsonStore keys of network %+v: %w", network, err))
 			continue
 		}
-		blobs, err := store.GetMany(network, storage.MakeTKs(cacheWriterBlobstoreType, keys))
+		jsons, err := store.GetMany(network, storage.MakeTKs(cacheWriterBlobstoreType, keys))
 		if err != nil {
-			errs = multierror.Append(errs, fmt.Errorf("get cache writer blobs of network %+v: %w", network, err))
+			errs = multierror.Append(errs, fmt.Errorf("get cache writer Jsons of network %+v: %w", network, err))
 			continue
 		}
 
 		var invalid []string
-		for _, blob := range blobs {
-			creationTime := binary.LittleEndian.Uint64(blob.Value)
-			if clock.Now().Unix()-int64(creationTime) > cacheWriterValidIntervalSecs {
-				invalid = append(invalid, blob.Key)
+		for _, json := range jsons {
+			creationTime, err := decodeInt64(json.Value)
+			if err != nil {
+				errs = multierror.Append(errs, fmt.Errorf("parse cache writer creation time of network %+v: %w", network, err))
+				continue
+			}
+			if clock.Now().Unix()-creationTime > cacheWriterValidIntervalSecs {
+				invalid = append(invalid, json.Key)
 			}
 		}
 		invalidByNetwork[network] = invalid
 	}
-	err = store.Commit()
-	errs = multierror.Append(errs, err)
-	return invalidByNetwork, errs.ErrorOrNil()
 }
 
 // dropInvalidCaches drops the temporary caches held by invalid cache writers, and
@@ -367,9 +378,9 @@ func (l *syncStore) dropInvalidCaches(invalidByNetwork map[string][]string) (map
 	return deletedByNetwork, errs.ErrorOrNil()
 }
 
-// deleteCacheWriterBlobstoreRecords removes the blobstore records of cache writers
+// deleteCacheWriterJsonStoreRecords removes the JsonStore records of cache writers
 // that are invalid, and whose temporary caches have been dropped.
-func (l *syncStore) deleteCacheWriterBlobstoreRecords(deletedByNetwork map[string][]string) error {
+func (l *syncStore) deleteCacheWriterJsonStoreRecords(deletedByNetwork map[string][]string) error {
 	store, err := l.fact.StartTransaction(nil)
 	if err != nil {
 		return fmt.Errorf("error starting transaction: %w", err)
@@ -381,7 +392,7 @@ func (l *syncStore) deleteCacheWriterBlobstoreRecords(deletedByNetwork map[strin
 		tks := storage.MakeTKs(cacheWriterBlobstoreType, deleted)
 		err := store.Delete(network, tks)
 		if err != nil {
-			errs = multierror.Append(errs, fmt.Errorf("delete blobstore cache writer records %+v for network %+v: %w", deleted, network, err))
+			errs = multierror.Append(errs, fmt.Errorf("delete JsonStore cache writer records %+v for network %+v: %w", deleted, network, err))
 		}
 	}
 	err = store.Commit()
@@ -397,8 +408,14 @@ func generateCacheWriterUUID(tableNamePrefix string) string {
 	return fmt.Sprintf("%s_cache_writer_%s", tableNamePrefix, id)
 }
 
-func encodeInt64(n int64) []byte {
-	bytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(bytes, uint64(n))
-	return bytes
+func encodeInt64(n int64) string {
+	return strconv.FormatInt(n, 10)
+}
+
+func decodeInt64(value string) (int64, error) {
+	parsed, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return parsed, nil
 }

@@ -18,9 +18,9 @@ import (
 	"testing"
 
 	"github.com/go-openapi/swag"
-	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -155,7 +155,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	expected := funk.Map(
 		expectedProtos,
 		func(sub *lte_protos.SubscriberData) *protos.DataUpdate {
-			data, err := proto.Marshal(sub)
+			data, err := protojson.Marshal(sub)
 			assert.NoError(t, err)
 			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
@@ -186,7 +186,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	expected = funk.Map(
 		expectedProtos,
 		func(sub *lte_protos.SubscriberData) *protos.DataUpdate {
-			data, err := proto.Marshal(sub)
+			data, err := protojson.Marshal(sub)
 			assert.NoError(t, err)
 			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},
@@ -227,7 +227,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	expected = funk.Map(
 		expectedProtos,
 		func(sub *lte_protos.SubscriberData) *protos.DataUpdate {
-			data, err := proto.Marshal(sub)
+			data, err := protojson.Marshal(sub)
 			assert.NoError(t, err)
 			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
 		},

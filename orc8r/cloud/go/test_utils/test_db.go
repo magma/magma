@@ -22,6 +22,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
 )
@@ -30,6 +31,8 @@ var (
 	once     sync.Once
 	instance *sql.DB
 )
+
+const dropTableQuery = "DROP TABLE IF EXISTS %s"
 
 // GetSharedMemoryDB returns a singleton in-memory database connection.
 func GetSharedMemoryDB() (*sql.DB, error) {
@@ -40,7 +43,7 @@ func GetSharedMemoryDB() (*sql.DB, error) {
 
 // DropTableFromSharedTestDB drops the table from the singleton in-memory database.
 func DropTableFromSharedTestDB(t *testing.T, table string) {
-	query := fmt.Sprintf("DROP TABLE IF EXISTS %s", table)
+	query := fmt.Sprintf(dropTableQuery, table)
 	_, err := instance.Exec(query)
 	assert.NoError(t, err)
 }
@@ -67,12 +70,48 @@ func NewSQLBlobstoreForServices(tableName string) (blobstore.StoreFactory, error
 
 	// Since the backing storage is process-shared, drop the table if it exists
 	// to provide a clean slate across test cases
-	_, err = db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS %s", tableName))
+	_, err = db.Exec(fmt.Sprintf(dropTableQuery, tableName))
 	if err != nil {
 		return nil, fmt.Errorf("drop test SQL blobstore table: %s: %w", tableName, err)
 	}
 
 	store := blobstore.NewSQLStoreFactory(tableName, db, sqorc.GetSqlBuilder())
+	err = store.InitializeFactory()
+	if err != nil {
+		return nil, err
+	}
+
+	return store, nil
+}
+
+// NewSQLJsonStore returns a new JsonStore storage factory utilizing the
+// singleton in-memory database.
+func NewSQLJsonStore(t *testing.T, tableName string) JsonStore.StoreFactory {
+	if t == nil {
+		panic("for tests only")
+	}
+	fact, err := NewSQLJsonStoreForServices(tableName)
+	assert.NoError(t, err)
+	return fact
+}
+
+// NewSQLJsonStoreForServices is same as NewSQLJsonStore, but for use in
+// validation-oriented services.
+// Prefer NewSQLJsonStore wherever possible.
+func NewSQLJsonStoreForServices(tableName string) (JsonStore.StoreFactory, error) {
+	db, err := GetSharedMemoryDB()
+	if err != nil {
+		return nil, err
+	}
+
+	// Since the backing storage is process-shared, drop the table if it exists
+	// to provide a clean slate across test cases
+	_, err = db.Exec(fmt.Sprintf(dropTableQuery, tableName))
+	if err != nil {
+		return nil, fmt.Errorf("drop test SQL JsonStore table: %s: %w", tableName, err)
+	}
+
+	store := JsonStore.NewSQLStoreFactory(tableName, db, sqorc.GetSqlBuilder())
 	err = store.InitializeFactory()
 	if err != nil {
 		return nil, err

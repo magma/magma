@@ -32,7 +32,7 @@ import (
 func TestSyncStore(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := test_utils.NewSQLBlobstore(t, "last_resync_time")
+	fact := test_utils.NewSQLJsonStore(t, "last_resync_time")
 	assert.NoError(t, fact.InitializeFactory())
 	config := syncstore.Config{
 		TableNamePrefix:              "test",

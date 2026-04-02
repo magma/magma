@@ -19,7 +19,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -44,9 +44,9 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
 	}
-	fact := blobstore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := JsonStore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := fact.InitializeFactory(); err != nil {
-		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
+		glog.Fatalf("Error initializing JsonStore storage for subscriber syncstore: %+v", err)
 	}
 	// Garbage collection interval for syncstore cache writers is enforced to be half the time for the service worker's
 	// update interval, to prevent cache writers from outliving update cycles
