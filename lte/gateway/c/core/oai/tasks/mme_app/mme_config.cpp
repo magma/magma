@@ -83,22 +83,22 @@ void log_config_init(log_config_t* log_conf) {
 
   log_conf->output = NULL;
   log_conf->is_output_thread_safe = false;
-  log_conf->color = false;
+  log_conf->color = true;
 
-  log_conf->udp_log_level = MAX_LOG_LEVEL;  // Means invalid TODO wtf
-  log_conf->gtpv1u_log_level = MAX_LOG_LEVEL;
-  log_conf->gtpv2c_log_level = MAX_LOG_LEVEL;
-  log_conf->sctp_log_level = MAX_LOG_LEVEL;
-  log_conf->s1ap_log_level = MAX_LOG_LEVEL;
-  log_conf->nas_log_level = MAX_LOG_LEVEL;
-  log_conf->mme_app_log_level = MAX_LOG_LEVEL;
-  log_conf->s11_log_level = MAX_LOG_LEVEL;
-  log_conf->s6a_log_level = MAX_LOG_LEVEL;
-  log_conf->secu_log_level = MAX_LOG_LEVEL;
-  log_conf->util_log_level = MAX_LOG_LEVEL;
-  log_conf->itti_log_level = MAX_LOG_LEVEL;
-  log_conf->spgw_app_log_level = MAX_LOG_LEVEL;
-  log_conf->service303_log_level = MAX_LOG_LEVEL;
+  log_conf->udp_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->gtpv1u_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->gtpv2c_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->sctp_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->s1ap_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->nas_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->mme_app_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->s11_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->s6a_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->secu_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->util_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->itti_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->spgw_app_log_level = OAILOG_LEVEL_NOTICE;
+  log_conf->service303_log_level = OAILOG_LEVEL_NOTICE;
   log_conf->asn1_verbosity_level = 0;
 }
 
