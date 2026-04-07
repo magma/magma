@@ -1,0 +1,4 @@
+scapy>=2.4.5
+pytest>=6.0
+bcc
+pyroute2
