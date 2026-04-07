@@ -17,6 +17,7 @@ from dataclasses import dataclass
 EBPF_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DECAP_SOURCE = os.path.join(EBPF_DIR, 'ebpf_gtp_decap.c')
 ENCAP_SOURCE = os.path.join(EBPF_DIR, 'ebpf_gtp_encap.c')
+MARK_SOURCE = os.path.join(EBPF_DIR, 'ebpf_gtp_veth0_mark.c')
 
 # Compilation flags matching production (ebpf_gtp_manager.py line 1239)
 PRODUCTION_CFLAGS = ['-I', EBPF_DIR, '-DDISABLE_DEBUG', '-O2']
@@ -44,6 +45,12 @@ STATS_SESSION_ACTIVE = 18
 STATS_QOS_APPLIED = 19
 STATS_INACTIVE_SESSION = 20
 STATS_DOUBLE_ENCAP_AVOIDED = 21
+
+# Mark handler stats (from ebpf_gtp_veth0_mark.c)
+STATS_VETH0_PACKETS_PROCESSED = 50
+STATS_VETH0_MARK_RESTORED = 51
+STATS_VETH0_MARK_FALLBACK = 52
+STATS_VETH0_SESSION_MISS = 53
 
 # Config map keys (from production code)
 CONFIG_S1U_IFINDEX = 0

@@ -8,6 +8,7 @@ The tests compile, load, and exercise the **actual production code**:
 
 - `ebpf_gtp_decap.c` -- `gtp_decap_handler()` on TC ingress
 - `ebpf_gtp_encap.c` -- `gtp_encap_handler()` on TC egress
+- `ebpf_gtp_veth0_mark.c` -- `gtp_veth0_mark_handler()` on TC ingress
 - `EbpfGtpMap.h` -- shared structs and map definitions
 
 Each test creates a veth pair, attaches the production eBPF program, populates
@@ -28,6 +29,7 @@ tests/
 +-- test_gtpu_packets.py           # GTP-U packet unit tests (no root)
 +-- test_production_decap.py       # E2E decap tests against ebpf_gtp_decap.c
 +-- test_production_encap.py       # E2E encap tests against ebpf_gtp_encap.c
++-- test_production_mark.py        # E2E mark tests against ebpf_gtp_veth0_mark.c
 +-- README.md
 ```
 
@@ -88,10 +90,26 @@ sudo venv/bin/python -m pytest . -v -s
 | test_06_double_encap_avoided | Already-GTP packets not re-encapsulated |
 | test_07_multiple_ue_sessions | Different UEs get correct TEIDs |
 | test_08_encap_double_encap_with_ipv4_options | **EXPECTED FAIL** -- Finding 4: double-encap detection broken with IPv4 options |
-| test_09_encap_missing_sgi_ip | **EXPECTED FAIL** -- Finding 5: silent 0.0.0.0 source IP |
+| test_09_encap_missing_sgi_ip | **EXPECTED FAIL** -- Finding 5: missing CONFIG_SGI_IP must fail closed; current implementation emits 0.0.0.0 |
 | test_10_encap_qfi_values | QFI boundary: default (0→9), normal (1), max (63) |
 | test_11_encap_non_ipv4_passthrough | ARP passes through without encapsulation |
 | test_12_encap_teid_zero | teid_dl_out=0 treated as inactive, packet dropped |
+
+### test_production_mark.py
+
+| Test | What it validates |
+| ---- | ----------------- |
+| test_01_compiles | `ebpf_gtp_veth0_mark.c` compiles with production cflags |
+| test_02_has_mark_handler | `gtp_veth0_mark_handler` function loadable |
+| test_03-04_has_maps | `ue_session_map`, `stats_map` exist |
+| test_01_attach_to_tc | Attaches to TC ingress |
+| test_02_mark_restoration | Active session gets correct metadata_mark from compute_ue_mark |
+| test_03_mark_session_miss | Unknown UE triggers STATS_VETH0_SESSION_MISS, packet passes |
+| test_04_mark_inactive_session | Inactive session: no mark restored, metadata_mark stays 0 |
+| test_05_mark_non_ipv4_passthrough | ARP passes through, no mark/miss counters |
+| test_06_mark_multiple_ues | Different UEs get distinct correct marks |
+| test_07_mark_computation_correctness | Boundary IPs match Python compute_ue_mark() exactly |
+| test_08_skb_mark_verified | Chained verifier probe confirms actual skb->mark value |
 
 ## Known Findings
 
@@ -102,3 +120,4 @@ See `.tmp/ebpf_review/FINDINGS.md` for details.
 - **Finding 3**: `STATS_PKT_DROPPED` incremented for non-IPv4 `TC_ACT_OK` traffic (misleading counter)
 - **Finding 4**: Encap double-encap detection broken with IPv4 options (hardcoded UDP port offsets)
 - **Finding 5**: Missing `CONFIG_SGI_IP` causes silent 0.0.0.0 outer source IP (no error counter)
+- **Finding 6**: Mark handler uses network byte order for session lookup — never finds sessions on little-endian
