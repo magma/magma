@@ -14,8 +14,6 @@
 
 """A simple Certificate Revocation List (CRL) server implementation."""
 
-from __future__ import absolute_import, division, print_function
-
 import inspect
 import logging
 import os

@@ -44,9 +44,7 @@ DENY_LIST_NOT_RELEVANT=(
   # is not relevant for AGW
   "./orc8r/tools"
   "./protos"
-  "./show-tech"
   "./third_party"
-  "./hil_testing"
   "./.git"
 )
 

@@ -23,16 +23,12 @@
 
 /nms/ @magma/approvers-cloud
 
-/openwrt/ @magma/approvers-gw
-
 /orc8r/ @magma/approvers-cloud
 /orc8r/cloud/deploy/bare-metal/ @magma/approvers-infra
 /orc8r/cloud/deploy/bare-metal-ansible/ @magma/approvers-infra
 /orc8r/gateway/c/ @magma/approvers-gw
 /orc8r/gateway/python @magma/approvers-gw @magma/approvers-cloud
 /orc8r/tools/packer/ @magma/approvers-infra
-
-/show-tech/ @magma/approvers-gw
 
 /third_party/build/ @magma/approvers-infra
 /third_party/gtp_ovs @magma/approvers-gw

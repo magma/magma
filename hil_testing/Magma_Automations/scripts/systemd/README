@@ -1,2 +1,0 @@
-* This folder contains systemd script and timer that periodically deletes test scripts that have accumulated on the test server. 
-

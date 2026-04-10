@@ -47,8 +47,6 @@
 A local test server could be run by using "python fake_sas.py".
 
 """
-from __future__ import absolute_import, division, print_function
-
 import argparse
 import json
 import os
