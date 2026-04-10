@@ -1,0 +1,10 @@
+- name: Deploy Magma eBPF stack
+  hosts: gateway
+  become: true
+  vars_files:
+    - ../roles/ebpf/defaults/main.yml
+
+  roles:
+    - role: ebpf
+      tags:
+        - ebpf

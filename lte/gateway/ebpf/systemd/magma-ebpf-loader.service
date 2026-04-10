@@ -1,0 +1,18 @@
+[Unit]
+Description=Magma eBPF Loader
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/bpf_loader
+Restart=on-failure
+RestartSec=5s
+User=root
+Group=root
+LimitNOFILE=65535
+# Optional: logging to journal
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

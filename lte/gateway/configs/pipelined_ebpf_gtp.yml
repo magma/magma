@@ -1,0 +1,251 @@
+---
+#
+# Copyright 2025 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# eBPF GTP Configuration for Magma LTE Gateway
+# This configuration enables eBPF-based GTP processing as a replacement
+# for the kernel GTP module while maintaining OVS integration.
+
+###############
+## IMPORTANT ##
+###############
+# This configuration replaces the kernel GTP module with eBPF implementation
+
+# Differentiate between the setup type(CWF or LTE)
+setup_type: LTE
+
+# Enable the services in PipelineD. Tables will be assigned to the services in
+# the same order as the list. Cloud managed services will be initialized
+# after these static services.
+static_services: [
+  'arpd',
+  'access_control',
+  'proxy',
+  'ryu_rest_service',
+  'startup_flows',
+  'ipv6_solicitation',
+  'ebpf_gtp_manager',           # NEW: eBPF GTP manager service
+#  'li_mirror',
+#  'packet_tracer',
+]
+
+# Note: The core pipeline services (classifier, enforcement, enforcement_stats, egress)
+# are automatically loaded by the service manager based on mconfig.
+# They are NOT included in static_services to avoid conflicts.
+
+of_server_port: 3333
+
+default_priority: 10
+default_rule_tag: 0x1
+
+# Pipeline application level configs
+access_control:
+  # Blocks access to all AGW local IPs from UEs.
+  block_agw_local_ips: true
+  ip_blocklist: []
+
+meter:
+  enabled: true
+  poll_interval: 5
+  idle_timeout: 0
+
+enforcement:
+  poll_interval: 2
+  default_drop_flow_name: 'internal_default_drop_flow_rule'
+  periodic_stats_reporting: true
+
+# Enable polling mobilityd to identify which subscriber sessions need to be
+# terminated. If disabling this, make sure to set a valid idle_timeout for
+# metering for auto-clearing the sessions
+subscriber:
+  enabled: true
+  poll_interval: 5
+
+dpi:
+  enabled: false
+  mon_port: mon1
+  mon_port_number: 32769
+  idle_timeout: 5
+
+conntrackd:
+  enabled: false
+  zone: 897
+
+# Interface to address L2 traffic to and answer ARP for UE subnet
+virtual_interface: gtp_br0
+
+# For LTE UE doesn't have an eth src so we need to fake it
+local_ue_eth_addr: True
+
+# For CWF, allow unknown uplink ARPs to passthrough
+allow_unknown_arps: False
+
+# Interface configuration - Magma uses only eth0 and eth1
+nat_iface: eth0          # SGi interface (corrected from eth2)
+enodeb_iface: eth1       # S1-U interface
+
+# Bridge name comes from magma_magmad.service.j2
+bridge_name: gtp_br0
+# Bridge ip comes from magma_ifaces_gtp
+bridge_ip_address: 192.168.128.1
+
+# QoS parameters
+qos:
+ enable: true
+ impl: linux_tc
+ enable_pyroute2: true
+ max_rate: 1000000000
+ gbr_rate: 80Kbit
+ linux_tc:
+  min_idx: 2
+  max_idx: 65534
+ ovs_meter:
+  min_idx: 2
+  max_idx: 100000
+ apn_ambr_enabled: true
+
+monitored_ifaces: ['gtp_br0',
+                   'gtp_veth0'        
+                  ]
+
+# Whether pipelined should cleanup flows on restarts
+clean_restart: false
+redis_enabled: true
+
+# Logs grpc payload content
+magma_print_grpc_payload: false
+
+# MTR iface
+mtr_interface: mtr0
+
+###############
+## IMPORTANT ##
+###############
+# This is duplicated from spgw.yml - if you change the value here,
+# also change it there
+ovs_gtp_port_number: 32768
+# Internal port for monitoring service
+ovs_mtr_port_number: 15577
+
+# Internal port for processing internal sampling packets
+ovs_internal_sampling_port_number: 15578
+# # Table to forward packets from the internal sampling port
+ovs_internal_sampling_fwd_tbl_number: 201
+
+# Interface configuration (corrected for Magma's 2-interface setup)
+non_nat_gw_probe_frequency: 20
+ovs_uplink_port_name: patch-up
+uplink_bridge: uplink_br0
+uplink_eth_port_name: eth0        # Corrected: eth0 not eth2
+uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
+dp_router_enabled: true
+sgi_management_iface_ip_addr: ''
+sgi_management_iface_ipv6_addr: ''
+sgi_management_iface_ipv6_gw: ''
+ovs_gtp_stats_polling_interval: 180
+
+he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
+he_enabled: true
+
+# Multi-tunnel support
+ovs_multi_tunnel: False
+# Paging timeout value
+paging_timeout: 30
+classifier_controller_id: 5
+
+# Internal port for processing internal conntrack
+ovs_internal_conntrack_port_number: 15579
+# Table to forward packets from the internal conntrack
+ovs_internal_conntrack_fwd_tbl_number: 202
+
+# UPF node identifier
+upf_node_identifier: 192.168.200.1
+
+# Data plane IRQ settings
+dp_irq:
+ enable: True
+ S1_cpu: '1'
+ S1_queue_size: 256
+ SGi_cpu: '2'
+ SGi_queue_size: 256
+
+# SGi tunnel configuration
+sgi_tunnel:
+ enabled: false
+ type: wg
+ enable_default_route: false
+ tunnels:
+ - wg_local_ip: 172.168.100.1/24
+   peer_pub_key: 'VQT+tLY6/xF+k1WqrXeQzlfb8hWMVLcPdtCPvwIUNU0='
+   peer_pub_ip: 1.2.3.4
+
+# ================================
+# eBPF GTP Configuration (NEW)
+# ================================
+
+# GTP processing mode
+gtp_mode: ebpf_gtp           # Options: kernel, ebpf, ebpf_gtp
+
+# eBPF GTP specific configuration
+ebpf_gtp:
+  enabled: true              # Enable eBPF GTP mode
+  mode: "tc"                 # tc or xdp
+  debug_level: 1             # Debug level (0=off, 1=basic, 2=verbose)
+  
+  # Interface configuration
+  s1u_interface: "eth1"      # S1-U physical interface
+  sgi_interface: "eth0"      # SGi physical interface
+  ovs_interface: "gtp_veth0" # OVS side of veth pair
+  ebpf_interface: "gtp_veth1" # eBPF side of veth pair
+  
+  # BPF map configuration
+  map_size: 524288           # 512K UE sessions
+  stats_interval: 10         # Statistics collection interval (seconds)
+  
+  # Program paths
+  programs:
+    decap: "/var/opt/magma/ebpf/ebpf_gtp_decap.c"
+    encap: "/var/opt/magma/ebpf/ebpf_gtp_encap.c"
+    include_path: "/var/opt/magma/ebpf/"
+  
+  # BPF filesystem configuration
+  bpf_fs: "/sys/fs/bpf"
+  pin_maps: true             # Pin maps to filesystem
+  
+  # Performance tuning
+  performance:
+    jit_enable: true         # Enable eBPF JIT compilation
+    cpu_affinity: "1,2"      # CPU affinity for eBPF programs
+    batch_size: 64           # Packet batch size
+
+# Virtual interface configuration (replaces kernel GTP)
+veth_config:
+  gtp_veth_ovs: "gtp_veth0"   # OVS side of veth pair
+  gtp_veth_ebpf: "gtp_veth1"  # eBPF side of veth pair
+  mtu: 1500                   # MTU for veth interfaces
+
+# Statistics and monitoring
+ebpf_stats:
+  enabled: true
+  collection_interval: 30    # Collect stats every 30 seconds
+  export_to_prometheus: true
+  per_ue_stats: true
+
+# Compatibility settings
+compatibility:
+  ovs_port_number: 32768     # Keep same port number for OVS compatibility
+  tunnel_metadata: true      # Enable tunnel metadata for OVS
+  openflow_integration: true # Maintain OpenFlow pipeline integration
+
+# Disable original eBPF mode (replaced by ebpf_gtp)
+ebpf:
+  enabled: false

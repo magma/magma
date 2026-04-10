@@ -1,0 +1,55 @@
+# WORKSPACE
+# Root Bazel workspace for Magma eBPF project
+
+workspace(name = "magma_ebpf")
+
+# Load Bazel C/C++ rules
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+
+# Optional: Add external C/C++ dependencies if needed
+# http_archive(
+#     name = "libbpf",
+#     urls = ["https://github.com/libbpf/libbpf/archive/refs/tags/v0.9.0.tar.gz"],
+#     strip_prefix = "libbpf-0.9.0",
+# )
+
+# Load Bazel Python rules
+http_archive(
+    name = "rules_python",
+    urls = ["https://github.com/bazelbuild/rules_python/releases/download/0.25.0/rules_python-0.25.0.tar.gz"],
+    strip_prefix = "rules_python-0.25.0",
+)
+
+load("@rules_python//python:repositories.bzl", "py_repositories")
+py_repositories()
+
+# Set Python toolchain version (adjust if using Python 3.11+)
+load("@rules_python//python:defs.bzl", "py_runtime_pair")
+py_runtime_pair(
+    name = "python_runtime_pair",
+    py2_runtime = None,
+    py3_runtime = "@python3//:runtime",
+)
+
+# Optional: C/C++ toolchain (if you want to force clang for eBPF)
+load("@bazel_tools//tools/cpp:toolchain_utils.bzl", "cc_toolchain_suite")
+
+cc_toolchain_suite(
+    name = "default_toolchain",
+    toolchains = {
+        "local": ":cc-compiler",
+    },
+)
+
+# Optional: workspace-level environment variables
+# You can set paths to LLVM, Clang, or Linux headers if needed
+# workspace_env = {
+#     "LLVM_DIR": "/usr/lib/llvm-14",
+#     "KERNEL_HEADERS": "/usr/src/linux-headers-$(uname -r)/",
+# }
+
+# Optional: Load local repositories for bpf programs
+# local_repository(
+#     name = "bpf_helpers",
+#     path = "bpf",
+# )

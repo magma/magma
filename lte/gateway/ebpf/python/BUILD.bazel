@@ -1,0 +1,55 @@
+# python/BUILD.bazel
+load("@rules_python//python:defs.bzl", "py_binary", "py_library")
+
+# -------------------------------------------------------------------
+# Python library for eBPF manager utilities
+# -------------------------------------------------------------------
+py_library(
+    name = "ebpf_utils_lib",
+    srcs = [
+        "ebpf_utils.py",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# -------------------------------------------------------------------
+# Python library for GTP manager
+# -------------------------------------------------------------------
+py_library(
+    name = "ebpf_gtp_lib",
+    srcs = [
+        "ebpf_gtp_manager.py",
+    ],
+    deps = [
+        ":ebpf_utils_lib",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# -------------------------------------------------------------------
+# Python library for main eBPF manager
+# -------------------------------------------------------------------
+py_library(
+    name = "ebpf_manager_lib",
+    srcs = [
+        "ebpf_manager.py",
+    ],
+    deps = [
+        ":ebpf_utils_lib",
+        ":ebpf_gtp_lib",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+# -------------------------------------------------------------------
+# Optional: Build a binary for running the manager standalone
+# -------------------------------------------------------------------
+py_binary(
+    name = "ebpf_manager_bin",
+    srcs = ["ebpf_manager.py"],
+    deps = [
+        ":ebpf_utils_lib",
+        ":ebpf_gtp_lib",
+    ],
+    visibility = ["//visibility:public"],
+)

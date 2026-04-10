@@ -1,0 +1,25 @@
+---
+
+- name: Create eBPF deployment directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - "{{ ebpf_deploy_path }}"
+    - "{{ ebpf_bin_path }}"
+    - "{{ ebpf_conf_path }}"
+
+# Install compiler + kernel + BPF dependencies
+- name: Install OS dependencies for eBPF
+  include_tasks: install_dependencies.yml
+
+# Build, generate vmlinux.h, and deploy eBPF bytecode/programs
+- name: Deploy eBPF programs
+  include_tasks: deploy_bpf.yml
+
+# Start, enable, and reload systemd units for BPF services
+- name: Manage eBPF systemd services
+  include_tasks: manage_services.yml

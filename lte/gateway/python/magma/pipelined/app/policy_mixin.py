@@ -74,7 +74,7 @@ class PolicyMixin(metaclass=ABCMeta):
         else:
             self.proxy_controller_fut = None
         self.proxy_controller = None
-        self.ebpf = kwargs['ebpf_manager']
+        
 
     def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, policies, shard_id: int, local_f_teid_ng: int):
         """
@@ -252,10 +252,7 @@ class PolicyMixin(metaclass=ABCMeta):
             )
             msgs.extend(proxy_msgs)
 
-        if self.ebpf:
-            self._add_policy_rule_to_ebpf_dp(
-                ip_addr, urls, flow, qos_handle,
-            )
+
 
         return msgs
 

@@ -1,0 +1,83 @@
+---
+#
+# Copyright 2025 The Magma Authors.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# Author: Nitin Rajput (coRAN LABS)
+#
+# eBPF GTP Setup Tasks
+# This task file sets up eBPF GTP mode if configured
+
+- name: Check if eBPF GTP is enabled in config
+  tags:
+    - agwc
+    - ebpf_gtp
+  shell: |
+    if [ -f /etc/magma/spgw.yml ]; then
+      grep -q "^ebpf_gtp_enabled: true" /etc/magma/spgw.yml && echo "enabled" || echo "disabled"
+    else
+      echo "disabled"
+    fi
+  register: ebpf_gtp_status
+  changed_when: false
+
+- name: Copy eBPF GTP programs
+  tags:
+    - agwc
+    - ebpf_gtp
+  copy:
+    src: "{{ item }}"
+    dest: "/var/opt/magma/ebpf/"
+    mode: '0644'
+  loop:
+    - /opt/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_gtp_decap.c
+    - /opt/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_gtp_encap.c
+    - /opt/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_gtp_veth0_mark.c
+    - /opt/magma/lte/gateway/python/magma/pipelined/ebpf/EbpfGtpMap.h
+    - /opt/magma/lte/gateway/python/magma/pipelined/ebpf/ebpf_gtp_manager.py
+  ignore_errors: yes
+
+- name: Check if eBPF GTP config exists
+  tags:
+    - agwc
+    - ebpf_gtp
+  stat:
+    path: /etc/magma/pipelined_ebpf_gtp.yml
+  register: ebpf_gtp_config
+
+- name: Copy eBPF GTP config if missing
+  tags:
+    - agwc
+    - ebpf_gtp
+  copy:
+    src: /opt/magma/lte/gateway/configs/pipelined_ebpf_gtp.yml
+    dest: /etc/magma/pipelined_ebpf_gtp.yml
+    mode: '0644'
+  when: 
+    - ebpf_gtp_status.stdout == "enabled"
+    - not ebpf_gtp_config.stat.exists
+
+- name: Verify eBPF support
+  tags:
+    - agwc
+    - ebpf_gtp
+  shell: |
+    # Check kernel version
+    kernel_version=$(uname -r | cut -d. -f1-2)
+    if dpkg --compare-versions "$kernel_version" "lt" "4.18"; then
+      echo "ERROR: Kernel $kernel_version too old for eBPF GTP (need 4.18+)" >&2
+      exit 1
+    fi
+    # Check if BPF filesystem is mounted
+    if ! mountpoint -q /sys/fs/bpf; then
+      mount -t bpf bpf /sys/fs/bpf || exit 1
+    fi
+  when: ebpf_gtp_status.stdout == "enabled"
