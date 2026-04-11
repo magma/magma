@@ -165,7 +165,7 @@ def process_grant_response(obj: ResponseDBProcessor, response: DBResponse, sessi
         _unsync_conflict_from_response(obj, response, session)
         return
     if response.response_code != ResponseCodes.SUCCESS.value:
-        _remove_grant_from_response(response, session, unset_freq=True)
+        _remove_grant_from_response(obj, response, session)
         return
 
     new_state = obj.grant_states_map[GrantStates.GRANTED.value]
@@ -194,7 +194,7 @@ def process_heartbeat_response(obj: ResponseDBProcessor, response: DBResponse, s
         None
     """
     if response.response_code == ResponseCodes.TERMINATED_GRANT.value:
-        _remove_grant_from_response(response, session, unset_freq=True)
+        _remove_grant_from_response(obj, response, session)
         return
 
     if response.response_code == ResponseCodes.SUCCESS.value:
@@ -233,7 +233,7 @@ def process_relinquishment_response(obj: ResponseDBProcessor, response: DBRespon
         None
     """
     if response.response_code == ResponseCodes.SUCCESS.value:
-        _remove_grant_from_response(response, session)
+        _remove_grant_from_response(obj, response, session)
         return
 
     # FIXME This code is not unit-tested
@@ -255,31 +255,6 @@ def process_deregistration_response(obj: ResponseDBProcessor, response: DBRespon
         f'process_deregistration_response: Unregistering {response.payload}',
     )
     _unregister_cbsd(response, session)
-
-
-def unset_frequency(grant: DBGrant):
-    """
-    Unset available frequency on the nth position of available frequencies for the given frequency
-
-    Args:
-        grant (DBGrant): Grant whose low and high frequencies are the base for the calculation
-
-    Returns:
-        None
-    """
-    frequencies = grant.cbsd.available_frequencies
-    low = grant.low_frequency
-    high = grant.high_frequency
-
-    if not all([frequencies, low, high]):
-        return
-
-    bw_hz = high - low
-    mid = (low + high) // 2
-    bit_to_unset = (mid - int(3550 * 1e6)) // int(5 * 1e6)
-    bw_index = bw_hz // int(5 * 1e6) - 1
-
-    frequencies[bw_index] = frequencies[bw_index] & ~(1 << int(bit_to_unset))  # noqa: WPS465
 
 
 def _get_grant_from_response(
@@ -317,17 +292,15 @@ def _create_grant_from_response(
 
 
 def _remove_grant_from_response(
-        response: DBResponse, session: Session, unset_freq: bool = False,
+        obj: ResponseDBProcessor, response: DBResponse, session: Session,
 ) -> None:
     grant = _get_grant_from_response(response, session)
     if not grant:
         return
 
-    logger.info(f'Terminating grant {grant.grant_id}')
-
-    if unset_freq:
-        unset_frequency(grant)
-    session.delete(grant)
+    logger.info(f'Marking grant {grant.grant_id} to be deleted')
+    state = obj.grant_states_map[GrantStates.IDLE.value]
+    grant.state = state
 
 
 def _update_grant_from_request(response: DBResponse, grant: DBGrant) -> None:

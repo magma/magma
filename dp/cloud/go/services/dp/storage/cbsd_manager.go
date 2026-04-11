@@ -128,7 +128,10 @@ func (c *cbsdManager) DeleteCbsd(networkId string, id int64) error {
 func (c *cbsdManager) FetchCbsd(networkId string, id int64) (*DetailedCbsd, error) {
 	cbsd, err := sqorc.ExecInTx(c.db, nil, nil, func(tx *sql.Tx) (interface{}, error) {
 		runner := c.getQueryRunner(tx)
-		grantJoinClause := db.On(GrantTable, "state_id", GrantStateTable, "id")
+		grantJoinClause := sq.And{
+			db.On(GrantTable, "state_id", GrantStateTable, "id"),
+			sq.NotEq{GrantStateTable + ".name": "idle"},
+		}
 		return runner.fetchDetailedCbsd(getCbsdFiltersWithId(networkId, id), grantJoinClause)
 	})
 	if err != nil {
@@ -409,7 +412,10 @@ func (r *queryRunner) listDetailedCbsd(networkId string, pagination *Pagination,
 	for i, models := range res {
 		cbsds[i] = convertCbsdToDetails(models)
 	}
-	on := db.On(GrantTable, "state_id", GrantStateTable, "id")
+	on := sq.And{
+		db.On(GrantTable, "state_id", GrantStateTable, "id"),
+		sq.NotEq{GrantStateTable + ".name": "idle"},
+	}
 	if err := getGrantsForCbsds(r.builder, on, cbsds...); err != nil {
 		return nil, err
 	}

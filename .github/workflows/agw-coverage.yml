@@ -107,22 +107,6 @@ jobs:
         run: |
           echo "Available storage:"
           df -h
-      - name: Notify Bazel C/C++ coverage failure to slack
-        if: |
-          failure() &&
-          (steps.bazel-cc-codecoverage.conclusion == 'failure' ||
-          steps.c-cpp-codecov-upload.outcome == 'failure') &&
-          github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "C / C++ code coverage with Bazel"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-          MSG_MINIMAL: actions url,commit
-
   python-codecov:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
@@ -176,18 +160,3 @@ jobs:
         run: |
           echo "Available storage:"
           df -h
-      - name: Notify Bazel Python coverage failure to slack
-        if: |
-          failure() &&
-          (steps.bazel-python-codecoverage.conclusion == 'failure' ||
-          steps.python-codecov-upload.outcome == 'failure') &&
-          github.event_name == 'push'
-        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # pin@v2.2.0
-        env:
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_TITLE: "Python code coverage with Bazel"
-          SLACK_USERNAME: ${{ github.workflow }}
-          SLACK_ICON_EMOJI: ":boom:"
-          SLACK_COLOR: "#FF0000"
-          SLACK_FOOTER: ' '
-          MSG_MINIMAL: actions url,commit
