@@ -74,6 +74,7 @@ extern "C" {
 #if EMBEDDED_SGW
 #include "lte/gateway/c/core/oai/include/sgw_config.h"
 #endif
+#include <unistd.h>
 static bool parse_bool(const char* str);
 
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
@@ -83,7 +84,7 @@ void log_config_init(log_config_t* log_conf) {
 
   log_conf->output = NULL;
   log_conf->is_output_thread_safe = false;
-  log_conf->color = true;
+  log_conf->color = isatty(fileno(stderr));
 
   log_conf->udp_log_level = OAILOG_LEVEL_NOTICE;
   log_conf->gtpv1u_log_level = OAILOG_LEVEL_NOTICE;
