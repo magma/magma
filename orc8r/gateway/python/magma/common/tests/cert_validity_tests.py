@@ -47,9 +47,9 @@ class CertValidityTests(TestCase):
         """
         self.loop.create_connection = MagicMock()
 
-        @asyncio.coroutine
+        
         def go():
-            yield from cv.create_tcp_connection(
+            await  cv.create_tcp_connection(
                 self.host,
                 self.port,
                 self.loop,
@@ -70,9 +70,9 @@ class CertValidityTests(TestCase):
         """
         self.loop.create_connection = MagicMock()
 
-        @asyncio.coroutine
+        
         def go():
-            yield from cv.create_ssl_connection(
+            await  cv.create_ssl_connection(
                 self.host,
                 self.port,
                 self.certfile,
@@ -110,10 +110,10 @@ class CertValidityTests(TestCase):
         cert_is_invalid() == False when TCP and SSL succeed
         """
 
-        @asyncio.coroutine
+        
         def go():
             return (
-                yield from cv.cert_is_invalid(
+                await  cv.cert_is_invalid(
                     self.host,
                     self.port,
                     self.certfile,
@@ -151,10 +151,10 @@ class CertValidityTests(TestCase):
         mock_err.errno = errno.ETIMEDOUT
         mock_create_ssl.coro.side_effect = mock_err
 
-        @asyncio.coroutine
+        
         def go():
             return (
-                yield from cv.cert_is_invalid(
+                await  cv.cert_is_invalid(
                     self.host,
                     self.port,
                     self.certfile,
@@ -179,10 +179,10 @@ class CertValidityTests(TestCase):
         mock_err.errno = None
         mock_create_ssl.coro.side_effect = mock_err
 
-        @asyncio.coroutine
+        
         def go():
             return (
-                yield from cv.cert_is_invalid(
+                await  cv.cert_is_invalid(
                     self.host,
                     self.port,
                     self.certfile,
@@ -207,10 +207,10 @@ class CertValidityTests(TestCase):
         mock_err.errno = None
         mock_create_tcp.coro.side_effect = mock_err
 
-        @asyncio.coroutine
+        
         def go():
             return (
-                yield from cv.cert_is_invalid(
+                await  cv.cert_is_invalid(
                     self.host,
                     self.port,
                     self.certfile,
@@ -235,10 +235,10 @@ class CertValidityTests(TestCase):
         mock_err.errno = errno.ETIMEDOUT
         mock_create_tcp.coro.side_effect = mock_err
 
-        @asyncio.coroutine
+        
         def go():
             return (
-                yield from cv.cert_is_invalid(
+                await  cv.cert_is_invalid(
                     self.host,
                     self.port,
                     self.certfile,
@@ -270,10 +270,10 @@ class CertValidityTests(TestCase):
         mock_ssl_err.errno = errno.ETIMEDOUT
         mock_create_ssl.coro.side_effect = mock_ssl_err
 
-        @asyncio.coroutine
+        
         def go():
             return (
-                yield from cv.cert_is_invalid(
+                await  cv.cert_is_invalid(
                     self.host,
                     self.port,
                     self.certfile,
