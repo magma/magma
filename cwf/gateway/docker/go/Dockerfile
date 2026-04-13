@@ -56,7 +56,7 @@ RUN apt-get update && apt-get install -y \
     vim \
     virtualenv
 
-# Golang
+# Install Golang
 WORKDIR /usr/local
 ARG GOLANG_VERSION="1.21.12"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
@@ -65,6 +65,7 @@ RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
     && ln -s /usr/local/go/bin/go /usr/local/bin/go \
     && ln -s /usr/local/go/bin/gofmt /usr/local/bin/gofmt \
     && rm ${GO_TARBALL}
+
 
 # Install protobuf compiler.
 RUN curl -Lfs https://github.com/protocolbuffers/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip && \

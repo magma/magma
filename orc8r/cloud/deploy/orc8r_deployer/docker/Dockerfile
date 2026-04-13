@@ -18,13 +18,13 @@ ARG ANSIBLE_VERSION="3.0.0"
 RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y \
-            git \
-            wget \
-            unzip \
-            vim \
-            jq \
-            gcc \
-            procps && \
+    git \
+    wget \
+    unzip \
+    vim \
+    jq \
+    gcc \
+    procps && \
     apt-get clean -y && \
     apt-get autoclean -y && \
     apt-get autoremove -y && \
@@ -32,18 +32,18 @@ RUN apt-get update && \
     rm -rf /var/cache/apt/archives/*
 
 RUN pip3 install --no-cache-dir \
-                        boto \
-                        boto3 \
-                        kubernetes \
-                        ansible==${ANSIBLE_VERSION} \
-                        prettytable \
-                        requests \
-                        docker \
-                        pyOpenSSL \
-                        unittest2 \
-                        colorama \
-                        dataclasses-json \
-                        pytest
+    boto \
+    boto3 \
+    kubernetes \
+    ansible==${ANSIBLE_VERSION} \
+    prettytable \
+    requests \
+    docker \
+    pyOpenSSL \
+    unittest2 \
+    colorama \
+    dataclasses-json \
+    pytest
 
 WORKDIR /root/download
 
@@ -59,9 +59,9 @@ RUN wget https://amazon-eks.s3.us-west-2.amazonaws.com/1.18.9/2020-11-02/bin/lin
 # Install helm
 ARG HELM_VERSION="3.5.1"
 RUN HELM_TARBALL="helm-v${HELM_VERSION}-linux-amd64.tar.gz" \
- && wget --no-verbose https://get.helm.sh/${HELM_TARBALL} \
- && tar --strip-components=1 -C /usr/local/bin -xzf ${HELM_TARBALL} linux-amd64/helm \
- && rm ${HELM_TARBALL}
+    && wget --no-verbose https://get.helm.sh/${HELM_TARBALL} \
+    && tar --strip-components=1 -C /usr/local/bin -xzf ${HELM_TARBALL} linux-amd64/helm \
+    && rm ${HELM_TARBALL}
 
 # Install terraform
 RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform\_${TERRAFORM_VERSION}\_linux_amd64.zip && \
@@ -72,13 +72,13 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
     rm -rf /root/download/*
 
 # Install go if we are building testframework image
-ARG GOLANG_VERSION="1.20.1"
+ARG GOLANG_VERSION="1.21.0"
 RUN if [ "$ENV" = "testframework" ]; \
     then \
-        GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
-     && wget --no-verbose https://linuxfoundation.jfrog.io/artifactory/magma-blob/${GO_TARBALL} \
-     && tar --strip-components=2 -C /usr/local/bin -xzf ${GO_TARBALL} go/bin/go go/bin/gofmt \
-     && rm ${GO_TARBALL}; \
+    GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
+    && wget --no-verbose https://golang.org/dl/${GO_TARBALL} \
+    && tar --strip-components=2 -C /usr/local/bin -xzf ${GO_TARBALL} go/bin/go go/bin/gofmt \
+    && rm ${GO_TARBALL}; \
     fi
 
 ENV GO111MODULE=on
