@@ -62,18 +62,18 @@ Create one organization and give it access to all networks. This is essentially
 the same as v1.0 when there was no tenancy support. The only difference is that
 the NMS is accessible from the URL `magma-test.nms.yourdomain.com`
 
-![Org with access to all networks](assets/nms/org_all_networks.png)
+![Org with access to all networks](../../../../readmes/assets/nms/org_all_networks.png)
 
 ### Multiple Tenants
 
 Create a second organization and give it access to specific networks
 
-![List of organizations](assets/nms/org_multiple_list.png)
+![List of organizations](../../../../readmes/assets/nms/org_multiple_list.png)
 
 Here, `fb-test` has access to all networks, while `magma-test` only has access
 to the network `mpk_test`. Create a user in this organization to use it
 
-![Add user to org](assets/nms/org_add_user.png)
+![Add user to org](../../../../readmes/assets/nms/org_add_user.png)
 
 When you log in to `magma-test.nms.yourdomain.com` you will only be able to see the
 network `mpk_test`. If you log into `fb-test.nms.yourdomain.com`, you will

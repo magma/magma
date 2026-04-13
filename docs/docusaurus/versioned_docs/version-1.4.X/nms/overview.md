@@ -25,4 +25,4 @@ It also aims to simplify operating magma networks by providing:
 
 ## Navigation
 NMS provides an app sidebar with contextual icons to navigate to the main sections of the NMS.
-![app_sidebar](assets/nms/userguide/app_sidebar.png)
+![app_sidebar](../../../../readmes/assets/nms/userguide/app_sidebar.png)

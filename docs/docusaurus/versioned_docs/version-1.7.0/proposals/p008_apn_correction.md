@@ -63,7 +63,7 @@ The configuration will be limited to a maximum of 10 imsi prefix filters.
 ### MME Change
 
 Two structures will be added to contain the mme apn correction configuration
-
+```c
 typedef struct apn_map_s {
   bstring imsi_prefix;
   bstring apn_override;
@@ -73,7 +73,7 @@ typedef struct apn_map_config_s {
   int nb;
   apn_map_t apn_map[MAX_APN_CORRECTION_MAP_LIST];
 } apn_map_config_t;
-
+```
 In addition, a new function will be introduced to filter and return the overridden
 APN based on the MME NAS config.
 

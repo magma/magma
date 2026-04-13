@@ -24,7 +24,7 @@ Therefore, starting with Magma v1.6, Orc8r uses deterministic protobuf digests t
 
 The architectural additions implemented for the subscriber digests pattern are highlighted below.
 
-![Subscriber Digests Architecture](assets/orc8r/subscriber_digests_architecture.png)
+![Subscriber Digests Architecture](../../../../readmes/assets/orc8r/subscriber_digests_architecture.png)
 
 ### Digest generation
 

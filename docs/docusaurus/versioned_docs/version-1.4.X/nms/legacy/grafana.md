@@ -37,13 +37,13 @@ In the metrics page of the nms, there is now a tab called ‘Grafana’. When yo
 click on this link we have to do some book-keeping on the backend, so the
 initial load may take a few seconds.
 
-![Grafana homepage](assets/nms/grafana_homepage.png)
+![Grafana homepage](../../../../../readmes/assets/nms/grafana_homepage.png)
 
 You’ll see three dashboards available to you from the start. These replicate
 the three dashboards in the NMS that are built-in. Go to one of the dashboards
 and you’ll now see a Grafana version of the NMS dashboard.
 
-![Grafana variables](assets/nms/grafana_variables.png)
+![Grafana variables](../../../../../readmes/assets/nms/grafana_variables.png)
 
 These dashboards contain dropdown selectors to choose which network(s) and
 gateway(s) you want to look at. In the NMS dashboard you were only able to
@@ -63,7 +63,7 @@ The simple way is to just click on the “+” icon on the left sidebar, then
 create a new dashboard. There is ample documentation about grafana dashboards
 online if you need help creating your dashboard.
 
-![Grafana new dashboard](assets/nms/grafana_new_dashboard.png)
+![Grafana new dashboard](../../../../../readmes/assets/nms/grafana_new_dashboard.png)
 
 - Grafana documentation on creating dashboards: [Grafana Dashboards](https://grafana.com/docs/grafana/latest/features/dashboard/dashboards/)
 
@@ -77,7 +77,7 @@ Your new dashboard will now have the gatewayID and networkID variables.
 
 An example of how to use these variables in your queries:
 
-![Grafana query](assets/nms/grafana_query.png)
+![Grafana query](../../../../../readmes/assets/nms/grafana_query.png)
 
 Some technical details: You need to use `=~` when matching label names with
 these variables in order to see more than one network or gateway at a time.

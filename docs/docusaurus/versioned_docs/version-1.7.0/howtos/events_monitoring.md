@@ -30,7 +30,7 @@ NMS UI, or through our REST API.
 
 ### NMS
 
-![Magma events table](assets/lte/events_table.png?raw=true "Magma Events Table")
+![Magma events table](../../../../readmes/assets/lte/events_table.png?raw=true "Magma Events Table")
 
 The easiest way to view Magma's events is through the NMS UI.
 Events can be seen on the main network dashboard.

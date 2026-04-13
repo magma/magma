@@ -32,7 +32,7 @@ There are several options for getting help - reach out early and often! Preferre
 
 ## Process for Contributors
 
-1. Review the list of [TDW Available Work]()
+1. Review the list of [TDW Available Work](#magma-tdw-on-call)
    1. What `Unassigned` tasks interest you?
 2. Reach out to [TDW On-Call](#tdw-on-call-contact)
    1. Settle on a task

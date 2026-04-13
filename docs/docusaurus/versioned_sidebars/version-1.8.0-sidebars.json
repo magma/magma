@@ -1,438 +1,438 @@
 {
   "version-1.8.0-docs": {
     "Getting Started": [
-      "version-1.8.0-basics/introduction",
-      "version-1.8.0-basics/prerequisites",
-      "version-1.8.0-basics/quick_start_guide"
+      "basics/version-1.8.0-introduction",
+      "basics/version-1.8.0-prerequisites",
+      "basics/version-1.8.0-quick_start_guide"
     ],
     "Tutorials": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Operate your own private mobile network with Charmed Magma",
-        "ids": [
-          "version-1.8.0-tutorials/00_overview",
-          "version-1.8.0-tutorials/01_getting_started",
-          "version-1.8.0-tutorials/02_deploying_magma_orchestrator",
-          "version-1.8.0-tutorials/03_deploying_magma_agw",
-          "version-1.8.0-tutorials/04_integrating_agw_with_orc8r",
-          "version-1.8.0-tutorials/05_deploying_the_radio_simulator",
-          "version-1.8.0-tutorials/06_simulating_user_traffic",
-          "version-1.8.0-tutorials/06_destroying_the_env"
+        "items": [
+          "tutorials/version-1.8.0-00_overview",
+          "tutorials/version-1.8.0-01_getting_started",
+          "tutorials/version-1.8.0-02_deploying_magma_orchestrator",
+          "tutorials/version-1.8.0-03_deploying_magma_agw",
+          "tutorials/version-1.8.0-04_integrating_agw_with_orc8r",
+          "tutorials/version-1.8.0-05_deploying_the_radio_simulator",
+          "tutorials/version-1.8.0-06_simulating_user_traffic",
+          "tutorials/version-1.8.0-06_destroying_the_env"
         ]
       }
     ],
     "Usage": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "How-To",
-        "ids": [
-          "version-1.8.0-howtos/ue_metering",
-          "version-1.8.0-howtos/config_agw_bridged",
-          "version-1.8.0-howtos/5g_nsa_support",
-          "version-1.8.0-howtos/call_tracing",
-          "version-1.8.0-howtos/events_monitoring",
-          "version-1.8.0-howtos/ipv6_agw",
-          "version-1.8.0-howtos/he_api",
-          "version-1.8.0-howtos/inbound_roaming",
-          "version-1.8.0-howtos/l3_transport",
-          "version-1.8.0-howtos/network_probe",
-          "version-1.8.0-howtos/package"
+        "items": [
+          "howtos/version-1.8.0-ue_metering",
+          "howtos/version-1.8.0-config_agw_bridged",
+          "howtos/version-1.8.0-5g_nsa_support",
+          "howtos/version-1.8.0-call_tracing",
+          "howtos/version-1.8.0-events_monitoring",
+          "howtos/version-1.8.0-ipv6_agw",
+          "howtos/version-1.8.0-he_api",
+          "howtos/version-1.8.0-inbound_roaming",
+          "howtos/version-1.8.0-l3_transport",
+          "howtos/version-1.8.0-network_probe",
+          "howtos/version-1.8.0-package"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS",
-        "ids": [
-          "version-1.8.0-nms/overview",
-          "version-1.8.0-nms/dashboard",
-          "version-1.8.0-nms/equipment",
-          "version-1.8.0-nms/network",
-          "version-1.8.0-nms/subscriber",
-          "version-1.8.0-nms/traffic",
-          "version-1.8.0-nms/metrics",
-          "version-1.8.0-nms/alerts",
-          "version-1.8.0-nms/federation",
-          "version-1.8.0-nms/admin",
-          "version-1.8.0-nms/tips_and_tricks"
+        "items": [
+          "nms/version-1.8.0-overview",
+          "nms/version-1.8.0-dashboard",
+          "nms/version-1.8.0-equipment",
+          "nms/version-1.8.0-network",
+          "nms/version-1.8.0-subscriber",
+          "nms/version-1.8.0-traffic",
+          "nms/version-1.8.0-metrics",
+          "nms/version-1.8.0-alerts",
+          "nms/version-1.8.0-federation",
+          "nms/version-1.8.0-admin",
+          "nms/version-1.8.0-tips_and_tricks"
         ]
       }
     ],
     "Architecture": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Access Gateway",
-        "ids": [
-          "version-1.8.0-lte/architecture_overview"
+        "items": [
+          "lte/version-1.8.0-architecture_overview"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Orchestrator",
-        "ids": [
-          "version-1.8.0-orc8r/architecture_overview",
-          "version-1.8.0-orc8r/architecture_modularity",
-          "version-1.8.0-orc8r/architecture_security"
+        "items": [
+          "orc8r/version-1.8.0-architecture_overview",
+          "orc8r/version-1.8.0-architecture_modularity",
+          "orc8r/version-1.8.0-architecture_security"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS",
-        "ids": [
-          "version-1.8.0-nms/architecture_overview"
+        "items": [
+          "nms/version-1.8.0-architecture_overview"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "FeG",
-        "ids": [
-          "version-1.8.0-feg/architecture_overview"
+        "items": [
+          "feg/version-1.8.0-architecture_overview"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Domain Proxy",
-        "ids": [
-          "version-1.8.0-dp/architecture_overview"
+        "items": [
+          "dp/version-1.8.0-architecture_overview"
         ]
       }
     ],
     "Deploy": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "General",
-        "ids": [
-          "version-1.8.0-general/aws_cloudstrapper"
+        "items": [
+          "general/version-1.8.0-aws_cloudstrapper"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Access Gateway",
-        "ids": [
-          "version-1.8.0-lte/deploy_install",
-          "version-1.8.0-lte/deploy_install_docker",
-          "version-1.8.0-lte/deploy_config_agw",
-          "version-1.8.0-lte/deploy_config_enodebd",
-          "version-1.8.0-lte/deploy_config_apn",
-          "version-1.8.0-lte/deploy_agw_using_juju",
-          "version-1.8.0-lte/build_install_magma_pkg_in_agw"
+        "items": [
+          "lte/version-1.8.0-deploy_install",
+          "lte/version-1.8.0-deploy_install_docker",
+          "lte/version-1.8.0-deploy_config_agw",
+          "lte/version-1.8.0-deploy_config_enodebd",
+          "lte/version-1.8.0-deploy_config_apn",
+          "lte/version-1.8.0-deploy_agw_using_juju",
+          "lte/version-1.8.0-build_install_magma_pkg_in_agw"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Orchestrator",
-        "ids": [
-          "version-1.8.0-orc8r/deploy_intro",
-          "version-1.8.0-orc8r/deploy_install",
-          "version-1.8.0-orc8r/deploy_using_juju",
-          "version-1.8.0-orc8r/deploy_terraform_options",
-          "version-1.8.0-orc8r/deploy_faq"
+        "items": [
+          "orc8r/version-1.8.0-deploy_intro",
+          "orc8r/version-1.8.0-deploy_install",
+          "orc8r/version-1.8.0-deploy_using_juju",
+          "orc8r/version-1.8.0-deploy_terraform_options",
+          "orc8r/version-1.8.0-deploy_faq"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS",
-        "ids": [
-          "version-1.8.0-nms/deploy_setup"
+        "items": [
+          "nms/version-1.8.0-deploy_setup"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Federation Gateway",
-        "ids": [
-          "version-1.8.0-feg/deploy_intro",
-          "version-1.8.0-feg/deploy_build",
-          "version-1.8.0-feg/deploy_install"
+        "items": [
+          "feg/version-1.8.0-deploy_intro",
+          "feg/version-1.8.0-deploy_build",
+          "feg/version-1.8.0-deploy_install"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Domain Proxy",
-        "ids": [
-          "version-1.8.0-dp/deploy_build"
+        "items": [
+          "dp/version-1.8.0-deploy_build"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Carrier WiFi",
-        "ids": [
-          "version-1.8.0-cwf/deploy_intro",
-          "version-1.8.0-cwf/deploy_build",
-          "version-1.8.0-cwf/deploy_install"
+        "items": [
+          "cwf/version-1.8.0-deploy_intro",
+          "cwf/version-1.8.0-deploy_build",
+          "cwf/version-1.8.0-deploy_install"
         ]
       }
     ],
     "Configure": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Access Gateway",
-        "ids": [
-          "version-1.8.0-lte/configure_agw_ha",
-          "version-1.8.0-lte/configure_sentry"
+        "items": [
+          "lte/version-1.8.0-configure_agw_ha",
+          "lte/version-1.8.0-configure_sentry"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Orchestrator",
-        "ids": [
-          "version-1.8.0-orc8r/configure_thanos"
+        "items": [
+          "orc8r/version-1.8.0-configure_thanos"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Federation Gateway",
-        "ids": [
-          "version-1.8.0-feg/configure_federation"
+        "items": [
+          "feg/version-1.8.0-configure_federation"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS",
-        "ids": [
-          "version-1.8.0-nms/nms_organizations"
+        "items": [
+          "nms/version-1.8.0-nms_organizations"
         ]
       }
     ],
     "Upgrade": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "General",
-        "ids": [
-          "version-1.8.0-general/upgrade_intro"
+        "items": [
+          "general/version-1.8.0-upgrade_intro"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Access Gateway",
-        "ids": [
-          "version-1.8.0-lte/upgrade_debian_to_ubuntu",
-          "version-1.8.0-lte/upgrade_1_6",
-          "version-1.8.0-lte/upgrade_1_5",
-          "version-1.8.0-lte/upgrade_1_4",
-          "version-1.8.0-lte/upgrade_1_3",
-          "version-1.8.0-lte/upgrade_1_2",
-          "version-1.8.0-lte/upgrade_1_1"
+        "items": [
+          "lte/version-1.8.0-upgrade_debian_to_ubuntu",
+          "lte/version-1.8.0-upgrade_1_6",
+          "lte/version-1.8.0-upgrade_1_5",
+          "lte/version-1.8.0-upgrade_1_4",
+          "lte/version-1.8.0-upgrade_1_3",
+          "lte/version-1.8.0-upgrade_1_2",
+          "lte/version-1.8.0-upgrade_1_1"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Orchestrator",
-        "ids": [
-          "version-1.8.0-orc8r/upgrade_intro",
-          "version-1.8.0-orc8r/upgrade_1_6",
-          "version-1.8.0-orc8r/upgrade_1_5",
-          "version-1.8.0-orc8r/upgrade_1_4",
-          "version-1.8.0-orc8r/upgrade_1_3",
-          "version-1.8.0-orc8r/upgrade_1_2",
-          "version-1.8.0-orc8r/upgrade_1_1"
+        "items": [
+          "orc8r/version-1.8.0-upgrade_intro",
+          "orc8r/version-1.8.0-upgrade_1_6",
+          "orc8r/version-1.8.0-upgrade_1_5",
+          "orc8r/version-1.8.0-upgrade_1_4",
+          "orc8r/version-1.8.0-upgrade_1_3",
+          "orc8r/version-1.8.0-upgrade_1_2",
+          "orc8r/version-1.8.0-upgrade_1_1"
         ]
       }
     ],
     "Debug": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "General",
-        "ids": [
-          "version-1.8.0-howtos/troubleshooting/agw_healthcheck",
-          "version-1.8.0-howtos/troubleshooting/agw_unable_to_checkin",
-          "version-1.8.0-howtos/troubleshooting/user_unable_to_attach",
-          "version-1.8.0-howtos/troubleshooting/update_certificates",
-          "version-1.8.0-howtos/troubleshooting/generate_admin_operator_certificates",
-          "version-1.8.0-howtos/troubleshooting/analyze_service_crashes_in_agw",
-          "version-1.8.0-howtos/troubleshooting/datapath_connectivity"
+        "items": [
+          "howtos/troubleshooting/version-1.8.0-agw_healthcheck",
+          "howtos/troubleshooting/version-1.8.0-agw_unable_to_checkin",
+          "howtos/troubleshooting/version-1.8.0-user_unable_to_attach",
+          "howtos/troubleshooting/version-1.8.0-update_certificates",
+          "howtos/troubleshooting/version-1.8.0-generate_admin_operator_certificates",
+          "howtos/troubleshooting/version-1.8.0-analyze_service_crashes_in_agw",
+          "howtos/troubleshooting/version-1.8.0-datapath_connectivity"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Access Gateway",
-        "ids": [
-          "version-1.8.0-lte/debug_show_tech",
-          "version-1.8.0-lte/debug_dp_probe",
-          "version-1.8.0-lte/debug_user_control_plane"
+        "items": [
+          "lte/version-1.8.0-debug_show_tech",
+          "lte/version-1.8.0-debug_dp_probe",
+          "lte/version-1.8.0-debug_user_control_plane"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Federated Gateway",
-        "ids": [
-          "version-1.8.0-feg/debug_cli"
+        "items": [
+          "feg/version-1.8.0-debug_cli"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Carrier WiFi",
-        "ids": [
-          "version-1.8.0-cwf/healthchecker"
+        "items": [
+          "cwf/version-1.8.0-healthchecker"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Orchestrator",
-        "ids": [
-          "version-1.8.0-orc8r/debug_logs"
+        "items": [
+          "orc8r/version-1.8.0-debug_logs"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS",
-        "ids": [
-          "version-1.8.0-nms/alerts_troubleshooting"
+        "items": [
+          "nms/version-1.8.0-alerts_troubleshooting"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Domain Proxy",
-        "ids": [
-          "version-1.8.0-dp/debug_logs"
+        "items": [
+          "dp/version-1.8.0-debug_logs"
         ]
       }
     ],
     "Contribute": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Contribute",
-        "ids": [
-          "version-1.8.0-contributing/contribute_onboarding",
-          "version-1.8.0-contributing/contribute_workflow",
-          "version-1.8.0-contributing/contribute_vscode",
-          "version-1.8.0-contributing/contribute_conventions",
-          "version-1.8.0-contributing/contribute_id_mappings",
-          "version-1.8.0-contributing/contribute_ci_checks"
+        "items": [
+          "contributing/version-1.8.0-contribute_onboarding",
+          "contributing/version-1.8.0-contribute_workflow",
+          "contributing/version-1.8.0-contribute_vscode",
+          "contributing/version-1.8.0-contribute_conventions",
+          "contributing/version-1.8.0-contribute_id_mappings",
+          "contributing/version-1.8.0-contribute_ci_checks"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Maintain",
-        "ids": [
-          "version-1.8.0-contributing/contribute_codeowners",
-          "version-1.8.0-contributing/contribute_tsc_norms"
+        "items": [
+          "contributing/version-1.8.0-contribute_codeowners",
+          "contributing/version-1.8.0-contribute_tsc_norms"
         ]
       }
     ],
     "Technical Reference": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "General",
-        "ids": [
-          "version-1.8.0-resources/ref_pcap",
-          "version-1.8.0-resources/ref_useful_links",
-          "version-1.8.0-resources/ref_magma_metrics",
-          "version-1.8.0-docs/docs_overview"
+        "items": [
+          "resources/version-1.8.0-ref_pcap",
+          "resources/version-1.8.0-ref_useful_links",
+          "resources/version-1.8.0-ref_magma_metrics",
+          "docs/version-1.8.0-docs_overview"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Access Gateway",
-        "ids": [
-          "version-1.8.0-lte/readme_agw",
-          "version-1.8.0-lte/dev_notes",
-          "version-1.8.0-lte/openvswitch",
-          "version-1.8.0-lte/pipelined",
-          "version-1.8.0-lte/ebpf_datapath",
-          "version-1.8.0-lte/ipfix",
-          "version-1.8.0-lte/pipelined_tests",
-          "version-1.8.0-lte/dev_unit_testing",
-          "version-1.8.0-lte/tr069",
-          "version-1.8.0-lte/s1ap_tests",
-          "version-1.8.0-lte/eventd",
-          "version-1.8.0-lte/access_service_restrictions",
-          "version-1.8.0-lte/dev_teid_allocation",
-          "version-1.8.0-lte/integrated_5g_sa",
-          "version-1.8.0-lte/extended_5g_sa_features",
-          "version-1.8.0-lte/suci_extensions",
-          "version-1.8.0-lte/redirectd",
-          "version-1.8.0-lte/readme_callflow"
+        "items": [
+          "lte/version-1.8.0-readme_agw",
+          "lte/version-1.8.0-dev_notes",
+          "lte/version-1.8.0-openvswitch",
+          "lte/version-1.8.0-pipelined",
+          "lte/version-1.8.0-ebpf_datapath",
+          "lte/version-1.8.0-ipfix",
+          "lte/version-1.8.0-pipelined_tests",
+          "lte/version-1.8.0-dev_unit_testing",
+          "lte/version-1.8.0-tr069",
+          "lte/version-1.8.0-s1ap_tests",
+          "lte/version-1.8.0-eventd",
+          "lte/version-1.8.0-access_service_restrictions",
+          "lte/version-1.8.0-dev_teid_allocation",
+          "lte/version-1.8.0-integrated_5g_sa",
+          "lte/version-1.8.0-extended_5g_sa_features",
+          "lte/version-1.8.0-suci_extensions",
+          "lte/version-1.8.0-redirectd",
+          "lte/version-1.8.0-readme_callflow"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Orchestrator",
-        "ids": [
-          "version-1.8.0-orc8r/dev_rest_api",
-          "version-1.8.0-orc8r/dev_build",
-          "version-1.8.0-orc8r/dev_testing",
-          "version-1.8.0-orc8r/dev_minikube",
-          "version-1.8.0-orc8r/dev_security",
-          "version-1.8.0-orc8r/dev_indexers",
-          "version-1.8.0-orc8r/dev_sub_digests",
-          "version-1.8.0-orc8r/dev_rest_api_auth",
-          "version-1.8.0-orc8r/dev_dependencies",
-          "version-1.8.0-orc8r/dev_gateway_registration",
-          "version-1.8.0-orc8r/dev_aws_stack"
+        "items": [
+          "orc8r/version-1.8.0-dev_rest_api",
+          "orc8r/version-1.8.0-dev_build",
+          "orc8r/version-1.8.0-dev_testing",
+          "orc8r/version-1.8.0-dev_minikube",
+          "orc8r/version-1.8.0-dev_security",
+          "orc8r/version-1.8.0-dev_indexers",
+          "orc8r/version-1.8.0-dev_sub_digests",
+          "orc8r/version-1.8.0-dev_rest_api_auth",
+          "orc8r/version-1.8.0-dev_dependencies",
+          "orc8r/version-1.8.0-dev_gateway_registration",
+          "orc8r/version-1.8.0-dev_aws_stack"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS",
-        "ids": [
-          "version-1.8.0-nms/dev_spacing",
-          "version-1.8.0-nms/dev_testing",
-          "version-1.8.0-nms/dev_themes",
-          "version-1.8.0-nms/dev_components"
+        "items": [
+          "nms/version-1.8.0-dev_spacing",
+          "nms/version-1.8.0-dev_testing",
+          "nms/version-1.8.0-dev_themes",
+          "nms/version-1.8.0-dev_components"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Federation Gateway",
-        "ids": [
-          "version-1.8.0-feg/dev_testing",
-          "version-1.8.0-feg/docker",
-          "version-1.8.0-feg/s1ap_federated_tests"
+        "items": [
+          "feg/version-1.8.0-dev_testing",
+          "feg/version-1.8.0-docker",
+          "feg/version-1.8.0-s1ap_federated_tests"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Carrier WiFi",
-        "ids": [
-          "version-1.8.0-cwf/dev_testing"
+        "items": [
+          "cwf/version-1.8.0-dev_testing"
         ]
       }
     ],
     "Design Documents": [
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "General",
-        "ids": [
-          "version-1.8.0-proposals/p001_vpn_config_from_api",
-          "version-1.8.0-proposals/p005_call_tracing",
-          "version-1.8.0-proposals/p014_proposal_process",
-          "version-1.8.0-proposals/p015_tech_debt_week",
-          "version-1.8.0-proposals/p017_apn_refactoring"
+        "items": [
+          "proposals/version-1.8.0-p001_vpn_config_from_api",
+          "proposals/version-1.8.0-p005_call_tracing",
+          "proposals/version-1.8.0-p014_proposal_process",
+          "proposals/version-1.8.0-p015_tech_debt_week",
+          "proposals/version-1.8.0-p017_apn_refactoring"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Access Gateway",
-        "ids": [
-          "version-1.8.0-proposals/p003_qos_enforcement",
-          "version-1.8.0-proposals/p004_fua_restrict_feature",
-          "version-1.8.0-proposals/p007_header_enrichment",
-          "version-1.8.0-proposals/p008_apn_correction",
-          "version-1.8.0-proposals/p013_Ubuntu_upgrade",
-          "version-1.8.0-proposals/p018_control_network_metrics",
-          "version-1.8.0-proposals/p019_enodeb_cbrs_support",
-          "version-1.8.0-proposals/p020_sgi_tunnel_transport"
+        "items": [
+          "proposals/version-1.8.0-p003_qos_enforcement",
+          "proposals/version-1.8.0-p004_fua_restrict_feature",
+          "proposals/version-1.8.0-p007_header_enrichment",
+          "proposals/version-1.8.0-p008_apn_correction",
+          "proposals/version-1.8.0-p013_Ubuntu_upgrade",
+          "proposals/version-1.8.0-p018_control_network_metrics",
+          "proposals/version-1.8.0-p019_enodeb_cbrs_support",
+          "proposals/version-1.8.0-p020_sgi_tunnel_transport"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "Orchestrator",
-        "ids": [
-          "version-1.8.0-proposals/p002_scaled_prometheus_pipeline",
-          "version-1.8.0-proposals/p010_subscriber_scaling",
-          "version-1.8.0-proposals/p011_victoriametrics"
+        "items": [
+          "proposals/version-1.8.0-p002_scaled_prometheus_pipeline",
+          "proposals/version-1.8.0-p010_subscriber_scaling",
+          "proposals/version-1.8.0-p011_victoriametrics"
         ]
       },
       {
-        "type": "subcategory",
+        "type": "category",
         "label": "NMS",
-        "ids": [
-          "version-1.8.0-proposals/p009_nms_mariadb_migration",
-          "version-1.8.0-proposals/p016_nms_regression_testing"
+        "items": [
+          "proposals/version-1.8.0-p009_nms_mariadb_migration",
+          "proposals/version-1.8.0-p016_nms_regression_testing"
         ]
       }
     ],
     "FAQ": [
-      "version-1.8.0-faq/faq_magma"
+      "faq/version-1.8.0-faq_magma"
     ]
   }
 }

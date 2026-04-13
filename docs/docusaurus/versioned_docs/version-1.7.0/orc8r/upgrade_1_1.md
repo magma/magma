@@ -22,7 +22,7 @@ including developer tooling, a Helm chart repository, and a container registry.
 ## Create a New Root Module
 
 First, create a new directory somewhere to store your new root Terraform module
-for the 1.1.x deployment. We have an example root module at <https://github.com/magma/magma/tree/v1.1/orc8r/cloud/deploy/terraform/orc8r-helm-aws/examples/online-upgrade>
+for the 1.1.x deployment. We have an example root module at https://github.com/magma/magma/tree/v1.1/orc8r/cloud/deploy/terraform/orc8r-helm-aws/examples/online-upgrade
 that we recommend you use for the upgrade. Copy all the files to your new
 directory and change the `source` attribute of both modules in `main.tf` to
 `github.com/facebookincubator/magma//orc8r/cloud/deploy/terraform/orc8r-aws` and

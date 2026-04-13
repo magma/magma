@@ -15,7 +15,7 @@ To improve our security measures and to allow for more fine-grained control over
 
 ## Overview
 
-![rest_api_auth_overview](assets/orc8r/rest_api_auth_overview.png)
+![rest_api_auth_overview](../../../../readmes/assets/orc8r/rest_api_auth_overview.png)
 For Orc8r’s northbound interface security, all REST API requests must include a client certificate and a `<username>:<token>` in the Basic Auth header.
 
 To access REST API resources, perform the following steps:
@@ -23,8 +23,8 @@ To access REST API resources, perform the following steps:
 1. Log in with their username and password through the `/login` endpoint
 2. Copy the token from the response body
 3. Authenticate with their username and token (in lieu of the password field) through the Swagger Authorize tool on the top right corner
-   ![rest_api_auth_3](assets/orc8r/rest_api_auth_3.png)
-   ![rest_api_auth_4](assets/orc8r/rest_api_auth_4.png)
+   ![rest_api_auth_3](../../../../readmes/assets/orc8r/rest_api_auth_3.png)
+   ![rest_api_auth_4](../../../../readmes/assets/orc8r/rest_api_auth_4.png)
 
 ## Bootstrapping Admin Token
 

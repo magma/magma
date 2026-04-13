@@ -12,4 +12,4 @@ is in charge of generating and defining their own API objects, specifically
 defined as Swagger objects. A module's Swagger objects may depend on those
 from other modules. This results in the following module dependency tree.
 
-![Module Dependencies](assets/orc8r/gen_construct_dependencies.png)
+![Module Dependencies](../../../../readmes/assets/orc8r/gen_construct_dependencies.png)

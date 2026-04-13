@@ -14,17 +14,17 @@ For unlimited retention and a more scaled metrics pipeline, we also support depl
 ## Metrics Explorer
 
 Metrics explorer provides an easy way to learn and explore the metrics available in our system.  Metrics explorer can be viewed through NMS. We can search and filter the metrics by the name or description. Additionally if we click on the detailed view on the metric, we enable exploring the current trends on the metric via grafana explorer.
-![Metric Explorer1](assets/nms/userguide/metrics/metric_explorer1.png)
-![Metric Explorer2](assets/nms/userguide/metrics/metric_explorer2.png)
+![Metric Explorer1](../../../../readmes/assets/nms/userguide/metrics/metric_explorer1.png)
+![Metric Explorer2](../../../../readmes/assets/nms/userguide/metrics/metric_explorer2.png)
 
 ## Grafana
 
 Grafana provides a powerful, configurable, and user-friendly dashboarding solution. Any users within an organization can create and edit custom timeseries dashboards that will be visible to all other users in their organization. An important detail is that Grafana access is limited only to users in an organization with the "Super-User" title (you will select this when provisioning users in an organization). This is a technical workaround to ensure that users with additional network visibility restrictions within an organization can't see information from networks that they are restricted from as Grafana will allow all users to query across any network that the organization owns.
 
 When you click on this link we have to do some book-keeping on the backend, so the initial load may take a few seconds.
-![Grafana homepage](assets/nms/grafana_homepage.png)
+![Grafana homepage](../../../../readmes/assets/nms/grafana_homepage.png)
 You’ll see built in dashboards available to you.
-![Grafana variables](assets/nms/grafana_variables.png)
+![Grafana variables](../../../../readmes/assets/nms/grafana_variables.png)
 These dashboards contain dropdown selectors to choose which network(s) and gateway(s) you want to look at.
 In Grafana you can look at any collection of networks or gateways your organization has access to at once. Simply select or
 deselect the networks/gateways that you want to see and the graphs will be updated. In the top right corner, there is an option to choose the time range that the graphs display. The default is 6 hours.
@@ -34,13 +34,13 @@ deselect the networks/gateways that you want to see and the graphs will be updat
 With Grafana, you can create your own custom dashboards and populate them with any graphs and queries you want. These custom dashboards will be visible to all other users in the organization that you belong to in the NMS.
 The simple way is to just click on the “+” icon on the left sidebar, then create a new dashboard. There is ample documentation about grafana dashboards online if you need help creating your dashboard.
 
-![Grafana new dashboard](assets/nms/grafana_new_dashboard.png)
+![Grafana new dashboard](../../../../readmes/assets/nms/grafana_new_dashboard.png)
 - Grafana documentation on creating dashboards: [Grafana Dashboards](https://grafana.com/docs/grafana/latest/features/dashboard/dashboards/)
 - Prometheus documentation on writing queries: [Prometheus Querying](https://prometheus.io/docs/prometheus/latest/querying/basics/)
 
 If you want to replicate the networkID or gatewayID variables that you find in the preconfigured dashboards, we provide a “template” dashboard to make that easy. Simply open the Template dashboard, and click on the gear icon near the
 top right. From there, click “Save As” and enter the name you want. Your new dashboard will now have the gatewayID and networkID variables. An example of how to use these variables in your queries:
-![Grafana query](assets/nms/grafana_query.png)
+![Grafana query](../../../../readmes/assets/nms/grafana_query.png)
 Some technical details: You need to use `=~` when matching label names with these variables in order to see more than one network or gateway at a time. This is because the `=~` operator tells Prometheus to match the value as a regex.
 
 ### Enabling Access
@@ -167,7 +167,7 @@ the left sidebar, then edit the feature flag named "Include tab for Grafana in t
 |ue_dropped_usage / down	|Reported dropped RX traffic for subscriber / session in bytes	|AGW	|sessiond	|
 
 ## REST API for querying metrics
-![api](assets/nms/userguide/metrics/metrics_api.png)
+![api](../../../../readmes/assets/nms/userguide/metrics/metrics_api.png)
 
 ## Troubleshooting Metrics
 

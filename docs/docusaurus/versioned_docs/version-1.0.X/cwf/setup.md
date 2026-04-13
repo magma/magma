@@ -26,8 +26,8 @@ Vagrant will bring up the VM, then Ansible will provision the VM.
 
 * Once the CWAG VM is up and provisioned, run the following commands:
 
-``HOST:magma/cwf/gateway USER$ vagrant ssh cwag``<br>
-``AGW:~ USER$ cd magma/cwf/gateway/docker``<br>
+``HOST:magma/cwf/gateway USER$ vagrant ssh cwag``<br></br>
+``AGW:~ USER$ cd magma/cwf/gateway/docker``<br></br>
 ``AGW:~/magma/cwf/gateway/docker USER$ docker-compose build --parallel``
 ``AGW:~/magma/cwf/gateway/docker USER$ docker-compose up -d``
 

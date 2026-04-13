@@ -77,7 +77,7 @@ reduce CPU usage, but memory usage is probably not going to be an easy fix.
 Kubernetes kicked the edge-hub pod at the end of this scale test because of
 memory usage.
 
-![edge-hub test](assets/proposals/p011/edge-hub-test.png)
+![edge-hub test](../../../../readmes/assets/proposals/p011/edge-hub-test.png)
 
 | Pros                            | Cons                                                     |
 | ------------------------------- | -------------------------------------------------------- |
@@ -111,7 +111,7 @@ Ingested ~25M datapoints/minute while using on average 1GB of memory, and about
 
 I had to do a tiny bit of tuning to some command line flags to get up to 25M
 and more tuning could be done to get it higher most likely given that it was
-only using <200% CPU.
+only using < 200% CPU.
 
 Based on VM’s data this capacity should scale nearly linearly for quite a
 while with more/faster CPUs.
@@ -127,7 +127,7 @@ VictoriaMetrics integrates seamlessly with configmanager and the
 is nearly identical to how Thanos does alerting, which I’ve already validated
 so there’s not much risk on that end.
 
-![VictoriaMetrics test](assets/proposals/p011/victoriametrics-test.png)
+![VictoriaMetrics test](../../../../readmes/assets/proposals/p011/victoriametrics-test.png)
 
 | Pros                                        | Cons                                                                      |
 | ------------------------------------------- | ------------------------------------------------------------------------- |

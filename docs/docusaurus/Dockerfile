@@ -11,7 +11,8 @@
 
 FROM node:20
 
+
 WORKDIR /app/website
 
 COPY package.json /app/website/package.json
-RUN yarn install
+RUN npm install

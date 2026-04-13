@@ -73,7 +73,7 @@ Metrics and logging are available to track long-running reindex processes, as we
 
 ### Architecture overview
 
-![State indexing codepath](assets/orc8r/state_indexing_codepath.png)
+![State indexing codepath](../../../../readmes/assets/orc8r/state_indexing_codepath.png)
 
 ## Additional notes
 

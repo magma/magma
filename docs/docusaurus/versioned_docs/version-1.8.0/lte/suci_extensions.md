@@ -9,7 +9,7 @@ original_id: suci_extensions
 
 SUCI (Subscription Concealed Identifier) is a privacy-preserving identifier containing the concealed SUPI (Subscription Permanent Identifier). The home network public key identifier encrypts the SUPI and allows the UE (User Equipment) to authenticate with the network. The SUCI format is shown below.
 
-![SUCI Format](assets/lte/suci_format.png?raw=true "SUCI Format")
+![SUCI Format](../../../../readmes/assets/lte/suci_format.png?raw=true "SUCI Format")
 
 The home network public key identifier(s) for the private/public key pairs used for subscriber privacy shall be stored in the subscriberdb of the AGW (Access Gateway). Subscriberdb should include a SIDF (Subscription Identification De-concealing Function), which contains an algorithm for decrypting SUCI using the home network private key.
 
@@ -106,7 +106,7 @@ sequenceDiagram
 
   The sample configuration is shown in the below figure
 
-  ![Create New LTE Network with SuciProfile](assets/lte/create_new_lte_network_with_suciprofile.png?raw=true "Create New LTE Network with SuciProfile")
+  ![Create New LTE Network with SuciProfile](../../../../readmes/assets/lte/create_new_lte_network_with_suciprofile.png?raw=true "Create New LTE Network with SuciProfile")
 
 - If we want to add a SUCI Profile to an existing LTE network, we may do it with the swagger API listed below.
 
@@ -126,7 +126,7 @@ sequenceDiagram
 
   The sample configuration is shown in the below figure
 
-  ![Update Existing LTE Network with SuciProfile](assets/lte/update_existing_lte_network_with_suciprofile.png?raw=true "Update Existing LTE Network with SuciProfile")
+  ![Update Existing LTE Network with SuciProfile](../../../../readmes/assets/lte/update_existing_lte_network_with_suciprofile.png?raw=true "Update Existing LTE Network with SuciProfile")
 
 ## 3GPP References
 
