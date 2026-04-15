@@ -168,7 +168,10 @@ class LoginForm extends React.Component<Props> {
                       placeholder="Email"
                       className={classes.input}
                       onKeyUp={key =>
-                        key.keyCode === ENTER_KEY && this.form!.submit()
+                        key.keyCode === ENTER_KEY && 
+                        this.form!.email.value &&
+                        this.form!.password.value &&
+                        this.form!.submit()
                       }
                     />
                   </AltFormField>
@@ -180,7 +183,10 @@ class LoginForm extends React.Component<Props> {
                       type="password"
                       className={classes.input}
                       onKeyUp={key =>
-                        key.keyCode === ENTER_KEY && this.form!.submit()
+                        key.keyCode === ENTER_KEY && 
+                        this.form!.email.value &&
+                        this.form!.password.value &&
+                        this.form!.submit()
                       }
                     />
                   </AltFormField>
@@ -190,7 +196,15 @@ class LoginForm extends React.Component<Props> {
                     color="primary"
                     variant="contained"
                     className={classes.submitButton}
-                    onClick={() => this.form!.submit()}>
+                    onClick={() => {
+                      const email = this.form!.email.value;
+                      const password = this.form!.password.value;
+                      if (!email || !password) {
+                        alert('Please fill in all fields.');
+                      } else {
+                        this.form!.submit();
+                      }
+                    }}>
                     Login
                   </Button>
                 </CardActions>
