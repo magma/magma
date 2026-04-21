@@ -214,7 +214,7 @@ bstring mme_app_process_apn_correction(imsi_t* imsi, bstring accesspointname) {
       }
     }
   }
-if (accesspointname && bdata(accesspointname)) {
+  if (accesspointname && bdata(accesspointname)) {
     return bstrcpy(accesspointname);
   }
   return bfromcstr("");

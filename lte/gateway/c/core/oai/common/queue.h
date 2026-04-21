@@ -104,7 +104,8 @@
     struct type* lh_first; /* first element */ \
   }
 
-#define LIST_HEAD_INITIALIZER(head) {NULL}
+#define LIST_HEAD_INITIALIZER(head) \
+  { NULL }
 
 #define LIST_ENTRY(type)                                          \
   struct {                                                        \
@@ -169,7 +170,8 @@
     struct type* slh_first; /* first element */ \
   }
 
-#define SLIST_HEAD_INITIALIZER(head) {NULL}
+#define SLIST_HEAD_INITIALIZER(head) \
+  { NULL }
 
 #define SLIST_ENTRY(type)                     \
   struct {                                    \
@@ -231,7 +233,8 @@
     struct type** stqh_last; /* addr of last next element */ \
   }
 
-#define STAILQ_HEAD_INITIALIZER(head) {NULL, &(head).stqh_first}
+#define STAILQ_HEAD_INITIALIZER(head) \
+  { NULL, &(head).stqh_first }
 
 #define STAILQ_ENTRY(type)                     \
   struct {                                     \
@@ -316,7 +319,8 @@
     struct type** sqh_last; /* addr of last next element */ \
   }
 
-#define SIMPLEQ_HEAD_INITIALIZER(head) {NULL, &(head).sqh_first}
+#define SIMPLEQ_HEAD_INITIALIZER(head) \
+  { NULL, &(head).sqh_first }
 
 #define SIMPLEQ_ENTRY(type)                   \
   struct {                                    \
@@ -392,7 +396,8 @@
   }
 #define TAILQ_HEAD(name, type) _TAILQ_HEAD(name, struct type, )
 
-#define TAILQ_HEAD_INITIALIZER(head) {NULL, &(head).tqh_first}
+#define TAILQ_HEAD_INITIALIZER(head) \
+  { NULL, &(head).tqh_first }
 
 #define _TAILQ_ENTRY(type, qual)                                      \
   struct {                                                            \
@@ -493,7 +498,8 @@
     struct type* cqh_last;  /* last element */  \
   }
 
-#define CIRCLEQ_HEAD_INITIALIZER(head) {(void*)&head, (void*)&head}
+#define CIRCLEQ_HEAD_INITIALIZER(head) \
+  { (void*)&head, (void*)&head }
 
 #define CIRCLEQ_ENTRY(type)                       \
   struct {                                        \
