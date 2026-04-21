@@ -1,3 +1,16 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /*
  * Copyright (c) 2015, EURECOM (www.eurecom.fr)
  * All rights reserved.
@@ -596,4 +609,4 @@ const char* get_short_file_name(const char* const source_file_nameP);
     log_message_prefix_id(OAILOG_LEVEL_INFO, pRoTo, __FILE__, __LINE__, ue_id, \
                           ##__VA_ARGS__);                                      \
   } while (0) /*!< \brief informational */
-#endif /* FILE_LOG_SEEN */
+#endif        /* FILE_LOG_SEEN */

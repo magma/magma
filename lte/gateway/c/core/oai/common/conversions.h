@@ -1,3 +1,16 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /*
  * Copyright (c) 2015, EURECOM (www.eurecom.fr)
  * All rights reserved.
@@ -388,7 +401,7 @@
     (bITsTRING)->buf = (uint8_t*)calloc(3, sizeof(uint8_t)); \
     (bITsTRING)->buf[0] = ((mACRO) >> 12);                   \
     (bITsTRING)->buf[1] = (mACRO) >> 4;                      \
-    (bITsTRING)->buf[2] = ((mACRO) & 0x0f) << 4;             \
+    (bITsTRING)->buf[2] = ((mACRO)&0x0f) << 4;               \
     (bITsTRING)->size = 3;                                   \
     (bITsTRING)->bits_unused = 4;                            \
   } while (0)
@@ -399,15 +412,15 @@
  * Identity correspond to the eNB
  * ID (defined in subclause 9.2.1.37).
  */
-#define MACRO_ENB_ID_TO_CELL_IDENTITY(mACRO, cELL_iD, bITsTRING)      \
-  do {                                                                \
-    (bITsTRING)->buf = (uint8_t*)calloc(4, sizeof(uint8_t));          \
-    (bITsTRING)->buf[0] = ((mACRO) >> 12);                            \
-    (bITsTRING)->buf[1] = (mACRO) >> 4;                               \
-    (bITsTRING)->buf[2] = (((mACRO) & 0x0f) << 4) | ((cELL_iD) >> 4); \
-    (bITsTRING)->buf[3] = ((cELL_iD) & 0x0f) << 4;                    \
-    (bITsTRING)->size = 4;                                            \
-    (bITsTRING)->bits_unused = 4;                                     \
+#define MACRO_ENB_ID_TO_CELL_IDENTITY(mACRO, cELL_iD, bITsTRING)    \
+  do {                                                              \
+    (bITsTRING)->buf = (uint8_t*)calloc(4, sizeof(uint8_t));        \
+    (bITsTRING)->buf[0] = ((mACRO) >> 12);                          \
+    (bITsTRING)->buf[1] = (mACRO) >> 4;                             \
+    (bITsTRING)->buf[2] = (((mACRO)&0x0f) << 4) | ((cELL_iD) >> 4); \
+    (bITsTRING)->buf[3] = ((cELL_iD)&0x0f) << 4;                    \
+    (bITsTRING)->size = 4;                                          \
+    (bITsTRING)->bits_unused = 4;                                   \
   } while (0)
 
 /* Used to format an uint32_t containing an ipv4 address */
@@ -727,11 +740,11 @@ void hexa_to_ascii(uint8_t* from, char* to, size_t length);
 
 int ascii_to_hex(uint8_t* dst, const char* h);
 #define UINT8_TO_BINARY_FMT "%c%c%c%c%c%c%c%c"
-#define UINT8_TO_BINARY_ARG(bYtE)                               \
-  ((bYtE) & 0x80 ? '1' : '0'), ((bYtE) & 0x40 ? '1' : '0'),     \
-      ((bYtE) & 0x20 ? '1' : '0'), ((bYtE) & 0x10 ? '1' : '0'), \
-      ((bYtE) & 0x08 ? '1' : '0'), ((bYtE) & 0x04 ? '1' : '0'), \
-      ((bYtE) & 0x02 ? '1' : '0'), ((bYtE) & 0x01 ? '1' : '0')
+#define UINT8_TO_BINARY_ARG(bYtE)                           \
+  ((bYtE)&0x80 ? '1' : '0'), ((bYtE)&0x40 ? '1' : '0'),     \
+      ((bYtE)&0x20 ? '1' : '0'), ((bYtE)&0x10 ? '1' : '0'), \
+      ((bYtE)&0x08 ? '1' : '0'), ((bYtE)&0x04 ? '1' : '0'), \
+      ((bYtE)&0x02 ? '1' : '0'), ((bYtE)&0x01 ? '1' : '0')
 
 int get_time_zone(void);
 #define GUTI_STRING_LEN 21
