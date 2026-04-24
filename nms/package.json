@@ -9,7 +9,7 @@
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.12.13",
     "@babel/plugin-proposal-optional-chaining": "^7.0.0",
-    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-env": "^7.23.2",
     "@babel/preset-react": "^7.0.0",
     "@babel/register": "^7.13.16",
     "@babel/runtime": "^7.26.10",
@@ -84,7 +84,7 @@
     "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-transform-react-jsx": "^7.0.0",
     "@babel/plugin-transform-typescript": "^7.16.8",
-    "@babel/preset-env": "^7.11.5",
+    "@babel/preset-env": "^7.23.2",
     "@babel/preset-react": "^7.0.0",
     "@babel/preset-typescript": "^7.16.7",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
@@ -177,6 +177,7 @@
     "webpack-manifest-plugin": "^2.0.4"
   },
   "resolutions": {
+    "@babel/traverse": "^7.23.2",
     "@babel/runtime": "^7.3.4",
     "node-forge": "^1.0.0",
     "node-fetch": "^2.6.7",
@@ -203,5 +204,6 @@
     "setAdminPassword": "node -r ./babelRegister.js scripts/setPassword.ts",
     "createOrganization": "node -r ./babelRegister.js scripts/createOrganization.ts",
     "mockserver": "node -r ./babelRegister.js scripts/mockServer.ts"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }

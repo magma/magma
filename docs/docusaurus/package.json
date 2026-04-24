@@ -19,5 +19,8 @@
     "remark-mermaid": "^0.2.0",
     "set-value": "^4.0.1",
     "trim-newlines": "^3.0.1"
+  },
+  "resolutions": {
+    "@babel/traverse": "^7.23.2"
   }
 }
