@@ -88,7 +88,8 @@ function userMiddleware(options: Options) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       passport.authenticate('local', (err: Error, user: UserModel) => {
         if (!user || err) {
-          logger.error('Failed login: ' + err.toString());
+          const msg = err ? err.toString() : 'Authentication failed';
+          logger.error('Failed login: ' + msg);
           return res.redirect(loginFailureUrl);
         }
         req.logIn(user, err => {
@@ -185,7 +186,8 @@ function userMiddleware(options: Options) {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       passport.authenticate('oidc', (err: Error, user: UserModel) => {
         if (!user || err) {
-          logger.error('Error logging in with oidc: ' + err.toString());
+          const msg = err ? err.toString() : 'OIDC authentication failed';
+          logger.error('Error logging in with oidc: ' + msg);
           return res.redirect(options.loginFailureUrl);
         }
         req.logIn(user, err => {
