@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG baseImage="ubuntu:focal"
+ARG baseImage="ubuntu:jammy"
 FROM ${baseImage} AS base
 
 # Add the magma apt repo

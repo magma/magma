@@ -14,7 +14,7 @@
 # ------------------------------------------------------------------------------
 ARG PLATFORM=linux/amd64
 
-FROM --platform=$PLATFORM ubuntu:focal AS base
+FROM --platform=$PLATFORM ubuntu:jammy AS base
 
 ENV GO111MODULE on
 ENV GOPATH ${USER}/go
@@ -99,7 +99,7 @@ RUN . /etc/profile.d/env.sh && make build
 # ------------------------------------------------------------------------------
 # Production
 # ------------------------------------------------------------------------------
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 # Apt runtime deps
 RUN apt-get update && apt-get install -y \

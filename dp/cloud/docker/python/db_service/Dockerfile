@@ -10,7 +10,7 @@
 # limitations under the License.
 
 ARG ENV=standard
-FROM python:3.9.2-slim-buster AS builder
+FROM python:3.10-slim-bookworm AS builder
 
 COPY dp/cloud/python/magma/db_service/requirements.txt /dp/cloud/python/magma/db_service/requirements.txt
 WORKDIR /dp/cloud/python/magma/db_service/migrations

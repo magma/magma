@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM python:3.9.10-alpine
+FROM python:3.10-alpine
 
 RUN addgroup -S linter && adduser -S -G linter linter
 
