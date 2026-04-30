@@ -20,7 +20,7 @@ from grpc.tools import protoc
 
 def find_all_proto_files_in_dir(input_dir: str) -> List[str]:
     """
-    Returns a list of filenames of .proto files in the given directory
+    Return a list of filenames of .proto files in the given directory.
 
     Args:
         input_dir: Directory to search in
@@ -51,7 +51,8 @@ def gen_bindings(
         output_dir: str,
 ) -> None:
     """
-    Generates python and Go bindings for all .proto files in input dir
+    Generate python and Go bindings for all .proto files in input dir.
+
        @input_dir - input directory with .proto files to generate code for
        @include_paths - a list of include paths to resolve relative imports in .protos
        @output_dir - output directory to put generated code in
@@ -77,8 +78,9 @@ def gen_bindings(
 
 def main():
     """
-    Default main module. Generates .py code for all proto files
-    specified by the arguments
+    Generate .py code for all proto files specified by the arguments.
+
+    Default main module.
     """
     if len(sys.argv) != 5:
         print(
