@@ -331,6 +331,10 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	assert.Equal(t, sid0, field.GetValue())
 
 	records, err := ddUpdaterClient.GetAllDirectoryRecords(ctx, &protos.Void{})
+	t.Logf("records count: %d", len(records.GetRecords()))
+	for _, r := range records.GetRecords() {
+		t.Logf("record: id=%s fields=%v", r.GetId(), r.GetFields())
+	}
 	assert.NoError(t, err)
 	assert.Equal(t, int(1), len(records.GetRecords()))
 

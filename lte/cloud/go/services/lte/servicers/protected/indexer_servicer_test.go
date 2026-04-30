@@ -71,10 +71,10 @@ func TestIndexerEnodebState(t *testing.T) {
 	enbState2.MmeConnected = swag.Bool(false)
 	serializedState2 := serialize(t, enbState2)
 	stateGw1 := state_types.SerializedStatesByID{
-		id1: {SerializedReportedState: serializedState1, ReporterID: hwID1},
+		id1: {SerializedReportedState: string(serializedState1), ReporterID: hwID1},
 	}
 	stateGw2 := state_types.SerializedStatesByID{
-		id2: {SerializedReportedState: serializedState2, ReporterID: hwID2},
+		id2: {SerializedReportedState: string(serializedState2), ReporterID: hwID2},
 	}
 
 	clock.SetAndFreezeClock(t, time.Now())
@@ -94,8 +94,8 @@ func TestIndexerEnodebState(t *testing.T) {
 
 	// Correctly handle per-state errs
 	states := state_types.SerializedStatesByID{
-		id1: {SerializedReportedState: serializedState2, ReporterID: hwID1},
-		id3: {SerializedReportedState: serializedState2, ReporterID: "hw3"},
+		id1: {SerializedReportedState: string(serializedState2), ReporterID: hwID1},
+		id3: {SerializedReportedState: string(serializedState2), ReporterID: "hw3"},
 	}
 	errs, err = idx.Index(networkID, states)
 	assert.NoError(t, err)
