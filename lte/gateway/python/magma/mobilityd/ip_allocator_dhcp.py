@@ -13,13 +13,6 @@ limitations under the License.
 Allocates IP address as per DHCP server in the uplink network.
 """
 
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 import json
 import logging
 import subprocess
@@ -47,7 +40,6 @@ DHCP_HELPER_CLI = "dhcp_helper_cli.py"
 LOG = logging.getLogger('mobilityd.dhcp.alloc')
 
 DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
-
 
 class IPAllocatorDHCP(IPAllocator):
 
@@ -471,7 +463,6 @@ class IPAllocatorDHCP(IPAllocator):
                         "and moving on.", ip_desc.ip,
                     )
                     oldest_proc.kill()
-
 
 def dhcp_allocated_ip(dhcp_desc: DHCPDescriptor) -> bool:
     return dhcp_desc.ip_is_allocated()

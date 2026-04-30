@@ -40,13 +40,6 @@ during it's life cycle in the IP allocator:
         to age IPs for a certain period of time before freeing.
 """
 
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 import ipaddress
 import logging
 import threading
@@ -68,11 +61,9 @@ from .mobility_store import MobilityStore
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
-
 class IPAddressManager:
     """ A thread-safe IP allocator: all mutating functions are protected by a
     re-entrant lock.
-
 
     The IPAllocator maintains IP life cycle, as well as the mapping between
     SubscriberID (SID) and IPs. For now, only one-to-one mapping is supported

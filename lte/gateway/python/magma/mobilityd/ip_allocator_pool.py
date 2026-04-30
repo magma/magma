@@ -15,13 +15,6 @@ The IP allocator accepts IP blocks (range of IP addresses), and supports
 allocating and releasing IP addresses from the assigned IP blocks.
 """
 
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 import logging
 from copy import deepcopy
 from typing import List
@@ -38,7 +31,6 @@ from .mobility_store import MobilityStore
 from .utils import IPAddress, IPNetwork
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
-
 
 class IpAllocatorPool(IPAllocator):
 

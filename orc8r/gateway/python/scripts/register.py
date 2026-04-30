@@ -17,7 +17,6 @@ import os
 import sys
 import textwrap
 import time
-from typing import List
 
 import checkin_cli
 import snowflake

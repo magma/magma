@@ -15,13 +15,6 @@ The IP allocator accepts IP blocks (range of IP addresses), and supports
 allocating and releasing IP addresses from the assigned IP blocks.
 """
 
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 import logging
 from ipaddress import ip_network
 from typing import List, Optional
@@ -37,7 +30,6 @@ from magma.mobilityd.subscriberdb_client import SubscriberDbClient
 from magma.mobilityd.utils import IPAddress, IPNetwork, log_error_and_raise
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
-
 
 class IPAllocatorStaticWrapper(IPAllocator):
 

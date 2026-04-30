@@ -32,13 +32,6 @@ during it's life cycle in the IP allocator:
         to age IPs for a certain period of time before freeing.
 """
 
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 from ipaddress import ip_address
 from typing import Dict, List, MutableMapping, Optional, Set
 
@@ -46,7 +39,6 @@ from magma.mobilityd.ip_descriptor import IPDesc, IPState
 from magma.mobilityd.utils import IPAddress, IPNetwork
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
-
 
 class IpDescriptorMap:
 

@@ -12,16 +12,8 @@ limitations under the License.
 """
 # pylint: disable=unnecessary-ellipsis
 
-from __future__ import (
-    absolute_import,
-    division,
-    print_function,
-    unicode_literals,
-)
-
 from abc import ABC, abstractmethod
 from typing import Optional
-
 
 class TcOpsBase(ABC):
     """
