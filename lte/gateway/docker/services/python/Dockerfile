@@ -31,10 +31,6 @@ ENV MAGMA_ROOT=/magma
 ENV PIP_CACHE_HOME="~/.pipcache"
 ARG DEBIAN_FRONTEND=noninteractive
 
-# [TODO_GPG_KEY_WORKAROUND] Temporary steps to be removed once GPG public key issue has been fixed.
-RUN echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories \
-    && echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
-
 RUN apt-get update && apt-get install -y \
   docker.io \
   git \
@@ -101,10 +97,6 @@ ENV TZ=Europe/Paris
 ARG JSONPOINTER_VERSION=1.13
 ARG DEBIAN_FRONTEND=noninteractive
 
-# [TODO_GPG_KEY_WORKAROUND] Temporary steps to be removed once GPG public key issue has been fixed.
-RUN echo "Acquire::AllowInsecureRepositories true;" > /etc/apt/apt.conf.d/99AllowInsecureRepositories \
-    && echo "APT::Get::AllowUnauthenticated true;" >> /etc/apt/apt.conf.d/99AllowInsecureRepositories
-
 RUN apt-get update && apt-get install -y \
   apt-transport-https \
   ca-certificates \
@@ -129,10 +121,7 @@ ENV PATH="/magma/orc8r/gateway/python/scripts/:/magma/lte/gateway/python/scripts
 
 # Add the magma apt repo
 COPY keys/linux_foundation_registry_key.asc /etc/apt/trusted.gpg.d/magma.asc
-#[TODO_GPG_KEY_WORKAROUND]Temporary steps to be removed once GPG public key issue has been fixed.
-#RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
-RUN echo "deb [trusted=yes] https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" \
-    > /etc/apt/sources.list.d/magma.list
+RUN echo "deb https://linuxfoundation.jfrog.io/artifactory/magma-packages-test focal-ci main" > /etc/apt/sources.list.d/magma.list
 
 RUN echo "deb https://packages.fluentbit.io/ubuntu/focal focal main" > /etc/apt/sources.list.d/tda.list
 RUN wget -qO - https://packages.fluentbit.io/fluentbit.key | apt-key add -
