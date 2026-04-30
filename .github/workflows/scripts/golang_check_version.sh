@@ -10,9 +10,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-expected_version="1.20.1"
-second_expected_version="1.21.0"
-ternary_expected_version="1.21.12"
+expected_version="1.24.1"
+second_expected_version="1.24.1"
+ternary_expected_version="1.24.1"
 all_versions_good=true
 
 while IFS= read -r -d '' file
