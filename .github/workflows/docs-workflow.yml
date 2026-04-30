@@ -30,7 +30,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
@@ -63,7 +63,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Markdown lint check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -81,7 +81,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Markdown insync check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -105,7 +105,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Check for missing sidebar pages
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -120,7 +120,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Check for broken symlinks
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
@@ -138,7 +138,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: Check for broken URLs in markdown files
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
       - uses: gaurav-nelson/github-action-markdown-link-check@d53a906aa6b22b8979d33bc86170567e619495ec # pin@v1.0.15

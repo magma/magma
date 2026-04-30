@@ -30,7 +30,7 @@ concurrency:
 # github-pr-review: Adds lint as GitHub comments
 jobs:
   files_changed:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       changed_cpp: ${{ steps.changes.outputs.cpp }}
       changed_javascript: ${{ steps.changes.outputs.javascript }}
@@ -68,7 +68,7 @@ jobs:
     #  For details on cpplint options see the detailed comments in
     #  https://github.com/google/styleguide/blob/gh-pages/cpplint/cpplint.py
     ##
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
@@ -92,7 +92,7 @@ jobs:
   golangci-lint:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_go == 'true' }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code into the Go module directory
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -109,7 +109,7 @@ jobs:
 
   hadolint:
     name: dockerfile-lint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -130,7 +130,7 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_javascript == 'true' }}
     name: eslint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code.
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -155,7 +155,7 @@ jobs:
 
   markdownlint:
     name: markdownlint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code.
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -174,7 +174,7 @@ jobs:
 
   misspell:
     name: misspell
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code.
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -196,7 +196,7 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_python == 'true' }}
     name: mypy
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Check out code.
         uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
@@ -213,7 +213,7 @@ jobs:
 
   shellcheck:
     name: shellcheck
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
@@ -232,7 +232,7 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_terraform == 'true' }}
     name: tflint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
@@ -252,7 +252,7 @@ jobs:
     needs: files_changed
     if: ${{ needs.files_changed.outputs.changed_python == 'true' }}
     name: wemake-python-styleguide
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:
@@ -284,7 +284,7 @@ jobs:
 
   yamllint:
     name: yamllint
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:

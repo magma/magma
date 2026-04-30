@@ -32,7 +32,7 @@ concurrency:
 
 jobs:
   path_filter:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       should_not_skip: ${{ steps.changes.outputs.filesChanged }}
     steps:
@@ -68,7 +68,7 @@ jobs:
     needs: path_filter
     if: ${{ needs.path_filter.outputs.should_not_skip == 'true' }}
     name: cloud-tests
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
       GO111MODULE: 'on'

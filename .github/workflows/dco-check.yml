@@ -25,7 +25,7 @@ concurrency:
 jobs:
   reverted-pr-check:
     name: Reverted PR Check Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       PR_TITLE: "${{ github.event.pull_request.title }}"
     # Map a step output to a job output

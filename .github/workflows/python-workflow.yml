@@ -67,7 +67,7 @@ jobs:
     needs: pre_job
     if: ${{ needs.pre_job.outputs.should_not_skip == 'true' }}
     name: Python Format Check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
         with:

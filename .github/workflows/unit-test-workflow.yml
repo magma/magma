@@ -28,7 +28,7 @@ on:
 jobs:
   skip_check:
     name: Job to retrieve the value in pr/skipped file
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
@@ -70,7 +70,7 @@ jobs:
   unit-test-results:
     name: Upload unit test for ${{ github.event.workflow.name }}
     needs: skip_check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: >
       github.event.workflow_run.conclusion != 'skipped' &&
         github.event.workflow_run.head_repository.full_name != github.repository &&

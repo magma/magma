@@ -34,7 +34,7 @@ concurrency:
 
 jobs:
   check_go_version:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
