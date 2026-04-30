@@ -16,8 +16,8 @@ type PrometheusAPI struct {
 	mock.Mock
 }
 
-// Query provides a mock function with given fields: ctx, query, ts
-func (_m *PrometheusAPI) Query(ctx context.Context, query string, ts time.Time) (model.Value, v1.Warnings, error) {
+// Query provides a mock function with given fields: ctx, query, ts, opts
+func (_m *PrometheusAPI) Query(ctx context.Context, query string, ts time.Time, opts ...v1.Option) (model.Value, v1.Warnings, error) {
 	ret := _m.Called(ctx, query, ts)
 
 	var r0 model.Value
@@ -48,8 +48,8 @@ func (_m *PrometheusAPI) Query(ctx context.Context, query string, ts time.Time) 
 	return r0, r1, r2
 }
 
-// QueryRange provides a mock function with given fields: ctx, query, r
-func (_m *PrometheusAPI) QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, v1.Warnings, error) {
+// QueryRange provides a mock function with given fields: ctx, query, r, opts
+func (_m *PrometheusAPI) QueryRange(ctx context.Context, query string, r v1.Range, opts ...v1.Option) (model.Value, v1.Warnings, error) {
 	ret := _m.Called(ctx, query, r)
 
 	var r0 model.Value

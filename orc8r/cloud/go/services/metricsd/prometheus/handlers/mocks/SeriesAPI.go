@@ -17,7 +17,7 @@ type SeriesAPI struct {
 }
 
 // Series provides a mock function with given fields: ctx, matches, startTime, endTime
-func (_m *SeriesAPI) Series(ctx context.Context, matches []string, startTime time.Time, endTime time.Time) ([]model.LabelSet, v1.Warnings, error) {
+func (_m *SeriesAPI) Series(ctx context.Context, matches []string, startTime time.Time, endTime time.Time, opts ...v1.Option) ([]model.LabelSet, v1.Warnings, error) {
 	ret := _m.Called(ctx, matches, startTime, endTime)
 
 	var r0 []model.LabelSet

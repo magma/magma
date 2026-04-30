@@ -477,8 +477,8 @@ func getSetOfValuesFromLabel(seriesList []model.LabelSet, labelName model.LabelN
 // PrometheusAPI is a semantic interface for the prometheus v1.API to enable
 // mocking and testing
 type PrometheusAPI interface {
-	Query(ctx context.Context, query string, ts time.Time) (model.Value, v1.Warnings, error)
-	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, v1.Warnings, error)
-	Series(ctx context.Context, matches []string, startTime time.Time, endTime time.Time) ([]model.LabelSet, v1.Warnings, error)
+	Query(ctx context.Context, query string, ts time.Time, opts ...v1.Option) (model.Value, v1.Warnings, error)
+	QueryRange(ctx context.Context, query string, r v1.Range, opts ...v1.Option) (model.Value, v1.Warnings, error)
+	Series(ctx context.Context, matches []string, startTime time.Time, endTime time.Time, opts ...v1.Option) ([]model.LabelSet, v1.Warnings, error)
 	TargetsMetadata(ctx context.Context, matchTarget string, metric string, limit string) ([]v1.MetricMetadata, error)
 }

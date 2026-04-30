@@ -19,7 +19,7 @@ const (
 // handler for updating cache values
 type SeriesAPI interface {
 	// Series finds series by label matchers.
-	Series(ctx context.Context, matches []string, startTime time.Time, endTime time.Time) ([]model.LabelSet, v1.Warnings, error)
+	Series(ctx context.Context, matches []string, startTime time.Time, endTime time.Time, opts ...v1.Option) ([]model.LabelSet, v1.Warnings, error)
 }
 
 type SeriesCache struct {

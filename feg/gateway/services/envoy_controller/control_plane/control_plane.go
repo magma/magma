@@ -174,7 +174,7 @@ func (cb *callbacks) OnDeltaStreamOpen(_ context.Context, id int64, typ string) 
 	return nil
 }
 
-func (cb *callbacks) OnDeltaStreamClosed(id int64) {
+func (cb *callbacks) OnDeltaStreamClosed(id int64, node *core.Node) {
 	glog.V(2).Infof("delta stream %d closed\n", id)
 }
 

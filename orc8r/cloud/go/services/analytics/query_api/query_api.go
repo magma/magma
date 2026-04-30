@@ -23,8 +23,8 @@ import (
 )
 
 type PrometheusAPI interface {
-	Query(ctx context.Context, query string, ts time.Time) (model.Value, v1.Warnings, error)
-	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, v1.Warnings, error)
+	Query(ctx context.Context, query string, ts time.Time, opts ...v1.Option) (model.Value, v1.Warnings, error)
+	QueryRange(ctx context.Context, query string, r v1.Range, opts ...v1.Option) (model.Value, v1.Warnings, error)
 }
 
 // QueryPrometheusVector handles all the error cases of making an instant query
