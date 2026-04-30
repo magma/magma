@@ -55,7 +55,12 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
-      - run: unzip pr.zip
+      - run: |
+          if [ -f "pr.zip" ]; then
+            unzip pr.zip
+          else
+            echo "pr.zip not found, skipping unzip"
+          fi
       - name: Check if the workflow is skipped
         id: skip_check
         uses: actions/github-script@d556feaca394842dc55e4734bf3bb9f685482fa0 # pin@v6.3.3
@@ -103,7 +108,12 @@ jobs:
             });
             var fs = require('fs');
             fs.writeFileSync('${{github.workspace}}/pr.zip', Buffer.from(download.data));
-      - run: unzip pr.zip
+      - run: |
+          if [ -f "pr.zip" ]; then
+            unzip pr.zip
+          else
+            echo "pr.zip not found, skipping unzip"
+          fi
       - name: DCO comment message
         if: ${{ github.event.workflow.name == 'PR Check DCO' }}
         run: |

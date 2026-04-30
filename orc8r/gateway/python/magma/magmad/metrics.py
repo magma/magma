@@ -124,8 +124,7 @@ def _get_ping_params(config):
     return ping_params
 
 
-@asyncio.coroutine
-def metrics_collection_loop(service_config, loop=None):
+async def metrics_collection_loop(service_config, loop=None):
     if 'network_monitor_config' not in service_config:
         return
 
@@ -135,15 +134,14 @@ def metrics_collection_loop(service_config, loop=None):
     while True:
         logging.debug("Running metrics collections loop")
         if len(ping_params):
-            yield from _collect_ping_metrics(ping_params, loop=loop)
-        yield from _collect_load_metrics()
-        yield from _collect_service_restart_stats()
-        yield from _collect_service_metrics()
-        yield from asyncio.sleep(int(config['sampling_period']))
+            await _collect_ping_metrics(ping_params, loop=loop)
+        await _collect_load_metrics()
+        await _collect_service_restart_stats()
+        await _collect_service_metrics()
+        await asyncio.sleep(int(config['sampling_period']))
 
 
-@asyncio.coroutine
-def _collect_service_restart_stats():
+async def _collect_service_restart_stats():
     """
     Collect the success and failure restarts for services
     """
@@ -163,8 +161,7 @@ def _collect_service_restart_stats():
         ).set(status.num_clean_exits)
 
 
-@asyncio.coroutine
-def _collect_load_metrics():
+async def _collect_load_metrics():
     CPU_PERCENT.set(psutil.cpu_percent(interval=1))
 
     SWAP_MEMORY_PERCENT.set(psutil.swap_memory().percent)
@@ -194,9 +191,8 @@ def _collect_load_metrics():
         logging.warning("sensors_temperatures error: %s", ex)
 
 
-@asyncio.coroutine
-def _collect_ping_metrics(ping_params, loop=None):
-    ping_results = yield from ping.ping_async(ping_params, loop=loop)
+async def _collect_ping_metrics(ping_params, loop=None):
+    ping_results = await ping.ping_async(ping_params, loop=loop)
     ping_results_list = list(ping_results)
 
     def extract_metrics(ping_stats):
@@ -233,8 +229,7 @@ def _collect_ping_metrics(ping_params, loop=None):
     return ping_results_list
 
 
-@asyncio.coroutine
-def monitor_unattended_upgrade_status():
+async def monitor_unattended_upgrade_status():
     """
     Call to poll the unattended upgrade status and set the corresponding metric
     """
@@ -242,55 +237,81 @@ def monitor_unattended_upgrade_status():
         status = 0
         auto_upgrade_file_name = '/etc/apt/apt.conf.d/20auto-upgrades'
         if os.path.isfile(auto_upgrade_file_name):
-            with open(auto_upgrade_file_name, encoding='utf-8') as auto_upgrade_file:
-                for line in auto_upgrade_file:
+            try:
+                # Use asyncio.to_thread with proper file context manager for non-blocking file operations
+                def read_file_content():
+                    with open(auto_upgrade_file_name, encoding='utf-8') as f:
+                        return f.read()
+                
+                file_content = await asyncio.to_thread(read_file_content)
+                for line in file_content.splitlines():
                     package_name, flag = line.strip().strip(';').split()
                     if package_name == "APT::Periodic::Unattended-Upgrade":
                         if flag == '"1"':
                             status = 1
                         break
+            except (ValueError, IndexError) as e:
+                logging.warning('Failed to parse unattended upgrade config: %s', e)
+            except Exception as e:
+                logging.error('Error reading unattended upgrade config: %s', e)
         logging.debug('Unattended upgrade status is %d', status)
         UNATTENDED_UPGRADE_STATUS.set(status)
-        yield from asyncio.sleep(POLL_INTERVAL_SECONDS)
+        await asyncio.sleep(POLL_INTERVAL_SECONDS)
 
 
-@asyncio.coroutine
-def _collect_service_metrics():
+async def _collect_service_metrics():
     config = MagmaService('magmad', mconfigs_pb2.MagmaD()).config
     magma_services = ["magma@" + service for service in config['magma_services']]
     non_magma_services = ["sctpd", "openvswitch-switch"]
     for service in magma_services + non_magma_services:
         cmd = ["systemctl", "show", service, "--property=MainPID,MemoryCurrent,MemoryAccounting,MemoryLimit"]
         # TODO(@wallyrb): Move away from subprocess and use psystemd
-        output = subprocess.check_output(cmd)
-        output_str = str(output, "utf-8").strip().replace("MainPID=", "").replace("MemoryCurrent=", "").replace("MemoryAccounting=", "").replace("MemoryLimit=", "")
-        properties = output_str.split("\n")
-        pid = int(properties[0])
-        memory = properties[1]
-        memory_accounting = properties[2]
-        memory_limit = properties[3]
-
-        if pid != 0:
-            try:
-                p = psutil.Process(pid=pid)
-                cpu_percentage = p.cpu_percent(interval=1)
-            except psutil.NoSuchProcess:
-                logging.warning("When collecting CPU usage for service %s: Process with PID %d no longer exists.", service, pid)
+        try:
+            # Use asyncio.create_subprocess_exec for non-blocking subprocess calls
+            proc = await asyncio.create_subprocess_exec(
+                *cmd,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
+            )
+            stdout, stderr = await proc.communicate()
+            
+            if proc.returncode != 0:
+                logging.warning('Failed to get service metrics for %s: %s', service, stderr.decode('utf-8'))
                 continue
-            else:
-                SERVICE_CPU_PERCENTAGE.labels(
+                
+            output_str = stdout.decode('utf-8').strip().replace("MainPID=", "").replace("MemoryCurrent=", "").replace("MemoryAccounting=", "").replace("MemoryLimit=", "")
+            properties = output_str.split("\n")
+            pid = int(properties[0])
+            memory = properties[1]
+            memory_accounting = properties[2]
+            memory_limit = properties[3]
+
+            if pid != 0:
+                try:
+                    p = psutil.Process(pid=pid)
+                    cpu_percentage = p.cpu_percent(interval=1)
+                except psutil.NoSuchProcess:
+                    logging.warning("When collecting CPU usage for service %s: Process with PID %d no longer exists.", service, pid)
+                    continue
+                else:
+                    SERVICE_CPU_PERCENTAGE.labels(
+                        service_name=service,
+                    ).set(cpu_percentage)
+
+            if not memory.isnumeric():
+                continue
+
+            if memory_accounting == "yes":
+                SERVICE_MEMORY_USAGE.labels(
                     service_name=service,
-                ).set(cpu_percentage)
+                ).set(int(memory))
 
-        if not memory.isnumeric():
-            continue
-
-        if memory_accounting == "yes":
-            SERVICE_MEMORY_USAGE.labels(
-                service_name=service,
-            ).set(int(memory))
-
-        if memory_limit.isnumeric():
-            SERVICE_MEMORY_PERCENTAGE.labels(
-                service_name=service,
-            ).set(int(memory) / int(memory_limit))
+            if memory_limit.isnumeric():
+                SERVICE_MEMORY_PERCENTAGE.labels(
+                    service_name=service,
+                ).set(int(memory) / int(memory_limit))
+                
+        except (ValueError, IndexError) as e:
+            logging.warning('Failed to parse service metrics for %s: %s', service, e)
+        except Exception as e:
+            logging.error('Error collecting service metrics for %s: %s', service, e)
