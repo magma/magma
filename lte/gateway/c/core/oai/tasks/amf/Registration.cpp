@@ -182,7 +182,7 @@ status_code_e amf_proc_registration_request(
     imsi64 = amf_imsi_to_imsi64(ies->imsi);
     OAILOG_DEBUG(LOG_NAS_AMF,
                  "During initial registration request "
-                 "SUPI as IMSI converted to imsi64 " IMSI_64_FMT " = ",
+                 "SUPI as IMSI converted to imsi64 " IMSI_64_FMT,
                  imsi64);
   } else if (ies->imei) {
     char imei_str[MAX_IMEISV_SIZE];
@@ -228,7 +228,10 @@ status_code_e amf_proc_registration_request(
   /* Implicit deregistartion of existing context should be triggered if
    * same TMSI used and trigger fresh registration request*/
   if (ies->guti) {
-    if (ies->m5gsregistrationtype != AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
+    if ((ies->m5gsregistrationtype !=
+         AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) &&
+        (ies->m5gsregistrationtype !=
+         AMF_REGISTRATION_TYPE_MOBILITY_UPDATING)) {
       amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
       if (amf_app_desc_p == NULL) {
         OAILOG_WARNING(LOG_NAS_AMF, " amf_app_desc_p null, from %s\n",

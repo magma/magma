@@ -70,13 +70,13 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
 
   map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
   OAILOG_FUNC_IN(LOG_AMF_APP);
-  OAILOG_TRACE(LOG_AMF_APP,
-               "Existing ue context, old_gnb_ue_ngap_id_key %ld "
-               "old_amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT "old_IMSI " IMSI_64_FMT
-               "old_GUTI " GUTI_FMT "\n",
-               ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id,
+  OAILOG_DEBUG(LOG_AMF_APP,
+               "Existing ue context, old_gnb_ue_ngap_id_key %u "
+               "old_amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " old_IMSI " IMSI_64_FMT
+               " old_GUTI " GUTI_FMT_M5G "\n",
+               ue_context_p->gnb_ue_ngap_id, ue_context_p->amf_ue_ngap_id,
                ue_context_p->amf_context.imsi64,
-               GUTI_ARG_M5G(&ue_context_p->amf_context._guti));
+               GUTI_ARG_M5G(&ue_context_p->amf_context.m5_guti));
 
   if ((gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) &&
       (ue_context_p->gnb_ngap_id_key != gnb_ngap_id_key)) {
@@ -124,9 +124,10 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
     amf_ue_context_p->imsi_amf_ue_id_htbl.insert(imsi, amf_ue_ngap_id);
   } else {
     OAILOG_ERROR(LOG_AMF_APP,
-                 "Insertion of Hash entry failed for  "
-                 "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-                 amf_ue_ngap_id);
+                 "Insertion of Hash entry failed in imsi_amf_ue_id_htbl for "
+                 "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " and IMSI " IMSI_64_FMT
+                 "\n",
+                 amf_ue_ngap_id, ue_context_p->amf_context.imsi64);
   }
 
   m_rc = amf_ue_context_p->tun11_ue_context_htbl.remove(
@@ -137,8 +138,8 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
                                                           amf_ue_ngap_id);
   } else {
     OAILOG_ERROR(LOG_AMF_APP,
-                 "Insertion of Hash entry failed for  "
-                 "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
+                 "Insertion of Hash entry in tun11_ue_context_htbl failed for  "
+                 "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " \n",
                  amf_ue_ngap_id);
   }
 
@@ -157,17 +158,42 @@ void amf_ue_context_update_coll_keys(amf_ue_context_t* const amf_ue_context_p,
         (guti_p->guamfi.plmn.mcc_digit3 !=
          ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
         (ue_context_p->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID)) {
-      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(*guti_p);
+      m_rc = amf_ue_context_p->guti_ue_context_htbl.remove(
+          ue_context_p->amf_context.m5_guti);
+      if (m_rc == magma::MAP_OK) {
+        OAILOG_DEBUG(LOG_AMF_APP,
+                     "Removal of old GUTI " GUTI_FMT_M5G
+                     " from hash table success.",
+                     GUTI_ARG_M5G(&ue_context_p->amf_context.m5_guti));
+      } else {
+        OAILOG_DEBUG(LOG_AMF_APP,
+                     "Removal of old GUTI " GUTI_FMT_M5G
+                     " from hash table failure: MAP_KEY_NOT_EXISTS",
+                     GUTI_ARG_M5G(&ue_context_p->amf_context.m5_guti));
+      }
       if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
         m_rc = amf_ue_context_p->guti_ue_context_htbl.insert(*guti_p,
                                                              amf_ue_ngap_id);
+        if (m_rc == magma::MAP_OK) {
+          OAILOG_DEBUG(LOG_AMF_APP,
+                       "Insertion of new GUTI " GUTI_FMT_M5G
+                       " into hash table success"
+                       " - amf_ue_ngap_id = " AMF_UE_NGAP_ID_FMT,
+                       GUTI_ARG_M5G(guti_p), amf_ue_ngap_id);
+        }
       } else {
-        OAILOG_ERROR(LOG_AMF_APP,
-                     "Insertion of Hash entry failed for  "
-                     "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-                     amf_ue_ngap_id);
+        OAILOG_ERROR(
+            LOG_AMF_APP,
+            "Insertion of Hash entry failed in guti_ue_context_htbl for  "
+            "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT " \n",
+            amf_ue_ngap_id);
       }
       ue_context_p->amf_context.m5_guti = *guti_p;
+    } else {
+      OAILOG_WARNING(LOG_AMF_APP,
+                     "guti_ue_context_htbl not updated for "
+                     "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT,
+                     amf_ue_ngap_id);
     }
   }
   OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -232,12 +258,10 @@ static bool amf_app_construct_guti(const plmn_t* const plmn_p,
   guti_p->guamfi.amf_pointer = s_tmsi_p->amf_pointer;
   guti_p->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_regionid;
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
-  OAILOG_DEBUG(
-      LOG_AMF_APP,
-      "Construct GUTI using S-TMSI received form UE and AMG set Id and pointer"
-      "PLMN "
-      "id from AMF Conf: %0x, %u %u\n",
-      s_tmsi_p->m_tmsi, s_tmsi_p->amf_set_id, s_tmsi_p->amf_pointer);
+  OAILOG_DEBUG(LOG_AMF_APP,
+               "Construct GUTI using S-TMSI received form UE: AMF set Id=%u, "
+               "AMF Pointer=%u, M-TMSI=%0x,",
+               s_tmsi_p->amf_set_id, s_tmsi_p->amf_pointer, s_tmsi_p->m_tmsi);
   amf_config_read_lock(&amf_config);
 
   /*
@@ -386,6 +410,8 @@ imsi64_t amf_app_handle_initial_ue_message(
             ue_context_p->amf_teid_n11, &guti);
 
         imsi64 = ue_context_p->amf_context.imsi64;
+        OAILOG_INFO(LOG_AMF_APP, "IMSI associated with this UE [%lu]", imsi64);
+
       } else {
         OAILOG_DEBUG(LOG_AMF_APP,
                      "No UE context found for AMF set id %u and S-TMSI %u\n",
@@ -445,19 +471,20 @@ imsi64_t amf_app_handle_initial_ue_message(
 
   // UEContextRequest
   ue_context_p->ue_context_request = initial_pP->ue_context_request;
-  OAILOG_DEBUG(LOG_AMF_APP, "UE context request received: %d\n ",
-               ue_context_p->ue_context_request);
+  OAILOG_INFO(LOG_AMF_APP, "UE context request received: %d\n ",
+              ue_context_p->ue_context_request);
 
   notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
   if (initial_pP->is_s_tmsi_valid) {
     s_tmsi = initial_pP->opt_s_tmsi;
+    OAILOG_INFO(LOG_AMF_APP, "Associated TMSI [%lu] is valid\n", s_tmsi);
   } else {
     s_tmsi.amf_pointer = 0;
     s_tmsi.m_tmsi = INVALID_M_TMSI;
-    OAILOG_DEBUG(LOG_AMF_APP,
-                 " Sending nas establishment indication to nas for ue_id = "
-                 "(" AMF_UE_NGAP_ID_FMT ")",
-                 ue_context_p->amf_ue_ngap_id);
+    OAILOG_INFO(LOG_AMF_APP,
+                " Sending nas establishment indication to nas for ue_id = "
+                "(" AMF_UE_NGAP_ID_FMT ")",
+                ue_context_p->amf_ue_ngap_id);
   }
 
   OAILOG_DEBUG(LOG_AMF_APP,
@@ -479,9 +506,12 @@ imsi64_t amf_app_handle_initial_ue_message(
    * exists or not
    */
   if (ue_id != INVALID_AMF_UE_NGAP_ID) {
+    OAILOG_INFO(LOG_AMF_APP, "UI-ID is not INVALID_AMF_UE_NGAP_ID\n");
     map_uint64_ue_context_t* amf_state_ue_id_ht = get_amf_ue_state();
     if (amf_state_ue_id_ht->get(ue_id, &ue_context_p) == magma::MAP_OK) {
       imsi64 = ue_context_p->amf_context.imsi64;
+    } else {
+      OAILOG_ERROR(LOG_AMF_APP, "Faild to set a state\n");
     }
   }
 

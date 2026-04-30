@@ -131,13 +131,14 @@ typedef uint64_t imei64_t;
 //------------------------------------------------------------------------------
 // GUTI
 #define GUTI_FMT PLMN_FMT "|%04x|%02x|%08x"
+#define GUTI_FMT_M5G PLMN_FMT "|%02x|%02x|%02x|%08x"
 #define GUTI_ARG(GuTi_PtR)                                        \
   PLMN_ARG(&(GuTi_PtR)->gummei.plmn), (GuTi_PtR)->gummei.mme_gid, \
       (GuTi_PtR)->gummei.mme_code, (GuTi_PtR)->m_tmsi
 
-#define GUTI_ARG_M5G(GuTi_PtR)                                     \
-  PLMN_ARG(&(GuTi_PtR)->guamfi.plmn), (GuTi_PtR)->guamfi.amf_gid,  \
-      (GuTi_PtR)->guamfi.amf_code, (GuTi_PtR)->guamfi.amf_Pointer, \
+#define GUTI_ARG_M5G(GuTi_PtR)                                         \
+  PLMN_ARG(&(GuTi_PtR)->guamfi.plmn), (GuTi_PtR)->guamfi.amf_regionid, \
+      (GuTi_PtR)->guamfi.amf_set_id, (GuTi_PtR)->guamfi.amf_pointer,   \
       (GuTi_PtR)->m_tmsi
 
 #define MSISDN_LENGTH (15)
