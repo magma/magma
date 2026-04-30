@@ -124,7 +124,7 @@ def _get_ping_params(config):
     return ping_params
 
 
-@asyncio.coroutine
+
 def metrics_collection_loop(service_config, loop=None):
     if 'network_monitor_config' not in service_config:
         return
@@ -135,14 +135,14 @@ def metrics_collection_loop(service_config, loop=None):
     while True:
         logging.debug("Running metrics collections loop")
         if len(ping_params):
-            yield from _collect_ping_metrics(ping_params, loop=loop)
-        yield from _collect_load_metrics()
-        yield from _collect_service_restart_stats()
-        yield from _collect_service_metrics()
-        yield from asyncio.sleep(int(config['sampling_period']))
+            await  _collect_ping_metrics(ping_params, loop=loop)
+        await  _collect_load_metrics()
+        await  _collect_service_restart_stats()
+        await  _collect_service_metrics()
+        await  asyncio.sleep(int(config['sampling_period']))
 
 
-@asyncio.coroutine
+
 def _collect_service_restart_stats():
     """
     Collect the success and failure restarts for services
@@ -163,7 +163,7 @@ def _collect_service_restart_stats():
         ).set(status.num_clean_exits)
 
 
-@asyncio.coroutine
+
 def _collect_load_metrics():
     CPU_PERCENT.set(psutil.cpu_percent(interval=1))
 
@@ -194,9 +194,9 @@ def _collect_load_metrics():
         logging.warning("sensors_temperatures error: %s", ex)
 
 
-@asyncio.coroutine
+
 def _collect_ping_metrics(ping_params, loop=None):
-    ping_results = yield from ping.ping_async(ping_params, loop=loop)
+    ping_results = await  ping.ping_async(ping_params, loop=loop)
     ping_results_list = list(ping_results)
 
     def extract_metrics(ping_stats):
@@ -233,7 +233,7 @@ def _collect_ping_metrics(ping_params, loop=None):
     return ping_results_list
 
 
-@asyncio.coroutine
+
 def monitor_unattended_upgrade_status():
     """
     Call to poll the unattended upgrade status and set the corresponding metric
@@ -251,10 +251,10 @@ def monitor_unattended_upgrade_status():
                         break
         logging.debug('Unattended upgrade status is %d', status)
         UNATTENDED_UPGRADE_STATUS.set(status)
-        yield from asyncio.sleep(POLL_INTERVAL_SECONDS)
+        await  asyncio.sleep(POLL_INTERVAL_SECONDS)
 
 
-@asyncio.coroutine
+
 def _collect_service_metrics():
     config = MagmaService('magmad', mconfigs_pb2.MagmaD()).config
     magma_services = ["magma@" + service for service in config['magma_services']]

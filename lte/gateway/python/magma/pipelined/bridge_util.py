@@ -428,7 +428,7 @@ class BridgeTools:
 
         def filter_apps(flows):
             if apps is None:
-                yield from flows
+                await  flows
                 return
 
             selected_tables = []
