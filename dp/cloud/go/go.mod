@@ -11,7 +11,7 @@
 //
 module magma/dp/cloud/go
 
-go 1.20
+go 1.23
 
 replace (
 	magma/dp/cloud/go => ../../../dp/cloud/go

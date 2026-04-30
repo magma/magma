@@ -58,7 +58,7 @@ RUN apt-get update && apt-get install -y \
 
 # Golang
 WORKDIR /usr/local
-ARG GOLANG_VERSION="1.21.12"
+ARG GOLANG_VERSION="1.23.6"
 RUN GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \
     && curl https://golang.org/dl/${GO_TARBALL} --remote-name --location \
     && tar -xzf ${GO_TARBALL} \

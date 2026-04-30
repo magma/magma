@@ -147,6 +147,6 @@ require (
 	magma/feg/cloud/go v0.0.0 // indirect
 )
 
-go 1.21
+go 1.23
 
 toolchain go1.21.12

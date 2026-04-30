@@ -72,7 +72,7 @@ RUN wget https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform
     rm -rf /root/download/*
 
 # Install go if we are building testframework image
-ARG GOLANG_VERSION="1.20.1"
+ARG GOLANG_VERSION="1.23.6"
 RUN if [ "$ENV" = "testframework" ]; \
     then \
         GO_TARBALL="go${GOLANG_VERSION}.linux-amd64.tar.gz" \

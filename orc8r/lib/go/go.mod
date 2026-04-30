@@ -1,6 +1,6 @@
 module magma/orc8r/lib/go
 
-go 1.20
+go 1.23
 
 replace magma/orc8r/lib/go/protos => ./protos
 

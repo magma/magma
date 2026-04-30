@@ -26,7 +26,7 @@
 //
 module magma/cwf/k8s/cwf_operator
 
-go 1.20
+go 1.23
 
 require (
 	github.com/go-logr/glogr v0.1.0
