@@ -124,7 +124,7 @@ the left sidebar, then edit the feature flag named "Include tab for Grafana in t
 |unattended_upgrade_status	|Unattended Upgrade status	|AGW	|magmad	|
 |service_restart_status	|Count of service restarts	|AGW	|magmad	|
 |enb_connected	|Number of eNodeb connected to MME	|AGW	|MME	|
-|ue_registered	|Number of UE registered succesfully	|AGW	|MME	|
+|ue_registered	|Number of UE registered successfully	|AGW	|MME	|
 |ue_connected	|Number of UE connected	|AGW	|MME	|
 |ue_attach	|Number of UE attach success	|AGW	|MME	|
 |ue_detach	|Number of UE detach	|AGW	|MME	|

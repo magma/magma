@@ -36,7 +36,7 @@ Stage 1:
 
 - Ensure that for each commit of each PR all unit test jobs are executed by CircleCI
 - Ensure that each PR was reviewed and accepted by component maintainer
-- Ensure that each PR which succesfully passed unit testing and maintainer review gets "ready-to-merge" label assigned.
+- Ensure that each PR which successfully passed unit testing and maintainer review gets "ready-to-merge" label assigned.
 - Ensure that each PR marked with label "ready-to-merge" was tested by all integration tests.
  Stage 2:
 - Ensure that each PR marked with label "ready-to-merge", which passed integration tests is automatically merged by CI.
