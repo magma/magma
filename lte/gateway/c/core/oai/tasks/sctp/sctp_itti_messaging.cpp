@@ -98,7 +98,6 @@ status_code_e sctp_itti_send_new_message_ind(STOLEN_REF bstring* payload,
   SCTP_DATA_IND(msg).stream = stream;
   SCTP_DATA_IND(msg).assoc_id = assoc_id;
 
-  STOLEN_REF* payload = NULL;
   switch (ppid) {
     case S1AP: {
       OAILOG_DEBUG(LOG_SCTP, "Ppid S1AP in sctp_itti_send_new_message_ind ");
