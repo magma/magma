@@ -48,7 +48,7 @@ mkdir ${WORK_DIR}
 cd ${WORK_DIR}
 
 mkdir -p liblfds/liblfds
-wget --no-check-certificate https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.zip -P liblfds/liblfds
+wget https://web.archive.org/web/20211022085046/https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.zip -P liblfds/liblfds
 
 unzip liblfds/liblfds/'liblfds release 7.1.0 source.zip' -d liblfds/
 # maybe want to edit a persistent copy...
