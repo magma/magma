@@ -7,12 +7,11 @@ package enode_bs
 
 import (
 	"github.com/go-openapi/runtime"
-
-	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/strfmt"
 )
 
 // New creates a new enode bs API client.
-func New(transport runtime.ClientTransport, formats strfmt.Registry) *Client {
+func New(transport runtime.ClientTransport, formats strfmt.Registry) ClientService {
 	return &Client{transport: transport, formats: formats}
 }
 
@@ -24,16 +23,35 @@ type Client struct {
 	formats   strfmt.Registry
 }
 
+// ClientOption is the option for Client methods
+type ClientOption func(*runtime.ClientOperation)
+
+// ClientService is the interface for Client methods
+type ClientService interface {
+	DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDEnodebsENODEBSerialNoContent, error)
+
+	GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDEnodebsOK, error)
+
+	GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDEnodebsENODEBSerialOK, error)
+
+	GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkIDEnodebsENODEBSerialStateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDEnodebsENODEBSerialStateOK, error)
+
+	PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDEnodebsCreated, error)
+
+	PutLTENetworkIDEnodebsENODEBSerial(params *PutLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDEnodebsENODEBSerialNoContent, error)
+
+	SetTransport(transport runtime.ClientTransport)
+}
+
 /*
 DeleteLTENetworkIDEnodebsENODEBSerial unregisters an enode b
 */
-func (a *Client) DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkIDEnodebsENODEBSerialParams) (*DeleteLTENetworkIDEnodebsENODEBSerialNoContent, error) {
+func (a *Client) DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*DeleteLTENetworkIDEnodebsENODEBSerialNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewDeleteLTENetworkIDEnodebsENODEBSerialParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "DeleteLTENetworkIDEnodebsENODEBSerial",
 		Method:             "DELETE",
 		PathPattern:        "/lte/{network_id}/enodebs/{enodeb_serial}",
@@ -42,9 +60,15 @@ func (a *Client) DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkI
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &DeleteLTENetworkIDEnodebsENODEBSerialReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -60,13 +84,12 @@ func (a *Client) DeleteLTENetworkIDEnodebsENODEBSerial(params *DeleteLTENetworkI
 /*
 GetLTENetworkIDEnodebs lists all enode bs in the network
 */
-func (a *Client) GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams) (*GetLTENetworkIDEnodebsOK, error) {
+func (a *Client) GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDEnodebsOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDEnodebsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDEnodebs",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/enodebs",
@@ -75,9 +98,15 @@ func (a *Client) GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams) (*
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDEnodebsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -93,13 +122,12 @@ func (a *Client) GetLTENetworkIDEnodebs(params *GetLTENetworkIDEnodebsParams) (*
 /*
 GetLTENetworkIDEnodebsENODEBSerial retrieves a specific enode b configuration
 */
-func (a *Client) GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnodebsENODEBSerialParams) (*GetLTENetworkIDEnodebsENODEBSerialOK, error) {
+func (a *Client) GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDEnodebsENODEBSerialOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDEnodebsENODEBSerialParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDEnodebsENODEBSerial",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/enodebs/{enodeb_serial}",
@@ -108,9 +136,15 @@ func (a *Client) GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnode
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDEnodebsENODEBSerialReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -126,13 +160,12 @@ func (a *Client) GetLTENetworkIDEnodebsENODEBSerial(params *GetLTENetworkIDEnode
 /*
 GetLTENetworkIDEnodebsENODEBSerialState retrieves reported state from enodeb device
 */
-func (a *Client) GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkIDEnodebsENODEBSerialStateParams) (*GetLTENetworkIDEnodebsENODEBSerialStateOK, error) {
+func (a *Client) GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkIDEnodebsENODEBSerialStateParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*GetLTENetworkIDEnodebsENODEBSerialStateOK, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewGetLTENetworkIDEnodebsENODEBSerialStateParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "GetLTENetworkIDEnodebsENODEBSerialState",
 		Method:             "GET",
 		PathPattern:        "/lte/{network_id}/enodebs/{enodeb_serial}/state",
@@ -141,9 +174,15 @@ func (a *Client) GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkID
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &GetLTENetworkIDEnodebsENODEBSerialStateReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -159,13 +198,12 @@ func (a *Client) GetLTENetworkIDEnodebsENODEBSerialState(params *GetLTENetworkID
 /*
 PostLTENetworkIDEnodebs registers a new enode b
 */
-func (a *Client) PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams) (*PostLTENetworkIDEnodebsCreated, error) {
+func (a *Client) PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PostLTENetworkIDEnodebsCreated, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPostLTENetworkIDEnodebsParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PostLTENetworkIDEnodebs",
 		Method:             "POST",
 		PathPattern:        "/lte/{network_id}/enodebs",
@@ -174,9 +212,15 @@ func (a *Client) PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams) 
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PostLTENetworkIDEnodebsReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}
@@ -192,13 +236,12 @@ func (a *Client) PostLTENetworkIDEnodebs(params *PostLTENetworkIDEnodebsParams) 
 /*
 PutLTENetworkIDEnodebsENODEBSerial updates an enode b s configuration
 */
-func (a *Client) PutLTENetworkIDEnodebsENODEBSerial(params *PutLTENetworkIDEnodebsENODEBSerialParams) (*PutLTENetworkIDEnodebsENODEBSerialNoContent, error) {
+func (a *Client) PutLTENetworkIDEnodebsENODEBSerial(params *PutLTENetworkIDEnodebsENODEBSerialParams, authInfo runtime.ClientAuthInfoWriter, opts ...ClientOption) (*PutLTENetworkIDEnodebsENODEBSerialNoContent, error) {
 	// TODO: Validate the params before sending
 	if params == nil {
 		params = NewPutLTENetworkIDEnodebsENODEBSerialParams()
 	}
-
-	result, err := a.transport.Submit(&runtime.ClientOperation{
+	op := &runtime.ClientOperation{
 		ID:                 "PutLTENetworkIDEnodebsENODEBSerial",
 		Method:             "PUT",
 		PathPattern:        "/lte/{network_id}/enodebs/{enodeb_serial}",
@@ -207,9 +250,15 @@ func (a *Client) PutLTENetworkIDEnodebsENODEBSerial(params *PutLTENetworkIDEnode
 		Schemes:            []string{"http", "https"},
 		Params:             params,
 		Reader:             &PutLTENetworkIDEnodebsENODEBSerialReader{formats: a.formats},
+		AuthInfo:           authInfo,
 		Context:            params.Context,
 		Client:             params.HTTPClient,
-	})
+	}
+	for _, opt := range opts {
+		opt(op)
+	}
+
+	result, err := a.transport.Submit(op)
 	if err != nil {
 		return nil, err
 	}

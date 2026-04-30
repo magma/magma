@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteLTENetworkIDEnodebsENODEBSerialReader is a Reader for the DeleteLTENetworkIDEnodebsENODEBSerial structure.
@@ -47,7 +46,8 @@ func NewDeleteLTENetworkIDEnodebsENODEBSerialNoContent() *DeleteLTENetworkIDEnod
 	return &DeleteLTENetworkIDEnodebsENODEBSerialNoContent{}
 }
 
-/*DeleteLTENetworkIDEnodebsENODEBSerialNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDEnodebsENODEBSerialNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteLTENetworkIDEnodebsENODEBSerialDefault(code int) *DeleteLTENetwork
 	}
 }
 
-/*DeleteLTENetworkIDEnodebsENODEBSerialDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDEnodebsENODEBSerialDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteLTENetworkIDEnodebsENODEBSerialDefault) Code() int {
 func (o *DeleteLTENetworkIDEnodebsENODEBSerialDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/enodebs/{enodeb_serial}][%d] DeleteLTENetworkIDEnodebsENODEBSerial default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDEnodebsENODEBSerialDefault) GetPayload() *models.Error {
 	return o.Payload
 }

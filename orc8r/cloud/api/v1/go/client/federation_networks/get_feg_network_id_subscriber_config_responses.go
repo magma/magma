@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetFegNetworkIDSubscriberConfigReader is a Reader for the GetFegNetworkIDSubscriberConfig structure.
@@ -47,7 +46,8 @@ func NewGetFegNetworkIDSubscriberConfigOK() *GetFegNetworkIDSubscriberConfigOK {
 	return &GetFegNetworkIDSubscriberConfigOK{}
 }
 
-/*GetFegNetworkIDSubscriberConfigOK handles this case with default header values.
+/*
+GetFegNetworkIDSubscriberConfigOK describes a response with status code 200, with default header values.
 
 Subscriber Config
 */
@@ -58,7 +58,6 @@ type GetFegNetworkIDSubscriberConfigOK struct {
 func (o *GetFegNetworkIDSubscriberConfigOK) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/subscriber_config][%d] getFegNetworkIdSubscriberConfigOK  %+v", 200, o.Payload)
 }
-
 func (o *GetFegNetworkIDSubscriberConfigOK) GetPayload() *models.NetworkSubscriberConfig {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetFegNetworkIDSubscriberConfigDefault(code int) *GetFegNetworkIDSubscri
 	}
 }
 
-/*GetFegNetworkIDSubscriberConfigDefault handles this case with default header values.
+/*
+GetFegNetworkIDSubscriberConfigDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetFegNetworkIDSubscriberConfigDefault) Code() int {
 func (o *GetFegNetworkIDSubscriberConfigDefault) Error() string {
 	return fmt.Sprintf("[GET /feg/{network_id}/subscriber_config][%d] GetFegNetworkIDSubscriberConfig default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetFegNetworkIDSubscriberConfigDefault) GetPayload() *models.Error {
 	return o.Payload
 }

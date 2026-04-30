@@ -6,13 +6,16 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/validate"
 )
 
 // Tac tac
+// Example: 1
+//
 // swagger:model tac
 type Tac uint32
 
@@ -20,16 +23,21 @@ type Tac uint32
 func (m Tac) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := validate.MinimumInt("", "body", int64(m), 1, false); err != nil {
+	if err := validate.MinimumUint("", "body", uint64(m), 1, false); err != nil {
 		return err
 	}
 
-	if err := validate.MaximumInt("", "body", int64(m), 65535, false); err != nil {
+	if err := validate.MaximumUint("", "body", uint64(m), 65535, false); err != nil {
 		return err
 	}
 
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+// ContextValidate validates this tac based on context it is used
+func (m Tac) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }

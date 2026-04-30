@@ -6,19 +6,13 @@ package call_tracing
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 
-	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
-	"github.com/go-openapi/swag"
-	"github.com/go-openapi/validate"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDTracingReader is a Reader for the GetNetworksNetworkIDTracing structure.
@@ -52,28 +46,26 @@ func NewGetNetworksNetworkIDTracingOK() *GetNetworksNetworkIDTracingOK {
 	return &GetNetworksNetworkIDTracingOK{}
 }
 
-/*GetNetworksNetworkIDTracingOK handles this case with default header values.
+/*
+GetNetworksNetworkIDTracingOK describes a response with status code 200, with default header values.
 
 Success
 */
 type GetNetworksNetworkIDTracingOK struct {
-	Payload *GetNetworksNetworkIDTracingOKBodyTuple0
+	Payload map[string]models.CallTrace
 }
 
 func (o *GetNetworksNetworkIDTracingOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tracing][%d] getNetworksNetworkIdTracingOK  %+v", 200, o.Payload)
 }
-
-func (o *GetNetworksNetworkIDTracingOK) GetPayload() *GetNetworksNetworkIDTracingOKBodyTuple0 {
+func (o *GetNetworksNetworkIDTracingOK) GetPayload() map[string]models.CallTrace {
 	return o.Payload
 }
 
 func (o *GetNetworksNetworkIDTracingOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
-	o.Payload = new(GetNetworksNetworkIDTracingOKBodyTuple0)
-
 	// response payload
-	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
@@ -87,7 +79,8 @@ func NewGetNetworksNetworkIDTracingDefault(code int) *GetNetworksNetworkIDTracin
 	}
 }
 
-/*GetNetworksNetworkIDTracingDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDTracingDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -105,7 +98,6 @@ func (o *GetNetworksNetworkIDTracingDefault) Code() int {
 func (o *GetNetworksNetworkIDTracingDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/tracing][%d] GetNetworksNetworkIDTracing default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDTracingDefault) GetPayload() *models.Error {
 	return o.Payload
 }
@@ -119,104 +111,5 @@ func (o *GetNetworksNetworkIDTracingDefault) readResponse(response runtime.Clien
 		return err
 	}
 
-	return nil
-}
-
-/*GetNetworksNetworkIDTracingOKBodyTuple0 GetNetworksNetworkIDTracingOKBodyTuple0 a representation of an anonymous Tuple type
-swagger:model GetNetworksNetworkIDTracingOKBodyTuple0
-*/
-type GetNetworksNetworkIDTracingOKBodyTuple0 struct {
-
-	// p0
-	// Required: true
-	P0 *models.CallTrace `json:"-"` // custom serializer
-
-}
-
-// UnmarshalJSON unmarshals this tuple type from a JSON array
-func (o *GetNetworksNetworkIDTracingOKBodyTuple0) UnmarshalJSON(raw []byte) error {
-	// stage 1, get the array but just the array
-	var stage1 []json.RawMessage
-	buf := bytes.NewBuffer(raw)
-	dec := json.NewDecoder(buf)
-	dec.UseNumber()
-
-	if err := dec.Decode(&stage1); err != nil {
-		return err
-	}
-
-	// stage 2: hydrates struct members with tuple elements
-
-	if len(stage1) > 0 {
-		var dataP0 models.CallTrace
-		buf = bytes.NewBuffer(stage1[0])
-		dec := json.NewDecoder(buf)
-		dec.UseNumber()
-		if err := dec.Decode(&dataP0); err != nil {
-			return err
-		}
-		o.P0 = &dataP0
-
-	}
-
-	return nil
-}
-
-// MarshalJSON marshals this tuple type into a JSON array
-func (o GetNetworksNetworkIDTracingOKBodyTuple0) MarshalJSON() ([]byte, error) {
-	data := []interface{}{
-		o.P0,
-	}
-
-	return json.Marshal(data)
-}
-
-// Validate validates this get networks network ID tracing o k body tuple0
-func (o *GetNetworksNetworkIDTracingOKBodyTuple0) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := o.validateP0(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-func (o *GetNetworksNetworkIDTracingOKBodyTuple0) validateP0(formats strfmt.Registry) error {
-
-	if err := validate.Required("P0", "body", o.P0); err != nil {
-		return err
-	}
-
-	if o.P0 != nil {
-		if err := o.P0.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("P0")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (o *GetNetworksNetworkIDTracingOKBodyTuple0) MarshalBinary() ([]byte, error) {
-	if o == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(o)
-}
-
-// UnmarshalBinary interface implementation
-func (o *GetNetworksNetworkIDTracingOKBodyTuple0) UnmarshalBinary(b []byte) error {
-	var res GetNetworksNetworkIDTracingOKBodyTuple0
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*o = res
 	return nil
 }

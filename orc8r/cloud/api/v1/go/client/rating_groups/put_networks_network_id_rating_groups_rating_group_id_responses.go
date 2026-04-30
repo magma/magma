@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutNetworksNetworkIDRatingGroupsRatingGroupIDReader is a Reader for the PutNetworksNetworkIDRatingGroupsRatingGroupID structure.
@@ -47,7 +46,8 @@ func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent() *PutNetworksNet
 	return &PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent{}
 }
 
-/*PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent handles this case with default header values.
+/*
+PutNetworksNetworkIDRatingGroupsRatingGroupIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutNetworksNetworkIDRatingGroupsRatingGroupIDDefault(code int) *PutNetwo
 	}
 }
 
-/*PutNetworksNetworkIDRatingGroupsRatingGroupIDDefault handles this case with default header values.
+/*
+PutNetworksNetworkIDRatingGroupsRatingGroupIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutNetworksNetworkIDRatingGroupsRatingGroupIDDefault) Code() int {
 func (o *PutNetworksNetworkIDRatingGroupsRatingGroupIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /networks/{network_id}/rating_groups/{rating_group_id}][%d] PutNetworksNetworkIDRatingGroupsRatingGroupID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutNetworksNetworkIDRatingGroupsRatingGroupIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

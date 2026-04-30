@@ -6,18 +6,21 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // Event event
+//
 // swagger:model event
 type Event struct {
 
 	// event type
+	// Example: fake_event
 	// Required: true
 	// Min Length: 1
 	EventType string `json:"event_type"`
@@ -28,6 +31,7 @@ type Event struct {
 	HardwareID string `json:"hardware_id"`
 
 	// stream name
+	// Example: fake_stream
 	// Required: true
 	// Min Length: 1
 	StreamName string `json:"stream_name"`
@@ -38,6 +42,7 @@ type Event struct {
 	Tag string `json:"tag"`
 
 	// The timestamp in ISO 8601 format
+	// Example: 2020-03-11T00:36:59.650093129+00:00
 	// Required: true
 	// Min Length: 1
 	Timestamp string `json:"timestamp"`
@@ -83,11 +88,11 @@ func (m *Event) Validate(formats strfmt.Registry) error {
 
 func (m *Event) validateEventType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("event_type", "body", string(m.EventType)); err != nil {
+	if err := validate.RequiredString("event_type", "body", m.EventType); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("event_type", "body", string(m.EventType), 1); err != nil {
+	if err := validate.MinLength("event_type", "body", m.EventType, 1); err != nil {
 		return err
 	}
 
@@ -96,11 +101,11 @@ func (m *Event) validateEventType(formats strfmt.Registry) error {
 
 func (m *Event) validateHardwareID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("hardware_id", "body", string(m.HardwareID)); err != nil {
+	if err := validate.RequiredString("hardware_id", "body", m.HardwareID); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("hardware_id", "body", string(m.HardwareID), 1); err != nil {
+	if err := validate.MinLength("hardware_id", "body", m.HardwareID, 1); err != nil {
 		return err
 	}
 
@@ -109,11 +114,11 @@ func (m *Event) validateHardwareID(formats strfmt.Registry) error {
 
 func (m *Event) validateStreamName(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("stream_name", "body", string(m.StreamName)); err != nil {
+	if err := validate.RequiredString("stream_name", "body", m.StreamName); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("stream_name", "body", string(m.StreamName), 1); err != nil {
+	if err := validate.MinLength("stream_name", "body", m.StreamName, 1); err != nil {
 		return err
 	}
 
@@ -122,11 +127,11 @@ func (m *Event) validateStreamName(formats strfmt.Registry) error {
 
 func (m *Event) validateTag(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("tag", "body", string(m.Tag)); err != nil {
+	if err := validate.RequiredString("tag", "body", m.Tag); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("tag", "body", string(m.Tag), 1); err != nil {
+	if err := validate.MinLength("tag", "body", m.Tag, 1); err != nil {
 		return err
 	}
 
@@ -135,11 +140,11 @@ func (m *Event) validateTag(formats strfmt.Registry) error {
 
 func (m *Event) validateTimestamp(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("timestamp", "body", string(m.Timestamp)); err != nil {
+	if err := validate.RequiredString("timestamp", "body", m.Timestamp); err != nil {
 		return err
 	}
 
-	if err := validate.MinLength("timestamp", "body", string(m.Timestamp), 1); err != nil {
+	if err := validate.MinLength("timestamp", "body", m.Timestamp, 1); err != nil {
 		return err
 	}
 
@@ -148,10 +153,15 @@ func (m *Event) validateTimestamp(formats strfmt.Registry) error {
 
 func (m *Event) validateValue(formats strfmt.Registry) error {
 
-	if err := validate.Required("value", "body", m.Value); err != nil {
-		return err
+	if m.Value == nil {
+		return errors.Required("value", "body", nil)
 	}
 
+	return nil
+}
+
+// ContextValidate validates this event based on context it is used
+func (m *Event) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

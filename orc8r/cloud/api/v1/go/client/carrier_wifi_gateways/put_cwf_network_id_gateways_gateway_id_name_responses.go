@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutCwfNetworkIDGatewaysGatewayIDNameReader is a Reader for the PutCwfNetworkIDGatewaysGatewayIDName structure.
@@ -47,7 +46,8 @@ func NewPutCwfNetworkIDGatewaysGatewayIDNameNoContent() *PutCwfNetworkIDGateways
 	return &PutCwfNetworkIDGatewaysGatewayIDNameNoContent{}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDNameNoContent handles this case with default header values.
+/*
+PutCwfNetworkIDGatewaysGatewayIDNameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutCwfNetworkIDGatewaysGatewayIDNameDefault(code int) *PutCwfNetworkIDGa
 	}
 }
 
-/*PutCwfNetworkIDGatewaysGatewayIDNameDefault handles this case with default header values.
+/*
+PutCwfNetworkIDGatewaysGatewayIDNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutCwfNetworkIDGatewaysGatewayIDNameDefault) Code() int {
 func (o *PutCwfNetworkIDGatewaysGatewayIDNameDefault) Error() string {
 	return fmt.Sprintf("[PUT /cwf/{network_id}/gateways/{gateway_id}/name][%d] PutCwfNetworkIDGatewaysGatewayIDName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutCwfNetworkIDGatewaysGatewayIDNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -6,23 +6,26 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // NetworkProbeTaskDetails network probe task details
+//
 // swagger:model network_probe_task_details
 type NetworkProbeTaskDetails struct {
 
 	// correlation id
+	// Example: 605394647632969700
 	CorrelationID uint64 `json:"correlation_id,omitempty"`
 
 	// delivery type
+	// Example: events_only
 	// Required: true
 	// Enum: [all events_only]
 	DeliveryType string `json:"delivery_type"`
@@ -31,6 +34,7 @@ type NetworkProbeTaskDetails struct {
 	DomainID string `json:"domain_id,omitempty"`
 
 	// the duration in seconds after which the task will expire.
+	// Example: 300
 	// Minimum: 0
 	Duration *int64 `json:"duration,omitempty"`
 
@@ -42,11 +46,13 @@ type NetworkProbeTaskDetails struct {
 	TargetID string `json:"target_id"`
 
 	// target type
+	// Example: imsi
 	// Required: true
 	// Enum: [imsi imei msisdn]
 	TargetType string `json:"target_type"`
 
 	// The timestamp in ISO 8601 format
+	// Example: 2020-03-11T00:36:59.65Z
 	// Format: date-time
 	Timestamp strfmt.DateTime `json:"timestamp,omitempty"`
 }
@@ -104,7 +110,7 @@ const (
 
 // prop value enum
 func (m *NetworkProbeTaskDetails) validateDeliveryTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, networkProbeTaskDetailsTypeDeliveryTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, networkProbeTaskDetailsTypeDeliveryTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -112,7 +118,7 @@ func (m *NetworkProbeTaskDetails) validateDeliveryTypeEnum(path, location string
 
 func (m *NetworkProbeTaskDetails) validateDeliveryType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("delivery_type", "body", string(m.DeliveryType)); err != nil {
+	if err := validate.RequiredString("delivery_type", "body", m.DeliveryType); err != nil {
 		return err
 	}
 
@@ -125,12 +131,11 @@ func (m *NetworkProbeTaskDetails) validateDeliveryType(formats strfmt.Registry) 
 }
 
 func (m *NetworkProbeTaskDetails) validateDuration(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Duration) { // not required
 		return nil
 	}
 
-	if err := validate.MinimumInt("duration", "body", int64(*m.Duration), 0, false); err != nil {
+	if err := validate.MinimumInt("duration", "body", *m.Duration, 0, false); err != nil {
 		return err
 	}
 
@@ -139,7 +144,7 @@ func (m *NetworkProbeTaskDetails) validateDuration(formats strfmt.Registry) erro
 
 func (m *NetworkProbeTaskDetails) validateTargetID(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("target_id", "body", string(m.TargetID)); err != nil {
+	if err := validate.RequiredString("target_id", "body", m.TargetID); err != nil {
 		return err
 	}
 
@@ -172,7 +177,7 @@ const (
 
 // prop value enum
 func (m *NetworkProbeTaskDetails) validateTargetTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, networkProbeTaskDetailsTypeTargetTypePropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, networkProbeTaskDetailsTypeTargetTypePropEnum, true); err != nil {
 		return err
 	}
 	return nil
@@ -180,7 +185,7 @@ func (m *NetworkProbeTaskDetails) validateTargetTypeEnum(path, location string, 
 
 func (m *NetworkProbeTaskDetails) validateTargetType(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("target_type", "body", string(m.TargetType)); err != nil {
+	if err := validate.RequiredString("target_type", "body", m.TargetType); err != nil {
 		return err
 	}
 
@@ -193,7 +198,6 @@ func (m *NetworkProbeTaskDetails) validateTargetType(formats strfmt.Registry) er
 }
 
 func (m *NetworkProbeTaskDetails) validateTimestamp(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Timestamp) { // not required
 		return nil
 	}
@@ -202,6 +206,11 @@ func (m *NetworkProbeTaskDetails) validateTimestamp(formats strfmt.Registry) err
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this network probe task details based on context it is used
+func (m *NetworkProbeTaskDetails) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

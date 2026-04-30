@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDPolicyQosProfilesReader is a Reader for the GetLTENetworkIDPolicyQosProfiles structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDPolicyQosProfilesOK() *GetLTENetworkIDPolicyQosProfilesOK
 	return &GetLTENetworkIDPolicyQosProfilesOK{}
 }
 
-/*GetLTENetworkIDPolicyQosProfilesOK handles this case with default header values.
+/*
+GetLTENetworkIDPolicyQosProfilesOK describes a response with status code 200, with default header values.
 
 Policy QoS profiles in the network
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDPolicyQosProfilesOK struct {
 func (o *GetLTENetworkIDPolicyQosProfilesOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/policy_qos_profiles][%d] getLteNetworkIdPolicyQosProfilesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDPolicyQosProfilesOK) GetPayload() map[string]models.PolicyQosProfile {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetLTENetworkIDPolicyQosProfilesDefault(code int) *GetLTENetworkIDPolicy
 	}
 }
 
-/*GetLTENetworkIDPolicyQosProfilesDefault handles this case with default header values.
+/*
+GetLTENetworkIDPolicyQosProfilesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetLTENetworkIDPolicyQosProfilesDefault) Code() int {
 func (o *GetLTENetworkIDPolicyQosProfilesDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/policy_qos_profiles][%d] GetLTENetworkIDPolicyQosProfiles default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDPolicyQosProfilesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

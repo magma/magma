@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDCellularReader is a Reader for the GetLTENetworkIDCellular structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDCellularOK() *GetLTENetworkIDCellularOK {
 	return &GetLTENetworkIDCellularOK{}
 }
 
-/*GetLTENetworkIDCellularOK handles this case with default header values.
+/*
+GetLTENetworkIDCellularOK describes a response with status code 200, with default header values.
 
 Cellular configuration of the network
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDCellularOK struct {
 func (o *GetLTENetworkIDCellularOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/cellular][%d] getLteNetworkIdCellularOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDCellularOK) GetPayload() *models.NetworkCellularConfigs {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDCellularDefault(code int) *GetLTENetworkIDCellularDefault
 	}
 }
 
-/*GetLTENetworkIDCellularDefault handles this case with default header values.
+/*
+GetLTENetworkIDCellularDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDCellularDefault) Code() int {
 func (o *GetLTENetworkIDCellularDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/cellular][%d] GetLTENetworkIDCellular default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDCellularDefault) GetPayload() *models.Error {
 	return o.Payload
 }

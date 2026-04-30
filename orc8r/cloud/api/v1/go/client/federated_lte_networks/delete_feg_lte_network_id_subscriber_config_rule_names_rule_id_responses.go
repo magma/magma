@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDReader is a Reader for the DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID structure.
@@ -47,7 +46,8 @@ func NewDeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent() *DeleteF
 	return &DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent{}
 }
 
-/*DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
+/*
+DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *D
 	}
 }
 
-/*DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault) Code() int
 func (o *DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /feg_lte/{network_id}/subscriber_config/rule_names/{rule_id}][%d] DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteFegLTENetworkIDSubscriberConfigRuleNamesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

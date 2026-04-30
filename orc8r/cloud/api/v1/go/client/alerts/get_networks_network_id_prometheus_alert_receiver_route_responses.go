@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDPrometheusAlertReceiverRouteReader is a Reader for the GetNetworksNetworkIDPrometheusAlertReceiverRoute structure.
@@ -30,9 +29,8 @@ func (o *GetNetworksNetworkIDPrometheusAlertReceiverRouteReader) ReadResponse(re
 			return nil, err
 		}
 		return result, nil
-
 	default:
-		return nil, runtime.NewAPIError("unknown error", response, response.Code())
+		return nil, runtime.NewAPIError("response status code does not match any response statuses defined for this endpoint in the swagger spec", response, response.Code())
 	}
 }
 
@@ -41,7 +39,8 @@ func NewGetNetworksNetworkIDPrometheusAlertReceiverRouteOK() *GetNetworksNetwork
 	return &GetNetworksNetworkIDPrometheusAlertReceiverRouteOK{}
 }
 
-/*GetNetworksNetworkIDPrometheusAlertReceiverRouteOK handles this case with default header values.
+/*
+GetNetworksNetworkIDPrometheusAlertReceiverRouteOK describes a response with status code 200, with default header values.
 
 Alerting tree
 */
@@ -52,7 +51,6 @@ type GetNetworksNetworkIDPrometheusAlertReceiverRouteOK struct {
 func (o *GetNetworksNetworkIDPrometheusAlertReceiverRouteOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/prometheus/alert_receiver/route][%d] getNetworksNetworkIdPrometheusAlertReceiverRouteOK  %+v", 200, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDPrometheusAlertReceiverRouteOK) GetPayload() *models.AlertRoutingTree {
 	return o.Payload
 }

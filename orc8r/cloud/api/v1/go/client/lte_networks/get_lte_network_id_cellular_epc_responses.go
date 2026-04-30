@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDCellularEpcReader is a Reader for the GetLTENetworkIDCellularEpc structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDCellularEpcOK() *GetLTENetworkIDCellularEpcOK {
 	return &GetLTENetworkIDCellularEpcOK{}
 }
 
-/*GetLTENetworkIDCellularEpcOK handles this case with default header values.
+/*
+GetLTENetworkIDCellularEpcOK describes a response with status code 200, with default header values.
 
 EPC configuration of the network
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDCellularEpcOK struct {
 func (o *GetLTENetworkIDCellularEpcOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/cellular/epc][%d] getLteNetworkIdCellularEpcOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDCellularEpcOK) GetPayload() *models.NetworkEpcConfigs {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDCellularEpcDefault(code int) *GetLTENetworkIDCellularEpcD
 	}
 }
 
-/*GetLTENetworkIDCellularEpcDefault handles this case with default header values.
+/*
+GetLTENetworkIDCellularEpcDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDCellularEpcDefault) Code() int {
 func (o *GetLTENetworkIDCellularEpcDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/cellular/epc][%d] GetLTENetworkIDCellularEpc default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDCellularEpcDefault) GetPayload() *models.Error {
 	return o.Payload
 }

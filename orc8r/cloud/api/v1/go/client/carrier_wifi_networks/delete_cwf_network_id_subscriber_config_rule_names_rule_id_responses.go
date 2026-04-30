@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDReader is a Reader for the DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID structure.
@@ -47,7 +46,8 @@ func NewDeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent() *DeleteCwfN
 	return &DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent{}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent handles this case with default header values.
+/*
+DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault(code int) *Dele
 	}
 }
 
-/*DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault handles this case with default header values.
+/*
+DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Code() int {
 func (o *DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /cwf/{network_id}/subscriber_config/rule_names/{rule_id}][%d] DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteCwfNetworkIDSubscriberConfigRuleNamesRuleIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostCwfNetworkIDGatewaysReader is a Reader for the PostCwfNetworkIDGateways structure.
@@ -47,7 +46,8 @@ func NewPostCwfNetworkIDGatewaysCreated() *PostCwfNetworkIDGatewaysCreated {
 	return &PostCwfNetworkIDGatewaysCreated{}
 }
 
-/*PostCwfNetworkIDGatewaysCreated handles this case with default header values.
+/*
+PostCwfNetworkIDGatewaysCreated describes a response with status code 201, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPostCwfNetworkIDGatewaysDefault(code int) *PostCwfNetworkIDGatewaysDefau
 	}
 }
 
-/*PostCwfNetworkIDGatewaysDefault handles this case with default header values.
+/*
+PostCwfNetworkIDGatewaysDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PostCwfNetworkIDGatewaysDefault) Code() int {
 func (o *PostCwfNetworkIDGatewaysDefault) Error() string {
 	return fmt.Sprintf("[POST /cwf/{network_id}/gateways][%d] PostCwfNetworkIDGateways default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostCwfNetworkIDGatewaysDefault) GetPayload() *models.Error {
 	return o.Payload
 }

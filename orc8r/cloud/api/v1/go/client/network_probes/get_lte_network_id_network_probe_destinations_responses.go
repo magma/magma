@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDNetworkProbeDestinationsReader is a Reader for the GetLTENetworkIDNetworkProbeDestinations structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDNetworkProbeDestinationsOK() *GetLTENetworkIDNetworkProbe
 	return &GetLTENetworkIDNetworkProbeDestinationsOK{}
 }
 
-/*GetLTENetworkIDNetworkProbeDestinationsOK handles this case with default header values.
+/*
+GetLTENetworkIDNetworkProbeDestinationsOK describes a response with status code 200, with default header values.
 
 Provisioned NetworkProbe Destinations
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDNetworkProbeDestinationsOK struct {
 func (o *GetLTENetworkIDNetworkProbeDestinationsOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/network_probe/destinations][%d] getLteNetworkIdNetworkProbeDestinationsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDNetworkProbeDestinationsOK) GetPayload() *models.NetworkProbeDestination {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDNetworkProbeDestinationsDefault(code int) *GetLTENetworkI
 	}
 }
 
-/*GetLTENetworkIDNetworkProbeDestinationsDefault handles this case with default header values.
+/*
+GetLTENetworkIDNetworkProbeDestinationsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDNetworkProbeDestinationsDefault) Code() int {
 func (o *GetLTENetworkIDNetworkProbeDestinationsDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/network_probe/destinations][%d] GetLTENetworkIDNetworkProbeDestinations default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDNetworkProbeDestinationsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

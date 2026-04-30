@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostNetworksNetworkIDGatewaysGatewayIDCommandGenericReader is a Reader for the PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric structure.
@@ -47,7 +46,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK() *PostNetworksNe
 	return &PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK{}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK describes a response with status code 200, with default header values.
 
 Success
 */
@@ -58,7 +58,6 @@ type PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK struct {
 func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/gateways/{gateway_id}/command/generic][%d] postNetworksNetworkIdGatewaysGatewayIdCommandGenericOK  %+v", 200, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericOK) GetPayload() *models.GenericCommandResponse {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewPostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault(code int) *P
 	}
 }
 
-/*PostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault) Code() int
 func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/gateways/{gateway_id}/command/generic][%d] PostNetworksNetworkIDGatewaysGatewayIDCommandGeneric default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDGatewaysGatewayIDCommandGenericDefault) GetPayload() *models.Error {
 	return o.Payload
 }

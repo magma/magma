@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDSubscribersSubscriberIDReader is a Reader for the GetLTENetworkIDSubscribersSubscriberID structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDSubscribersSubscriberIDOK() *GetLTENetworkIDSubscribersSu
 	return &GetLTENetworkIDSubscribersSubscriberIDOK{}
 }
 
-/*GetLTENetworkIDSubscribersSubscriberIDOK handles this case with default header values.
+/*
+GetLTENetworkIDSubscribersSubscriberIDOK describes a response with status code 200, with default header values.
 
 Subscriber Info
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDSubscribersSubscriberIDOK struct {
 func (o *GetLTENetworkIDSubscribersSubscriberIDOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/subscribers/{subscriber_id}][%d] getLteNetworkIdSubscribersSubscriberIdOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDSubscribersSubscriberIDOK) GetPayload() *models.Subscriber {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetLTENetworkIDSubscribersSubscriberIDDefault(code int) *GetLTENetworkID
 	}
 }
 
-/*GetLTENetworkIDSubscribersSubscriberIDDefault handles this case with default header values.
+/*
+GetLTENetworkIDSubscribersSubscriberIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetLTENetworkIDSubscribersSubscriberIDDefault) Code() int {
 func (o *GetLTENetworkIDSubscribersSubscriberIDDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/subscribers/{subscriber_id}][%d] GetLTENetworkIDSubscribersSubscriberID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDSubscribersSubscriberIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

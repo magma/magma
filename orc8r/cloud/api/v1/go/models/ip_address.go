@@ -6,20 +6,22 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"context"
 	"encoding/json"
 
-	strfmt "github.com/go-openapi/strfmt"
-
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // IPAddress IP address
+//
 // swagger:model ip_address
 type IPAddress struct {
 
 	// address
+	// Example: 192.168.0.1/24
 	Address string `json:"address,omitempty"`
 
 	// version
@@ -64,14 +66,13 @@ const (
 
 // prop value enum
 func (m *IPAddress) validateVersionEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, ipAddressTypeVersionPropEnum); err != nil {
+	if err := validate.EnumCase(path, location, value, ipAddressTypeVersionPropEnum, true); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (m *IPAddress) validateVersion(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Version) { // not required
 		return nil
 	}
@@ -81,6 +82,11 @@ func (m *IPAddress) validateVersion(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this ip address based on context it is used
+func (m *IPAddress) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

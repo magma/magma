@@ -6,18 +6,21 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // TailLogsRequest tail logs request
+//
 // swagger:model tail_logs_request
 type TailLogsRequest struct {
 
 	// service
+	// Example: magmad
 	// Min Length: 1
 	Service string `json:"service,omitempty"`
 }
@@ -37,15 +40,19 @@ func (m *TailLogsRequest) Validate(formats strfmt.Registry) error {
 }
 
 func (m *TailLogsRequest) validateService(formats strfmt.Registry) error {
-
 	if swag.IsZero(m.Service) { // not required
 		return nil
 	}
 
-	if err := validate.MinLength("service", "body", string(m.Service), 1); err != nil {
+	if err := validate.MinLength("service", "body", m.Service, 1); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this tail logs request based on context it is used
+func (m *TailLogsRequest) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetLTENetworkIDSMSReader is a Reader for the GetLTENetworkIDSMS structure.
@@ -47,7 +46,8 @@ func NewGetLTENetworkIDSMSOK() *GetLTENetworkIDSMSOK {
 	return &GetLTENetworkIDSMSOK{}
 }
 
-/*GetLTENetworkIDSMSOK handles this case with default header values.
+/*
+GetLTENetworkIDSMSOK describes a response with status code 200, with default header values.
 
 List all SMS's in the system
 */
@@ -58,7 +58,6 @@ type GetLTENetworkIDSMSOK struct {
 func (o *GetLTENetworkIDSMSOK) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/sms][%d] getLteNetworkIdSmsOK  %+v", 200, o.Payload)
 }
-
 func (o *GetLTENetworkIDSMSOK) GetPayload() []*models.SMSMessage {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetLTENetworkIDSMSDefault(code int) *GetLTENetworkIDSMSDefault {
 	}
 }
 
-/*GetLTENetworkIDSMSDefault handles this case with default header values.
+/*
+GetLTENetworkIDSMSDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetLTENetworkIDSMSDefault) Code() int {
 func (o *GetLTENetworkIDSMSDefault) Error() string {
 	return fmt.Sprintf("[GET /lte/{network_id}/sms][%d] GetLTENetworkIDSMS default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetLTENetworkIDSMSDefault) GetPayload() *models.Error {
 	return o.Payload
 }

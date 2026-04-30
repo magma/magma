@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutLTENetworkIDNetworkProbeDestinationsDestinationIDReader is a Reader for the PutLTENetworkIDNetworkProbeDestinationsDestinationID structure.
@@ -47,7 +46,8 @@ func NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent() *PutLTEN
 	return &PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent{}
 }
 
-/*PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent handles this case with default header values.
+/*
+PutLTENetworkIDNetworkProbeDestinationsDestinationIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault(code int) *P
 	}
 }
 
-/*PutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault handles this case with default header values.
+/*
+PutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault) Code() int
 func (o *PutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/network_probe/destinations/{destination_id}][%d] PutLTENetworkIDNetworkProbeDestinationsDestinationID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDNetworkProbeDestinationsDestinationIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

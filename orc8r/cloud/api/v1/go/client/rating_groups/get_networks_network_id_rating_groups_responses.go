@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDRatingGroupsReader is a Reader for the GetNetworksNetworkIDRatingGroups structure.
@@ -47,19 +46,19 @@ func NewGetNetworksNetworkIDRatingGroupsOK() *GetNetworksNetworkIDRatingGroupsOK
 	return &GetNetworksNetworkIDRatingGroupsOK{}
 }
 
-/*GetNetworksNetworkIDRatingGroupsOK handles this case with default header values.
+/*
+GetNetworksNetworkIDRatingGroupsOK describes a response with status code 200, with default header values.
 
-List all rating groups
+Map of all rating groups by rating group ID
 */
 type GetNetworksNetworkIDRatingGroupsOK struct {
-	Payload []*models.RatingGroup
+	Payload map[string]models.RatingGroup
 }
 
 func (o *GetNetworksNetworkIDRatingGroupsOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/rating_groups][%d] getNetworksNetworkIdRatingGroupsOK  %+v", 200, o.Payload)
 }
-
-func (o *GetNetworksNetworkIDRatingGroupsOK) GetPayload() []*models.RatingGroup {
+func (o *GetNetworksNetworkIDRatingGroupsOK) GetPayload() map[string]models.RatingGroup {
 	return o.Payload
 }
 
@@ -80,7 +79,8 @@ func NewGetNetworksNetworkIDRatingGroupsDefault(code int) *GetNetworksNetworkIDR
 	}
 }
 
-/*GetNetworksNetworkIDRatingGroupsDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDRatingGroupsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetNetworksNetworkIDRatingGroupsDefault) Code() int {
 func (o *GetNetworksNetworkIDRatingGroupsDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/rating_groups][%d] GetNetworksNetworkIDRatingGroups default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDRatingGroupsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

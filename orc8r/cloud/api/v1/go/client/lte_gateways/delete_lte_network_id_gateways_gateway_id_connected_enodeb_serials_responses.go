@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsReader is a Reader for the DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerials structure.
@@ -47,7 +46,8 @@ func NewDeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent() *De
 	return &DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent{}
 }
 
-/*DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault(code in
 	}
 }
 
-/*DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) Code(
 func (o *DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials][%d] DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerials default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

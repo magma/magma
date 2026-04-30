@@ -13,75 +13,92 @@ import (
 	"github.com/go-openapi/errors"
 	"github.com/go-openapi/runtime"
 	cr "github.com/go-openapi/runtime/client"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
-// NewPutLTENetworkIDSubscribersSubscriberIDParams creates a new PutLTENetworkIDSubscribersSubscriberIDParams object
-// with the default values initialized.
+// NewPutLTENetworkIDSubscribersSubscriberIDParams creates a new PutLTENetworkIDSubscribersSubscriberIDParams object,
+// with the default timeout for this client.
+//
+// Default values are not hydrated, since defaults are normally applied by the API server side.
+//
+// To enforce default values in parameter, use SetDefaults or WithDefaults.
 func NewPutLTENetworkIDSubscribersSubscriberIDParams() *PutLTENetworkIDSubscribersSubscriberIDParams {
-	var ()
 	return &PutLTENetworkIDSubscribersSubscriberIDParams{
-
 		timeout: cr.DefaultTimeout,
 	}
 }
 
 // NewPutLTENetworkIDSubscribersSubscriberIDParamsWithTimeout creates a new PutLTENetworkIDSubscribersSubscriberIDParams object
-// with the default values initialized, and the ability to set a timeout on a request
+// with the ability to set a timeout on a request.
 func NewPutLTENetworkIDSubscribersSubscriberIDParamsWithTimeout(timeout time.Duration) *PutLTENetworkIDSubscribersSubscriberIDParams {
-	var ()
 	return &PutLTENetworkIDSubscribersSubscriberIDParams{
-
 		timeout: timeout,
 	}
 }
 
 // NewPutLTENetworkIDSubscribersSubscriberIDParamsWithContext creates a new PutLTENetworkIDSubscribersSubscriberIDParams object
-// with the default values initialized, and the ability to set a context for a request
+// with the ability to set a context for a request.
 func NewPutLTENetworkIDSubscribersSubscriberIDParamsWithContext(ctx context.Context) *PutLTENetworkIDSubscribersSubscriberIDParams {
-	var ()
 	return &PutLTENetworkIDSubscribersSubscriberIDParams{
-
 		Context: ctx,
 	}
 }
 
 // NewPutLTENetworkIDSubscribersSubscriberIDParamsWithHTTPClient creates a new PutLTENetworkIDSubscribersSubscriberIDParams object
-// with the default values initialized, and the ability to set a custom HTTPClient for a request
+// with the ability to set a custom HTTPClient for a request.
 func NewPutLTENetworkIDSubscribersSubscriberIDParamsWithHTTPClient(client *http.Client) *PutLTENetworkIDSubscribersSubscriberIDParams {
-	var ()
 	return &PutLTENetworkIDSubscribersSubscriberIDParams{
 		HTTPClient: client,
 	}
 }
 
-/*PutLTENetworkIDSubscribersSubscriberIDParams contains all the parameters to send to the API endpoint
-for the put LTE network ID subscribers subscriber ID operation typically these are written to a http.Request
+/*
+PutLTENetworkIDSubscribersSubscriberIDParams contains all the parameters to send to the API endpoint
+
+	for the put LTE network ID subscribers subscriber ID operation.
+
+	Typically these are written to a http.Request.
 */
 type PutLTENetworkIDSubscribersSubscriberIDParams struct {
 
-	/*NetworkID
-	  Network ID
+	/* NetworkID.
 
+	   Network ID
 	*/
 	NetworkID string
-	/*Subscriber
-	  Subscriber Info
 
+	/* Subscriber.
+
+	   Subscriber Info
 	*/
 	Subscriber *models.MutableSubscriber
-	/*SubscriberID
-	  Subscriber ID
 
+	/* SubscriberID.
+
+	   Subscriber ID
 	*/
 	SubscriberID string
 
 	timeout    time.Duration
 	Context    context.Context
 	HTTPClient *http.Client
+}
+
+// WithDefaults hydrates default values in the put LTE network ID subscribers subscriber ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDSubscribersSubscriberIDParams) WithDefaults() *PutLTENetworkIDSubscribersSubscriberIDParams {
+	o.SetDefaults()
+	return o
+}
+
+// SetDefaults hydrates default values in the put LTE network ID subscribers subscriber ID params (not the query body).
+//
+// All values with no default are reset to their zero value.
+func (o *PutLTENetworkIDSubscribersSubscriberIDParams) SetDefaults() {
+	// no default values defined for this parameter
 }
 
 // WithTimeout adds the timeout to the put LTE network ID subscribers subscriber ID params
@@ -162,7 +179,6 @@ func (o *PutLTENetworkIDSubscribersSubscriberIDParams) WriteToRequest(r runtime.
 	if err := r.SetPathParam("network_id", o.NetworkID); err != nil {
 		return err
 	}
-
 	if o.Subscriber != nil {
 		if err := r.SetBodyParam(o.Subscriber); err != nil {
 			return err

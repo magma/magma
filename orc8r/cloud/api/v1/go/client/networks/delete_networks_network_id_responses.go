@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteNetworksNetworkIDReader is a Reader for the DeleteNetworksNetworkID structure.
@@ -47,7 +46,8 @@ func NewDeleteNetworksNetworkIDNoContent() *DeleteNetworksNetworkIDNoContent {
 	return &DeleteNetworksNetworkIDNoContent{}
 }
 
-/*DeleteNetworksNetworkIDNoContent handles this case with default header values.
+/*
+DeleteNetworksNetworkIDNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteNetworksNetworkIDDefault(code int) *DeleteNetworksNetworkIDDefault
 	}
 }
 
-/*DeleteNetworksNetworkIDDefault handles this case with default header values.
+/*
+DeleteNetworksNetworkIDDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteNetworksNetworkIDDefault) Code() int {
 func (o *DeleteNetworksNetworkIDDefault) Error() string {
 	return fmt.Sprintf("[DELETE /networks/{network_id}][%d] DeleteNetworksNetworkID default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteNetworksNetworkIDDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostNetworksNetworkIDTracingReader is a Reader for the PostNetworksNetworkIDTracing structure.
@@ -47,7 +46,8 @@ func NewPostNetworksNetworkIDTracingCreated() *PostNetworksNetworkIDTracingCreat
 	return &PostNetworksNetworkIDTracingCreated{}
 }
 
-/*PostNetworksNetworkIDTracingCreated handles this case with default header values.
+/*
+PostNetworksNetworkIDTracingCreated describes a response with status code 201, with default header values.
 
 ID of created call trace
 */
@@ -58,7 +58,6 @@ type PostNetworksNetworkIDTracingCreated struct {
 func (o *PostNetworksNetworkIDTracingCreated) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/tracing][%d] postNetworksNetworkIdTracingCreated  %+v", 201, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDTracingCreated) GetPayload() string {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewPostNetworksNetworkIDTracingDefault(code int) *PostNetworksNetworkIDTrac
 	}
 }
 
-/*PostNetworksNetworkIDTracingDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDTracingDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *PostNetworksNetworkIDTracingDefault) Code() int {
 func (o *PostNetworksNetworkIDTracingDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/tracing][%d] PostNetworksNetworkIDTracing default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDTracingDefault) GetPayload() *models.Error {
 	return o.Payload
 }

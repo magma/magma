@@ -6,36 +6,44 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	strfmt "github.com/go-openapi/strfmt"
+	"context"
 
 	"github.com/go-openapi/errors"
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
 )
 
 // PingResult ping result
+//
 // swagger:model ping_result
 type PingResult struct {
 
 	// avg response ms
+	// Example: 35.69900131225586
 	AvgResponseMs float32 `json:"avg_response_ms,omitempty"`
 
 	// error
+	// Example: error
 	Error string `json:"error,omitempty"`
 
 	// host or ip
+	// Example: example.com
 	// Required: true
 	// Min Length: 1
 	HostOrIP *string `json:"host_or_ip"`
 
 	// num packets
+	// Example: 4
 	// Required: true
 	NumPackets *int32 `json:"num_packets"`
 
 	// packets received
+	// Example: 4
 	PacketsReceived int32 `json:"packets_received,omitempty"`
 
 	// packets transmitted
+	// Example: 4
 	PacketsTransmitted int32 `json:"packets_transmitted,omitempty"`
 }
 
@@ -63,7 +71,7 @@ func (m *PingResult) validateHostOrIP(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.MinLength("host_or_ip", "body", string(*m.HostOrIP), 1); err != nil {
+	if err := validate.MinLength("host_or_ip", "body", *m.HostOrIP, 1); err != nil {
 		return err
 	}
 
@@ -76,6 +84,11 @@ func (m *PingResult) validateNumPackets(formats strfmt.Registry) error {
 		return err
 	}
 
+	return nil
+}
+
+// ContextValidate validates this ping result based on context it is used
+func (m *PingResult) ContextValidate(ctx context.Context, formats strfmt.Registry) error {
 	return nil
 }
 

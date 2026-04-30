@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameReader is a Reader for the DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName structure.
@@ -47,7 +46,8 @@ func NewDeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent() *DeleteLT
 	return &DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent{}
 }
 
-/*DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault(code int) *De
 	}
 }
 
-/*DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault) Code() int 
 func (o *DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/subscriber_config/base_names/{base_name}][%d] DeleteLTENetworkIDSubscriberConfigBaseNamesBaseName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDSubscriberConfigBaseNamesBaseNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

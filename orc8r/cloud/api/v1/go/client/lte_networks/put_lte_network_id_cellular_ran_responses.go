@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutLTENetworkIDCellularRanReader is a Reader for the PutLTENetworkIDCellularRan structure.
@@ -47,7 +46,8 @@ func NewPutLTENetworkIDCellularRanNoContent() *PutLTENetworkIDCellularRanNoConte
 	return &PutLTENetworkIDCellularRanNoContent{}
 }
 
-/*PutLTENetworkIDCellularRanNoContent handles this case with default header values.
+/*
+PutLTENetworkIDCellularRanNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutLTENetworkIDCellularRanDefault(code int) *PutLTENetworkIDCellularRanD
 	}
 }
 
-/*PutLTENetworkIDCellularRanDefault handles this case with default header values.
+/*
+PutLTENetworkIDCellularRanDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutLTENetworkIDCellularRanDefault) Code() int {
 func (o *PutLTENetworkIDCellularRanDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/cellular/ran][%d] PutLTENetworkIDCellularRan default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDCellularRanDefault) GetPayload() *models.Error {
 	return o.Payload
 }

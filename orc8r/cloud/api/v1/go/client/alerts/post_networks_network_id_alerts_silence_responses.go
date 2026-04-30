@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PostNetworksNetworkIDAlertsSilenceReader is a Reader for the PostNetworksNetworkIDAlertsSilence structure.
@@ -47,7 +46,8 @@ func NewPostNetworksNetworkIDAlertsSilenceOK() *PostNetworksNetworkIDAlertsSilen
 	return &PostNetworksNetworkIDAlertsSilenceOK{}
 }
 
-/*PostNetworksNetworkIDAlertsSilenceOK handles this case with default header values.
+/*
+PostNetworksNetworkIDAlertsSilenceOK describes a response with status code 200, with default header values.
 
 ID of successfully created silencer
 */
@@ -58,7 +58,6 @@ type PostNetworksNetworkIDAlertsSilenceOK struct {
 func (o *PostNetworksNetworkIDAlertsSilenceOK) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/alerts/silence][%d] postNetworksNetworkIdAlertsSilenceOK  %+v", 200, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDAlertsSilenceOK) GetPayload() string {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewPostNetworksNetworkIDAlertsSilenceDefault(code int) *PostNetworksNetwork
 	}
 }
 
-/*PostNetworksNetworkIDAlertsSilenceDefault handles this case with default header values.
+/*
+PostNetworksNetworkIDAlertsSilenceDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *PostNetworksNetworkIDAlertsSilenceDefault) Code() int {
 func (o *PostNetworksNetworkIDAlertsSilenceDefault) Error() string {
 	return fmt.Sprintf("[POST /networks/{network_id}/alerts/silence][%d] PostNetworksNetworkIDAlertsSilence default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PostNetworksNetworkIDAlertsSilenceDefault) GetPayload() *models.Error {
 	return o.Payload
 }

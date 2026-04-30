@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetCwfNetworkIDSubscriberConfigRuleNamesReader is a Reader for the GetCwfNetworkIDSubscriberConfigRuleNames structure.
@@ -47,7 +46,8 @@ func NewGetCwfNetworkIDSubscriberConfigRuleNamesOK() *GetCwfNetworkIDSubscriberC
 	return &GetCwfNetworkIDSubscriberConfigRuleNamesOK{}
 }
 
-/*GetCwfNetworkIDSubscriberConfigRuleNamesOK handles this case with default header values.
+/*
+GetCwfNetworkIDSubscriberConfigRuleNamesOK describes a response with status code 200, with default header values.
 
 Subscriber Config
 */
@@ -58,7 +58,6 @@ type GetCwfNetworkIDSubscriberConfigRuleNamesOK struct {
 func (o *GetCwfNetworkIDSubscriberConfigRuleNamesOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/subscriber_config/rule_names][%d] getCwfNetworkIdSubscriberConfigRuleNamesOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDSubscriberConfigRuleNamesOK) GetPayload() models.RuleNames {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetCwfNetworkIDSubscriberConfigRuleNamesDefault(code int) *GetCwfNetwork
 	}
 }
 
-/*GetCwfNetworkIDSubscriberConfigRuleNamesDefault handles this case with default header values.
+/*
+GetCwfNetworkIDSubscriberConfigRuleNamesDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetCwfNetworkIDSubscriberConfigRuleNamesDefault) Code() int {
 func (o *GetCwfNetworkIDSubscriberConfigRuleNamesDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/subscriber_config/rule_names][%d] GetCwfNetworkIDSubscriberConfigRuleNames default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDSubscriberConfigRuleNamesDefault) GetPayload() *models.Error {
 	return o.Payload
 }

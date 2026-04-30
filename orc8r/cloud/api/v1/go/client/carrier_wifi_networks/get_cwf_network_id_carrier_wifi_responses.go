@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetCwfNetworkIDCarrierWifiReader is a Reader for the GetCwfNetworkIDCarrierWifi structure.
@@ -47,7 +46,8 @@ func NewGetCwfNetworkIDCarrierWifiOK() *GetCwfNetworkIDCarrierWifiOK {
 	return &GetCwfNetworkIDCarrierWifiOK{}
 }
 
-/*GetCwfNetworkIDCarrierWifiOK handles this case with default header values.
+/*
+GetCwfNetworkIDCarrierWifiOK describes a response with status code 200, with default header values.
 
 Retrieve Network Carrier Wifi Configs
 */
@@ -58,7 +58,6 @@ type GetCwfNetworkIDCarrierWifiOK struct {
 func (o *GetCwfNetworkIDCarrierWifiOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/carrier_wifi][%d] getCwfNetworkIdCarrierWifiOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDCarrierWifiOK) GetPayload() *models.NetworkCarrierWifiConfigs {
 	return o.Payload
 }
@@ -82,7 +81,8 @@ func NewGetCwfNetworkIDCarrierWifiDefault(code int) *GetCwfNetworkIDCarrierWifiD
 	}
 }
 
-/*GetCwfNetworkIDCarrierWifiDefault handles this case with default header values.
+/*
+GetCwfNetworkIDCarrierWifiDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -100,7 +100,6 @@ func (o *GetCwfNetworkIDCarrierWifiDefault) Code() int {
 func (o *GetCwfNetworkIDCarrierWifiDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/carrier_wifi][%d] GetCwfNetworkIDCarrierWifi default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDCarrierWifiDefault) GetPayload() *models.Error {
 	return o.Payload
 }

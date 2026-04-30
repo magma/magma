@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutCwfNetworkIDNameReader is a Reader for the PutCwfNetworkIDName structure.
@@ -47,7 +46,8 @@ func NewPutCwfNetworkIDNameNoContent() *PutCwfNetworkIDNameNoContent {
 	return &PutCwfNetworkIDNameNoContent{}
 }
 
-/*PutCwfNetworkIDNameNoContent handles this case with default header values.
+/*
+PutCwfNetworkIDNameNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutCwfNetworkIDNameDefault(code int) *PutCwfNetworkIDNameDefault {
 	}
 }
 
-/*PutCwfNetworkIDNameDefault handles this case with default header values.
+/*
+PutCwfNetworkIDNameDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutCwfNetworkIDNameDefault) Code() int {
 func (o *PutCwfNetworkIDNameDefault) Error() string {
 	return fmt.Sprintf("[PUT /cwf/{network_id}/name][%d] PutCwfNetworkIDName default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutCwfNetworkIDNameDefault) GetPayload() *models.Error {
 	return o.Payload
 }

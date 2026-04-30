@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetCwfNetworkIDGatewaysGatewayIDDescriptionReader is a Reader for the GetCwfNetworkIDGatewaysGatewayIDDescription structure.
@@ -47,7 +46,8 @@ func NewGetCwfNetworkIDGatewaysGatewayIDDescriptionOK() *GetCwfNetworkIDGateways
 	return &GetCwfNetworkIDGatewaysGatewayIDDescriptionOK{}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDDescriptionOK handles this case with default header values.
+/*
+GetCwfNetworkIDGatewaysGatewayIDDescriptionOK describes a response with status code 200, with default header values.
 
 The description of the gateway
 */
@@ -58,7 +58,6 @@ type GetCwfNetworkIDGatewaysGatewayIDDescriptionOK struct {
 func (o *GetCwfNetworkIDGatewaysGatewayIDDescriptionOK) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/gateways/{gateway_id}/description][%d] getCwfNetworkIdGatewaysGatewayIdDescriptionOK  %+v", 200, o.Payload)
 }
-
 func (o *GetCwfNetworkIDGatewaysGatewayIDDescriptionOK) GetPayload() models.GatewayDescription {
 	return o.Payload
 }
@@ -80,7 +79,8 @@ func NewGetCwfNetworkIDGatewaysGatewayIDDescriptionDefault(code int) *GetCwfNetw
 	}
 }
 
-/*GetCwfNetworkIDGatewaysGatewayIDDescriptionDefault handles this case with default header values.
+/*
+GetCwfNetworkIDGatewaysGatewayIDDescriptionDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +98,6 @@ func (o *GetCwfNetworkIDGatewaysGatewayIDDescriptionDefault) Code() int {
 func (o *GetCwfNetworkIDGatewaysGatewayIDDescriptionDefault) Error() string {
 	return fmt.Sprintf("[GET /cwf/{network_id}/gateways/{gateway_id}/description][%d] GetCwfNetworkIDGatewaysGatewayIDDescription default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetCwfNetworkIDGatewaysGatewayIDDescriptionDefault) GetPayload() *models.Error {
 	return o.Payload
 }

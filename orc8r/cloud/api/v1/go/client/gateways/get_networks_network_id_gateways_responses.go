@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // GetNetworksNetworkIDGatewaysReader is a Reader for the GetNetworksNetworkIDGateways structure.
@@ -47,26 +46,28 @@ func NewGetNetworksNetworkIDGatewaysOK() *GetNetworksNetworkIDGatewaysOK {
 	return &GetNetworksNetworkIDGatewaysOK{}
 }
 
-/*GetNetworksNetworkIDGatewaysOK handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysOK describes a response with status code 200, with default header values.
 
-Map of all gateways inside the network by gatewayID
+Map of all gateways inside the network by gatewayID with pagination support
 */
 type GetNetworksNetworkIDGatewaysOK struct {
-	Payload map[string]models.MagmadGateway
+	Payload *models.PaginatedGateways
 }
 
 func (o *GetNetworksNetworkIDGatewaysOK) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/gateways][%d] getNetworksNetworkIdGatewaysOK  %+v", 200, o.Payload)
 }
-
-func (o *GetNetworksNetworkIDGatewaysOK) GetPayload() map[string]models.MagmadGateway {
+func (o *GetNetworksNetworkIDGatewaysOK) GetPayload() *models.PaginatedGateways {
 	return o.Payload
 }
 
 func (o *GetNetworksNetworkIDGatewaysOK) readResponse(response runtime.ClientResponse, consumer runtime.Consumer, formats strfmt.Registry) error {
 
+	o.Payload = new(models.PaginatedGateways)
+
 	// response payload
-	if err := consumer.Consume(response.Body(), &o.Payload); err != nil && err != io.EOF {
+	if err := consumer.Consume(response.Body(), o.Payload); err != nil && err != io.EOF {
 		return err
 	}
 
@@ -80,7 +81,8 @@ func NewGetNetworksNetworkIDGatewaysDefault(code int) *GetNetworksNetworkIDGatew
 	}
 }
 
-/*GetNetworksNetworkIDGatewaysDefault handles this case with default header values.
+/*
+GetNetworksNetworkIDGatewaysDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -98,7 +100,6 @@ func (o *GetNetworksNetworkIDGatewaysDefault) Code() int {
 func (o *GetNetworksNetworkIDGatewaysDefault) Error() string {
 	return fmt.Sprintf("[GET /networks/{network_id}/gateways][%d] GetNetworksNetworkIDGateways default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *GetNetworksNetworkIDGatewaysDefault) GetPayload() *models.Error {
 	return o.Payload
 }

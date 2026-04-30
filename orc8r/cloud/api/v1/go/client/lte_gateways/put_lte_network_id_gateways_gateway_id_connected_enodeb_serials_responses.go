@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsReader is a Reader for the PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerials structure.
@@ -47,7 +46,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent() *PutLT
 	return &PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent{}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewPutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault(code int) 
 	}
 }
 
-/*PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault handles this case with default header values.
+/*
+PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) Code() i
 func (o *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) Error() string {
 	return fmt.Sprintf("[PUT /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials][%d] PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerials default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *PutLTENetworkIDGatewaysGatewayIDConnectedENODEBSerialsDefault) GetPayload() *models.Error {
 	return o.Payload
 }

@@ -10,10 +10,9 @@ import (
 	"io"
 
 	"github.com/go-openapi/runtime"
+	"github.com/go-openapi/strfmt"
 
-	strfmt "github.com/go-openapi/strfmt"
-
-	models "magma/orc8r/cloud/api/v1/go/models"
+	"magma/orc8r/cloud/api/v1/go/models"
 )
 
 // DeleteLTENetworkIDSMSSMSPkReader is a Reader for the DeleteLTENetworkIDSMSSMSPk structure.
@@ -47,7 +46,8 @@ func NewDeleteLTENetworkIDSMSSMSPkNoContent() *DeleteLTENetworkIDSMSSMSPkNoConte
 	return &DeleteLTENetworkIDSMSSMSPkNoContent{}
 }
 
-/*DeleteLTENetworkIDSMSSMSPkNoContent handles this case with default header values.
+/*
+DeleteLTENetworkIDSMSSMSPkNoContent describes a response with status code 204, with default header values.
 
 Success
 */
@@ -70,7 +70,8 @@ func NewDeleteLTENetworkIDSMSSMSPkDefault(code int) *DeleteLTENetworkIDSMSSMSPkD
 	}
 }
 
-/*DeleteLTENetworkIDSMSSMSPkDefault handles this case with default header values.
+/*
+DeleteLTENetworkIDSMSSMSPkDefault describes a response with status code -1, with default header values.
 
 Unexpected Error
 */
@@ -88,7 +89,6 @@ func (o *DeleteLTENetworkIDSMSSMSPkDefault) Code() int {
 func (o *DeleteLTENetworkIDSMSSMSPkDefault) Error() string {
 	return fmt.Sprintf("[DELETE /lte/{network_id}/sms/{sms_pk}][%d] DeleteLTENetworkIDSMSSMSPk default  %+v", o._statusCode, o.Payload)
 }
-
 func (o *DeleteLTENetworkIDSMSSMSPkDefault) GetPayload() *models.Error {
 	return o.Payload
 }
