@@ -24,7 +24,7 @@ import (
 	lookup_servicers "magma/lte/cloud/go/services/subscriberdb/servicers/protected"
 	subscriberdbcloud_servicer "magma/lte/cloud/go/services/subscriberdb/servicers/southbound"
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/obsidian"
 	swagger_protos "magma/orc8r/cloud/go/services/obsidian/swagger/protos"
@@ -48,7 +48,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
 	}
-	fact := blobstore.NewSQLStoreFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := JsonStore.NewSQLStoreFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := fact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing MSISDN lookup storage: %+v", err)
 	}
@@ -57,9 +57,9 @@ func main() {
 		glog.Fatalf("Error initializing IP lookup storage: %+v", err)
 	}
 
-	syncstoreFact := blobstore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	syncstoreFact := JsonStore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := syncstoreFact.InitializeFactory(); err != nil {
-		glog.Fatalf("Error initializing blobstore storage for subscriber syncstore: %+v", err)
+		glog.Fatalf("Error initializing JsonStore storage for subscriber syncstore: %+v", err)
 	}
 	subscriberStore, err := syncstore.NewSyncStoreReader(db, sqorc.GetSqlBuilder(), syncstoreFact, syncstore.Config{TableNamePrefix: subscriberdb.SyncstoreTableNamePrefix})
 	if err != nil {

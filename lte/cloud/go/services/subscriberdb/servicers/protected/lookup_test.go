@@ -23,8 +23,9 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	lookup_servicers "magma/lte/cloud/go/services/subscriberdb/servicers/protected"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/sqorc"
+
 	"magma/orc8r/cloud/go/test_utils"
 )
 
@@ -32,7 +33,7 @@ func TestLookupServicer_MSISDNs(t *testing.T) {
 	ctx := context.Background()
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLStoreFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := JsonStore.NewSQLStoreFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
 	err = fact.InitializeFactory()
 	assert.NoError(t, err)
 	l := lookup_servicers.NewLookupServicer(fact, nil)

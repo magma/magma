@@ -58,10 +58,10 @@ func TestIndexerIP(t *testing.T) {
 	//   "ip": {"address": "wKiArg=="}
 	//  }
 	states := state_types.SerializedStatesByID{
-		id00: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType)},
-		id01: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType)},
-		id10: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType)},
-		id11: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.2")}}, lte.MobilitydStateType)},
+		id00: {SerializedReportedState: string(serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType))},
+		id01: {SerializedReportedState: string(serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType))},
+		id10: {SerializedReportedState: string(serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType))},
+		id11: {SerializedReportedState: string(serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.2")}}, lte.MobilitydStateType))},
 	}
 
 	// Index the imsi0->sid0 state, result is sid0->imsi0 reverse mapping
@@ -77,8 +77,8 @@ func TestIndexerIP(t *testing.T) {
 
 	// Correctly handle per-state errs
 	states = state_types.SerializedStatesByID{
-		id00: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.3")}}, lte.MobilitydStateType)},
-		id2:  {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "deadbeef"}}, lte.MobilitydStateType)},
+		id00: {SerializedReportedState: string(serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.3")}}, lte.MobilitydStateType))},
+		id2:  {SerializedReportedState: string(serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "deadbeef"}}, lte.MobilitydStateType))},
 	}
 	errs, err = idx.Index("nid0", states)
 	assert.NoError(t, err)
@@ -124,7 +124,7 @@ func TestIndexerSubscriber(t *testing.T) {
 	// empty gateway state
 	emptyState := storage.GatewaySubscriberState{Subscribers: map[string]state.ArbitraryJSON{}}
 	emptySerializedState := state_types.SerializedStatesByID{
-		id0: {SerializedReportedState: serialize(t, &emptyState, lte.GatewaySubscriberStateType)},
+		id0: {SerializedReportedState: string(serialize(t, &emptyState, lte.GatewaySubscriberStateType))},
 	}
 	errs, err := idx.Index("nid0", emptySerializedState)
 	assert.NoError(t, err)
@@ -135,7 +135,7 @@ func TestIndexerSubscriber(t *testing.T) {
 
 	// one gateway
 	serializedGatewayState := state_types.SerializedStatesByID{
-		id0: {SerializedReportedState: serialize(t, &gatewayState0, lte.GatewaySubscriberStateType)},
+		id0: {SerializedReportedState: string(serialize(t, &gatewayState0, lte.GatewaySubscriberStateType))},
 	}
 	errs, err = idx.Index("nid0", serializedGatewayState)
 	assert.NoError(t, err)
@@ -146,8 +146,8 @@ func TestIndexerSubscriber(t *testing.T) {
 
 	// two gatewayIDs
 	serializedGatewayState = state_types.SerializedStatesByID{
-		id0: {SerializedReportedState: serialize(t, &gatewayState1, lte.GatewaySubscriberStateType)},
-		id1: {SerializedReportedState: serialize(t, &gatewayState0, lte.GatewaySubscriberStateType)},
+		id0: {SerializedReportedState: string(serialize(t, &gatewayState1, lte.GatewaySubscriberStateType))},
+		id1: {SerializedReportedState: string(serialize(t, &gatewayState0, lte.GatewaySubscriberStateType))},
 	}
 	errs, err = idx.Index("nid0", serializedGatewayState)
 	assert.NoError(t, err)
@@ -161,8 +161,8 @@ func TestIndexerSubscriber(t *testing.T) {
 
 	// empty gateways
 	emptySerializedState = state_types.SerializedStatesByID{
-		id0: {SerializedReportedState: serialize(t, &emptyState, lte.GatewaySubscriberStateType)},
-		id1: {SerializedReportedState: serialize(t, &emptyState, lte.GatewaySubscriberStateType)},
+		id0: {SerializedReportedState: string(serialize(t, &emptyState, lte.GatewaySubscriberStateType))},
+		id1: {SerializedReportedState: string(serialize(t, &emptyState, lte.GatewaySubscriberStateType))},
 	}
 	errs, err = idx.Index("nid0", emptySerializedState)
 	assert.NoError(t, err)
@@ -200,10 +200,10 @@ func TestIndexerSubscriberAndIP(t *testing.T) {
 
 	// mixed state
 	states := state_types.SerializedStatesByID{
-		id0:  {SerializedReportedState: serialize(t, &gatewayState0, lte.GatewaySubscriberStateType)},
-		idm0: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType)},
-		idm1: {SerializedReportedState: serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType)},
-		id1:  {SerializedReportedState: serialize(t, &gatewayState1, lte.GatewaySubscriberStateType)},
+		id0:  {SerializedReportedState: string(serialize(t, &gatewayState0, lte.GatewaySubscriberStateType))},
+		idm0: {SerializedReportedState: string(serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType))},
+		idm1: {SerializedReportedState: string(serialize(t, &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": encodeIP("127.0.0.1")}}, lte.MobilitydStateType))},
+		id1:  {SerializedReportedState: string(serialize(t, &gatewayState1, lte.GatewaySubscriberStateType))},
 	}
 	errs, err := idx.Index("nid0", states)
 	assert.NoError(t, err)
@@ -221,8 +221,8 @@ func TestIndexerSubscriberAndIP(t *testing.T) {
 	// create empty gateway states
 	emptyState := storage.GatewaySubscriberState{Subscribers: map[string]state.ArbitraryJSON{}}
 	emptySerializedState := state_types.SerializedStatesByID{
-		id0: {SerializedReportedState: serialize(t, &emptyState, lte.GatewaySubscriberStateType)},
-		id1: {SerializedReportedState: serialize(t, &emptyState, lte.GatewaySubscriberStateType)},
+		id0: {SerializedReportedState: string(serialize(t, &emptyState, lte.GatewaySubscriberStateType))},
+		id1: {SerializedReportedState: string(serialize(t, &emptyState, lte.GatewaySubscriberStateType))},
 	}
 	// empty gateway states
 	errs, err = idx.Index("nid0", emptySerializedState)

@@ -15,13 +15,12 @@ package syncstore
 
 import (
 	"database/sql"
-	"encoding/binary"
 	"fmt"
 
 	"github.com/Masterminds/squirrel"
 	"github.com/golang/protobuf/proto"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/clock"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
@@ -43,7 +42,7 @@ const (
 	cacheWriterBlobstoreType = "cache_writer_creation_time"
 )
 
-func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact blobstore.StoreFactory, config Config) (SyncStoreReader, error) {
+func NewSyncStoreReader(db *sql.DB, builder sqorc.StatementBuilder, fact JsonStore.StoreFactory, config Config) (SyncStoreReader, error) {
 	err := config.Validate(false)
 	if err != nil {
 		return nil, fmt.Errorf("invalid configs for syncstore reader: %w", err)
@@ -210,17 +209,19 @@ func (l *syncStore) GetLastResync(network string, gateway string) (int64, error)
 	}
 	defer store.Rollback()
 
-	blob, err := store.Get(network, storage.TK{Type: lastResyncBlobstoreType, Key: gateway})
+	json, err := store.Get(network, storage.TK{Type: lastResyncBlobstoreType, Key: gateway})
 	if err == merrors.ErrNotFound {
 		// If this gw has never been resynced, return 0 to enforce first resync
 		return int64(0), nil
 	}
 	if err != nil {
-		return int64(0), fmt.Errorf("get last resync time of network %+v, gateway %+v from blobstore: %w", network, gateway, err)
+		return int64(0), fmt.Errorf("get last resync time of network %+v, gateway %+v from JsonStore: %w", network, gateway, err)
 	}
-
-	lastResync := binary.LittleEndian.Uint64(blob.Value)
-	return int64(lastResync), store.Commit()
+	lastResync, err := decodeInt64(json.Value)
+	if err != nil {
+		return int64(0), fmt.Errorf("parse last resync time of network %+v, gateway %+v from JsonStore: %w", network, gateway, err)
+	}
+	return lastResync, store.Commit()
 }
 
 // GetDigestTree returns the full digest tree of a single network.

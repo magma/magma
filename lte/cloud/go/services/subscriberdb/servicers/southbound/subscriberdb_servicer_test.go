@@ -33,7 +33,7 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	subscriberdbcloud_servicer "magma/lte/cloud/go/services/subscriberdb/servicers/southbound"
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
@@ -934,7 +934,7 @@ func assertEqualAnyData(t *testing.T, expected []*any.Any, got []*any.Any) {
 func initializeStore(t *testing.T) (syncstore.SyncStoreReader, syncstore.SyncStore) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := blobstore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := JsonStore.NewSQLStoreFactory(subscriberdb.SyncstoreTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	store, err := syncstore.NewSyncStore(db, sqorc.GetSqlBuilder(), fact, syncstore.Config{TableNamePrefix: "subscriber", CacheWriterValidIntervalSecs: 150})
 	assert.NoError(t, err)

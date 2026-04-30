@@ -23,14 +23,14 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/merrors"
 )
 
 // lookupServicer translates subscriber aliases to their IMSI.
 //
-// MSISDN is stored as a blobstore table, MSISDN -> IMSI.
+// MSISDN is stored as a JsonStore table, MSISDN -> IMSI.
 //
 // IP is stored as a SQL table with two string columns:
 //   - IP
@@ -39,13 +39,13 @@ import (
 // Each subscriber should have at most one IP per APN, so the IP+IMSI+APN
 // triplet is enforced to be unique.
 type lookupServicer struct {
-	factory blobstore.StoreFactory
+	factory JsonStore.StoreFactory
 	store   subscriberdb_storage.IPLookup
 }
 
 // NewLookupServicer returns a new subscriber lookup servicer.
 // Stores should be initialized by the caller.
-func NewLookupServicer(msisdnFact blobstore.StoreFactory, ipStore subscriberdb_storage.IPLookup) protos.SubscriberLookupServer {
+func NewLookupServicer(msisdnFact JsonStore.StoreFactory, ipStore subscriberdb_storage.IPLookup) protos.SubscriberLookupServer {
 	return &lookupServicer{factory: msisdnFact, store: ipStore}
 }
 
@@ -61,22 +61,22 @@ func (l *lookupServicer) GetMSISDNs(ctx context.Context, req *protos.GetMSISDNsR
 	defer store.Rollback()
 
 	tks := storage.MakeTKs(lte.MSISDNBlobstoreType, req.Msisdns)
-	var blobs blobstore.Blobs
+	var jsons JsonStore.Jsons
 	if len(tks) == 0 {
-		blobs, err = blobstore.GetAllOfType(store, req.NetworkId, lte.MSISDNBlobstoreType)
+		jsons, err = JsonStore.GetAllOfType(store, req.NetworkId, lte.MSISDNBlobstoreType)
 		if err != nil {
-			return nil, makeErr(err, "get msisdns from blobstore")
+			return nil, makeErr(err, "get msisdns from JsonStore")
 		}
 	} else {
-		blobs, err = store.GetMany(req.NetworkId, tks)
+		jsons, err = store.GetMany(req.NetworkId, tks)
 		if err != nil {
-			return nil, makeErr(err, "get msisdns from blobstore")
+			return nil, makeErr(err, "get msisdns from JsonStore")
 		}
 	}
 
 	imsisByMSISDN := map[string]string{}
-	for _, blob := range blobs {
-		imsisByMSISDN[blob.Key] = string(blob.Value)
+	for _, json := range jsons {
+		imsisByMSISDN[json.Key] = json.Value
 	}
 
 	res := &protos.GetMSISDNsResponse{ImsisByMsisdn: imsisByMSISDN}
@@ -95,21 +95,21 @@ func (l *lookupServicer) SetMSISDN(ctx context.Context, req *protos.SetMSISDNReq
 	defer store.Rollback()
 
 	// Ensure mapping doesn't exist
-	blob, err := store.Get(req.NetworkId, storage.TK{Type: lte.MSISDNBlobstoreType, Key: req.Msisdn})
+	json, err := store.Get(req.NetworkId, storage.TK{Type: lte.MSISDNBlobstoreType, Key: req.Msisdn})
 	if err == nil {
-		return nil, status.Errorf(codes.AlreadyExists, "msisdn already mapped to %s", blob.Value)
+		return nil, status.Errorf(codes.AlreadyExists, "msisdn already mapped to %s", json.Value)
 	}
 	if err != merrors.ErrNotFound {
-		return nil, makeErr(err, "get msisdn from blobstore")
+		return nil, makeErr(err, "get msisdn from JsonStore")
 	}
 
-	err = store.Write(req.NetworkId, blobstore.Blobs{{
+	err = store.Write(req.NetworkId, JsonStore.Jsons{{
 		Type:  lte.MSISDNBlobstoreType,
 		Key:   req.Msisdn,
-		Value: []byte(req.Imsi),
+		Value: req.Imsi,
 	}})
 	if err != nil {
-		return nil, makeErr(err, "create msisdn mapping in blobstore")
+		return nil, makeErr(err, "create msisdn mapping in JsonStore")
 	}
 
 	return &protos.SetMSISDNResponse{}, store.Commit()
@@ -131,7 +131,7 @@ func (l *lookupServicer) DeleteMSISDN(ctx context.Context, req *protos.DeleteMSI
 		Key:  req.Msisdn,
 	}})
 	if err != nil {
-		return nil, makeErr(err, "delete msisdn from blobstore")
+		return nil, makeErr(err, "delete msisdn from JsonStore")
 	}
 
 	return &protos.DeleteMSISDNResponse{}, store.Commit()

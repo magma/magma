@@ -20,7 +20,7 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/encoding/protojson"
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -69,7 +69,7 @@ func SerializeSubscribers(subProtos []*lte_protos.SubscriberData) (map[string][]
 	subsSerialized := map[string][]byte{}
 	for _, subProto := range subProtos {
 		sid := lte_protos.SidString(subProto.Sid)
-		serialized, err := proto.Marshal(subProto)
+		serialized, err := protojson.Marshal(subProto)
 		if err != nil {
 			return nil, fmt.Errorf("serialize subscriber proto: %w", err)
 		}
@@ -83,7 +83,7 @@ func DeserializeSubscribers(subProtosSerialized [][]byte) ([]*lte_protos.Subscri
 	subs := []*lte_protos.SubscriberData{}
 	for _, serialized := range subProtosSerialized {
 		subProto := &lte_protos.SubscriberData{}
-		err := proto.Unmarshal(serialized, subProto)
+		err := protojson.Unmarshal(serialized, subProto)
 		if err != nil {
 			return nil, fmt.Errorf("deserialize subscriber proto: %w", err)
 		}

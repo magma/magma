@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"magma/orc8r/cloud/go/blobstore"
+	"magma/orc8r/cloud/go/JsonStore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer/reindex"
@@ -54,7 +54,7 @@ func StartTestServiceInternal(t *testing.T, dbName, dbDriver string) (reindex.Re
 func startService(t *testing.T, db *sql.DB) (reindex.Reindexer, reindex.JobQueue) {
 	srv, lis, plis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 
-	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	factory := JsonStore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
 
 	stateServicer, err := servicers.NewStateServicer(factory)
@@ -87,7 +87,7 @@ func StartTestSingletonServiceInternal(t *testing.T) reindex.Reindexer {
 func startSingletonService(t *testing.T, db *sql.DB) reindex.Reindexer {
 	srv, lis, plis := test_utils.NewTestService(t, orc8r.ModuleName, state.ServiceName)
 
-	factory := blobstore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
+	factory := JsonStore.NewSQLStoreFactory(state.DBTableName, db, sqorc.GetSqlBuilder())
 	require.NoError(t, factory.InitializeFactory())
 
 	stateServicer, err := servicers.NewStateServicer(factory)
