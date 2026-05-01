@@ -1,15 +1,15 @@
-/*
-Copyright 2020 The Magma Authors.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <stdio.h>
 #include <stdint.h>
@@ -614,9 +614,9 @@ static void insert_sgw_cp_and_up_teid_to_directoryd(sgw_state_t* sgw_state,
                     ->s_gw_teid_S5_S8_up;
           }
         }  // end of bearer list
-      }  // check for sgw_session_ctxt_p
-    }  // switch based on teid type
-  }  // end of s11_teid_list
+      }    // check for sgw_session_ctxt_p
+    }      // switch based on teid type
+  }        // end of s11_teid_list
 
   char separator = ',';
   for (uint8_t idx = 0; idx < teid_list_idx; idx++) {
