@@ -58,7 +58,8 @@
     struct type* sph_root; /* root of the tree */ \
   }
 
-#define SPLAY_INITIALIZER(root) {NULL}
+#define SPLAY_INITIALIZER(root) \
+  { NULL }
 
 #define SPLAY_INIT(root)     \
   do {                       \
@@ -275,7 +276,8 @@
     struct type* rbh_root; /* root of the tree */ \
   }
 
-#define RB_INITIALIZER(root) {NULL}
+#define RB_INITIALIZER(root) \
+  { NULL }
 
 #define RB_INIT(root)        \
   do {                       \
