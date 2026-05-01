@@ -1,3 +1,16 @@
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * All rights reserved.
@@ -58,7 +71,8 @@
     struct type* sph_root; /* root of the tree */ \
   }
 
-#define SPLAY_INITIALIZER(root) {NULL}
+#define SPLAY_INITIALIZER(root) \
+  { NULL }
 
 #define SPLAY_INIT(root)     \
   do {                       \
@@ -275,7 +289,8 @@
     struct type* rbh_root; /* root of the tree */ \
   }
 
-#define RB_INITIALIZER(root) {NULL}
+#define RB_INITIALIZER(root) \
+  { NULL }
 
 #define RB_INIT(root)        \
   do {                       \
