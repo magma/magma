@@ -102,7 +102,7 @@ setup(
         'envoy>=0.0.3',
         'glob2>=0.7',
         # lxml required by spyne.
-        'lxml==4.9.1',
+        'lxml==6.1.0',
         'ryu>=4.34',
         'spyne>=2.13,<2.14',
         'dpkt==1.9.8',
