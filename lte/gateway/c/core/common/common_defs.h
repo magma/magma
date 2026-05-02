@@ -40,30 +40,43 @@
 
 #include <string.h>  // memcpy
 #include <arpa/inet.h>
+#include <stdint.h>
 
 #define GNB_GTP_TEID_FMT "%08x"
 //------------------------------------------------------------------------------
 #define STOLEN_REF
 #define CLONE_REF
 
-#define OFFSET_OF(TyPe, MeMBeR) ((size_t) & ((TyPe*)0)->MeMBeR)
-// https://stackoverflow.com/questions/4415524/common-array-length-macro-for-c
-#define COUNT_OF(x) \
-  ((sizeof(x) / sizeof(0 [x])) / ((size_t)(!(sizeof(x) % sizeof(0 [x])))))
+#ifdef __cplusplus
+#define OFFSET_OF(TyPe, MeMBeR) \
+  static_cast<size_t>(          \
+      reinterpret_cast<uintptr_t>(&(reinterpret_cast<TyPe*>(0)->MeMBeR)))
+
+#define COUNT_OF(x)              \
+  ((sizeof(x) / sizeof(0 [x])) / \
+   (static_cast<size_t>(!(sizeof(x) % sizeof(0 [x])))))
+#else
+#define OFFSET_OF(TyPe, MeMBeR) ((size_t) & ((TyPe*)0)->MeMBeR)  // NOLINT
+#define COUNT_OF(x)              \
+  ((sizeof(x) / sizeof(0 [x])) / \
+   ((size_t)(!(sizeof(x) % sizeof(0 [x])))))  // NOLINT
+#endif
 
 #ifndef __cplusplus
-#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                    \
-  ({                                                              \
-    const typeof(((TyPe*)0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD); \
-    (TyPe*)((char*)__MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));       \
+#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                                 \
+  ({                                                                           \
+    const typeof(((TyPe*)0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD); /* NOLINT */ \
+    (TyPe*)((char*)__MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));       /* NOLINT */ \
   })
 #endif
 
 #ifdef __cplusplus
-#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                      \
-  ({                                                                \
-    const decltype(((TyPe*)0)->MeMBeR)* __MemBeR_ptr = (cOnTaiNeD); \
-    (TyPe*)((char*)__MemBeR_ptr - OFFSET_OF(TyPe, MeMBeR));         \
+#define PARENT_STRUCT(cOnTaiNeD, TyPe, MeMBeR)                           \
+  ({                                                                     \
+    const decltype((reinterpret_cast<TyPe*>(0))->MeMBeR)* __MemBeR_ptr = \
+        (cOnTaiNeD);                                                     \
+    reinterpret_cast<TyPe*>(reinterpret_cast<uintptr_t>(__MemBeR_ptr) -  \
+                            OFFSET_OF(TyPe, MeMBeR));                    \
   })
 #endif
 
@@ -131,9 +144,15 @@ typedef enum {
 } mode_map;
 
 //------------------------------------------------------------------------------
-#define DECODE_U8(bUFFER, vALUE, sIZE) \
-  vALUE = *(uint8_t*)(bUFFER);         \
+#ifdef __cplusplus
+#define DECODE_U8(bUFFER, vALUE, sIZE)         \
+  vALUE = *reinterpret_cast<uint8_t*>(bUFFER); \
   sIZE += sizeof(uint8_t)
+#else
+#define DECODE_U8(bUFFER, vALUE, sIZE)      \
+  vALUE = *(uint8_t*)(bUFFER); /* NOLINT */ \
+  sIZE += sizeof(uint8_t)
+#endif
 
 #define DECODE_U16(bUFFER, vALUE, sIZE)                     \
   memcpy((unsigned char*)&vALUE, bUFFER, sizeof(uint16_t)); \
@@ -167,9 +186,15 @@ typedef enum {
   sIZE += sizeof(uint16_t)
 #endif
 
-#define ENCODE_U8(buffer, value, size) \
-  *(uint8_t*)(buffer) = value;         \
+#ifdef __cplusplus
+#define ENCODE_U8(buffer, value, size)         \
+  *reinterpret_cast<uint8_t*>(buffer) = value; \
   size += sizeof(uint8_t)
+#else
+#define ENCODE_U8(buffer, value, size)      \
+  *(uint8_t*)(buffer) = value; /* NOLINT */ \
+  size += sizeof(uint8_t)
+#endif
 
 #define ENCODE_U16(buffer, value, size)                         \
   do {                                                          \
@@ -219,14 +244,31 @@ typedef enum {
     }                                                      \
   } while (0)
 
-#define NIPADDR(addr)                                                \
-  (uint8_t)(addr & 0x000000FF), (uint8_t)((addr & 0x0000FF00) >> 8), \
-      (uint8_t)((addr & 0x00FF0000) >> 16),                          \
-      (uint8_t)((addr & 0xFF000000) >> 24)
+#ifdef __cplusplus
+#define NIPADDR(addr)                                  \
+  static_cast<uint8_t>(addr & 0x000000FF),             \
+      static_cast<uint8_t>((addr & 0x0000FF00) >> 8),  \
+      static_cast<uint8_t>((addr & 0x00FF0000) >> 16), \
+      static_cast<uint8_t>((addr & 0xFF000000) >> 24)
 
-#define HIPADDR(addr)                                                         \
-  (uint8_t)((addr & 0xFF000000) >> 24), (uint8_t)((addr & 0x00FF0000) >> 16), \
-      (uint8_t)((addr & 0x0000FF00) >> 8), (uint8_t)(addr & 0x000000FF)
+#define HIPADDR(addr)                                  \
+  static_cast<uint8_t>((addr & 0xFF000000) >> 24),     \
+      static_cast<uint8_t>((addr & 0x00FF0000) >> 16), \
+      static_cast<uint8_t>((addr & 0x0000FF00) >> 8),  \
+      static_cast<uint8_t>(addr & 0x000000FF)
+#else
+#define NIPADDR(addr)                                    \
+  (uint8_t)(addr & 0x000000FF),                          \
+      (uint8_t)((addr & 0x0000FF00) >> 8),  /* NOLINT */ \
+      (uint8_t)((addr & 0x00FF0000) >> 16), /* NOLINT */ \
+      (uint8_t)((addr & 0xFF000000) >> 24)  /* NOLINT */
+
+#define HIPADDR(addr)                                    \
+  (uint8_t)((addr & 0xFF000000) >> 24),                  \
+      (uint8_t)((addr & 0x00FF0000) >> 16), /* NOLINT */ \
+      (uint8_t)((addr & 0x0000FF00) >> 8),               \
+      (uint8_t)(addr & 0x000000FF) /* NOLINT */
+#endif
 
 #define NIP6ADDR(addr)                                          \
   ntohs((addr)->s6_addr16[0]), ntohs((addr)->s6_addr16[1]),     \
@@ -234,15 +276,43 @@ typedef enum {
       ntohs((addr)->s6_addr16[4]), ntohs((addr)->s6_addr16[5]), \
       ntohs((addr)->s6_addr16[6]), ntohs((addr)->s6_addr16[7])
 
-#define IN6_ARE_ADDR_MASKED_EQUAL(a, b, m)                            \
-  (((((__const uint32_t*)(a))[0] & (((__const uint32_t*)(m))[0])) ==  \
-    (((__const uint32_t*)(b))[0] & (((__const uint32_t*)(m))[0]))) && \
-   ((((__const uint32_t*)(a))[1] & (((__const uint32_t*)(m))[1])) ==  \
-    (((__const uint32_t*)(b))[1] & (((__const uint32_t*)(m))[1]))) && \
-   ((((__const uint32_t*)(a))[2] & (((__const uint32_t*)(m))[2])) ==  \
-    (((__const uint32_t*)(b))[2] & (((__const uint32_t*)(m))[2]))) && \
-   ((((__const uint32_t*)(a))[3] & (((__const uint32_t*)(m))[3])) ==  \
-    (((__const uint32_t*)(b))[3] & (((__const uint32_t*)(m))[3]))))
+#ifdef __cplusplus
+#define IN6_ARE_ADDR_MASKED_EQUAL(a, b, m)          \
+  ((((reinterpret_cast<const uint32_t*>(a))[0] &                               \
+     (reinterpret_cast<const uint32_t*>(m))[0])) ==                            \
+    ((reinterpret_cast<const uint32_t*>(b))[0] &                               \
+     (reinterpret_cast<const uint32_t*>(m))[0])) &&                            \
+   (((reinterpret_cast<const uint32_t*>(a))[1] &                               \
+     (reinterpret_cast<const uint32_t*>(m))[1])) ==                            \
+    ((reinterpret_cast<const uint32_t*>(b))[1] &                               \
+     (reinterpret_cast<const uint32_t*>(m))[1])) &&                            \
+   (((reinterpret_cast<const uint32_t*>(a))[2] &                               \
+     (reinterpret_cast<const uint32_t*>(m))[2])) ==                            \
+    ((reinterpret_cast<const uint32_t*>(b))[2] &                               \
+     (reinterpret_cast<const uint32_t*>(m))[2])) &&                            \
+   (((reinterpret_cast<const uint32_t*>(a))[3] &                               \
+     (reinterpret_cast<const uint32_t*>(m))[3])) ==                            \
+    ((reinterpret_cast<const uint32_t*>(b))[3] &                               \
+     (reinterpret_cast<const uint32_t*>(m))[3])))
+#else
+#define IN6_ARE_ADDR_MASKED_EQUAL(a, b, m)           \
+  (((((__const uint32_t*)(a))[0] &                   \
+     (((__const uint32_t*)(m))[0])) == /* NOLINT */  \
+    (((__const uint32_t*)(b))[0] &                   \
+     (((__const uint32_t*)(m))[0]))) && /* NOLINT */ \
+   ((((__const uint32_t*)(a))[1] &                   \
+     (((__const uint32_t*)(m))[1])) == /* NOLINT */  \
+    (((__const uint32_t*)(b))[1] &                   \
+     (((__const uint32_t*)(m))[1]))) && /* NOLINT */ \
+   ((((__const uint32_t*)(a))[2] &                   \
+     (((__const uint32_t*)(m))[2])) == /* NOLINT */  \
+    (((__const uint32_t*)(b))[2] &                   \
+     (((__const uint32_t*)(m))[2]))) && /* NOLINT */ \
+   ((((__const uint32_t*)(a))[3] &                   \
+     (((__const uint32_t*)(m))[3])) == /* NOLINT */  \
+    (((__const uint32_t*)(b))[3] &                   \
+     (((__const uint32_t*)(m))[3])))) /* NOLINT */
+#endif
 
 #define EBI_TO_INDEX(eBi) (eBi - 5)
 #define INDEX_TO_EBI(iNdEx) (iNdEx + 5)

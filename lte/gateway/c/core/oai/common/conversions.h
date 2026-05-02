@@ -72,39 +72,45 @@
 /* in: X (struct inaddr) in network byte order (big endian)
  * out: bUFF with most significant IP byte in buf[0]
  */
-#define IN_ADDR_TO_BUFFER(X, bUFF)                        \
-  do {                                                    \
-    ((uint8_t*)(bUFF))[0] = ((uint8_t*)&((X).s_addr))[0]; \
-    ((uint8_t*)(bUFF))[1] = ((uint8_t*)&((X).s_addr))[1]; \
-    ((uint8_t*)(bUFF))[2] = ((uint8_t*)&((X).s_addr))[2]; \
-    ((uint8_t*)(bUFF))[3] = ((uint8_t*)&((X).s_addr))[3]; \
+#define IN_ADDR_TO_BUFFER(X, bUFF)                      \
+  do {                                                  \
+    (reinterpret_cast<uint8_t*>(bUFF))[0] =             \
+        (reinterpret_cast<uint8_t*>(&((X).s_addr)))[0]; \
+    (reinterpret_cast<uint8_t*>(bUFF))[1] =             \
+        (reinterpret_cast<uint8_t*>(&((X).s_addr)))[1]; \
+    (reinterpret_cast<uint8_t*>(bUFF))[2] =             \
+        (reinterpret_cast<uint8_t*>(&((X).s_addr)))[2]; \
+    (reinterpret_cast<uint8_t*>(bUFF))[3] =             \
+        (reinterpret_cast<uint8_t*>(&((X).s_addr)))[3]; \
   } while (0)
 
-#define BUFFER_TO_IN_ADDR(bUFF, X)                                        \
-  do {                                                                    \
-    (X).s_addr = (((uint8_t*)(bUFF))[0]) | (((uint8_t*)(bUFF))[1] << 8) | \
-                 (((uint8_t*)(bUFF))[2] << 16) |                          \
-                 (((uint8_t*)(bUFF))[3] << 24);                           \
+#define BUFFER_TO_IN_ADDR(bUFF, X)                                             \
+  do {                                                                         \
+    (X).s_addr =                                                               \
+        (static_cast<uint32_t>((reinterpret_cast<uint8_t*>(bUFF))[0])) |       \
+        (static_cast<uint32_t>((reinterpret_cast<uint8_t*>(bUFF))[1]) << 8) |  \
+        (static_cast<uint32_t>((reinterpret_cast<uint8_t*>(bUFF))[2]) << 16) | \
+        (static_cast<uint32_t>((reinterpret_cast<uint8_t*>(bUFF))[3]) << 24);  \
   } while (0)
 
-#define IN6_ADDR_TO_BUFFER(X, bUFF)           \
-  do {                                        \
-    ((uint8_t*)(bUFF))[0] = (X).s6_addr[0];   \
-    ((uint8_t*)(bUFF))[1] = (X).s6_addr[1];   \
-    ((uint8_t*)(bUFF))[2] = (X).s6_addr[2];   \
-    ((uint8_t*)(bUFF))[3] = (X).s6_addr[3];   \
-    ((uint8_t*)(bUFF))[4] = (X).s6_addr[4];   \
-    ((uint8_t*)(bUFF))[5] = (X).s6_addr[5];   \
-    ((uint8_t*)(bUFF))[6] = (X).s6_addr[6];   \
-    ((uint8_t*)(bUFF))[7] = (X).s6_addr[7];   \
-    ((uint8_t*)(bUFF))[8] = (X).s6_addr[8];   \
-    ((uint8_t*)(bUFF))[9] = (X).s6_addr[9];   \
-    ((uint8_t*)(bUFF))[10] = (X).s6_addr[10]; \
-    ((uint8_t*)(bUFF))[11] = (X).s6_addr[11]; \
-    ((uint8_t*)(bUFF))[12] = (X).s6_addr[12]; \
-    ((uint8_t*)(bUFF))[13] = (X).s6_addr[13]; \
-    ((uint8_t*)(bUFF))[14] = (X).s6_addr[14]; \
-    ((uint8_t*)(bUFF))[15] = (X).s6_addr[15]; \
+#define IN6_ADDR_TO_BUFFER(X, bUFF)                           \
+  do {                                                        \
+    (reinterpret_cast<uint8_t*>(bUFF))[0] = (X).s6_addr[0];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[1] = (X).s6_addr[1];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[2] = (X).s6_addr[2];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[3] = (X).s6_addr[3];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[4] = (X).s6_addr[4];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[5] = (X).s6_addr[5];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[6] = (X).s6_addr[6];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[7] = (X).s6_addr[7];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[8] = (X).s6_addr[8];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[9] = (X).s6_addr[9];   \
+    (reinterpret_cast<uint8_t*>(bUFF))[10] = (X).s6_addr[10]; \
+    (reinterpret_cast<uint8_t*>(bUFF))[11] = (X).s6_addr[11]; \
+    (reinterpret_cast<uint8_t*>(bUFF))[12] = (X).s6_addr[12]; \
+    (reinterpret_cast<uint8_t*>(bUFF))[13] = (X).s6_addr[13]; \
+    (reinterpret_cast<uint8_t*>(bUFF))[14] = (X).s6_addr[14]; \
+    (reinterpret_cast<uint8_t*>(bUFF))[15] = (X).s6_addr[15]; \
   } while (0)
 
 #define BUFFER_TO_INT8(buf, x) (x = ((buf)[0]))
@@ -132,10 +138,11 @@
     x = ((buf)[0] << 8) | ((buf)[1]); \
   } while (0)
 
-#define BUFFER_TO_INT24(buf, x)                                                \
-  do {                                                                         \
-    x = (int32_t)(((uint32_t)((buf)[0]) << 16) | ((uint32_t)((buf)[1]) << 8) | \
-                  ((uint32_t)((buf)[2])));                                     \
+#define BUFFER_TO_INT24(buf, x)                                        \
+  do {                                                                 \
+    x = static_cast<int32_t>((static_cast<uint32_t>((buf)[0]) << 16) | \
+                             (static_cast<uint32_t>((buf)[1]) << 8) |  \
+                             (static_cast<uint32_t>((buf)[2])));       \
   } while (0)
 
 /* Convert an integer on 32 bits to the given bUFFER */
@@ -148,19 +155,20 @@
   } while (0)
 
 /* Convert an array of char containing vALUE to x */
-#define BUFFER_TO_INT32(buf, x)                                                \
-  do {                                                                         \
-    x = (int32_t)(((uint32_t)((buf)[0]) << 24) |                               \
-                  ((uint32_t)((buf)[1]) << 16) | ((uint32_t)((buf)[2]) << 8) | \
-                  ((uint32_t)((buf)[3])));                                     \
+#define BUFFER_TO_INT32(buf, x)                                        \
+  do {                                                                 \
+    x = static_cast<int32_t>((static_cast<uint32_t>((buf)[0]) << 24) | \
+                             (static_cast<uint32_t>((buf)[1]) << 16) | \
+                             (static_cast<uint32_t>((buf)[2]) << 8) |  \
+                             (static_cast<uint32_t>((buf)[3])));       \
   } while (0)
 
 /* Convert an integer on 32 bits to an octet string from aSN1c tool */
-#define INT32_TO_OCTET_STRING(x, aSN)                  \
-  do {                                                 \
-    (aSN)->buf = (uint8_t*)calloc(4, sizeof(uint8_t)); \
-    INT32_TO_BUFFER(x, ((aSN)->buf));                  \
-    (aSN)->size = 4;                                   \
+#define INT32_TO_OCTET_STRING(x, aSN)                                    \
+  do {                                                                   \
+    (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(4, sizeof(uint8_t))); \
+    INT32_TO_BUFFER(x, ((aSN)->buf));                                    \
+    (aSN)->size = 4;                                                     \
   } while (0)
 
 #define INT32_TO_BIT_STRING(x, aSN) \
@@ -181,25 +189,25 @@
     (aSN)->bits_unused = 2;               \
   } while (0)
 
-#define INT24_TO_OCTET_STRING(x, aSN)                  \
-  do {                                                 \
-    (aSN)->buf = (uint8_t*)calloc(3, sizeof(uint8_t)); \
-    (aSN)->size = 3;                                   \
-    INT24_TO_BUFFER(x, (aSN)->buf);                    \
+#define INT24_TO_OCTET_STRING(x, aSN)                                    \
+  do {                                                                   \
+    (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(3, sizeof(uint8_t))); \
+    (aSN)->size = 3;                                                     \
+    INT24_TO_BUFFER(x, (aSN)->buf);                                      \
   } while (0)
 
-#define INT16_TO_OCTET_STRING(x, aSN)                  \
-  do {                                                 \
-    (aSN)->buf = (uint8_t*)calloc(2, sizeof(uint8_t)); \
-    (aSN)->size = 2;                                   \
-    INT16_TO_BUFFER(x, (aSN)->buf);                    \
+#define INT16_TO_OCTET_STRING(x, aSN)                                    \
+  do {                                                                   \
+    (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(2, sizeof(uint8_t))); \
+    (aSN)->size = 2;                                                     \
+    INT16_TO_BUFFER(x, (aSN)->buf);                                      \
   } while (0)
 
-#define INT8_TO_OCTET_STRING(x, aSN)                   \
-  do {                                                 \
-    (aSN)->buf = (uint8_t*)calloc(1, sizeof(uint8_t)); \
-    (aSN)->size = 1;                                   \
-    INT8_TO_BUFFER(x, (aSN)->buf);                     \
+#define INT8_TO_OCTET_STRING(x, aSN)                                     \
+  do {                                                                   \
+    (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(1, sizeof(uint8_t))); \
+    (aSN)->size = 1;                                                     \
+    INT8_TO_BUFFER(x, (aSN)->buf);                                       \
   } while (0)
 
 #define MME_CODE_TO_OCTET_STRING INT8_TO_OCTET_STRING
@@ -267,7 +275,8 @@
 
 #define MCC_MNC_TO_PLMNID(mCC, mNC, mNCdIGITlENGTH, oCTETsTRING)              \
   do {                                                                        \
-    (oCTETsTRING)->buf = (uint8_t*)calloc(3, sizeof(uint8_t));                \
+    (oCTETsTRING)->buf =                                                      \
+        reinterpret_cast<uint8_t*>(calloc(3, sizeof(uint8_t)));               \
     (oCTETsTRING)->buf[0] = (MCC_MNC_DECIMAL(mCC) << 4) | MCC_HUNDREDS(mCC);  \
     (oCTETsTRING)->buf[1] =                                                   \
         (MNC_HUNDREDS(mNC, mNCdIGITlENGTH) << 4) | MCC_MNC_DIGIT(mCC);        \
@@ -383,14 +392,14 @@
  * IE (see subclause 9.2.1.38) of each cell
  * served by the eNB.
  */
-#define MACRO_ENB_ID_TO_BIT_STRING(mACRO, bITsTRING)         \
-  do {                                                       \
-    (bITsTRING)->buf = (uint8_t*)calloc(3, sizeof(uint8_t)); \
-    (bITsTRING)->buf[0] = ((mACRO) >> 12);                   \
-    (bITsTRING)->buf[1] = (mACRO) >> 4;                      \
-    (bITsTRING)->buf[2] = ((mACRO) & 0x0f) << 4;             \
-    (bITsTRING)->size = 3;                                   \
-    (bITsTRING)->bits_unused = 4;                            \
+#define MACRO_ENB_ID_TO_BIT_STRING(mACRO, bITsTRING)                           \
+  do {                                                                         \
+    (bITsTRING)->buf = reinterpret_cast<uint8_t*>(calloc(3, sizeof(uint8_t))); \
+    (bITsTRING)->buf[0] = ((mACRO) >> 12);                                     \
+    (bITsTRING)->buf[1] = (mACRO) >> 4;                                        \
+    (bITsTRING)->buf[2] = ((mACRO)&0x0f) << 4;                                 \
+    (bITsTRING)->size = 3;                                                     \
+    (bITsTRING)->bits_unused = 4;                                              \
   } while (0)
 /*
  * TS 36.413 v10.9.0 section 9.2.1.38:
@@ -399,15 +408,15 @@
  * Identity correspond to the eNB
  * ID (defined in subclause 9.2.1.37).
  */
-#define MACRO_ENB_ID_TO_CELL_IDENTITY(mACRO, cELL_iD, bITsTRING)      \
-  do {                                                                \
-    (bITsTRING)->buf = (uint8_t*)calloc(4, sizeof(uint8_t));          \
-    (bITsTRING)->buf[0] = ((mACRO) >> 12);                            \
-    (bITsTRING)->buf[1] = (mACRO) >> 4;                               \
-    (bITsTRING)->buf[2] = (((mACRO) & 0x0f) << 4) | ((cELL_iD) >> 4); \
-    (bITsTRING)->buf[3] = ((cELL_iD) & 0x0f) << 4;                    \
-    (bITsTRING)->size = 4;                                            \
-    (bITsTRING)->bits_unused = 4;                                     \
+#define MACRO_ENB_ID_TO_CELL_IDENTITY(mACRO, cELL_iD, bITsTRING)               \
+  do {                                                                         \
+    (bITsTRING)->buf = reinterpret_cast<uint8_t*>(calloc(4, sizeof(uint8_t))); \
+    (bITsTRING)->buf[0] = ((mACRO) >> 12);                                     \
+    (bITsTRING)->buf[1] = (mACRO) >> 4;                                        \
+    (bITsTRING)->buf[2] = (((mACRO)&0x0f) << 4) | ((cELL_iD) >> 4);            \
+    (bITsTRING)->buf[3] = ((cELL_iD)&0x0f) << 4;                               \
+    (bITsTRING)->size = 4;                                                     \
+    (bITsTRING)->bits_unused = 4;                                              \
   } while (0)
 
 /* Used to format an uint32_t containing an ipv4 address */
@@ -558,54 +567,74 @@ imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi);
     }                                                                          \
   }
 
-#define IMEI_MOBID_TO_IMEI64(iMeI_t_PtR, iMEI64)                           \
-  {                                                                        \
-    (*iMEI64) = (uint64_t)((iMeI_t_PtR)->u.num.tac1);                      \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac2)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac3)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac4)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac5)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac6)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac7)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac8)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr1)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr2)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr3)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr4)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr5)); \
-    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr6)); \
+#define IMEI_MOBID_TO_IMEI64(iMeI_t_PtR, iMEI64)                            \
+  {                                                                         \
+    (*iMEI64) = static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac1);            \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac2); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac3); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac4); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac5); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac6); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac7); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac8); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.snr1); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.snr2); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.snr3); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.snr4); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.snr5); \
+    (*iMEI64) =                                                             \
+        (10 * (*iMEI64)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.snr6); \
   }
 
 #define IMEI_MOBID_TO_IMEI_TAC64(iMeI_t_PtR, tAc_PtR)                        \
   {                                                                          \
-    (*tAc_PtR) = (uint64_t)((iMeI_t_PtR)->u.num.tac1);                       \
-    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac2)); \
-    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac3)); \
-    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac4)); \
-    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac5)); \
-    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac6)); \
-    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac7)); \
-    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac8)); \
+    (*tAc_PtR) = static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac1);            \
+    (*tAc_PtR) =                                                             \
+        (10 * (*tAc_PtR)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac2); \
+    (*tAc_PtR) =                                                             \
+        (10 * (*tAc_PtR)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac3); \
+    (*tAc_PtR) =                                                             \
+        (10 * (*tAc_PtR)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac4); \
+    (*tAc_PtR) =                                                             \
+        (10 * (*tAc_PtR)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac5); \
+    (*tAc_PtR) =                                                             \
+        (10 * (*tAc_PtR)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac6); \
+    (*tAc_PtR) =                                                             \
+        (10 * (*tAc_PtR)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac7); \
+    (*tAc_PtR) =                                                             \
+        (10 * (*tAc_PtR)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac8); \
   }
 
-#define IMSI_TO_OCTET_STRING(iMsI_sTr, iMsI_len, aSN)              \
-  do {                                                             \
-    int len = 0;                                                   \
-    int idx = 0;                                                   \
-    if ((iMsI_len % 2) != 0) {                                     \
-      len = (iMsI_len / 2) + 1;                                    \
-    } else {                                                       \
-      len = (iMsI_len / 2);                                        \
-    }                                                              \
-    (aSN)->buf = (uint8_t*)calloc(len, sizeof(uint8_t));           \
-    for (idx = 0; idx < (len); idx++) {                            \
-      ((aSN)->buf)[idx] = (iMsI_sTr[2 * idx] & 0x0f) |             \
-                          ((iMsI_sTr[(2 * idx) + 1] << 4) & 0xf0); \
-    }                                                              \
-    if ((iMsI_len % 2) != 0) {                                     \
-      ((aSN)->buf)[idx - 1] |= 0xf0;                               \
-    }                                                              \
-    (aSN)->size = len;                                             \
+#define IMSI_TO_OCTET_STRING(iMsI_sTr, iMsI_len, aSN)                      \
+  do {                                                                     \
+    int len = 0;                                                           \
+    int idx = 0;                                                           \
+    if ((iMsI_len % 2) != 0) {                                             \
+      len = (iMsI_len / 2) + 1;                                            \
+    } else {                                                               \
+      len = (iMsI_len / 2);                                                \
+    }                                                                      \
+    (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(len, sizeof(uint8_t))); \
+    for (idx = 0; idx < (len); idx++) {                                    \
+      ((aSN)->buf)[idx] = (iMsI_sTr[2 * idx] & 0x0f) |                     \
+                          ((iMsI_sTr[(2 * idx) + 1] << 4) & 0xf0);         \
+    }                                                                      \
+    if ((iMsI_len % 2) != 0) {                                             \
+      ((aSN)->buf)[idx - 1] |= 0xf0;                                       \
+    }                                                                      \
+    (aSN)->size = len;                                                     \
   } while (0)
 #define IMEISV_TO_STRING(iMeIsV_t_PtR, iMeIsV_sTr, MaXlEn)                     \
   {                                                                            \
@@ -727,11 +756,11 @@ void hexa_to_ascii(uint8_t* from, char* to, size_t length);
 
 int ascii_to_hex(uint8_t* dst, const char* h);
 #define UINT8_TO_BINARY_FMT "%c%c%c%c%c%c%c%c"
-#define UINT8_TO_BINARY_ARG(bYtE)                               \
-  ((bYtE) & 0x80 ? '1' : '0'), ((bYtE) & 0x40 ? '1' : '0'),     \
-      ((bYtE) & 0x20 ? '1' : '0'), ((bYtE) & 0x10 ? '1' : '0'), \
-      ((bYtE) & 0x08 ? '1' : '0'), ((bYtE) & 0x04 ? '1' : '0'), \
-      ((bYtE) & 0x02 ? '1' : '0'), ((bYtE) & 0x01 ? '1' : '0')
+#define UINT8_TO_BINARY_ARG(bYtE)                           \
+  ((bYtE)&0x80 ? '1' : '0'), ((bYtE)&0x40 ? '1' : '0'),     \
+      ((bYtE)&0x20 ? '1' : '0'), ((bYtE)&0x10 ? '1' : '0'), \
+      ((bYtE)&0x08 ? '1' : '0'), ((bYtE)&0x04 ? '1' : '0'), \
+      ((bYtE)&0x02 ? '1' : '0'), ((bYtE)&0x01 ? '1' : '0')
 
 int get_time_zone(void);
 #define GUTI_STRING_LEN 21
