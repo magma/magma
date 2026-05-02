@@ -92,7 +92,7 @@ the left sidebar, then edit the feature flag named "Include tab for Grafana in t
 |ip_address_released |Total IP addresses released |AGW |mobilityd |
 |s6a_auth_success |Total successful S6a auth requests |AGW |subscriberdb |
 |s6a_auth_failure |Total failed S6a auth requests |AGW |subscriberdb |
-|s6a_location_update |Total S6a lcoation update requests |AGW |subscriberdb |
+|s6a_location_update |Total S6a location update requests |AGW |subscriberdb |
 |diameter_capabilities_exchange |Total Diameter capabilities exchange requests |AGW |subscriberdb |
 |diameter_watchdog |Total Diameter watchdog requests |AGW |subscriberdb |
 |diameter_disconnect |Total Diameter disconnect requests |AGW |subscriberdb |
