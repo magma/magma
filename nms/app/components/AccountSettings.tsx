@@ -1601,3 +1601,4 @@ lastpush
 // go 3
 // go 4
 // go 5
+// go 6
