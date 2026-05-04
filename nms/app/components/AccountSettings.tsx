@@ -272,3 +272,4 @@ export default function AccountSettings() {
 // hammer 49
 // hammer 50
 // rush 1
+// rush 2
