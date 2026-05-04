@@ -128,3 +128,4 @@ export default function AccountSettings() {
   );
 }
 // eslint-disable-next-line
+// eslint-disable max-len 1
