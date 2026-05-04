@@ -1596,3 +1596,4 @@ lastpush
 // assault 48
 // assault 49
 // assault 50
+// go 1
