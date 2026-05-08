@@ -1,12 +1,11 @@
 module fbc/lib/go/oc
 
-go 1.20
+go 1.25
 
 replace (
 	fbc/lib/go/http => ../http
 	fbc/lib/go/log => ../log
 	fbc/lib/go/oc/helpers => ../oc/helpers
-
 )
 
 require (
@@ -25,7 +24,7 @@ require (
 
 require (
 	fbc/lib/go/log v0.0.0 // indirect
-	github.com/apache/thrift v0.13.0 // indirect
+	github.com/apache/thrift v0.23.0 // indirect
 	github.com/aws/aws-sdk-go v1.34.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
