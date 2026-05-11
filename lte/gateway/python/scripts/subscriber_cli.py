@@ -249,7 +249,7 @@ def update_subscriber(client, args):
             apn_config.ambr.max_bandwidth_dl = int(apn_dict[dl])
             apn_config.pdn = int(apn_dict[pdn_type])
             apn_config.assigned_static_ip = apn_dict[static_ip]
-            apn_config.is_default = apn_dict[is_default]
+            apn_config.is_default = str(apn_dict[is_default]).strip().lower() == "true"
 
             if apn_dict[vlan_id]:
                 apn_config.resource.vlan_id = int(apn_dict[vlan_id])
