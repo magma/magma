@@ -89,7 +89,7 @@ sequenceDiagram
     SESSIOND->>MME(AMF): SetSmfSessionContext
     MME(AMF)->>RAN: Initial ContextSetup Request
     RAN->>UE/CPE: Service Request Accept
-    RAN->>MME(AMF): IntialContextSetup Response
+    RAN->>MME(AMF): InitialContextSetup Response
 ```
 
 Paging procedure call flow
