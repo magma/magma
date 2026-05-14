@@ -69,10 +69,10 @@ def _deserialize_generic_json(
         # try to deserialize as json string
         try:
             element = ast.literal_eval(element)
-        except:
+        except (ValueError, SyntaxError):
             try:
                 element = jsonpickle.decode(element)
-            except:
+            except Exception:
                 return element
 
     if isinstance(element, dict):
