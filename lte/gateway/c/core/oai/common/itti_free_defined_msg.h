@@ -40,6 +40,21 @@
 
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void itti_free_msg_content(MessageDef* const message_p);
+
+/* This macro is essential for cleaning up 5G N11 messages */
+#define itti_free(mSGid, pTR)   \
+  do {                          \
+    itti_free_msg_content(pTR); \
+    free(pTR);                  \
+  } while (0)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FILE_ITTI_FREE_DEFINED_MSG_SEEN */

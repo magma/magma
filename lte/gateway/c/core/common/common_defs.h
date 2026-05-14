@@ -53,13 +53,13 @@
       reinterpret_cast<uintptr_t>(&(reinterpret_cast<TyPe*>(0)->MeMBeR)))
 
 #define COUNT_OF(x)              \
-  ((sizeof(x) / sizeof(0 [x])) / \
-   (static_cast<size_t>(!(sizeof(x) % sizeof(0 [x])))))
+  ((sizeof(x) / sizeof(0[x])) / \
+  (static_cast<size_t>(!(sizeof(x) % sizeof(0[x])))))
 #else
 #define OFFSET_OF(TyPe, MeMBeR) ((size_t) & ((TyPe*)0)->MeMBeR)  // NOLINT
 #define COUNT_OF(x)              \
-  ((sizeof(x) / sizeof(0 [x])) / \
-   ((size_t)(!(sizeof(x) % sizeof(0 [x])))))  // NOLINT
+  ((sizeof(x) / sizeof(0[x])) / \
+  ((size_t)(!(sizeof(x) % sizeof(0 [x])))))  // NOLINT
 #endif
 
 #ifndef __cplusplus
@@ -120,7 +120,6 @@ typedef enum {
   /* Defines error code limit below which received message should be discarded
    * because it cannot be further processed */
   TLV_FATAL_ERROR = TLV_VALUE_DOESNT_MATCH
-
 } tlv_error_code_e;
 
 /* Intended to be the primary mechanism to gracefully handle errors across
@@ -145,9 +144,9 @@ typedef enum {
 
 //------------------------------------------------------------------------------
 #ifdef __cplusplus
-#define DECODE_U8(bUFFER, vALUE, sIZE)         \
-  vALUE = *reinterpret_cast<uint8_t*>(bUFFER); \
-  sIZE += sizeof(uint8_t)
+#define DECODE_U8(bUFFER, vALUE, sIZE)               \
+  vALUE = *reinterpret_cast<const uint8_t*>(bUFFER); \
+  sIZE += 1;
 #else
 #define DECODE_U8(bUFFER, vALUE, sIZE)      \
   vALUE = *(uint8_t*)(bUFFER); /* NOLINT */ \
@@ -277,38 +276,38 @@ typedef enum {
       ntohs((addr)->s6_addr16[6]), ntohs((addr)->s6_addr16[7])
 
 #ifdef __cplusplus
-#define IN6_ARE_ADDR_MASKED_EQUAL(a, b, m)          \
-  ((((reinterpret_cast<const uint32_t*>(a))[0] &                               \
-     (reinterpret_cast<const uint32_t*>(m))[0])) ==                            \
-    ((reinterpret_cast<const uint32_t*>(b))[0] &                               \
-     (reinterpret_cast<const uint32_t*>(m))[0])) &&                            \
-   (((reinterpret_cast<const uint32_t*>(a))[1] &                               \
-     (reinterpret_cast<const uint32_t*>(m))[1])) ==                            \
-    ((reinterpret_cast<const uint32_t*>(b))[1] &                               \
-     (reinterpret_cast<const uint32_t*>(m))[1])) &&                            \
-   (((reinterpret_cast<const uint32_t*>(a))[2] &                               \
-     (reinterpret_cast<const uint32_t*>(m))[2])) ==                            \
-    ((reinterpret_cast<const uint32_t*>(b))[2] &                               \
-     (reinterpret_cast<const uint32_t*>(m))[2])) &&                            \
-   (((reinterpret_cast<const uint32_t*>(a))[3] &                               \
-     (reinterpret_cast<const uint32_t*>(m))[3])) ==                            \
-    ((reinterpret_cast<const uint32_t*>(b))[3] &                               \
-     (reinterpret_cast<const uint32_t*>(m))[3])))
+#define IN6_ARE_ADDR_MASKED_EQUAL(a, b, m)         \
+  ((((reinterpret_cast<const uint32_t*>(a))[0] &                              \
+    (reinterpret_cast<const uint32_t*>(m))[0])) ==                            \
+    ((reinterpret_cast<const uint32_t*>(b))[0] &                              \
+    (reinterpret_cast<const uint32_t*>(m))[0])) &&                            \
+    (((reinterpret_cast<const uint32_t*>(a))[1] &                             \
+    (reinterpret_cast<const uint32_t*>(m))[1])) ==                            \
+    ((reinterpret_cast<const uint32_t*>(b))[1] &                              \
+    (reinterpret_cast<const uint32_t*>(m))[1])) &&                            \
+    (((reinterpret_cast<const uint32_t*>(a))[2] &                             \
+    (reinterpret_cast<const uint32_t*>(m))[2])) ==                            \
+    ((reinterpret_cast<const uint32_t*>(b))[2] &                              \
+    (reinterpret_cast<const uint32_t*>(m))[2])) &&                            \
+    (((reinterpret_cast<const uint32_t*>(a))[3] &                             \
+    (reinterpret_cast<const uint32_t*>(m))[3])) ==                            \
+    ((reinterpret_cast<const uint32_t*>(b))[3] &                              \
+    (reinterpret_cast<const uint32_t*>(m))[3])))
 #else
 #define IN6_ARE_ADDR_MASKED_EQUAL(a, b, m)           \
   (((((__const uint32_t*)(a))[0] &                   \
      (((__const uint32_t*)(m))[0])) == /* NOLINT */  \
     (((__const uint32_t*)(b))[0] &                   \
      (((__const uint32_t*)(m))[0]))) && /* NOLINT */ \
-   ((((__const uint32_t*)(a))[1] &                   \
+    ((((__const uint32_t*)(a))[1] &                  \
      (((__const uint32_t*)(m))[1])) == /* NOLINT */  \
     (((__const uint32_t*)(b))[1] &                   \
      (((__const uint32_t*)(m))[1]))) && /* NOLINT */ \
-   ((((__const uint32_t*)(a))[2] &                   \
+    ((((__const uint32_t*)(a))[2] &                  \
      (((__const uint32_t*)(m))[2])) == /* NOLINT */  \
     (((__const uint32_t*)(b))[2] &                   \
      (((__const uint32_t*)(m))[2]))) && /* NOLINT */ \
-   ((((__const uint32_t*)(a))[3] &                   \
+    ((((__const uint32_t*)(a))[3] &                  \
      (((__const uint32_t*)(m))[3])) == /* NOLINT */  \
     (((__const uint32_t*)(b))[3] &                   \
      (((__const uint32_t*)(m))[3])))) /* NOLINT */

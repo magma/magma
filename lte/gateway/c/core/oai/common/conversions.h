@@ -56,7 +56,7 @@
 #if (BYTE_ORDER == LITTLE_ENDIAN)
 #define hton_int32(x)                                   \
   (((x & 0x000000FF) << 24) | ((x & 0x0000FF00) << 8) | \
-   ((x & 0x00FF0000) >> 8) | ((x & 0xFF000000) >> 24))
+  ((x & 0x00FF0000) >> 8) | ((x & 0xFF000000) >> 24))
 
 #define hton_int16(x) \
     (((x & 0x00FF) << 8) | ((x & 0xFF00) >> 8)
@@ -72,6 +72,7 @@
 /* in: X (struct inaddr) in network byte order (big endian)
  * out: bUFF with most significant IP byte in buf[0]
  */
+#ifdef __cplusplus
 #define IN_ADDR_TO_BUFFER(X, bUFF)                      \
   do {                                                  \
     (reinterpret_cast<uint8_t*>(bUFF))[0] =             \
@@ -83,15 +84,37 @@
     (reinterpret_cast<uint8_t*>(bUFF))[3] =             \
         (reinterpret_cast<uint8_t*>(&((X).s_addr)))[3]; \
   } while (0)
+#else
+#define IN_ADDR_TO_BUFFER(X, bUFF)                                       \
+  do {                                                                   \
+    ((uint8_t*)(bUFF))[0] = ((uint8_t*)(&((X).s_addr)))[0]; /* NOLINT */ \
+    ((uint8_t*)(bUFF))[1] = ((uint8_t*)(&((X).s_addr)))[1]; /* NOLINT */ \
+    ((uint8_t*)(bUFF))[2] = ((uint8_t*)(&((X).s_addr)))[2]; /* NOLINT */ \
+    ((uint8_t*)(bUFF))[3] = ((uint8_t*)(&((X).s_addr)))[3]; /* NOLINT */ \
+  } while (0)
+#endif
 
+#ifdef __cplusplus
 #define BUFFER_TO_IN_ADDR(bUFF, X)                                             \
   do {                                                                         \
     (X).s_addr =                                                               \
-        (static_cast<uint32_t>((reinterpret_cast<uint8_t*>(bUFF))[0])) |       \
-        (static_cast<uint32_t>((reinterpret_cast<uint8_t*>(bUFF))[1]) << 8) |  \
-        (static_cast<uint32_t>((reinterpret_cast<uint8_t*>(bUFF))[2]) << 16) | \
-        (static_cast<uint32_t>((reinterpret_cast<uint8_t*>(bUFF))[3]) << 24);  \
+        (static_cast<uint32_t>((reinterpret_cast<const uint8_t*>(bUFF))[0])) | \
+        (static_cast<uint32_t>((reinterpret_cast<const uint8_t*>(bUFF))[1])    \
+         << 8) |                                                               \
+        (static_cast<uint32_t>((reinterpret_cast<const uint8_t*>(bUFF))[2])    \
+         << 16) |                                                              \
+        (static_cast<uint32_t>((reinterpret_cast<const uint8_t*>(bUFF))[3])    \
+         << 24);                                                               \
   } while (0)
+#else
+#define BUFFER_TO_IN_ADDR(bUFF, X)                                      \
+  do {                                                                  \
+    (X).s_addr = ((uint32_t)((uint8_t*)(bUFF))[0]) |       /* NOLINT */ \
+                 ((uint32_t)((uint8_t*)(bUFF))[1] << 8) |  /* NOLINT */ \
+                 ((uint32_t)((uint8_t*)(bUFF))[2] << 16) | /* NOLINT */ \
+                 ((uint32_t)((uint8_t*)(bUFF))[3] << 24);  /* NOLINT */ \
+  } while (0)
+#endif
 
 #define IN6_ADDR_TO_BUFFER(X, bUFF)                           \
   do {                                                        \
@@ -138,12 +161,21 @@
     x = ((buf)[0] << 8) | ((buf)[1]); \
   } while (0)
 
+#ifdef __cplusplus
 #define BUFFER_TO_INT24(buf, x)                                        \
   do {                                                                 \
     x = static_cast<int32_t>((static_cast<uint32_t>((buf)[0]) << 16) | \
                              (static_cast<uint32_t>((buf)[1]) << 8) |  \
                              (static_cast<uint32_t>((buf)[2])));       \
   } while (0)
+#else
+#define BUFFER_TO_INT24(buf, x)                                               \
+  do {                                                                        \
+    x = (int32_t)(((uint32_t)((buf)[0]) << 16) | /* NOLINT */                 \
+                  ((uint32_t)((buf)[1]) << 8) |  /* NOLINT */                 \
+                  ((uint32_t)((buf)[2])));       /* NOLINT */                 \
+  } while (0)
+#endif
 
 /* Convert an integer on 32 bits to the given bUFFER */
 #define INT32_TO_BUFFER(x, buf) \
@@ -155,6 +187,7 @@
   } while (0)
 
 /* Convert an array of char containing vALUE to x */
+#ifdef __cplusplus
 #define BUFFER_TO_INT32(buf, x)                                        \
   do {                                                                 \
     x = static_cast<int32_t>((static_cast<uint32_t>((buf)[0]) << 24) | \
@@ -162,14 +195,32 @@
                              (static_cast<uint32_t>((buf)[2]) << 8) |  \
                              (static_cast<uint32_t>((buf)[3])));       \
   } while (0)
+#else
+#define BUFFER_TO_INT32(buf, x)                                                \
+  do {                                                                         \
+    x = (int32_t)(((uint32_t)((buf)[0]) << 24) |            /* NOLINT */       \
+                  ((uint32_t)((buf)[1]) << 16) |            /* NOLINT */       \
+                  ((uint32_t)((buf)[2]) << 8) |             /* NOLINT */       \
+                  ((uint32_t)((buf)[3])));                  /* NOLINT */       \
+  } while (0)
+#endif
 
 /* Convert an integer on 32 bits to an octet string from aSN1c tool */
+#ifdef __cplusplus
 #define INT32_TO_OCTET_STRING(x, aSN)                                    \
   do {                                                                   \
     (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(4, sizeof(uint8_t))); \
     INT32_TO_BUFFER(x, ((aSN)->buf));                                    \
     (aSN)->size = 4;                                                     \
   } while (0)
+#else
+#define INT32_TO_OCTET_STRING(x, aSN)                                 \
+  do {                                                                \
+    (aSN)->buf = (uint8_t*)(calloc(4, sizeof(uint8_t))); /* NOLINT */ \
+    INT32_TO_BUFFER(x, ((aSN)->buf));                                 \
+    (aSN)->size = 4;                                                  \
+  } while (0)  // NOLINT
+#endif
 
 #define INT32_TO_BIT_STRING(x, aSN) \
   do {                              \
@@ -189,26 +240,53 @@
     (aSN)->bits_unused = 2;               \
   } while (0)
 
+#ifdef __cplusplus
 #define INT24_TO_OCTET_STRING(x, aSN)                                    \
   do {                                                                   \
     (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(3, sizeof(uint8_t))); \
     (aSN)->size = 3;                                                     \
     INT24_TO_BUFFER(x, (aSN)->buf);                                      \
   } while (0)
+#else
+#define INT24_TO_OCTET_STRING(x, aSN)                                 \
+  do {                                                                \
+    (aSN)->buf = (uint8_t*)(calloc(3, sizeof(uint8_t))); /* NOLINT */ \
+    (aSN)->size = 3;                                                  \
+    INT24_TO_BUFFER(x, (aSN)->buf);                                   \
+  } while (0)  // NOLINT
+#endif
 
+#ifdef __cplusplus
 #define INT16_TO_OCTET_STRING(x, aSN)                                    \
   do {                                                                   \
     (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(2, sizeof(uint8_t))); \
     (aSN)->size = 2;                                                     \
     INT16_TO_BUFFER(x, (aSN)->buf);                                      \
   } while (0)
+#else
+#define INT16_TO_OCTET_STRING(x, aSN)                                 \
+  do {                                                                \
+    (aSN)->buf = (uint8_t*)(calloc(2, sizeof(uint8_t))); /* NOLINT */ \
+    (aSN)->size = 2;                                                  \
+    INT16_TO_BUFFER(x, (aSN)->buf);                                   \
+  } while (0)  // NOLINT
+#endif
 
+#ifdef __cplusplus
 #define INT8_TO_OCTET_STRING(x, aSN)                                     \
   do {                                                                   \
     (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(1, sizeof(uint8_t))); \
     (aSN)->size = 1;                                                     \
     INT8_TO_BUFFER(x, (aSN)->buf);                                       \
   } while (0)
+#else
+#define INT8_TO_OCTET_STRING(x, aSN)                                  \
+  do {                                                                \
+    (aSN)->buf = (uint8_t*)(calloc(1, sizeof(uint8_t))); /* NOLINT */ \
+    (aSN)->size = 1;                                                  \
+    INT8_TO_BUFFER(x, (aSN)->buf);                                    \
+  } while (0)  // NOLINT
+#endif
 
 #define MME_CODE_TO_OCTET_STRING INT8_TO_OCTET_STRING
 #define M_TMSI_TO_OCTET_STRING INT32_TO_OCTET_STRING
@@ -264,6 +342,8 @@
   (mNCdIGITlENGTH == 2 ? 15 : (vALUE) / 100)
 #define MCC_MNC_DECIMAL(vALUE) (((vALUE) / 10) % 10)
 #define MCC_MNC_DIGIT(vALUE) ((vALUE) % 10)
+#define MNC_TENS(mNC) ((mNC / 10) % 10)
+#define MNC_UNITS(mNC) (mNC % 10)
 
 #define MCC_TO_BUFFER(mCC, bUFFER)      \
   do {                                  \
@@ -273,16 +353,28 @@
     (bUFFER)[2] = MCC_MNC_DIGIT(mCC);   \
   } while (0)
 
+#ifdef __cplusplus
+#define MCC_MNC_TO_PLMNID(mCC, mNC, mNCdIGITlENGTH, oCTETsTRING)             \
+  do {                                                                       \
+    (oCTETsTRING)->buf =                                                     \
+        reinterpret_cast<uint8_t*>(calloc(3, sizeof(uint8_t)));              \
+    (oCTETsTRING)->buf[0] = (MCC_MNC_DECIMAL(mCC) << 4) | MCC_HUNDREDS(mCC); \
+    (oCTETsTRING)->buf[1] =                                                  \
+        (MNC_HUNDREDS(mNC, mNCdIGITlENGTH) << 4) | MCC_MNC_DIGIT(mCC);       \
+    (oCTETsTRING)->buf[2] = (MNC_TENS(mNC) << 4) | MNC_UNITS(mNC);           \
+    (oCTETsTRING)->size = 3;                                                 \
+  } while (0)
+#else
 #define MCC_MNC_TO_PLMNID(mCC, mNC, mNCdIGITlENGTH, oCTETsTRING)              \
   do {                                                                        \
-    (oCTETsTRING)->buf =                                                      \
-        reinterpret_cast<uint8_t*>(calloc(3, sizeof(uint8_t)));               \
+    (oCTETsTRING)->buf = (uint8_t*)(calloc(3, sizeof(uint8_t))); /* NOLINT */ \
     (oCTETsTRING)->buf[0] = (MCC_MNC_DECIMAL(mCC) << 4) | MCC_HUNDREDS(mCC);  \
     (oCTETsTRING)->buf[1] =                                                   \
         (MNC_HUNDREDS(mNC, mNCdIGITlENGTH) << 4) | MCC_MNC_DIGIT(mCC);        \
-    (oCTETsTRING)->buf[2] = (MCC_MNC_DIGIT(mNC) << 4) | MCC_MNC_DECIMAL(mNC); \
+    (oCTETsTRING)->buf[2] = (MNC_TENS(mNC) << 4) | MNC_UNITS(mNC);            \
     (oCTETsTRING)->size = 3;                                                  \
-  } while (0)
+  } while (0)  // NOLINT
+#endif
 
 #define MCC_MNC_TO_TBCD(mCC, mNC, mNCdIGITlENGTH, tBCDsTRING)                \
   do {                                                                       \
@@ -617,17 +709,13 @@ imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi);
         (10 * (*tAc_PtR)) + static_cast<uint64_t>((iMeI_t_PtR)->u.num.tac8); \
   }
 
+#ifdef __cplusplus
 #define IMSI_TO_OCTET_STRING(iMsI_sTr, iMsI_len, aSN)                      \
   do {                                                                     \
-    int len = 0;                                                           \
+    int len = (iMsI_len % 2 != 0) ? (iMsI_len / 2) + 1 : (iMsI_len / 2);   \
     int idx = 0;                                                           \
-    if ((iMsI_len % 2) != 0) {                                             \
-      len = (iMsI_len / 2) + 1;                                            \
-    } else {                                                               \
-      len = (iMsI_len / 2);                                                \
-    }                                                                      \
     (aSN)->buf = reinterpret_cast<uint8_t*>(calloc(len, sizeof(uint8_t))); \
-    for (idx = 0; idx < (len); idx++) {                                    \
+    for (idx = 0; idx < len; idx++) {                                      \
       ((aSN)->buf)[idx] = (iMsI_sTr[2 * idx] & 0x0f) |                     \
                           ((iMsI_sTr[(2 * idx) + 1] << 4) & 0xf0);         \
     }                                                                      \
@@ -636,6 +724,22 @@ imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi);
     }                                                                      \
     (aSN)->size = len;                                                     \
   } while (0)
+#else
+#define IMSI_TO_OCTET_STRING(iMsI_sTr, iMsI_len, aSN)                    \
+  do {                                                                   \
+    int len = (iMsI_len % 2 != 0) ? (iMsI_len / 2) + 1 : (iMsI_len / 2); \
+    int idx = 0;                                                         \
+    (aSN)->buf = (uint8_t*)(calloc(len, sizeof(uint8_t))); /* NOLINT */  \
+    for (idx = 0; idx < (len); idx++) {                                  \
+      ((aSN)->buf)[idx] = (iMsI_sTr[2 * idx] & 0x0f) |                   \
+                          ((iMsI_sTr[(2 * idx) + 1] << 4) & 0xf0);       \
+    }                                                                    \
+    if ((iMsI_len % 2) != 0) {                                           \
+      ((aSN)->buf)[idx - 1] |= 0xf0;                                     \
+    }                                                                    \
+    (aSN)->size = len;                                                   \
+  } while (0)  // NOLINT
+#endif
 #define IMEISV_TO_STRING(iMeIsV_t_PtR, iMeIsV_sTr, MaXlEn)                     \
   {                                                                            \
     int l_offset = 0;                                                          \

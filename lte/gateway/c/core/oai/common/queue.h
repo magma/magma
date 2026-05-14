@@ -499,27 +499,6 @@
   }
 
 #define CIRCLEQ_HEAD_INITIALIZER(head) \
-  { reinterpret_cast<void*>(&head), reinterpret_cast<void*>(&head) }
-
-#define CIRCLEQ_ENTRY(type)                       \
-  struct {                                        \
-    struct type* cqe_next; /* next element */     \
-    struct type* cqe_prev; /* previous element */ \
-  }
-
-/*
- * Circular queue functions.
- */
-/*
- * Circular queue definitions.
- */
-#define CIRCLEQ_HEAD(name, type)                \
-  struct name {                                 \
-    struct type* cqh_first; /* first element */ \
-    struct type* cqh_last;  /* last element */  \
-  }
-
-#define CIRCLEQ_HEAD_INITIALIZER(head) \
   { (reinterpret_cast<void*>(&head)), (reinterpret_cast<void*>(&head)) }
 
 #define CIRCLEQ_ENTRY(type)                       \
