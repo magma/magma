@@ -21,11 +21,15 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/lib/itti/intertask_interface_types.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #ifdef __cplusplus
 }
 #endif
 
 #include "lte/gateway/c/core/common/common_defs.h"
+#include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
 #include "lte/gateway/c/core/oai/common/conversions.h"
 #include "lte/gateway/c/core/oai/include/service303.hpp"
@@ -67,7 +71,10 @@ static void handle_allocate_ipv4_address_status(
 
   size_t apn_len = strlen(apn);
   if (apn_len >= sizeof(amf_ip_allocation_response_p->apn)) {
-    OAILOG_ERROR(LOG_AMF_APP, "APN too long (%zu bytes), dropping IPv4v6 allocation response\n", apn_len);
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "APN too long (%zu bytes), dropping IPv4v6 allocation response\n",
+        apn_len);
     itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
     return;
   }
@@ -113,7 +120,10 @@ static void handle_allocate_ipv6_address_status(
 
   size_t apn_len = strlen(apn);
   if (apn_len >= sizeof(amf_ip_allocation_response_p->apn)) {
-    OAILOG_ERROR(LOG_AMF_APP, "APN too long (%zu bytes), dropping IPv6 allocation response\n", apn_len);
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "APN too long (%zu bytes), dropping IPv6 allocation response\n",
+        apn_len);
     itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
     return;
   }
@@ -160,7 +170,10 @@ static void handle_allocate_ipv4v6_address_status(
 
   size_t apn_len = strlen(apn);
   if (apn_len >= sizeof(amf_ip_allocation_response_p->apn)) {
-    OAILOG_ERROR(LOG_AMF_APP, "APN too long (%zu bytes), dropping IPv4v6 allocation response\n", apn_len);
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "APN too long (%zu bytes), dropping IPv4v6 allocation response\n",
+        apn_len);
     itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
     return;
   }

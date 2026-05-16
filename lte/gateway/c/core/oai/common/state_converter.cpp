@@ -32,12 +32,12 @@ StateConverter::~StateConverter() = default;
 /*************************************************/
 
 void StateConverter::plmn_to_chars(const plmn_t& state_plmn, char* plmn_array) {
-  plmn_array[0] = (char)(state_plmn.mcc_digit1 + ASCII_ZERO);
-  plmn_array[1] = (char)(state_plmn.mcc_digit2 + ASCII_ZERO);
-  plmn_array[2] = (char)(state_plmn.mcc_digit3 + ASCII_ZERO);
-  plmn_array[3] = (char)(state_plmn.mnc_digit1 + ASCII_ZERO);
-  plmn_array[4] = (char)(state_plmn.mnc_digit2 + ASCII_ZERO);
-  plmn_array[5] = (char)(state_plmn.mnc_digit3 + ASCII_ZERO);
+  plmn_array[0] = static_cast<char>(state_plmn.mcc_digit1 + ASCII_ZERO);
+  plmn_array[1] = static_cast<char>(state_plmn.mcc_digit2 + ASCII_ZERO);
+  plmn_array[2] = static_cast<char>(state_plmn.mcc_digit3 + ASCII_ZERO);
+  plmn_array[3] = static_cast<char>(state_plmn.mnc_digit1 + ASCII_ZERO);
+  plmn_array[4] = static_cast<char>(state_plmn.mnc_digit2 + ASCII_ZERO);
+  plmn_array[5] = static_cast<char>(state_plmn.mnc_digit3 + ASCII_ZERO);
 }
 
 void StateConverter::chars_to_plmn(const char* plmn_array, plmn_t* state_plmn) {
@@ -85,7 +85,8 @@ void StateConverter::ecgi_to_proto(const ecgi_t& state_ecgi,
 void StateConverter::proto_to_ecgi(const oai::Ecgi& ecgi_proto,
                                    ecgi_t* state_ecgi) {
   chars_to_plmn(ecgi_proto.plmn().c_str(), &state_ecgi->plmn);
-  strncpy((char*)&state_ecgi->plmn, ecgi_proto.plmn().c_str(), PLMN_BYTES);
+  strncpy(reinterpret_cast<char*>(&state_ecgi->plmn), ecgi_proto.plmn().c_str(),
+          PLMN_BYTES);
 
   state_ecgi->cell_identity.enb_id = ecgi_proto.enb_id();
   state_ecgi->cell_identity.cell_id = ecgi_proto.cell_id();

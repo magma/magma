@@ -49,12 +49,13 @@ extern enum_to_string_t pdn_type_to_string[IP_MAX];
 
 char* enum_to_string(int enum_val, enum_to_string_t* string_table,
                      int nb_element);
-#define ACCESS_MODE_TO_STRING(vAL)             \
-  enum_to_string(                              \
-      (int)vAL, network_access_mode_to_string, \
+#define ACCESS_MODE_TO_STRING(vAL)                          \
+  enum_to_string(                                           \
+      static_cast<int>(vAL), network_access_mode_to_string, \
       sizeof(network_access_mode_to_string) / sizeof(enum_to_string_t))
-#define PDN_TYPE_TO_STRING(vAL)                \
-  enum_to_string((int)vAL, pdn_type_to_string, \
+
+#define PDN_TYPE_TO_STRING(vAL)                             \
+  enum_to_string(static_cast<int>(vAL), pdn_type_to_string, \
                  sizeof(pdn_type_to_string) / sizeof(enum_to_string_t))
 
 #endif /* FILE_ENUM_STRING_SEEN */
