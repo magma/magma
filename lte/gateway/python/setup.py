@@ -118,7 +118,7 @@ setup(
         'websocket-client>=1.3.2',
         'requests==2.33.0',
         'certifi>=2022.6.15',
-        'idna==3.3',
+        'idna==3.15',
         'python-dateutil>=2.8.2',
         'six>=1.16.0',
         'eventlet==0.30.2',
