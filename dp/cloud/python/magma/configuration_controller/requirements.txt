@@ -4,7 +4,7 @@ click==7.1.2
 cryptography==46.0.7
 grpcio==1.53.2
 grpcio-tools==1.37.1
-idna==2.10
+idna==3.15
 prometheus_client==0.3.1
 psycopg2-binary==2.8.6
 pytz==2021.1
