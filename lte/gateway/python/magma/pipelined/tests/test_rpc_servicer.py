@@ -157,7 +157,6 @@ class RPCServicerTest(unittest.TestCase):
         assert self._enforcer_app.deactivate_rules.call_args.args[1].address == ip_addr.address
         assert self._enforcer_app.deactivate_rules.call_args.args[2] == ["rule1"]
 
-
     # -----------------------------------------------------------------------
     # Tests for _activate_rules_in_enforcement mixed-rule fix
     # -----------------------------------------------------------------------
@@ -175,7 +174,7 @@ class RPCServicerTest(unittest.TestCase):
             redirect=RedirectInformation(
                 support=RedirectInformation.ENABLED,
                 address_type=RedirectInformation.URL,
-                server_address="http://example.com",
+                server_address="https://example.com",
             ),
         )
         return VersionedPolicy(rule=rule, version=version)
