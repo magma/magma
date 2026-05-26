@@ -424,13 +424,36 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         shard_id: int,
         local_f_teid_ng: int = 0,
     ) -> ActivateFlowsResult:
-        # TODO: this will crash pipelined if called with both static rules
-        # and dynamic rules at the same time
-        enforcement_res = self._enforcer_app.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
-            shard_id, local_f_teid_ng,
-        )
-        # TODO ?? Should the enforcement failure be reported per imsi session
+        # Split into redirect (dynamic) and regular (static) so we don't hand
+        # both to activate_rules at once — mixing them causes a crash because
+        # redirect install is async DNS-backed while flow_list install is sync
+        # OVS message hub. Process them separately and merge results.
+        static_policies = [
+            p for p in policies
+            if p.rule.redirect.support != p.rule.redirect.ENABLED
+        ]
+        redirect_policies = [
+            p for p in policies
+            if p.rule.redirect.support == p.rule.redirect.ENABLED
+        ]
+
+        combined_results = []
+
+        if static_policies:
+            static_res = self._enforcer_app.activate_rules(
+                imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr,
+                static_policies, shard_id, local_f_teid_ng,
+            )
+            combined_results.extend(static_res.policy_results)
+
+        if redirect_policies:
+            redirect_res = self._enforcer_app.activate_rules(
+                imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr,
+                redirect_policies, shard_id, local_f_teid_ng,
+            )
+            combined_results.extend(redirect_res.policy_results)
+
+        enforcement_res = ActivateFlowsResult(policy_results=combined_results)
         _report_enforcement_failures(enforcement_res, imsi)
         return enforcement_res
 

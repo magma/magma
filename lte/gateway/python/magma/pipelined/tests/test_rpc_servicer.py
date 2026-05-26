@@ -17,13 +17,15 @@ from unittest.mock import MagicMock
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
+    ActivateFlowsResult,
     DeactivateFlowsRequest,
     RequestOriginType,
+    RuleModResult,
     SetupPolicyRequest,
     VersionedPolicy,
     VersionedPolicyID,
 )
-from lte.protos.policydb_pb2 import PolicyRule
+from lte.protos.policydb_pb2 import PolicyRule, RedirectInformation
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
 
@@ -154,6 +156,120 @@ class RPCServicerTest(unittest.TestCase):
         assert self._enforcer_app.deactivate_rules.call_args.args[1].version == ip_addr.version
         assert self._enforcer_app.deactivate_rules.call_args.args[1].address == ip_addr.address
         assert self._enforcer_app.deactivate_rules.call_args.args[2] == ["rule1"]
+
+
+    # -----------------------------------------------------------------------
+    # Tests for _activate_rules_in_enforcement mixed-rule fix
+    # -----------------------------------------------------------------------
+
+    def _make_static_policy(self, rule_id, version=1):
+        rule = PolicyRule(
+            id=rule_id, priority=100,
+            redirect=RedirectInformation(support=RedirectInformation.DISABLED),
+        )
+        return VersionedPolicy(rule=rule, version=version)
+
+    def _make_redirect_policy(self, rule_id, version=1):
+        rule = PolicyRule(
+            id=rule_id, priority=100,
+            redirect=RedirectInformation(
+                support=RedirectInformation.ENABLED,
+                address_type=RedirectInformation.URL,
+                server_address="http://example.com",
+            ),
+        )
+        return VersionedPolicy(rule=rule, version=version)
+
+    def _fake_activate_rules_result(self, rule_id):
+        return ActivateFlowsResult(
+            policy_results=[
+                RuleModResult(rule_id=rule_id, result=RuleModResult.SUCCESS),
+            ],
+        )
+
+    def test_activate_rules_in_enforcement_only_static(self):
+        # Only static rules — should call activate_rules exactly once
+        ip = IPAddress(version=IPAddress.IPV4, address=b'1.2.3.4')
+        p1 = self._make_static_policy('static1')
+        p2 = self._make_static_policy('static2')
+
+        self._enforcer_app.activate_rules.side_effect = [
+            self._fake_activate_rules_result('static1'),
+            self._fake_activate_rules_result('static2'),
+        ]
+
+        result = self.pipelined_srv._activate_rules_in_enforcement(
+            'imsi01', b'msisdn', 0, ip, None, [p1, p2], 0,
+        )
+
+        # called once — both static go in one shot
+        self.assertEqual(self._enforcer_app.activate_rules.call_count, 1)
+        passed_policies = self._enforcer_app.activate_rules.call_args.args[5]
+        self.assertEqual(len(passed_policies), 2)
+        self.assertEqual(len(result.policy_results), 1)
+
+    def test_activate_rules_in_enforcement_only_redirect(self):
+        # Only redirect rules — should call activate_rules exactly once
+        ip = IPAddress(version=IPAddress.IPV4, address=b'1.2.3.4')
+        p1 = self._make_redirect_policy('redir1')
+
+        self._enforcer_app.activate_rules.return_value = \
+            self._fake_activate_rules_result('redir1')
+
+        result = self.pipelined_srv._activate_rules_in_enforcement(
+            'imsi01', b'msisdn', 0, ip, None, [p1], 0,
+        )
+
+        self.assertEqual(self._enforcer_app.activate_rules.call_count, 1)
+        passed_policies = self._enforcer_app.activate_rules.call_args.args[5]
+        self.assertEqual(len(passed_policies), 1)
+        self.assertEqual(passed_policies[0].rule.id, 'redir1')
+        self.assertEqual(len(result.policy_results), 1)
+
+    def test_activate_rules_in_enforcement_mixed_no_crash(self):
+        # The actual bug: mixed static + redirect — should call activate_rules
+        # twice (once per group) and merge results cleanly
+        ip = IPAddress(version=IPAddress.IPV4, address=b'1.2.3.4')
+        static_p = self._make_static_policy('static_rule')
+        redir_p = self._make_redirect_policy('redir_rule')
+
+        self._enforcer_app.activate_rules.side_effect = [
+            self._fake_activate_rules_result('static_rule'),
+            self._fake_activate_rules_result('redir_rule'),
+        ]
+
+        result = self.pipelined_srv._activate_rules_in_enforcement(
+            'imsi01', b'msisdn', 0, ip, None, [static_p, redir_p], 0,
+        )
+
+        # two calls — one for each group
+        self.assertEqual(self._enforcer_app.activate_rules.call_count, 2)
+
+        first_call_policies = self._enforcer_app.activate_rules.call_args_list[0].args[5]
+        second_call_policies = self._enforcer_app.activate_rules.call_args_list[1].args[5]
+
+        # first batch is static, second is redirect
+        self.assertEqual(len(first_call_policies), 1)
+        self.assertEqual(first_call_policies[0].rule.id, 'static_rule')
+        self.assertEqual(len(second_call_policies), 1)
+        self.assertEqual(second_call_policies[0].rule.id, 'redir_rule')
+
+        # both results merged
+        self.assertEqual(len(result.policy_results), 2)
+        result_ids = {r.rule_id for r in result.policy_results}
+        self.assertIn('static_rule', result_ids)
+        self.assertIn('redir_rule', result_ids)
+
+    def test_activate_rules_in_enforcement_empty_policies(self):
+        # edge case: empty list — should not call activate_rules at all
+        ip = IPAddress(version=IPAddress.IPV4, address=b'1.2.3.4')
+
+        result = self.pipelined_srv._activate_rules_in_enforcement(
+            'imsi01', b'msisdn', 0, ip, None, [], 0,
+        )
+
+        self._enforcer_app.activate_rules.assert_not_called()
+        self.assertEqual(len(result.policy_results), 0)
 
 
 if __name__ == "__main__":
