@@ -12,12 +12,14 @@ Run with:
 import sys
 import types
 import unittest
+from pathlib import Path
 from unittest.mock import MagicMock
 
 # Add the gateway python path first so real magma.pipelined code loads
-_GATEWAY_PYTHON = r'c:\Users\anurag\.gemini\antigravity\scratch\magma\lte\gateway\python'
-if _GATEWAY_PYTHON not in sys.path:
-    sys.path.insert(0, _GATEWAY_PYTHON)
+_GATEWAY_PYTHON = Path(__file__).resolve().parents[3]
+_GATEWAY_PYTHON_STR = str(_GATEWAY_PYTHON)
+if _GATEWAY_PYTHON_STR not in sys.path:
+    sys.path.insert(0, _GATEWAY_PYTHON_STR)
 
 
 # ---------------------------------------------------------------------------
