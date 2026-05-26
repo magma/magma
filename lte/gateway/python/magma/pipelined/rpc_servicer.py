@@ -1034,7 +1034,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def GetStats(self, request, context):
         """
         Invokes API that returns a RuleRecordTable filtering records based
-        on cookie and cookie mask request parameters
+        on cookie and cookie mask request parameters.
+
+        Args:
+            request: gRPC request with cookie filter parameters.
+            context: gRPC request context.
+
+        Returns:
+            RuleRecordTable: Filtered rule records for the requested cookies.
         """
         self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
@@ -1090,7 +1097,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 self._ng_inactivate_qer_flows(ipv6, qos_enforce_rule)
 
         # Install PDR rules
-        elif pdr_entry.pdr_state in (PdrState.Value('INSTALL'), PdrState.Value('MODI')):
+        elif pdr_entry.pdr_state in {PdrState.Value('INSTALL'), PdrState.Value('MODI')}:
             qos_enforce_rule = pdr_entry.add_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
                 ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
