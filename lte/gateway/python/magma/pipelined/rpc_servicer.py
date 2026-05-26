@@ -414,6 +414,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
+    def _is_dynamic_policy(self, policy: VersionedPolicy) -> bool:
+        """
+        Determine if a policy is dynamic or static based on its characteristics.
+        Dynamic policies have explicit flow descriptions or redirect support enabled,
+        whereas static policies are looked up at runtime by rule ID.
+        """
+        return policy.rule.flow_list or policy.rule.redirect.support
+
     def _activate_rules_in_enforcement(
         self, imsi: str,
         msisdn: bytes,
@@ -424,15 +432,36 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         shard_id: int,
         local_f_teid_ng: int = 0,
     ) -> ActivateFlowsResult:
-        # TODO: this will crash pipelined if called with both static rules
-        # and dynamic rules at the same time
-        enforcement_res = self._enforcer_app.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
-            shard_id, local_f_teid_ng,
-        )
-        # TODO ?? Should the enforcement failure be reported per imsi session
-        _report_enforcement_failures(enforcement_res, imsi)
-        return enforcement_res
+        # TODO: this was crashing pipelined if called with both static rules
+        # and dynamic rules at the same time. Split into two calls now.
+        static_batch = []
+        dynamic_batch = []
+        for p in policies:
+            if self._is_dynamic_policy(p):
+                dynamic_batch.append(p)
+            else:
+                static_batch.append(p)
+
+        # Install static rules first (or empty batch for default flows).
+        # Use the static response as the base to preserve all fields.
+        if static_batch or not policies:
+            result = self._enforcer_app.activate_rules(
+                imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_batch,
+                shard_id, local_f_teid_ng,
+            )
+        else:
+            result = ActivateFlowsResult()
+
+        # Then install dynamic rules and merge results
+        if dynamic_batch:
+            dynamic_res = self._enforcer_app.activate_rules(
+                imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, dynamic_batch,
+                shard_id, local_f_teid_ng,
+            )
+            result.policy_results.extend(dynamic_res.policy_results)
+
+        _report_enforcement_failures(result, imsi)
+        return result
 
     def _activate_rules_in_gy(
         self, imsi: str, msisdn: bytes,
@@ -1061,8 +1090,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 self._ng_inactivate_qer_flows(ipv6, qos_enforce_rule)
 
         # Install PDR rules
-        elif pdr_entry.pdr_state == PdrState.Value('INSTALL') or \
-                pdr_entry.pdr_state == PdrState.Value('MODI'):
+        elif pdr_entry.pdr_state in (PdrState.Value('INSTALL'), PdrState.Value('MODI')):
             qos_enforce_rule = pdr_entry.add_qos_enforce_rule
             if qos_enforce_rule.ip_addr:
                 ipv4 = convert_ip_str_to_ip_proto(qos_enforce_rule.ip_addr)
@@ -1175,12 +1203,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> List[RuleModResult]:
-    failed_policies_results = \
-        [
-            result for result in
-            activate_flow_result.policy_results if
-            result.result == RuleModResult.FAILURE
-        ]
+    failed_policies_results = [
+        result
+        for result in activate_flow_result.policy_results
+        if result.result == RuleModResult.FAILURE
+    ]
     return failed_policies_results
 
 
@@ -1190,8 +1217,9 @@ def _filter_failed_policies(
 ) -> List[VersionedPolicy]:
     failed_policies = [result.rule_id for result in failed_results]
     return [
-        policy for policy in request.policies if
-        policy.rule.id not in failed_policies
+        policy
+        for policy in request.policies
+        if policy.rule.id not in failed_policies
     ]
 
 
@@ -1222,9 +1250,12 @@ def _report_enforcement_stats_failures(
 
 
 def get_deactivate_req(request: ActivateFlowsRequest):
+    """
+    Get a deactivate request from an activate request to clean up a failed session.
+    """
     versioned_policy_ids = [
-        VersionedPolicyID(rule_id=p.rule.id, version=p.version) for
-        p in request.policies
+        VersionedPolicyID(rule_id=p.rule.id, version=p.version)
+        for p in request.policies
     ]
     return DeactivateFlowsRequest(
         sid=request.sid,
