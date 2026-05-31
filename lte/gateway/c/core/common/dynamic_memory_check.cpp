@@ -27,7 +27,6 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
-
 /*! \file dynamic_memory_check.cpp
   \brief
   \author Lionel Gauthier
@@ -40,17 +39,14 @@ extern "C" {
 #endif
 #include <stdlib.h>
 #include "lte/gateway/c/core/common/assertions.h"
-
 //------------------------------------------------------------------------------
 void free_wrapper(void** ptr) {
-  // for debug only
   AssertFatal(ptr, "Trying to free NULL ptr");
-  if (ptr) {
+  if (ptr && *ptr) {
     free(*ptr);
     *ptr = NULL;
   }
 }
-
 //------------------------------------------------------------------------------
 void bdestroy_wrapper(bstring* b) {
   if ((b) && (*b)) {
@@ -61,7 +57,6 @@ void bdestroy_wrapper(bstring* b) {
 #ifdef __cplusplus
 }
 #endif
-
 // Frees the contents of pointer, called while freeing an entry from protobuf
 // map
 // TODO(rsarwad): rename free_wrapper once all tasks are migrated to cpp.
