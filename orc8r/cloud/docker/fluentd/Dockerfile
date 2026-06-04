@@ -11,7 +11,10 @@
 
 FROM fluent/fluentd:v1.14.6-debian-1.0
 USER root
-RUN gem install \
+RUN gem install rubygems-update -v 3.2.33 --no-document && \
+    update_rubygems && \
+    gem install \
+    multi_json:1.15.0 \
     elasticsearch:7.13.0 \
     fluent-plugin-elasticsearch:5.2.1 \
     fluent-plugin-multi-format-parser:1.0.0 \
