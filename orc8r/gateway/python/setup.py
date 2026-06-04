@@ -79,7 +79,7 @@ setup(
         'pytz>=2022.1',
         'prometheus_client==0.3.1',
         'sentry_sdk>=1.5.0,<1.9',
-        'snowflake>=0.0.3',
+        'snowflake==0.0.3',
         'psutil==5.9.1',
         'cryptography==42.0.4',
         'itsdangerous==1.1.0',
