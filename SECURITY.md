@@ -76,3 +76,5 @@ The Security Vulnerability team members shall include the members of the TSC, cu
 ## Policy
 
 The Magma Core Foundation follows the principle of [The CERT Guide to Coordinated Vulnerability Disclosure](https://resources.sei.cmu.edu/asset_files/SpecialReport/2017_003_001_503340.pdf)
+
+For the security principles and engineering requirements that govern how the software is designed, built, and operated — covering secure defaults, network-facing protocol parsers, control/data-plane enforcement, authentication and authorization, cryptography, and secure coding — see the [Secure-by-Design Policy](SECURITY_BY_DESIGN.md).
