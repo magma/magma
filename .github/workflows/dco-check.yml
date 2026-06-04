@@ -25,7 +25,7 @@ concurrency:
 jobs:
   reverted-pr-check:
     name: Reverted PR Check Job
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       PR_TITLE: "${{ github.event.pull_request.title }}"
     # Map a step output to a job output
@@ -59,7 +59,7 @@ jobs:
     needs: reverted-pr-check
     if: ${{ needs.reverted-pr-check.outputs.is_reverted_pr == 'false' }}
     name: DCO Check
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Get PR Commits
         id: 'get-pr-commits'

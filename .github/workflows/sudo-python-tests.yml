@@ -27,11 +27,11 @@ jobs:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin@v4.2.2
       - name: Maximize build space
         uses: ./.github/workflows/composite/maximize-build-space
       - name: Cache magma-dev-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # pin@v4.1.2
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_dev
           key: vagrant-box-magma-dev-v1.3.20221230
@@ -48,7 +48,7 @@ jobs:
           else
             echo "Vagrant cloud token is not configured. Skipping login."
           fi
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5.3.0
         with:
           python-version: '3.10.12'
       - name: Install pre requisites

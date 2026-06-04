@@ -24,11 +24,11 @@ jobs:
   # Build images on ubuntu which is faster than MacOs.
   docker-build-orc8r:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin@v4.2.2
       - name: Build Orc8r docker images
         run: |
           cd orc8r/cloud/docker
@@ -50,11 +50,11 @@ jobs:
 
   docker-build-feg:
     if: github.repository_owner == 'magma' || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     env:
       MAGMA_ROOT: "${{ github.workspace }}"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin@v4.2.2
       - name: pre requisites to build feg
         run: |
           cd ${{ env.MAGMA_ROOT }} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
@@ -83,14 +83,14 @@ jobs:
       MAGMA_ROOT: "${{ github.workspace }}"
       AGW_ROOT: "${{ github.workspace }}/lte/gateway"
     steps:
-      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8 # pin@v3.1.0
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # pin@v4.2.2
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@54081f138730dfa15788a46383842cd2f914a1be # pin@v1.3.1
         with:
           # this might remove tools that are actually needed,
           # when set to "true" but frees about 6 GB
           tool-cache: true
-      - uses: actions/setup-python@13ae5bb136fac2878aff31522b9efb785519f984 # pin@v4.3.0
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # pin@v5.3.0
         with:
           python-version: '3.10.12'
       - name: Install pre requisites
@@ -114,17 +114,17 @@ jobs:
           sudo sh -c "echo '* 192.168.0.0/16' > /etc/vbox/networks.conf"
           sudo sh -c "echo '* 3001::/64' >> /etc/vbox/networks.conf"
       - name: Cache magma-deb-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # pin@v4.1.2
         with:
           path: ~/.vagrant.d/boxes/ubuntu-VAGRANTSLASH-focal64
           key: vagrant-box-magma-deb-focal64-20220804.0.0
       - name: Cache magma-test-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # pin@v4.1.2
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_test
           key: vagrant-box-magma-test-v1.3.20221230
       - name: Cache magma-trfserver-box
-        uses: actions/cache@9b0c1fce7a93df8e3bb8926b0d6e9d89e92f20a7 # pin@v3.0.11
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # pin@v4.1.2
         with:
           path: ~/.vagrant.d/boxes/magmacore-VAGRANTSLASH-magma_trfserver
           key: vagrant-box-magma-trfserver-v1.3.20221230
