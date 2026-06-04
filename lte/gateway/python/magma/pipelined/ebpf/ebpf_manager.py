@@ -20,8 +20,12 @@ import struct
 import subprocess
 
 import netifaces
-from bcc import BPF
 from lte.protos.mobilityd_pb2 import IPAddress
+
+try:
+    from bcc import BPF
+except ImportError:
+    BPF = None
 from magma.pipelined.gw_mac_address import get_mac_by_ip4, get_mac_by_ip6
 from magma.pipelined.ifaces import get_mac_address_from_iface
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info
@@ -46,6 +50,10 @@ DL_CFG_ARRAY_NAME = "cfg_array"
 def get_ebpf_manager(config):
     if 'ebpf' not in config or not config['ebpf']['enabled']:
         LOG.info("eBPF manager: Not initilized")
+        return None
+
+    if BPF is None:
+        LOG.warning("eBPF manager: bcc module not available, skipping eBPF initialization")
         return None
 
     gw_info = get_mobilityd_gw_info()
