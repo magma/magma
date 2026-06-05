@@ -221,6 +221,64 @@ multiple services are restarted while UDP traffic is flowing:\
  , make sure traffic server VM is running (as described in traffic tests above) and
 TCP checksum is disabled on all VMs.
 
+## Testing with External eNB Simulators
+
+In addition to the built-in `magma_test` S1AP tester, Magma's MME can be tested using
+external eNB simulator tools such as srsRAN or custom S1AP clients.
+
+### SCTP PPID Requirement
+
+**Important:** When connecting an external eNB simulator to Magma's MME, the SCTP
+Payload Protocol Identifier (PPID) **must** be set to `18` (S1AP PPID as defined in
+3GPP TS 36.412 Section 7). Connections with PPID=0 (the default for most SCTP
+implementations) will be rejected by `sctpd` with the following log message:
+
+```
+sctpd: Received data from peer with unsollicited PPID 0, expecting 18
+```
+
+When using Python with `pysctp`, set the PPID correctly using `sctp_send()`:
+
+```python
+import sctp, socket
+
+sock = sctp.sctpsocket_tcp(socket.AF_INET)
+sock.connect(("192.100.3.77", 36412))  # MME S1AP interface
+
+# PPID must be 18 (not socket.htonl(18)) - pysctp handles byte order internally
+sock.sctp_send(s1ap_pdu_bytes, ppid=18)
+```
+
+### S1AP Interface Verification
+
+To confirm the MME S1AP interface is active:
+
+```bash
+# Check SCTP listener
+sudo ss -tnlp | grep 36412
+# Expected: sctp 192.100.3.77:36412 LISTEN sctpd
+
+# Confirm SCTP traffic reaches the MME decoder
+sudo tail -f /var/log/mme.log | grep S1AP
+```
+
+A successful S1 connection attempt will appear in `/var/log/mme.log` as:
+```
+INFO  S1AP  s1ap_mme_handlers.cpp  SCTP New Association (assoc_id=N)
+```
+
+### S1AP Message Flow
+
+The S1AP message path through Magma's services is:
+
+```
+External eNB --[SCTP, PPID=18]--> sctpd --[gRPC]--> mme (OAI)
+                                  :36412
+```
+
+The `sctpd` service (`/usr/local/sbin/sctpd`) acts as an SCTP transport proxy,
+forwarding validated S1AP PDUs to the MME process via gRPC.
+
 ## Notes
 
 - Restart the *magma* VM (`vagrant reload magma`) on an assertion error involving `ENB_S1_SETUP_RESP.` This is a known issue.
