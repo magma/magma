@@ -40,11 +40,14 @@ class RequestRouter(object):
     ) -> None:
         self.sas_url = sas_url
         self.rc_ingest_url = rc_ingest_url
-        self.cert_path = cert_path
-        self.ssl_key_path = ssl_key_path
-        self.ssl_verify = ssl_verify
         self.request_mapping = request_mapping
         self.crl_validator = crl_validator
+
+        self.sas_session = requests.Session()
+        self.sas_session.cert = (cert_path, ssl_key_path)
+        self.sas_session.verify = ssl_verify
+
+        self.rc_session = requests.Session()
 
     @SAS_REQUEST_PROCESSING_TIME.time()
     def post_to_sas(self, request_dict: Dict[str, List[Dict]]) -> requests.Response:
@@ -81,11 +84,9 @@ class RequestRouter(object):
             if self.crl_validator:
                 self.crl_validator.is_valid(url=self.sas_url)
 
-            sas_response = requests.post(
+            sas_response = self.sas_session.post(
                 f'{self.sas_url}/{sas_method}',
                 json=request_dict,
-                cert=(self.cert_path, self.ssl_key_path),
-                verify=self.ssl_verify,
             )
         except Exception as e:
             raise RequestRouterError(str(e))
@@ -107,6 +108,6 @@ class RequestRouter(object):
         """
         payload = sas_response.json()
         try:
-            return requests.post(self.rc_ingest_url, json=payload)
+            return self.rc_session.post(self.rc_ingest_url, json=payload)
         except Exception as e:
             raise RequestRouterError(str(e))

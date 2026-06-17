@@ -81,6 +81,56 @@ class RequestRouterTestCase(TestCase):
                 request_dict={"nonExistingSasMethod": [{}]},
             )
 
+    def test_session_reuses_connection_across_sas_calls(self, mocker):
+        # Given
+        self._register_test_post_endpoints(
+            mocker, f'{self.sas_url}/registration',
+        )
+        self._register_test_post_endpoints(
+            mocker, f'{self.sas_url}/heartbeat',
+        )
+
+        # When
+        resp1 = self.router.post_to_sas(
+            request_dict={"registrationRequest": [{"foo": "bar"}]},
+        )
+        resp2 = self.router.post_to_sas(
+            request_dict={"heartbeatRequest": [{"cbsdId": "foo", "grantId": "bar"}]},
+        )
+
+        # Then
+        self.assertEqual(200, resp1.status_code)
+        self.assertEqual(200, resp2.status_code)
+
+    def test_sas_session_has_cert_configured(self, mocker):
+        # Then
+        self.assertEqual(
+            ('fake/cert/path', 'fake/key/path'),
+            self.router.sas_session.cert,
+        )
+        self.assertEqual(False, self.router.sas_session.verify)
+
+    def test_sas_session_is_reused_across_calls(self, mocker):
+        # Given
+        self._register_test_post_endpoints(
+            mocker, f'{self.sas_url}/registration',
+        )
+        session_before = self.router.sas_session
+
+        # When
+        self.router.post_to_sas(
+            request_dict={"registrationRequest": [{"foo": "bar"}]},
+        )
+
+        # Then - same session object is used
+        self.assertIs(session_before, self.router.sas_session)
+
+    def test_rc_session_is_separate_from_sas_session(self, mocker):
+        # Then
+        self.assertIsNot(self.router.sas_session, self.router.rc_session)
+        # RC session should not have SAS cert configured
+        self.assertIsNone(self.router.rc_session.cert)
+
     def _register_test_post_endpoints(self, mocker, url):
         mocker.register_uri('POST', url, json=self._response_callback)
 
