@@ -410,61 +410,7 @@ bool validate_ngap_setup_request(Ngap_NGAP_PDU_t* pdu) {
          sizeof(m5g_supported_ta_list_t));
 
   m5g_supported_ta_list_t* supp_ta_list = &gnb_association_supported_ta_list;
-  supp_ta_list->list_count = ta_list->list.count;
-
-  /* Storing supported TAI lists received in Ng SETUP REQUEST message */
-  for (int tai_idx = 0; tai_idx < supp_ta_list->list_count; tai_idx++) {
-    Ngap_SupportedTAItem_t* tai = NULL;
-    tai = ta_list->list.array[tai_idx];
-    tai->tAC.size = 2;  // ACL_TAG temp to test remove later
-    OCTET_STRING_TO_TAC(&tai->tAC,
-                        supp_ta_list->supported_tai_items[tai_idx].tac);
-
-    bplmn_list_count = tai->broadcastPLMNList.list.count;
-    if (bplmn_list_count > NGAP_MAX_BROADCAST_PLMNS) {
-      return false;
-    }
-    supp_ta_list->supported_tai_items[tai_idx].bplmnlist_count =
-        bplmn_list_count;
-
-    for (int plmn_idx = 0; plmn_idx < bplmn_list_count; plmn_idx++) {
-      TBCD_TO_PLMN_T(&tai->broadcastPLMNList.list.array[plmn_idx]->pLMNIdentity,
-                     &supp_ta_list->supported_tai_items[tai_idx]
-                          .bplmn_list[plmn_idx]
-                          .plmn_id);
-
-      supp_ta_list->supported_tai_items[tai_idx]
-          .bplmn_list[plmn_idx]
-          .num_of_s_nssai = tai->broadcastPLMNList.list.array[plmn_idx]
-                                ->tAISliceSupportList.list.count;
-
-      for (int nssai_index = 0;
-           nssai_index < supp_ta_list->supported_tai_items[tai_idx]
-                             .bplmn_list[plmn_idx]
-                             .num_of_s_nssai;
-           nssai_index++) {
-        supp_ta_list->supported_tai_items[tai_idx]
-            .bplmn_list[plmn_idx]
-            .s_nssai[nssai_index]
-            .sst = tai->broadcastPLMNList.list.array[plmn_idx]
-                       ->tAISliceSupportList.list.array[nssai_index]
-                       ->s_NSSAI.sST.buf[0];
-
-        if (tai->broadcastPLMNList.list.array[plmn_idx]
-                ->tAISliceSupportList.list.array[nssai_index]
-                ->s_NSSAI.sD) {
-          memcpy(&(supp_ta_list->supported_tai_items[tai_idx]
-                       .bplmn_list[plmn_idx]
-                       .s_nssai[nssai_index]
-                       .sd),
-                 tai->broadcastPLMNList.list.array[plmn_idx]
-                     ->tAISliceSupportList.list.array[nssai_index]
-                     ->s_NSSAI.sD->buf,
-                 sizeof(amf_s_nssai_t));
-        }
-      }
-    }
-  }
+  ngap_amf_store_supported_ta_list(supp_ta_list, ta_list);
 
   return true;
 }

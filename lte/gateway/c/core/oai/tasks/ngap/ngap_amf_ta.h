@@ -25,6 +25,7 @@
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_types.h"
 
 enum {
+  TA_LIST_UNKNOWN_SLICE = -4,
   TA_LIST_UNKNOWN_TAC = -2,
   TA_LIST_UNKNOWN_PLMN = -1,
   TA_LIST_RET_OK = 0,
@@ -49,3 +50,7 @@ int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list);
 int ngap_paging_compare_ta_lists(m5g_supported_ta_list_t* enb_ta_list,
                                  const paging_tai_list_t* p_tai_list,
                                  uint8_t p_tai_list_count);
+void ngap_amf_store_supported_ta_list(
+    m5g_supported_ta_list_t* supp_ta_list,
+    Ngap_SupportedTAList_t* ta_list);
+

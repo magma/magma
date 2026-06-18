@@ -31,6 +31,7 @@ extern "C" {
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_encoder.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_nas_procedures.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
 #ifdef __cplusplus
 }
 #endif

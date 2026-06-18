@@ -21,9 +21,18 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #ifdef __cplusplus
 }
 #endif
+
+// Define itti_free macro locally to fix missing symbol definition in upstream
+#define itti_free(task_id, msg) \
+  do { \
+    itti_free_msg_content(msg); \
+    free(msg); \
+  } while (0)
 
 #include "lte/gateway/c/core/common/common_defs.h"
 #include "lte/gateway/c/core/oai/common/common_types.h"
