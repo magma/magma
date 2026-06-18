@@ -81,7 +81,7 @@ setup(
         'sentry_sdk>=1.5.0,<1.9',
         'snowflake>=0.0.3',
         'psutil==5.9.1',
-        'cryptography==42.0.4',
+        'cryptography==48.0.1',
         'itsdangerous==1.1.0',
         'click==7.1.2',
         'pycares>=4.2.1',
