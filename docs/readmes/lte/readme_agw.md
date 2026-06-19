@@ -148,4 +148,26 @@ subcommands:
     config_enodeb       Configure eNodeB
     reboot_enodeb       Reboot eNodeB
     get_status          Get eNodeB status
+
+```
+
+## Troubleshooting
+
+### AGW Build Fails at `install_egg` (Python Dependency Conflicts)
+
+If your `make build` execution fails during the Python environment setup with errors related to `setuptools` (e.g., `AttributeError: type object 'Distribution' has no attribute '_finalize_feature_opts'`) or missing `requests` distributions, the build environment is trying to pull deprecated dependencies.
+
+You can dynamically patch the legacy version limits before compiling by running the following commands from your Vagrant instance:
+
+```bash
+# 1. Downgrade setuptools to a stable legacy version across all make files
+find ~/magma -type f -name "python.mk" -exec sed -i 's/setuptools==58.3.0/setuptools==49.6.0/g' {} +
+
+# 2. Relax the requests versioning constraint to allow flexible pip resolution
+find ~/magma -type f -name "setup.py" -exec sed -i 's/requests==2.32.4/requests>=2.20.0/g' {} +
+
+# 3. Clean the corrupted virtual environment and rebuild
+rm -rf /home/vagrant/build/python
+make build
+
 ```
