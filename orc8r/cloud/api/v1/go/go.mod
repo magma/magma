@@ -34,7 +34,6 @@ require (
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/loads v0.21.0 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
-	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jessevdk/go-flags v1.5.0 // indirect
@@ -56,12 +55,13 @@ require (
 	github.com/spf13/viper v1.10.1 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/toqueteos/webbrowser v1.2.0 // indirect
-	go.mongodb.org/mongo-driver v1.8.2 // indirect
-	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/tools v0.1.12 // indirect
+	go.mongodb.org/mongo-driver v1.17.7 // indirect
+	golang.org/x/mod v0.17.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
+	golang.org/x/sync v0.8.0 // indirect
+	golang.org/x/sys v0.20.0 // indirect
+	golang.org/x/text v0.17.0 // indirect
+	golang.org/x/tools v0.21.1-0.20240508182429-e35e4ccd0d2d // indirect
 	gopkg.in/ini.v1 v1.66.3 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
