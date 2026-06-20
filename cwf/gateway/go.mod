@@ -41,7 +41,7 @@ require (
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
 	github.com/stretchr/testify v1.9.0
 	github.com/vishvananda/netlink v1.1.0
-	golang.org/x/crypto v0.31.0
+	golang.org/x/crypto v0.35.0
 	google.golang.org/grpc v1.64.1
 	layeh.com/radius v0.0.0-20210819152912-ad72663a72ab
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
@@ -84,7 +84,6 @@ require (
 	github.com/go-openapi/strfmt v0.21.1 // indirect
 	github.com/go-openapi/validate v0.20.3 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
-	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
@@ -128,7 +127,7 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.1 // indirect
 	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
-	go.mongodb.org/mongo-driver v1.8.2 // indirect
+	go.mongodb.org/mongo-driver v1.17.7 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0 // indirect
 	go.opentelemetry.io/otel v1.28.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.28.0 // indirect
@@ -136,8 +135,8 @@ require (
 	go.opentelemetry.io/otel/sdk v1.28.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/sys v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	golang.org/x/time v0.0.0-20220722155302-e5dcc9cfc0b9 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
@@ -147,6 +146,4 @@ require (
 	magma/feg/cloud/go v0.0.0 // indirect
 )
 
-go 1.21
-
-toolchain go1.21.12
+go 1.23.0
