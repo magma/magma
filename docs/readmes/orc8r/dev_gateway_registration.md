@@ -17,7 +17,20 @@ In efforts to simplify gateway registration, the new registration process only r
 The overview of gateway registration is as follows:
 ![gateway_registration_overview](assets/orc8r/gateway_registration_overview.png)
 
-Note: The operator should set per-tenant default `control_proxy.yml` through the API endpoint `\tenants\{tenant_id}\control_proxy` as a prerequisite.
+Note: The operator should set per-tenant default `control_proxy.yml` through the API endpoint `/tenants/{tenant_id}/control_proxy` as a prerequisite. The `tenant_id` is the numeric tenant ID, not the network ID. The tenant must include the network that contains the gateway being registered, because Orc8r resolves the control proxy from the gateway network ID during registration.
+
+For example, if the gateway belongs to network `my-network`, create or update a tenant with that network attached:
+
+```json
+{
+   "id": 1,
+   "name": "local-tenant",
+   "networks": ["my-network"]
+}
+```
+
+Then set the tenant control proxy at `/tenants/1/control_proxy`. If the gateway network is not attached to a tenant, registration can fail with an error similar to `could not get control-proxy from tenant with network ID <network_id>`.
+
 The control proxy must have `\n` characters as line breaks. Here is a sample request body:
 
 ```json
