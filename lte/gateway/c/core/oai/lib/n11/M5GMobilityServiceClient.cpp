@@ -21,6 +21,8 @@ extern "C" {
 #endif
 #include "lte/gateway/c/core/oai/include/ip_forward_messages_types.h"
 #include "lte/gateway/c/core/oai/lib/itti/intertask_interface.h"
+#include "lte/gateway/c/core/oai/common/log.h"
+#include "lte/gateway/c/core/oai/common/itti_free_defined_msg.h"
 #ifdef __cplusplus
 }
 #endif
@@ -39,39 +41,63 @@ using magma::lte::MobilityServiceClient;
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
-static void handle_allocate_ipv4_address_status(
-    const grpc::Status& status, struct in_addr in_ip4_addr, int vlan,
-    const char* imsi, const char* apn, uint32_t pdu_session_id, uint8_t pti,
-    uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
-    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
-  MessageDef* message_p;
-  message_p =
-      itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_IP_ALLOCATION_RESPONSE);
+static bool check_and_copy_apn(
+    char* dest_apn, size_t max_len, const char* src_apn,
+    MessageDef* message_p, const char* response_type) {
+  if (src_apn == nullptr) {
+    return false;
+  }
+  size_t len = strlen(src_apn);
+  if (len >= max_len) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "APN too long (%zu bytes), dropping %s\n", len,
+        response_type);
+    itti_free_msg_content(message_p);
+    free(message_p);
+    return false;
+  }
+  memcpy(dest_apn, src_apn, len + 1);
+  return true;
+}
 
-  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
-  amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
+static void send_ip_allocation_response(
+    const grpc::Status& status, const char* imsi, const char* apn,
+    uint32_t pdu_session_id, uint8_t pti, uint32_t pdu_session_type,
+    pdn_type_value_t pdn_type, const struct in_addr* in_ip4_addr, const struct in6_addr* in_ip6_addr,
+    int vlan, uint32_t gnb_gtp_teid, uint8_t* gnb_gtp_teid_ip_addr,
+    uint8_t gnb_gtp_teid_ip_addr_len, const char* response_type) {
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_IP_ALLOCATION_RESPONSE);
+  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p =
+      &message_p->ittiMsg.amf_ip_allocation_response;
 
   memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
   amf_ip_allocation_response_p->imsi_length = IMSI_BCD_DIGITS_MAX;
   amf_ip_allocation_response_p->pdu_session_id = pdu_session_id;
   amf_ip_allocation_response_p->pti = pti;
   amf_ip_allocation_response_p->pdu_session_type = pdu_session_type;
-  amf_ip_allocation_response_p->paa.ipv4_address = in_ip4_addr;
-  amf_ip_allocation_response_p->paa.pdn_type = IPv4;
+  amf_ip_allocation_response_p->paa.pdn_type = pdn_type;
   amf_ip_allocation_response_p->paa.vlan = vlan;
 
+  if (in_ip4_addr) {
+    amf_ip_allocation_response_p->paa.ipv4_address = *in_ip4_addr;
+  }
+  if (in_ip6_addr) {
+    amf_ip_allocation_response_p->paa.ipv6_address = *in_ip6_addr;
+  }
+
   amf_ip_allocation_response_p->gnb_gtp_teid = gnb_gtp_teid;
+  if (gnb_gtp_teid_ip_addr && gnb_gtp_teid_ip_addr_len > 0) {
+    memcpy(amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr,
+           gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
+  }
 
-  memcpy(amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr,
-         gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
-
-  size_t apn_len = strlen(apn);
-  if (apn_len >= sizeof(amf_ip_allocation_response_p->apn)) {
-    OAILOG_ERROR(LOG_AMF_APP, "APN too long (%zu bytes), dropping IPv4v6 allocation response\n", apn_len);
-    itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
+  if (!check_and_copy_apn(
+          reinterpret_cast<char*>(amf_ip_allocation_response_p->apn),
+          sizeof(amf_ip_allocation_response_p->apn), apn, message_p,
+          response_type)) {
     return;
   }
-  memcpy(amf_ip_allocation_response_p->apn, apn, apn_len + 1);
 
   if (status.ok()) {
     amf_ip_allocation_response_p->result = SGI_STATUS_OK;
@@ -87,50 +113,26 @@ static void handle_allocate_ipv4_address_status(
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }
 
+static void handle_allocate_ipv4_address_status(
+    const grpc::Status& status, struct in_addr in_ip4_addr, int vlan,
+    const char* imsi, const char* apn, uint32_t pdu_session_id, uint8_t pti,
+    uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
+    uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
+  send_ip_allocation_response(
+      status, imsi, apn, pdu_session_id, pti, pdu_session_type, IPv4,
+      &in_ip4_addr, nullptr, vlan, gnb_gtp_teid, gnb_gtp_teid_ip_addr,
+      gnb_gtp_teid_ip_addr_len, "IPv4 allocation response");
+}
+
 static void handle_allocate_ipv6_address_status(
     const grpc::Status& status, struct in6_addr in_ip6_addr, int vlan,
     const char* imsi, const char* apn, uint32_t pdu_session_id, uint8_t pti,
     uint32_t pdu_session_type, uint32_t gnb_gtp_teid,
     uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
-  MessageDef* message_p;
-  message_p =
-      itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_IP_ALLOCATION_RESPONSE);
-
-  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
-  amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
-
-  memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
-  amf_ip_allocation_response_p->imsi_length = IMSI_BCD_DIGITS_MAX;
-  amf_ip_allocation_response_p->pdu_session_id = pdu_session_id;
-  amf_ip_allocation_response_p->pti = pti;
-  amf_ip_allocation_response_p->pdu_session_type = pdu_session_type;
-  amf_ip_allocation_response_p->paa.ipv6_address = in_ip6_addr;
-  amf_ip_allocation_response_p->paa.pdn_type = IPv6;
-  amf_ip_allocation_response_p->paa.vlan = vlan;
-
-  memcpy(amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr,
-         gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
-
-  size_t apn_len = strlen(apn);
-  if (apn_len >= sizeof(amf_ip_allocation_response_p->apn)) {
-    OAILOG_ERROR(LOG_AMF_APP, "APN too long (%zu bytes), dropping IPv6 allocation response\n", apn_len);
-    itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
-    return;
-  }
-  memcpy(amf_ip_allocation_response_p->apn, apn, apn_len + 1);
-
-  if (status.ok()) {
-    amf_ip_allocation_response_p->result = SGI_STATUS_OK;
-  } else {
-    if (status.error_code() == grpc::StatusCode::ALREADY_EXISTS) {
-      amf_ip_allocation_response_p->result = SGI_STATUS_ERROR_SYSTEM_FAILURE;
-    } else {
-      amf_ip_allocation_response_p->result =
-          SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
-    }
-  }
-
-  send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
+  send_ip_allocation_response(
+      status, imsi, apn, pdu_session_id, pti, pdu_session_type, IPv6,
+      nullptr, &in_ip6_addr, vlan, gnb_gtp_teid, gnb_gtp_teid_ip_addr,
+      gnb_gtp_teid_ip_addr_len, "IPv6 allocation response");
 }
 
 static void handle_allocate_ipv4v6_address_status(
@@ -139,44 +141,10 @@ static void handle_allocate_ipv4v6_address_status(
     uint32_t pdu_session_id, uint8_t pti, uint32_t pdu_session_type,
     uint32_t gnb_gtp_teid, uint8_t* gnb_gtp_teid_ip_addr,
     uint8_t gnb_gtp_teid_ip_addr_len) {
-  MessageDef* message_p;
-  message_p =
-      itti_alloc_new_message(TASK_GRPC_SERVICE, AMF_IP_ALLOCATION_RESPONSE);
-
-  itti_amf_ip_allocation_response_t* amf_ip_allocation_response_p;
-  amf_ip_allocation_response_p = &message_p->ittiMsg.amf_ip_allocation_response;
-
-  memcpy(amf_ip_allocation_response_p->imsi, imsi, IMSI_BCD_DIGITS_MAX);
-  amf_ip_allocation_response_p->imsi_length = IMSI_BCD_DIGITS_MAX;
-  amf_ip_allocation_response_p->pdu_session_id = pdu_session_id;
-  amf_ip_allocation_response_p->pti = pti;
-  amf_ip_allocation_response_p->pdu_session_type = pdu_session_type;
-  amf_ip_allocation_response_p->paa.ipv4_address = in_ip4_addr;
-  amf_ip_allocation_response_p->paa.ipv6_address = in_ip6_addr;
-  amf_ip_allocation_response_p->paa.pdn_type = IPv4_AND_v6;
-  amf_ip_allocation_response_p->paa.vlan = vlan;
-  memcpy(amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr,
-         gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
-
-  size_t apn_len = strlen(apn);
-  if (apn_len >= sizeof(amf_ip_allocation_response_p->apn)) {
-    OAILOG_ERROR(LOG_AMF_APP, "APN too long (%zu bytes), dropping IPv4v6 allocation response\n", apn_len);
-    itti_free(ITTI_MSG_ORIGIN_ID(message_p), message_p);
-    return;
-  }
-  memcpy(amf_ip_allocation_response_p->apn, apn, apn_len + 1);
-
-  if (status.ok()) {
-    amf_ip_allocation_response_p->result = SGI_STATUS_OK;
-  } else {
-    if (status.error_code() == grpc::StatusCode::ALREADY_EXISTS) {
-      amf_ip_allocation_response_p->result = SGI_STATUS_ERROR_SYSTEM_FAILURE;
-    } else {
-      amf_ip_allocation_response_p->result =
-          SGI_STATUS_ERROR_ALL_DYNAMIC_ADDRESSES_OCCUPIED;
-    }
-  }
-  send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
+  send_ip_allocation_response(
+      status, imsi, apn, pdu_session_id, pti, pdu_session_type, IPv4_AND_v6,
+      &in_ip4_addr, &in_ip6_addr, vlan, gnb_gtp_teid, gnb_gtp_teid_ip_addr,
+      gnb_gtp_teid_ip_addr_len, "IPv4v6 allocation response");
 }
 
 namespace magma5g {
