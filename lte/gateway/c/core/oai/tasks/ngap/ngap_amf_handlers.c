@@ -300,7 +300,6 @@ status_code_e ngap_amf_handle_ng_setup_request(ngap_state_t* state,
   uint32_t gnb_id = 0;
   char* gnb_name = NULL;
   int ta_ret = 0;
-  uint8_t bplmn_list_count = 0;  // Broadcast PLMN list count
 
   OAILOG_FUNC_IN(LOG_NGAP);
   increment_counter("ng_setup", 1, NO_LABELS);
@@ -426,77 +425,32 @@ status_code_e ngap_amf_handle_ng_setup_request(ngap_state_t* state,
    * gNB and AMF have no common PLMN
    */
   if (ta_ret != TA_LIST_RET_OK) {
-    OAILOG_ERROR(LOG_NGAP,
-                 "No Common PLMN with gNB, generate_ng_setup_failure : %d\n",
-                 (int)ta_ret);
-    rc = ngap_amf_generate_ng_setup_failure(assoc_id, Ngap_Cause_PR_misc,
-                                            Ngap_CauseMisc_unknown_PLMN,
-                                            Ngap_TimeToWait_v20s);
+    if (ta_ret == TA_LIST_UNKNOWN_SLICE) {
+      OAILOG_ERROR(LOG_NGAP,
+                   "Slice not supported for this PLMN, generate_ng_setup_failure\n");
+      rc = ngap_amf_generate_ng_setup_failure(assoc_id, Ngap_Cause_PR_radioNetwork,
+                                              Ngap_CauseRadioNetwork_slice_not_supported,
+                                              Ngap_TimeToWait_v20s);
 
-    increment_counter("ng_setup", 1, 2, "result", "failure", "cause",
-                      "plmnid_or_tac_mismatch");
+      increment_counter("ng_setup", 1, 2, "result", "failure", "cause",
+                        "slice_not_supported");
+    } else {
+      OAILOG_ERROR(LOG_NGAP,
+                   "No Common PLMN with gNB, generate_ng_setup_failure : %d\n",
+                   (int)ta_ret);
+      rc = ngap_amf_generate_ng_setup_failure(assoc_id, Ngap_Cause_PR_misc,
+                                              Ngap_CauseMisc_unknown_PLMN,
+                                              Ngap_TimeToWait_v20s);
+
+      increment_counter("ng_setup", 1, 2, "result", "failure", "cause",
+                        "plmnid_or_tac_mismatch");
+    }
     OAILOG_FUNC_RETURN(LOG_NGAP, rc);
   }
 
-  Ngap_SupportedTAList_t* ta_list =
-      &ie_supported_tas->value.choice.SupportedTAList;
-  m5g_supported_ta_list_t* supp_ta_list = &gnb_association->supported_ta_list;
-  supp_ta_list->list_count = ta_list->list.count;
+  ngap_amf_store_supported_ta_list(&gnb_association->supported_ta_list,
+                                   &ie_supported_tas->value.choice.SupportedTAList);
 
-  /* Storing supported TAI lists received in Ng SETUP REQUEST message */
-  for (int tai_idx = 0; tai_idx < supp_ta_list->list_count; tai_idx++) {
-    Ngap_SupportedTAItem_t* tai = NULL;
-    tai = ta_list->list.array[tai_idx];
-    tai->tAC.size = 2;  // ACL_TAG temp to test remove later
-    OCTET_STRING_TO_TAC(&tai->tAC,
-                        supp_ta_list->supported_tai_items[tai_idx].tac);
-
-    bplmn_list_count = tai->broadcastPLMNList.list.count;
-    if (bplmn_list_count > NGAP_MAX_BROADCAST_PLMNS) {
-      OAILOG_ERROR(LOG_NGAP,
-                   "Maximum Broadcast PLMN list count exceeded, count = %d\n",
-                   bplmn_list_count);
-    }
-    supp_ta_list->supported_tai_items[tai_idx].bplmnlist_count =
-        bplmn_list_count;
-    for (int plmn_idx = 0; plmn_idx < bplmn_list_count; plmn_idx++) {
-      TBCD_TO_PLMN_T(&tai->broadcastPLMNList.list.array[plmn_idx]->pLMNIdentity,
-                     &supp_ta_list->supported_tai_items[tai_idx]
-                          .bplmn_list[plmn_idx]
-                          .plmn_id);
-
-      supp_ta_list->supported_tai_items[tai_idx]
-          .bplmn_list[plmn_idx]
-          .num_of_s_nssai = tai->broadcastPLMNList.list.array[plmn_idx]
-                                ->tAISliceSupportList.list.count;
-
-      for (int nssai_index = 0;
-           nssai_index < supp_ta_list->supported_tai_items[tai_idx]
-                             .bplmn_list[plmn_idx]
-                             .num_of_s_nssai;
-           nssai_index++) {
-        supp_ta_list->supported_tai_items[tai_idx]
-            .bplmn_list[plmn_idx]
-            .s_nssai[nssai_index]
-            .sst = tai->broadcastPLMNList.list.array[plmn_idx]
-                       ->tAISliceSupportList.list.array[nssai_index]
-                       ->s_NSSAI.sST.buf[0];
-
-        if (tai->broadcastPLMNList.list.array[plmn_idx]
-                ->tAISliceSupportList.list.array[nssai_index]
-                ->s_NSSAI.sD) {
-          memcpy(&(supp_ta_list->supported_tai_items[tai_idx]
-                       .bplmn_list[plmn_idx]
-                       .s_nssai[nssai_index]
-                       .sd),
-                 tai->broadcastPLMNList.list.array[plmn_idx]
-                     ->tAISliceSupportList.list.array[nssai_index]
-                     ->s_NSSAI.sD->buf,
-                 sizeof(amf_s_nssai_t));
-        }
-      }
-    }
-  }
   OAILOG_DEBUG(LOG_NGAP, "Adding gNB to the list of served gNBs\n");
 
   gnb_association->gnb_id = gnb_id;

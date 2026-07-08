@@ -18,6 +18,7 @@
 extern "C" {
 #include "lte/gateway/c/core/oai/common/log.h"
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_handlers.h"
+#include "lte/gateway/c/core/oai/tasks/ngap/ngap_amf_ta.h"
 #include "lte/gateway/c/core/oai/include/amf_config.hpp"
 }
 #include "lte/gateway/c/core/oai/tasks/ngap/ngap_state_manager.hpp"
@@ -75,18 +76,17 @@ class NgapFlowTest : public testing::Test {
   sctp_new_peer_t peerInfo;
   const unsigned int AMF_UE_NGAP_ID = 0x05;
   const unsigned int gNB_UE_NGAP_ID = 0x09;
-};
-
-// Unit for Ng setup request message
-TEST_F(NgapFlowTest, test_ngap_setup_request) {
-  unsigned char ngap_setup_req_hexbuf[] = {
+  const unsigned char ngap_setup_req_hexbuf[72] = {
       0x00, 0x15, 0x00, 0x42, 0x00, 0x00, 0x04, 0x00, 0x1b, 0x00, 0x09, 0x00,
       0x22, 0x42, 0x65, 0x50, 0x00, 0x00, 0x00, 0x01, 0x00, 0x52, 0x40, 0x18,
       0x0a, 0x80, 0x55, 0x45, 0x52, 0x41, 0x4e, 0x53, 0x49, 0x4d, 0x2d, 0x67,
       0x6e, 0x62, 0x2d, 0x32, 0x32, 0x32, 0x2d, 0x34, 0x35, 0x36, 0x2d, 0x31,
       0x00, 0x66, 0x00, 0x0d, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x22, 0x42,
       0x65, 0x00, 0x00, 0x00, 0x08, 0x00, 0x15, 0x40, 0x01, 0x40};
+};
 
+// Unit for Ng setup request message
+TEST_F(NgapFlowTest, test_ngap_setup_request) {
   // Verify sctp association is successful
   EXPECT_EQ(ngap_handle_new_association(state, &peerInfo), RETURNok);
   // Verify number of connected gNB's is 1
@@ -96,7 +96,7 @@ TEST_F(NgapFlowTest, test_ngap_setup_request) {
   Ngap_NGAP_PDU_t decoded_pdu = {};
   uint16_t length = sizeof(ngap_setup_req_hexbuf) / sizeof(unsigned char);
 
-  bstring ngap_setup_req_msg = blk2bstr(ngap_setup_req_hexbuf, length);
+  bstring ngap_setup_req_msg = blk2bstr((unsigned char*)ngap_setup_req_hexbuf, length);
 
   // Check if the pdu can be decoded
   ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_setup_req_msg), RETURNok);
@@ -123,6 +123,50 @@ TEST_F(NgapFlowTest, test_ngap_setup_request) {
 
   // As gnb in ready, the gnb id should be 1
   EXPECT_EQ(gnb_association->gnb_id, 1);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
+  bdestroy(ngap_setup_req_msg);
+}
+
+// Unit for NG Setup Request with slice mismatch and PLMN mismatch
+TEST_F(NgapFlowTest, test_ngap_setup_request_slice_mismatch) {
+  // Save original config to restore at the end
+  uint8_t orig_sst = amf_config.plmn_support_list.plmn_support[0].s_nssai.sst;
+  uint16_t orig_mcc = amf_config.served_tai.plmn_mcc[0];
+  uint8_t orig_nb_tai = amf_config.served_tai.nb_tai;
+  uint16_t orig_tac = amf_config.served_tai.tac[0];
+
+  // Decode the PDU
+  Ngap_NGAP_PDU_t decoded_pdu = {};
+  uint16_t length = sizeof(ngap_setup_req_hexbuf) / sizeof(unsigned char);
+  bstring ngap_setup_req_msg = blk2bstr((unsigned char*)ngap_setup_req_hexbuf, length);
+  ASSERT_EQ(ngap_amf_decode_pdu(&decoded_pdu, ngap_setup_req_msg), RETURNok);
+
+  Ngap_NGSetupRequest_t* container = &decoded_pdu.choice.initiatingMessage.value.choice.NGSetupRequest;
+  Ngap_NGSetupRequestIEs_t* ie_supported_tas = NULL;
+  NGAP_FIND_PROTOCOLIE_BY_ID(Ngap_NGSetupRequestIEs_t, ie_supported_tas,
+                             container, Ngap_ProtocolIE_ID_id_SupportedTAList,
+                             true);
+  ASSERT_TRUE(ie_supported_tas != NULL);
+
+  // 1. Sunny day: configured slice SST is 0x1, which matches request.
+  amf_config.served_tai.nb_tai = 1;
+  amf_config.served_tai.tac[0] = 1;
+  EXPECT_EQ(ngap_amf_compare_ta_lists(&ie_supported_tas->value.choice.SupportedTAList), TA_LIST_RET_OK);
+
+  // 2. Slice mismatch: change configured slice SST to 0x2 (does not match request's 0x1).
+  amf_config.plmn_support_list.plmn_support[0].s_nssai.sst = 0x2;
+  EXPECT_EQ(ngap_amf_compare_ta_lists(&ie_supported_tas->value.choice.SupportedTAList), TA_LIST_UNKNOWN_SLICE);
+
+  // 3. PLMN mismatch: change configured PLMN MCC to 999.
+  amf_config.served_tai.plmn_mcc[0] = 999;
+  EXPECT_EQ(ngap_amf_compare_ta_lists(&ie_supported_tas->value.choice.SupportedTAList), TA_LIST_UNKNOWN_PLMN);
+
+  // Restore configuration
+  amf_config.plmn_support_list.plmn_support[0].s_nssai.sst = orig_sst;
+  amf_config.served_tai.plmn_mcc[0] = orig_mcc;
+  amf_config.served_tai.nb_tai = orig_nb_tai;
+  amf_config.served_tai.tac[0] = orig_tac;
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decoded_pdu);
   bdestroy(ngap_setup_req_msg);

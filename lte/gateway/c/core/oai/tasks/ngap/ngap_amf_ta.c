@@ -110,6 +110,7 @@ static int ngap_amf_compare_plmn(
 
   /* Match the Slice Configuration for the PLMN */
   if (is_plmn_present) {
+    ret = TA_LIST_UNKNOWN_SLICE;
     for (uint8_t i = 0; i < amf_config.plmn_support_list.plmn_support_count;
          i++) {
       if (memcmp(&(amf_config.plmn_support_list.plmn_support[i].plmn),
@@ -133,23 +134,31 @@ static int ngap_amf_compare_plmn(
 static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
   int i = 0;
   int matching_occurrence = 0;
+  int slice_mismatch_occurrence = 0;
   DevAssert(b_plmns != NULL);
 
   OAILOG_FUNC_IN(LOG_NGAP);
   for (i = 0; i < b_plmns->list.count; i++) {
-    if (ngap_amf_compare_plmn(&b_plmns->list.array[i]->pLMNIdentity,
-                              &b_plmns->list.array[i]->tAISliceSupportList) ==
-        TA_LIST_AT_LEAST_ONE_MATCH)
+    int plmn_ret = ngap_amf_compare_plmn(&b_plmns->list.array[i]->pLMNIdentity,
+                               &b_plmns->list.array[i]->tAISliceSupportList);
+    if (plmn_ret == TA_LIST_AT_LEAST_ONE_MATCH) {
       matching_occurrence++;
+    } else if (plmn_ret == TA_LIST_UNKNOWN_SLICE) {
+      slice_mismatch_occurrence++;
+    }
     // TBD will work on match case
   }
 
-  if (matching_occurrence == 0)
+  if (matching_occurrence == 0) {
+    if (slice_mismatch_occurrence > 0) {
+      OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_UNKNOWN_SLICE);
+    }
     OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_NO_MATCH);
-  else if (matching_occurrence == b_plmns->list.count - 1)
+  } else if (matching_occurrence == b_plmns->list.count - 1) {
     OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_COMPLETE_MATCH);
-  else
+  } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_AT_LEAST_ONE_MATCH);
+  }
 }
 
 /* @brief compare a TAC
@@ -205,6 +214,10 @@ int ngap_amf_compare_ta_lists(Ngap_SupportedTAList_t* ta_list) {
       if (tac_ret > TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_NO_MATCH) {
         OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_UNKNOWN_PLMN);
       } else if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret > TA_LIST_NO_MATCH) {
+        OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_UNKNOWN_TAC);
+      } else if (tac_ret > TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_UNKNOWN_SLICE) {
+        OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_UNKNOWN_SLICE);
+      } else if (tac_ret == TA_LIST_NO_MATCH && bplmn_ret == TA_LIST_UNKNOWN_SLICE) {
         OAILOG_FUNC_RETURN(LOG_NGAP, TA_LIST_UNKNOWN_TAC);
       }
     }
@@ -303,3 +316,63 @@ int ngap_paging_compare_ta_lists(m5g_supported_ta_list_t* gnb_ta_list,
   }
   OAILOG_FUNC_RETURN(LOG_NGAP, false);
 }
+
+void ngap_amf_store_supported_ta_list(
+    m5g_supported_ta_list_t* supp_ta_list,
+    Ngap_SupportedTAList_t* ta_list) {
+  supp_ta_list->list_count = ta_list->list.count;
+
+  for (int tai_idx = 0; tai_idx < supp_ta_list->list_count; tai_idx++) {
+    Ngap_SupportedTAItem_t* tai = ta_list->list.array[tai_idx];
+    tai->tAC.size = 2;
+    OCTET_STRING_TO_TAC(&tai->tAC,
+                        supp_ta_list->supported_tai_items[tai_idx].tac);
+
+    uint8_t bplmn_list_count = tai->broadcastPLMNList.list.count;
+    if (bplmn_list_count > NGAP_MAX_BROADCAST_PLMNS) {
+      OAILOG_ERROR(LOG_NGAP,
+                   "Maximum Broadcast PLMN list count exceeded, count = %d\n",
+                   bplmn_list_count);
+    }
+    supp_ta_list->supported_tai_items[tai_idx].bplmnlist_count =
+        bplmn_list_count;
+    for (int plmn_idx = 0; plmn_idx < bplmn_list_count; plmn_idx++) {
+      TBCD_TO_PLMN_T(&tai->broadcastPLMNList.list.array[plmn_idx]->pLMNIdentity,
+                     &supp_ta_list->supported_tai_items[tai_idx]
+                          .bplmn_list[plmn_idx]
+                          .plmn_id);
+
+      supp_ta_list->supported_tai_items[tai_idx]
+          .bplmn_list[plmn_idx]
+          .num_of_s_nssai = tai->broadcastPLMNList.list.array[plmn_idx]
+                                ->tAISliceSupportList.list.count;
+
+      for (int nssai_index = 0;
+           nssai_index < supp_ta_list->supported_tai_items[tai_idx]
+                             .bplmn_list[plmn_idx]
+                             .num_of_s_nssai;
+           nssai_index++) {
+        supp_ta_list->supported_tai_items[tai_idx]
+            .bplmn_list[plmn_idx]
+            .s_nssai[nssai_index]
+            .sst = tai->broadcastPLMNList.list.array[plmn_idx]
+                       ->tAISliceSupportList.list.array[nssai_index]
+                       ->s_NSSAI.sST.buf[0];
+
+        if (tai->broadcastPLMNList.list.array[plmn_idx]
+                ->tAISliceSupportList.list.array[nssai_index]
+                ->s_NSSAI.sD) {
+          memcpy(&(supp_ta_list->supported_tai_items[tai_idx]
+                       .bplmn_list[plmn_idx]
+                       .s_nssai[nssai_index]
+                       .sd),
+                 tai->broadcastPLMNList.list.array[plmn_idx]
+                     ->tAISliceSupportList.list.array[nssai_index]
+                     ->s_NSSAI.sD->buf,
+                 sizeof(amf_s_nssai_t));
+        }
+      }
+    }
+  }
+}
+
