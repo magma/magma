@@ -106,6 +106,14 @@ func TestK8sGetServiceAddress(t *testing.T) {
 	assert.Equal(t, response.GetAddress(), fmt.Sprintf("orc8r-service-2:%d", registry.ProtectedGrpcServicePort))
 }
 
+func TestK8sGetServiceAddressNilRequest(t *testing.T) {
+	servicer, _, _, _ := setupTest(t)
+
+	_, err := servicer.GetServiceAddress(context.Background(), nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "GetServiceAddressRequest was nil")
+}
+
 func TestK8sGetHttpServerAddress(t *testing.T) {
 	servicer, mockClient, start, done := setupTest(t)
 
@@ -122,6 +130,14 @@ func TestK8sGetHttpServerAddress(t *testing.T) {
 
 	_, err = servicer.GetHttpServerAddress(context.Background(), req)
 	assert.Error(t, err)
+}
+
+func TestK8sGetHttpServerAddressNilRequest(t *testing.T) {
+	servicer, _, _, _ := setupTest(t)
+
+	_, err := servicer.GetHttpServerAddress(context.Background(), nil)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "GetHttpServerAddressRequest was nil")
 }
 
 func TestK8sGetAnnotation(t *testing.T) {
@@ -141,6 +157,19 @@ func TestK8sGetAnnotation(t *testing.T) {
 
 	_, err = servicer.GetAnnotation(context.Background(), req)
 	assert.Error(t, err)
+}
+
+func TestK8sGetAnnotationMissingAnnotation(t *testing.T) {
+	servicer, _, _, _ := setupTest(t)
+
+	req := &protos.GetAnnotationRequest{
+		Service:    "service1",
+		Annotation: "does-not-exist",
+	}
+
+	_, err := servicer.GetAnnotation(context.Background(), req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Annotation")
 }
 
 func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface) {
