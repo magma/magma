@@ -15,7 +15,8 @@ GEM
     elasticsearch-transport (7.13.0)
       faraday (~> 1)
       multi_json
-    excon (0.72.0)
+    excon (1.5.0)
+      logger
     faraday (1)
       multipart-post (>= 1.2, < 3)
     ffi (1.11.1)
@@ -85,6 +86,7 @@ GEM
       jsonpath (~> 1.0)
       recursive-open-struct (~> 1.1, >= 1.1.1)
       rest-client (~> 2.0)
+    logger (1.7.0)
     lru_redux (1.1.0)
     mime-types (3.4.1)
       mime-types-data (~> 3.2015)
