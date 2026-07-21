@@ -22,9 +22,9 @@ tail -f /var/log/enodebd.log
 
 ### eNB TR069 message flow
 
-[TAR.XZ - example set of logs from AGW/enodebd showing the TR069 message flow with setting of params.](assets/dp/dp_enb_tr069_flow.tar.xz)
+[TAR.XZ - example set of logs from AGW/enodebd showing the TR069 message flow with setting of params.](../assets/dp/dp_enb_tr069_flow.tar.xz)
 
-[TAR.XZ - example pcap of TR069 session flow between eNB and ACS (enodebd)](assets/dp/dp_enb_tr069.pcap.tar.xz)
+[TAR.XZ - example pcap of TR069 session flow between eNB and ACS (enodebd)](../assets/dp/dp_enb_tr069.pcap.tar.xz)
 
 Given the following log snippet (trimmed) from Baicells QRTB, the normal flow should consist of:
 
@@ -115,13 +115,13 @@ Domain Proxy gRPC call details can be viewed in [NMS](#nms).
 An `empty` message (blank content in the column) is equivalent to no SAS grant data being sent - which in turn is interpreted by `AGW`/`enodebd` as
 no transmission and the radio transmission must be disabled.
 
-![DP Logs AGW](assets/dp/dp_logs_agw_enodebd.png)
+![DP Logs AGW](../assets/dp/dp_logs_agw_enodebd.png)
 
 ## Domain Proxy <-> SAS
 
 Domain Proxy logs of communication with Spectrum Access System (SAS) are visible in NMS: `[Metrics]` menu, `[DP Logs]` tab
 
-![DP Logs SAS](assets/dp/dp_logs_sas.png)
+![DP Logs SAS](../assets/dp/dp_logs_sas.png)
 
 ## Gettings logs from Domain Proxy pods
 
