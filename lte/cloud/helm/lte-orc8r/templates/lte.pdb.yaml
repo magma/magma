@@ -12,7 +12,7 @@ limitations under the License.
 */}}
 {{- include "orc8rlib.pdb" (list . "lte.pdb") -}}
 {{- define "lte.pdb" -}}
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: orc8r-lte
