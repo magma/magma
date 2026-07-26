@@ -12,7 +12,7 @@ limitations under the License.
 */}}
 {{- include "orc8rlib.pdb" (list . "nprobe.pdb") -}}
 {{- define "nprobe.pdb" -}}
-apiVersion: policy/v1beta1
+apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: orc8r-nprobe
