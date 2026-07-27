@@ -1,6 +1,5 @@
 server {
-  listen 443;
-  ssl on;
+  listen 443 ssl;
   ssl_certificate /etc/nginx/conf.d/nms_nginx.pem;
   ssl_certificate_key /etc/nginx/conf.d/nms_nginx.key.pem;
   location / {
