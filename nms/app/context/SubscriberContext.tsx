@@ -178,9 +178,7 @@ async function setSubscriberState(params: {
     value.map(newSubscriber => {
       newSubscriberMap[newSubscriber.id] = newSubscriber as Subscriber;
     });
-    // TODO[TS-migration] Should newSubscriberMap be spread here?
-    // @ts-ignore
-    setSubscriberMap({...subscriberMap, newSubscriberMap});
+    setSubscriberMap({...subscriberMap, ...newSubscriberMap});
     return;
   }
   if (value != null) {
