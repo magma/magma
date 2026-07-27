@@ -33,8 +33,11 @@ class AgwUpgradeTest(TestCase):
             docker_dir.mkdir()
             fake_bin.mkdir()
 
+            env_execution_marker = root / 'env-was-executed'
             (docker_dir / '.env').write_text(
-                'IMAGE_VERSION=new\nDOCKER_REGISTRY=registry.example/\n',
+                'IMAGE_VERSION=new\n'
+                'DOCKER_REGISTRY=registry.example/\n'
+                f'UNUSED=$(touch {env_execution_marker})\n',
                 encoding='utf-8',
             )
             (docker_dir / 'docker-compose.yaml').touch()
@@ -65,12 +68,19 @@ class AgwUpgradeTest(TestCase):
             env = os.environ.copy()
             env.update({
                 'DOCKER_LOG': str(docker_log),
-                'MAGMA_DOCKER_DIR': str(docker_dir),
                 'PATH': f'{fake_bin}:{env["PATH"]}',
             })
+            command = [
+                BASH,
+                '-c',
+                'source "$1"; upgrade_agw "$2"',
+                'agw-upgrade-test',
+                str(SCRIPT),
+                str(docker_dir),
+            ]
 
             subprocess.run(  # noqa: S603
-                [BASH, str(SCRIPT)],
+                command,
                 check=True,
                 env=env,
             )
@@ -88,11 +98,12 @@ class AgwUpgradeTest(TestCase):
             self.assertIn('image rm sha256:old-agw-image', calls)
             self.assertFalse(any(call.startswith('stop ') for call in calls))
             self.assertFalse(any('system prune' in call for call in calls))
+            self.assertFalse(env_execution_marker.exists())
 
             docker_log.unlink()
             env['ANCESTOR_IN_USE'] = '1'
             subprocess.run(  # noqa: S603
-                [BASH, str(SCRIPT)],
+                command,
                 check=True,
                 env=env,
             )
