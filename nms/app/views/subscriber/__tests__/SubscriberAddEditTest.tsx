@@ -16,21 +16,24 @@ import LteNetworkContext, {
 } from '../../../context/LteNetworkContext';
 import PolicyContext, {PolicyContextType} from '../../../context/PolicyContext';
 import React from 'react';
+import SubscriberContext, {
+  SubscriberContextProvider,
+} from '../../../context/SubscriberContext';
 import SubscriberDashboard from '../SubscriberOverview';
 import SubscriberDetailConfig from '../SubscriberDetailConfig';
 import defaultTheme from '../../../theme/default';
-import {SubscriberContextProvider} from '../../../context/SubscriberContext';
 
 import MagmaAPI from '../../../api/MagmaAPI';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {
+  MutableSubscriber,
   NetworkEpcConfigs,
   NetworkRanConfigs,
   PolicyRule,
   Subscriber,
 } from '../../../../generated';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, waitFor, within} from '@testing-library/react';
+import {act, fireEvent, render, waitFor, within} from '@testing-library/react';
 import {forbiddenNetworkTypes} from '../SubscriberUtils';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
@@ -475,5 +478,85 @@ describe('<AddSubscriberButton />', () => {
         },
       });
     });
+  });
+
+  it('given bulk-added subscribers when added then map is keyed by IMSI', async () => {
+    let capturedCtx: React.ContextType<typeof SubscriberContext> | undefined;
+    const CaptureConsumer = () => {
+      capturedCtx = React.useContext(SubscriberContext);
+      return (
+        <div data-testid="subscriberImsis">
+          {Object.keys(capturedCtx.state).join(',')}
+        </div>
+      );
+    };
+
+    const {findByTestId, getByTestId} = render(
+      <SubscriberContextProvider networkId="test">
+        <CaptureConsumer />
+      </SubscriberContextProvider>,
+    );
+
+    // Wait for the provider to finish loading the initial subscriber map.
+    await findByTestId('subscriberImsis');
+    await waitFor(() =>
+      expect(getByTestId('subscriberImsis')).toHaveTextContent(
+        'IMSI00000000001002',
+      ),
+    );
+
+    const newSubscribers: Array<MutableSubscriber> = [
+      {
+        id: 'IMSI00000000001099',
+        name: 'bulk_subscriber_0',
+        lte: {
+          auth_algo: 'MILENAGE',
+          // Placeholder auth values (not real credentials); kept low-entropy
+          // so secret scanners do not flag this test fixture.
+          auth_key: 'AAAAAAAAAAAAAAAAAAAAAA==',
+          auth_opc: 'AAAAAAAAAAAAAAAAAAAAAA==',
+          state: 'ACTIVE',
+          sub_profile: 'default',
+        },
+      },
+      {
+        id: 'IMSI00000000001100',
+        name: 'bulk_subscriber_1',
+        lte: {
+          auth_algo: 'MILENAGE',
+          // Placeholder auth values (not real credentials); kept low-entropy
+          // so secret scanners do not flag this test fixture.
+          auth_key: 'AAAAAAAAAAAAAAAAAAAAAA==',
+          auth_opc: 'AAAAAAAAAAAAAAAAAAAAAA==',
+          state: 'ACTIVE',
+          sub_profile: 'default',
+        },
+      },
+    ];
+
+    // A bulk add passes an array of subscribers, which triggers the
+    // Array.isArray(value) branch in setSubscriberState.
+    await act(async () => {
+      await capturedCtx!.setState!('', newSubscribers);
+    });
+
+    const stateKeys = Object.keys(capturedCtx!.state);
+
+    // The newly added subscribers must be spread into the map, each keyed by
+    // its own IMSI (alongside the pre-existing subscribers)...
+    expect(stateKeys).toEqual(
+      expect.arrayContaining([
+        'IMSI00000000001002',
+        'IMSI00000000001003',
+        'IMSI00000000001099',
+        'IMSI00000000001100',
+      ]),
+    );
+    expect(capturedCtx!.state['IMSI00000000001099']).toBeDefined();
+    expect(capturedCtx!.state['IMSI00000000001100']).toBeDefined();
+
+    // ...and must NOT be nested under a literal `newSubscriberMap` key, which
+    // was the data-corruption bug previously masked by `@ts-ignore`.
+    expect('newSubscriberMap' in capturedCtx!.state).toBe(false);
   });
 });
