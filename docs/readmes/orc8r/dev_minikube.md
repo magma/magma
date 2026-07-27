@@ -10,6 +10,19 @@ Deploying Orc8r on Minikube is the easiest way to test changes to the Helm chart
 
 ## Prerequisites
 
+We assume MAGMA_ROOT is set as described in [deployment intro](./deploy_intro.md).
+
+### Install Prerequisites
+
+Ensure the following tools are installed on your system:
+
+- **Docker**
+- **kubectl**
+- **Minikube**
+- **Helm 3**
+
+> For kubectl install a version compatible with v1.28.0 (v1.27.x through v1.29.x), matching the cluster version exactly is recommended.
+
 ### Spin up Minikube
 
 Set up Minikube with one of the following commands, including sufficient resources and seeding the metrics config files:
@@ -17,13 +30,13 @@ Set up Minikube with one of the following commands, including sufficient resourc
 - On macOS
 
   ```bash
-  minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --kubernetes-version='v1.20.2' --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
+  minikube start --cni=bridge --driver=hyperkit --memory=8gb --cpus=8 --kubernetes-version='v1.28.0' --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
   ```
 
 - On Linux
 
   ```bash
-  minikube start --cni=bridge --driver=docker --memory=8gb --cpus=8 --kubernetes-version='v1.20.2' --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
+  minikube start --cni=bridge --driver=docker --memory=8gb --cpus=8 --kubernetes-version='v1.28.0' --mount --mount-string "${MAGMA_ROOT}/orc8r/cloud/docker/metrics-configs:/configs"
   ```
 
 where the only difference between the two is the driver used.
@@ -44,6 +57,12 @@ helm upgrade --install \
     --set global.postgresql.auth.postgresPassword=postgres,global.postgresql.auth.database=magma,fullnameOverride=postgresql \
     postgresql \
     bitnami/postgresql
+```
+
+Verify postgresql-0 is Running:
+
+```bash
+kubectl --namespace orc8r get pods
 ```
 
 ### Build and publish images
@@ -67,6 +86,14 @@ After completing the prerequisites listed above, follow the instructions at [Bui
 
 ### Generate secrets
 
+Run this before building to pin the dependency versions:
+
+```bash
+for f in ${MAGMA_ROOT}/orc8r/cloud/docker/fluentd/Dockerfile ${MAGMA_ROOT}/orc8r/cloud/docker/fluentd_forward/Dockerfile; do
+  sed -i '/^USER root/a RUN gem install multi_json -v 1.15.0 --no-document\nRUN gem install excon -v 1.2.5 --no-document' "$f"
+done
+```
+
 If you haven't already, the easiest way to generate these secrets is temporarily spinning up a local, Docker-based deployment
 
 ```bash
@@ -75,6 +102,13 @@ cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py && ./run.py && sleep 30 && doc
 ```
 
 ### Apply secrets
+
+Before applying the certificates, grant ownership of the cert files to the current user.
+
+```bash
+export CERTS_DIR=${MAGMA_ROOT}/.cache/test_certs
+sudo chown -R $USER:$USER ${CERTS_DIR}
+```
 
 Create the K8s secrets
 
@@ -107,7 +141,9 @@ helm template orc8r charts/secrets \
 
 ### Optional: fluentd secrets
 
-To use fluentd on the minikube deployment, create additional fluentd secrets
+To use fluentd on the minikube deployment, create additional fluentd secrets :
+
+> Change `$domain` to the same domain as the base orc8r install, we used 'magma.test' in this guide
 
 ```bash
 cd ${CERTS_DIR}
@@ -145,9 +181,23 @@ helm template orc8r charts/secrets \
 
 A minimal values file is at `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/examples/minikube.values.yaml`
 
-- Copy that file to `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml`
-- Replace `IMAGE_REGISTRY_URL` with your registry and `IMAGE_TAG` with your tag
-- Make additional edits as desired
+Copy that file to `${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml`:
+
+```bash
+cp ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r/examples/minikube.values.yaml \
+   ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml
+```
+
+Replace `IMAGE_REGISTRY_URL` with your registry and `IMAGE_TAG` with your tag, or use the official Magma registry :
+
+```bash
+sed -i 's|IMAGE_REGISTRY_URL|linuxfoundation.jfrog.io/magma-docker|g' ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml
+sed -i 's|IMAGE_TAG|1.9.0|g' ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml
+```
+
+> Note:
+>
+> Replace 1.9.0 with the Magma release you are deploying. Check the latest release at [Magma releases](https://github.com/magma/magma/releases).
 
 ### Install charts
 
@@ -297,6 +347,50 @@ Optionally, start the elasticsearch and kibana containers which handle the logs 
 ```bash
 cd ${MAGMA_ROOT}/orc8r/cloud/docker
 ./run.py
+```
+
+### Install LTE chart (Optional)
+
+Additional functionality can be added to Orc8r by installing the corresponding Helm charts. This section demonstrates the process using the LTE chart as an example.
+
+**Create the LTE values file :**
+
+```bash
+cp ${MAGMA_ROOT}/lte/cloud/helm/lte-orc8r/examples/minikube.values.yaml \
+   ${MAGMA_ROOT}/orc8r/cloud/helm/lte.values.yaml
+```
+
+Replace `IMAGE_REGISTRY_URL` with your registry and `IMAGE_TAG` with your tag, or use the official Magma registry.
+
+```bash
+sed -i 's|IMAGE_REGISTRY_URL|linuxfoundation.jfrog.io/magma-docker|g' ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml
+sed -i 's|IMAGE_TAG|1.9.0|g' ${MAGMA_ROOT}/orc8r/cloud/helm/orc8r.values.yaml
+```
+
+**Add the domain name field :**
+
+The orc8rlib templates require `orc8r_domain_name`. Add it under the image block in
+`lte-orc8r.values.yaml` (use the same domain as the base orc8r install):
+
+```yaml
+image:
+  env:
+    orc8r_domain_name: "magma.test"
+```
+
+**Install the LTE chart :**
+
+```bash
+cd ${MAGMA_ROOT}/lte/cloud/helm/lte-orc8r
+helm dep update
+helm upgrade --install --namespace orc8r \
+  --values ${MAGMA_ROOT}/orc8r/cloud/helm/lte.values.yaml lte .
+```
+
+**The new LTE pods should appear and reach `Running` state. You can now create an LTE network in the NMS, check the pods state with :**
+
+```bash
+kubectl --namespace orc8r get pods
 ```
 
 ### Access logs through Kibana
