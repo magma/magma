@@ -241,6 +241,29 @@ status_code_e ue_state_handle_message_reg_conn(
     bstring smf_msg_pP, int amf_cause,
     amf_nas_message_decode_status_t decode_status) {
   OAILOG_FUNC_IN(LOG_AMF_APP);
+
+  // --- FIX FOR ISSUE #16020 START ---
+  // Reject REGISTRATION_COMPLETE if state is not COMMON_PROCEDURE_INITIATED2
+  if (cur_state != COMMON_PROCEDURE_INITIATED2) {
+    OAILOG_ERROR(
+        LOG_NAS_AMF,
+        "Received Registration Complete for UE ID " AMF_UE_NGAP_ID_FMT 
+        " in invalid state [%s] (Security Mode procedure skipped). Rejecting.\n",
+        ue_id, get_ue_state_string(cur_state).c_str());
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+  }
+
+  // Validate security context presence
+  if (!ue_m5gmm_context || !ue_m5gmm_context->sec_context.is_security_context_valid) {
+    OAILOG_ERROR(
+        LOG_NAS_AMF,
+        "Received Registration Complete for UE ID " AMF_UE_NGAP_ID_FMT 
+        " without valid security context. Rejecting.\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+  }
+  // --- FIX FOR ISSUE #16020 END ---
+  
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     ue_m5gmm_context->mm_state =
         ue_state_matrix[cur_state][event][session_state].next_state;

@@ -700,11 +700,9 @@ status_code_e amf_handle_identity_response(
 
       amf_ctx_guti = reinterpret_cast<guti_m5_t*>(&amf_guti);
 
-      if (ue_context) {
-        ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
-        amf_ue_context_on_new_guti(ue_context,
-                                   reinterpret_cast<guti_m5_t*>(&amf_guti));
-      }
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+      amf_ue_context_on_new_guti(ue_context,
+                                 reinterpret_cast<guti_m5_t*>(&amf_guti));
 
       // Execute the identification completion procedure
 
@@ -716,20 +714,23 @@ status_code_e amf_handle_identity_response(
       // Call subscriberdb to decode the SUPI or IMSI from SUCI as scheme
       // output is encrypted
 
-      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
-      amf_copy_plmn_to_context(msg->mobile_identity.imsi, ue_context);
+     ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
 
-      std::string empheral_public_key = reinterpret_cast<char*>(
+      std::string ephemeral_public_key = reinterpret_cast<char*>(
           msg->mobile_identity.imsi.empheral_public_key);
-      std::string ciphertext =
-          reinterpret_cast<char*>(msg->mobile_identity.imsi.ciphertext->data);
+      std::string ciphertext = (msg->mobile_identity.imsi.ciphertext) ?
+          std::string((const char*)bdata(msg->mobile_identity.imsi.ciphertext),
+                      blength(msg->mobile_identity.imsi.ciphertext)) : "";
       bdestroy(msg->mobile_identity.imsi.ciphertext);
-      std::string mac_tag =
-          reinterpret_cast<char*>(msg->mobile_identity.imsi.mac_tag);
-      rc = RETURNok;
-      get_decrypt_imsi_suci_extension(&ue_context->amf_context,
-                                      msg->mobile_identity.imsi.home_nw_id,
-                                      empheral_public_key, ciphertext, mac_tag);
+      std::string mac_tag = reinterpret_cast<char*>(
+          msg->mobile_identity.imsi.mac_tag);
+
+      rc = get_decrypt_imsi_suci_extension(
+          &ue_context->amf_context,
+          msg->mobile_identity.imsi.home_nw_id,
+          ephemeral_public_key, ciphertext, mac_tag);
+      
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
     }
   } else {
     OAILOG_DEBUG(LOG_NAS_AMF, "Type of mobile identity not supported");
