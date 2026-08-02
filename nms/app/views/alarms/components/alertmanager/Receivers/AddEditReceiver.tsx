@@ -170,14 +170,15 @@ export default function AddEditReceiver(props: Props) {
           } = CONFIG_TYPES[key];
           const list = formState[listName];
           return (
-            // TODO[TS-migration] Typing of the ConfigEditor is weak here because the association between field name and editor is lost here
             <ConfigSection
-            key={key}
+              key={key}
               title={friendlyName}
               onAddConfigClicked={() => handleAddConfig(key)}>
               {list && Array.isArray(list)
                 ? list.map((config, idx) => {
-                    const TypedConfigEditor = ConfigEditor as React.ElementType;
+                    const TypedConfigEditor = ConfigEditor as React.ComponentType<
+                      import('./ConfigEditor').EditorProps<any>
+                    >;
                     return (
                       <TypedConfigEditor
                         key={`${listName}-${idx}`}
