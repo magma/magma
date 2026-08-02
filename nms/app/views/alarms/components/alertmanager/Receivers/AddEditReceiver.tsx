@@ -172,19 +172,24 @@ export default function AddEditReceiver(props: Props) {
           return (
             // TODO[TS-migration] Typing of the ConfigEditor is weak here because the association between field name and editor is lost here
             <ConfigSection
+            key={key}
               title={friendlyName}
               onAddConfigClicked={() => handleAddConfig(key)}>
-              {list && list.map
-                ? list.map((config, idx) => (
-                    <ConfigEditor
-                      {...getConfigEditorProps({
-                        listName: listName,
-                        index: idx,
-                        createConfig,
-                        ...configEditorSharedProps,
-                      })}
-                    />
-                  ))
+              {list && Array.isArray(list)
+                ? list.map((config, idx) => {
+                    const TypedConfigEditor = ConfigEditor as React.ElementType;
+                    return (
+                      <TypedConfigEditor
+                        key={`${listName}-${idx}`}
+                        {...getConfigEditorProps<typeof config>({
+                          listName: listName,
+                          index: idx,
+                          createConfig: createConfig as () => typeof config,
+                          ...configEditorSharedProps,
+                        })}
+                      />
+                    );
+                  })
                 : null}
             </ConfigSection>
           );
@@ -288,7 +293,7 @@ function getConfigEditorProps<TConfig>({
   ) => void;
   removeListItem: (listName: ReceiverConfigListName, index: number) => void;
 }): {
-  config: any;
+  config: Partial<TConfig> | TConfig;
   onUpdate: (update: Partial<TConfig>) => void;
   onReset: () => void;
   onDelete: () => void;

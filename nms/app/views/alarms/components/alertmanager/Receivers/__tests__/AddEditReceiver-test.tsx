@@ -92,3 +92,47 @@ test('editing a config entry then submitting submits the form state', () => {
     networkId: undefined,
   });
 });
+
+test('adding multiple different config entries submits the combined form state', () => {
+  const {getByTestId} = render(
+    <AlarmsWrapper>
+      <AddEditReceiver {...commonProps} receiver={{name: ''}} />
+    </AlarmsWrapper>,
+  );
+
+ 
+  act(() => {
+    fireEvent.click(getByTestId('add-SlackChannel'));
+  });
+  
+  
+  act(() => {
+    fireEvent.click(getByTestId('add-Email'));
+  });
+
+  const receiverName = getByTestId('receiverName').firstChild as HTMLInputElement;
+  const webhookUrl = getByTestId('slack-config-editor').firstChild as HTMLInputElement;
+
+ 
+  act(() => {
+    fireEvent.change(receiverName, { target: {value: 'multi receiver'} });
+  });
+  act(() => {
+    fireEvent.change(webhookUrl, { target: {value: 'https://slack.com/hook'} });
+  });
+
+  
+  act(() => {
+    fireEvent.click(getByTestId('editor-submit-button'));
+  });
+
+  
+  expect(apiUtil.createReceiver).toHaveBeenCalledWith({
+    receiver: {
+      name: 'multi receiver',
+      slack_configs: [{api_url: 'https://slack.com/hook'}],
+      email_configs: [{to: '', from: '', smarthost: ''}], 
+    },
+    networkId: undefined,
+  });
+});
