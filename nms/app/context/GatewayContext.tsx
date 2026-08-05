@@ -104,21 +104,27 @@ async function setGatewayState(params: {
   const {networkId, lteGateways, setLteGateways, key, value} = params;
 
   if (value != null) {
-    if (!(key in lteGateways)) {
+    const isNewGateway = !(key in lteGateways);
+    if (isNewGateway) {
       await MagmaAPI.lteGateways.lteNetworkIdGatewaysPost({
         networkId: networkId,
         gateway: value,
       });
-      // TODO[TS-migration] does it make sense that value is of type MutableLteGateway?
-      setLteGateways({...lteGateways, [key]: value as LteGateway});
     } else {
       await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdPut({
         networkId: networkId,
         gatewayId: key,
         gateway: value,
       });
-      setLteGateways({...lteGateways, [key]: value as LteGateway});
     }
+    // value is a MutableLteGateway, so it does not carry the read-only fields
+    // of an LteGateway (status, checked_in_recently, registration_info). Merge
+    // it into the cached gateway to keep them, a gateway which is not cached
+    // yet has not checked in either.
+    const gateway: LteGateway = isNewGateway
+      ? {...value, checked_in_recently: false}
+      : {...lteGateways[key], ...value};
+    setLteGateways({...lteGateways, [key]: gateway});
   } else {
     await MagmaAPI.lteGateways.lteNetworkIdGatewaysGatewayIdDelete({
       networkId: networkId,
