@@ -14,18 +14,25 @@
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
 import ApnContext from '../../../context/ApnContext';
 import GatewayConfig from '../GatewayDetailConfig';
+import GatewayContext, {
+  GatewayContextProvider,
+} from '../../../context/GatewayContext';
 import LteNetworkContext from '../../../context/LteNetworkContext';
 import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
 import {DynamicServices} from '../../../components/GatewayUtils';
-import {GatewayContextProvider} from '../../../context/GatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, waitFor, within} from '@testing-library/react';
+import {act, fireEvent, render, waitFor, within} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import {useEnqueueSnackbar} from '../../../hooks/useSnackbar';
-import type {Apn, LteGateway, LteNetwork} from '../../../../generated';
+import type {
+  Apn,
+  LteGateway,
+  LteNetwork,
+  MutableLteGateway,
+} from '../../../../generated';
 
 jest.mock('axios');
 jest.mock('../../../hooks/useSnackbar');
@@ -839,6 +846,68 @@ describe('<AddEditGatewayButton />', () => {
         networkId: 'test',
       });
     });
+  });
+});
+
+describe('<GatewayContextProvider />', () => {
+  const mockHealthyGw: LteGateway = {
+    ...mockGw0,
+    id: 'testGatewayId0',
+    checked_in_recently: true,
+    status: {checkin_time: 1629340000000},
+  };
+
+  beforeEach(() => {
+    (useEnqueueSnackbar as jest.Mock).mockReturnValue(jest.fn());
+    mockAPI(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGet', {
+      [mockHealthyGw.id]: mockHealthyGw,
+    });
+    mockAPI(MagmaAPI.lteGateways, 'lteNetworkIdGatewaysGatewayIdPut');
+  });
+
+  it('given a gateway edit without read-only fields when saved then the cached gateway keeps them', async () => {
+    let gatewayCtx: React.ContextType<typeof GatewayContext> | undefined;
+    const CaptureConsumer = () => {
+      gatewayCtx = React.useContext(GatewayContext);
+      return null;
+    };
+
+    render(
+      <GatewayContextProvider networkId="test">
+        <CaptureConsumer />
+      </GatewayContextProvider>,
+    );
+
+    await waitFor(() =>
+      expect(gatewayCtx?.state[mockHealthyGw.id]).toBeDefined(),
+    );
+
+    // setState takes a MutableLteGateway, which omits the read-only fields of
+    // the gateway. The gateway JSON editor for example removes the status
+    // before handing the gateway over to be saved.
+    const editedGateway: MutableLteGateway = {
+      apn_resources: mockHealthyGw.apn_resources,
+      cellular: mockHealthyGw.cellular,
+      connected_enodeb_serials: mockHealthyGw.connected_enodeb_serials,
+      description: mockHealthyGw.description,
+      device: mockHealthyGw.device,
+      id: mockHealthyGw.id,
+      magmad: mockHealthyGw.magmad,
+      name: 'editedGatewayName',
+      tier: mockHealthyGw.tier,
+    };
+
+    await act(async () => {
+      await gatewayCtx!.setState(mockHealthyGw.id, editedGateway);
+    });
+
+    const cachedGateway = gatewayCtx!.state[mockHealthyGw.id];
+    expect(cachedGateway.name).toBe('editedGatewayName');
+    // The gateway health of the equipment table, of the gateway detail status
+    // and of the gateway KPIs is read from the cached gateway, so a healthy
+    // gateway must not turn unhealthy after an edit.
+    expect(cachedGateway.checked_in_recently).toBe(true);
+    expect(cachedGateway.status?.checkin_time).toBe(1629340000000);
   });
 });
 
