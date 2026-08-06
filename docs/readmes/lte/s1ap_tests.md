@@ -243,7 +243,7 @@ When using Python with `pysctp`, set the PPID correctly using `sctp_send()`:
 import sctp, socket
 
 sock = sctp.sctpsocket_tcp(socket.AF_INET)
-sock.connect(("192.100.3.77", 36412))  # MME S1AP interface
+sock.connect(("<AGW_S1_IP>", 36412))  # Reachable MME S1AP interface
 
 # PPID must be 18 (not socket.htonl(18)) - pysctp handles byte order internally
 sock.sctp_send(s1ap_pdu_bytes, ppid=18)
@@ -255,8 +255,8 @@ To confirm the MME S1AP interface is active:
 
 ```bash
 # Check SCTP listener
-sudo ss -tnlp | grep 36412
-# Expected: sctp 192.100.3.77:36412 LISTEN sctpd
+sudo ss -Slnp | grep ':36412'
+# Expected: an SCTP listener on <AGW_S1_IP>:36412 owned by sctpd
 
 # Confirm SCTP traffic reaches the MME decoder
 sudo tail -f /var/log/mme.log | grep S1AP
