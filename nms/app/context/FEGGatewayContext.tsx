@@ -122,15 +122,17 @@ async function setGatewayState(params: GatewayStateParams) {
         networkId: networkId,
         gateway: value,
       });
-      setFegGateways({...fegGateways, [key]: value as FederationGateway});
     } else {
       await MagmaAPI.federationGateways.fegNetworkIdGatewaysGatewayIdPut({
         networkId: networkId,
         gatewayId: key,
         gateway: value,
       });
-      setFegGateways({...fegGateways, [key]: value as FederationGateway});
     }
+    // value is a MutableFederationGateway, so it does not carry the read-only
+    // fields of a FederationGateway (status, registration_info). Merge it into
+    // the cached gateway to keep them.
+    setFegGateways({...fegGateways, [key]: {...fegGateways[key], ...value}});
     const newFegGatewaysHealthStatus = {...fegGatewaysHealthStatus};
     newFegGatewaysHealthStatus[key] = await getFederationGatewayHealthStatus(
       networkId,

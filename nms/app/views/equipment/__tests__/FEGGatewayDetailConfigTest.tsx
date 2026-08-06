@@ -11,20 +11,23 @@
  * limitations under the License.
  */
 
+import FEGGatewayContext, {
+  FEGGatewayContextProvider,
+} from '../../../context/FEGGatewayContext';
 import FEGGatewayDetailConfig from '../FEGGatewayDetailConfig';
 import MagmaAPI from '../../../api/MagmaAPI';
 import React from 'react';
 import defaultTheme from '../../../theme/default';
-import {FEGGatewayContextProvider} from '../../../context/FEGGatewayContext';
 import {MemoryRouter, Route, Routes} from 'react-router-dom';
 import {StyledEngineProvider, ThemeProvider} from '@mui/material/styles';
-import {fireEvent, render, waitFor} from '@testing-library/react';
+import {act, fireEvent, render, waitFor} from '@testing-library/react';
 import {mockAPI} from '../../../util/TestUtils';
 import type {
   Csfb,
   FederationGateway,
   Gx,
   Gy,
+  MutableFederationGateway,
   S6a,
   Swx,
 } from '../../../../generated';
@@ -418,5 +421,65 @@ describe('<FEGGatewayDetailConfig />', () => {
         },
       });
     });
+  });
+});
+
+describe('<FEGGatewayContextProvider />', () => {
+  const mockCheckedInGw: FederationGateway = {
+    ...mockGw0,
+    status: {checkin_time: 1629340000000},
+  };
+
+  beforeEach(() => {
+    mockAPI(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGet', {
+      [mockCheckedInGw.id]: mockCheckedInGw,
+    });
+    mockAPI(MagmaAPI.federationGateways, 'fegNetworkIdGatewaysGatewayIdPut');
+    mockAPI(
+      MagmaAPI.federationGateways,
+      'fegNetworkIdGatewaysGatewayIdHealthStatusGet',
+      {status: 'HEALTHY', description: ''},
+    );
+    mockAPI(MagmaAPI.federationNetworks, 'fegNetworkIdClusterStatusGet', {
+      active_gateway: mockCheckedInGw.id,
+    });
+  });
+
+  it('given a gateway edit without read-only fields when saved then the cached gateway keeps them', async () => {
+    let fegGatewayCtx: React.ContextType<typeof FEGGatewayContext> | undefined;
+    const CaptureConsumer = () => {
+      fegGatewayCtx = React.useContext(FEGGatewayContext);
+      return null;
+    };
+
+    render(
+      <FEGGatewayContextProvider networkId="mynetwork">
+        <CaptureConsumer />
+      </FEGGatewayContextProvider>,
+    );
+
+    await waitFor(() =>
+      expect(fegGatewayCtx?.state[mockCheckedInGw.id]).toBeDefined(),
+    );
+
+    // setState takes a MutableFederationGateway, which omits the read-only
+    // fields of the gateway.
+    const editedGateway: MutableFederationGateway = {
+      description: mockCheckedInGw.description,
+      device: mockCheckedInGw.device,
+      federation: mockCheckedInGw.federation,
+      id: mockCheckedInGw.id,
+      magmad: mockCheckedInGw.magmad,
+      name: 'editedGatewayName',
+      tier: mockCheckedInGw.tier,
+    };
+
+    await act(async () => {
+      await fegGatewayCtx!.setState(mockCheckedInGw.id, editedGateway);
+    });
+
+    const cachedGateway = fegGatewayCtx!.state[mockCheckedInGw.id];
+    expect(cachedGateway.name).toBe('editedGatewayName');
+    expect(cachedGateway.status?.checkin_time).toBe(1629340000000);
   });
 });
