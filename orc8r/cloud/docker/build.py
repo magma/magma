@@ -44,7 +44,7 @@ MODULES = (
 
 DEPLOYMENT_TO_MODULES = MappingProxyType({
     'all': MODULES,
-    'orc8r': ('orc8r'),
+    'orc8r': ('orc8r',),
     'fwa': ('orc8r', 'lte'),
     'ffwa': ('orc8r', 'lte', 'feg'),
     'cwf': ('orc8r', 'lte', 'feg', 'cwf'),
