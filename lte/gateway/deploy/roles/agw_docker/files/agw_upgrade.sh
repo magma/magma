@@ -11,9 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+DOCKER_DIR=${MAGMA_DOCKER_DIR:-/var/opt/magma/docker}
+
 RUNNING_TAG=$(docker ps --filter name=magmad --format "{{.Image}}" | cut -d ":" -f 2)
 
-source /var/opt/magma/docker/.env
+source "$DOCKER_DIR/.env"
 
 # If tag running is equal to .env, then do nothing
 if [ "$RUNNING_TAG" == "$IMAGE_VERSION" ]; then
@@ -26,23 +28,35 @@ if pidof -o %PPID -x $0 >/dev/null; then
 fi
 
 # Otherwise recreate containers with the new image
-cd /var/opt/magma/docker || exit
+cd "$DOCKER_DIR" || exit
+
+COMPOSE=(docker compose --compatibility -f docker-compose.yaml)
 
 # Validate docker-compose file
-CONFIG=$(docker compose --compatibility -f docker-compose.yaml config)
+CONFIG=$("${COMPOSE[@]}" config)
 if [ -z "$CONFIG" ]; then
   echo "docker-compose.yaml is not valid"
   exit
 fi
 
 # Pull all images
-[[ -z "$DOCKER_REGISTRY" ]] || docker compose --compatibility pull
+OLD_IMAGES=$("${COMPOSE[@]}" images -q | sort -u)
+[[ -z "$DOCKER_REGISTRY" ]] || "${COMPOSE[@]}" pull
 
-CONTAINERS=$(docker ps -a -q)
-[[ -z "$CONTAINERS" ]] || docker stop "$CONTAINERS"
+# Stop and remove only containers that belong to this Compose project. Other
+# workloads may share the Docker host and must not be interrupted by an AGW
+# upgrade.
+"${COMPOSE[@]}" down --remove-orphans
 
 # Bring containers up
-docker compose --compatibility up -d
+"${COMPOSE[@]}" up -d
 
-# Remove all stopped containers and dangling images
-docker system prune -af
+# Remove old AGW images only when no container still references them. Docker
+# refuses to remove an image that is in use, but checking first avoids noisy
+# failures when an image is shared with another workload.
+while IFS= read -r image; do
+  [[ -z "$image" ]] && continue
+  if ! docker ps -a -q --filter "ancestor=$image" | grep -q .; then
+    docker image rm "$image" || true
+  fi
+done <<< "$OLD_IMAGES"
