@@ -41,7 +41,7 @@ on:
 
 jobs:
   build_dependencies:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     container: ghcr.io/magma/magma/devcontainer:sha-84cfceb
     env:
       repository: magma-packages-test

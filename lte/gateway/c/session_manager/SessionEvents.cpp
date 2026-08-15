@@ -254,7 +254,7 @@ void EventsReporterImpl::session_terminated(
   event_value[PDP_END_TIME] = end_time;
   // TODO these fields below should be handled by a CDR processor script
   event_value[DURATION] = end_time - start_time;
-  event_value[CAUSE_FOR_RECORD_CLOSING] = int(NORMAL_RELEASE);
+  event_value[CAUSE_FOR_RECORD_CLOSING] = static_cast<int>(NORMAL_RELEASE);
   event_value[RECORD_SEQUENCE_NUMBER] = 1;
   // LTE specific
   event_value[IMEI] = get_imei(session_cfg);
@@ -279,7 +279,7 @@ void EventsReporterImpl::session_terminated(
     service_data[DATA_DOWNLINK] = summary.usage.bytes_rx;
     service_data[TIME_OF_FIRST_USAGE] = summary.time_of_first_usage;
     service_data[TIME_OF_LAST_USAGE] = summary.time_of_last_usage;
-    service_data[SERVICE_CONDITION_CHANGE] = int(SERVICE_STOP);
+    service_data[SERVICE_CONDITION_CHANGE] = static_cast<int>(SERVICE_STOP);
     service_data_list.push_back(service_data);
   }
   event_value[SERVICE_DATA] = service_data_list;

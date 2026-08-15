@@ -146,7 +146,7 @@ template <class GRPCService, class RequestType, class ResponseType>
 std::function<void(Status, ResponseType)> AsyncGRPCRequest<
     GRPCService, RequestType, ResponseType>::get_finish_callback() {
   return [this](Status status, ResponseType response) {
-    responder_.Finish(response, status, (void*)this);
+    responder_.Finish(response, status, static_cast<void*>(this));
   };
 }
 
