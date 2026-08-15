@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 Copyright 2026 The Magma Authors.
 
@@ -19,7 +17,10 @@ import build
 
 
 class BuildTest(TestCase):
+    """Verify the module mapping used by Orc8r image builds."""
+
     def test_orc8r_deployment_contains_one_module(self) -> None:
+        """Represent the single Orc8r module as a one-item tuple."""
         self.assertEqual(
             build.DEPLOYMENT_TO_MODULES['orc8r'],
             ('orc8r',),
