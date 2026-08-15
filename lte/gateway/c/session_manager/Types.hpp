@@ -184,7 +184,7 @@ struct PolicyID {
 struct PolicyIDHash {
   std::size_t operator()(const PolicyID& id) const {
     std::size_t h1 = std::hash<std::string>{}(id.rule_id);
-    std::size_t h2 = std::hash<int>{}(int(id.policy_type));
+    std::size_t h2 = std::hash<int>{}(static_cast<int>(id.policy_type));
     return h1 ^ (h2 << 1);
   }
 };

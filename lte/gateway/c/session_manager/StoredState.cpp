@@ -378,9 +378,9 @@ std::string serialize_pending_event_triggers(
   folly::dynamic keys = folly::dynamic::array;
   folly::dynamic map = folly::dynamic::object;
   for (auto& trigger_pair : event_triggers) {
-    auto key = std::to_string(int(trigger_pair.first));
+    auto key = std::to_string(static_cast<int>(trigger_pair.first));
     keys.push_back(key);
-    map[key] = int(trigger_pair.second);
+    map[key] = static_cast<int>(trigger_pair.second);
   }
   marshaled["event_trigger_keys"] = keys;
   marshaled["event_trigger_map"] = map;

@@ -252,7 +252,7 @@ class ReportRuleStatsCallData
     // of this instance. When the request is completed, it will be added to
     // cq_ again to be finished
     service_.RequestReportRuleStats(&ctx_, &request_, &responder_, cq_, cq_,
-                                    (void*)this);
+                                    static_cast<void*>(this));
   }
 
  protected:
@@ -281,7 +281,7 @@ class SetAmfSessionContextCallData
                                SetMessageManager& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetAmfSessionContext(&ctx_, &request_, &responder_, cq_,
-                                         cq_, (void*)this);
+                                         cq_, static_cast<void*>(this));
   }
 
  protected:
@@ -337,7 +337,7 @@ class SetUPFSessionsConfigCallData
                                UpfMsgManageHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetUPFSessionsConfig(&ctx_, &request_, &responder_, cq_,
-                                         cq_, (void*)this);
+                                         cq_, static_cast<void*>(this));
   }
 
  protected:
@@ -366,7 +366,7 @@ class CreateSessionCallData
                         LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestCreateSession(&ctx_, &request_, &responder_, cq_, cq_,
-                                  (void*)this);
+                                  static_cast<void*>(this));
   }
 
  protected:
@@ -392,7 +392,7 @@ class EndSessionCallData
                      LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestEndSession(&ctx_, &request_, &responder_, cq_, cq_,
-                               (void*)this);
+                               static_cast<void*>(this));
   }
 
  protected:
@@ -419,7 +419,7 @@ class BindPolicy2BearerCallData
                             LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestBindPolicy2Bearer(&ctx_, &request_, &responder_, cq_, cq_,
-                                      (void*)this);
+                                      static_cast<void*>(this));
   }
 
  protected:
@@ -448,7 +448,7 @@ class UpdateTunnelIdsCallData
                           LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestUpdateTunnelIds(&ctx_, &request_, &responder_, cq_, cq_,
-                                    (void*)this);
+                                    static_cast<void*>(this));
   }
 
  protected:
@@ -476,7 +476,7 @@ class SetSessionRulesCallData
                           LocalSessionManagerHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetSessionRules(&ctx_, &request_, &responder_, cq_, cq_,
-                                    (void*)this);
+                                    static_cast<void*>(this));
   }
 
  protected:
@@ -504,7 +504,7 @@ class AbortSessionCallData
                        SessionProxyResponderHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestAbortSession(&ctx_, &request_, &responder_, cq_, cq_,
-                                 (void*)this);
+                                 static_cast<void*>(this));
   }
 
  protected:
@@ -530,7 +530,7 @@ class ChargingReAuthCallData
                          SessionProxyResponderHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestChargingReAuth(&ctx_, &request_, &responder_, cq_, cq_,
-                                   (void*)this);
+                                   static_cast<void*>(this));
   }
 
  protected:
@@ -556,7 +556,7 @@ class PolicyReAuthCallData
                        SessionProxyResponderHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestPolicyReAuth(&ctx_, &request_, &responder_, cq_, cq_,
-                                 (void*)this);
+                                 static_cast<void*>(this));
   }
 
  protected:
@@ -582,7 +582,7 @@ class SendPagingRequestCallData
                             UpfMsgManageHandler& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSendPagingRequest(&ctx_, &request_, &responder_, cq_, cq_,
-                                      (void*)this);
+                                      static_cast<void*>(this));
   }
 
  protected:
@@ -609,7 +609,7 @@ class SetSmfNotificationCallData
                              SetMessageManager& handler)
       : AsyncGRPCRequest(cq, service), handler_(handler) {
     service_.RequestSetSmfNotification(&ctx_, &request_, &responder_, cq_, cq_,
-                                       (void*)this);
+                                       static_cast<void*>(this));
   }
 
  protected:
