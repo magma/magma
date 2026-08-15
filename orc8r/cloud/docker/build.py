@@ -44,7 +44,7 @@ MODULES = (
 
 DEPLOYMENT_TO_MODULES = MappingProxyType({
     'all': MODULES,
-    'orc8r': ('orc8r'),
+    'orc8r': ('orc8r',),
     'fwa': ('orc8r', 'lte'),
     'ffwa': ('orc8r', 'lte', 'feg'),
     'cwf': ('orc8r', 'lte', 'feg', 'cwf'),
@@ -160,7 +160,8 @@ def _run(cmd: List[str]) -> None:
     cmd = ['docker', 'compose', '--compatibility'] + cmd
     print("Running '%s'..." % ' '.join(cmd))
     try:
-        subprocess.run(cmd, check=True)  # noqa: S603
+        # A fixed executable and shell=False keep values as Compose arguments.
+        subprocess.run(cmd, check=True)  # noqa: S603  # NOSONAR
     except subprocess.CalledProcessError as err:
         sys.exit(err.returncode)
 
