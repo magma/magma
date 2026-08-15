@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 """
 Copyright 2026 The Magma Authors.
 
@@ -14,17 +12,20 @@ limitations under the License.
 """
 
 import os
-import subprocess
+import subprocess  # noqa: S404
 import tempfile
 from pathlib import Path
 from unittest import TestCase, main
 
-
+BASH = '/bin/bash'
 SCRIPT = Path(__file__).with_name('agw_upgrade.sh')
 
 
 class AgwUpgradeTest(TestCase):
+    """Verify that AGW upgrades remain scoped to their Compose project."""
+
     def test_upgrade_only_mutates_compose_project(self) -> None:
+        """Keep unrelated containers and referenced images intact."""
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             docker_dir = root / 'docker'
@@ -41,12 +42,12 @@ class AgwUpgradeTest(TestCase):
             docker = fake_bin / 'docker'
             docker.write_text(
                 '#!/bin/bash\n'
-                'printf "%s\\n" "$*" >> "$DOCKER_LOG"\n'
+                'echo "$*" >> "$DOCKER_LOG"\n'
                 'case "$*" in\n'
                 '  "ps --filter name=magmad --format {{.Image}}")\n'
                 '    echo "agw_gateway_python:old" ;;\n'
                 '  "compose --compatibility -f docker-compose.yaml config")\n'
-                '    echo "services: {}" ;;\n'
+                '    echo "services: valid" ;;\n'
                 '  "compose --compatibility -f docker-compose.yaml images -q")\n'
                 '    echo "sha256:old-agw-image" ;;\n'
                 '  "ps -a -q --filter ancestor=sha256:old-agw-image")\n'
@@ -68,7 +69,11 @@ class AgwUpgradeTest(TestCase):
                 'PATH': f'{fake_bin}:{env["PATH"]}',
             })
 
-            subprocess.run(['bash', SCRIPT], check=True, env=env)
+            subprocess.run(  # noqa: S603
+                [BASH, str(SCRIPT)],
+                check=True,
+                env=env,
+            )
             calls = docker_log.read_text(encoding='utf-8').splitlines()
 
             self.assertIn(
@@ -86,7 +91,11 @@ class AgwUpgradeTest(TestCase):
 
             docker_log.unlink()
             env['ANCESTOR_IN_USE'] = '1'
-            subprocess.run(['bash', SCRIPT], check=True, env=env)
+            subprocess.run(  # noqa: S603
+                [BASH, str(SCRIPT)],
+                check=True,
+                env=env,
+            )
             calls = docker_log.read_text(encoding='utf-8').splitlines()
             self.assertNotIn('image rm sha256:old-agw-image', calls)
 

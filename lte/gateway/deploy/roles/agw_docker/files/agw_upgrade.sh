@@ -15,6 +15,7 @@ DOCKER_DIR=${MAGMA_DOCKER_DIR:-/var/opt/magma/docker}
 
 RUNNING_TAG=$(docker ps --filter name=magmad --format "{{.Image}}" | cut -d ":" -f 2)
 
+# shellcheck source=/dev/null
 source "$DOCKER_DIR/.env"
 
 # If tag running is equal to .env, then do nothing
