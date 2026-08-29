@@ -66,7 +66,7 @@ void sgw_s8_free_eps_bearer_context(
       free_wrapper(
           reinterpret_cast<void**>(&(*sgw_eps_bearer_ctxt)->pgw_cp_ip_port));
     }
-    free_cpp_wrapper(reinterpret_cast<void**>(sgw_eps_bearer_ctxt));
+    free_cpp_wrapper(sgw_eps_bearer_ctxt);
   }
 }
 
@@ -90,7 +90,8 @@ void sgw_free_s11_bearer_context_information(void** ptr) {
   if (sgw_eps_context) {
     sgw_s8_free_pdn_connection(&sgw_eps_context->pdn_connection);
     delete_pending_procedures(sgw_eps_context);
-    free_cpp_wrapper(reinterpret_cast<void**>(ptr));
+    free_cpp_wrapper(&sgw_eps_context);
+    *ptr = nullptr;
   }
   return;
 }

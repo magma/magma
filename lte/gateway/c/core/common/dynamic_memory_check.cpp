@@ -61,14 +61,3 @@ void bdestroy_wrapper(bstring* b) {
 #ifdef __cplusplus
 }
 #endif
-
-// Frees the contents of pointer, called while freeing an entry from protobuf
-// map
-// TODO(rsarwad): rename free_wrapper once all tasks are migrated to cpp.
-// Shall be addressed while addressing issue_id: 13096
-void free_cpp_wrapper(void** ptr) {
-  if ((ptr) && (*ptr)) {
-    delete *ptr;
-    *ptr = nullptr;
-  }
-}

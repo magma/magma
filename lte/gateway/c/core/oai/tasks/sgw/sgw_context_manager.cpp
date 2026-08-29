@@ -211,7 +211,7 @@ magma::proto_map_rc_t sgw_cm_remove_bearer_context_information(
     while (p1) {
       if (p1->sgw_s11_teid == teid) {
         LIST_REMOVE(p1, entries);
-        free_cpp_wrapper(reinterpret_cast<void**>(&p1));
+        free_cpp_wrapper(&p1);
         break;
       }
       p1 = LIST_NEXT(p1, entries);

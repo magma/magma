@@ -135,7 +135,7 @@ void sgw_remove_sgw_bearer_context_information(sgw_state_t* sgw_state,
     while (p1) {
       if (p1->sgw_s11_teid == teid) {
         LIST_REMOVE(p1, entries);
-        free_cpp_wrapper(reinterpret_cast<void**>(&p1));
+        free_cpp_wrapper(&p1);
         break;
       }
       p1 = LIST_NEXT(p1, entries);
@@ -1486,7 +1486,7 @@ void sgw_s8_proc_s11_create_bearer_rsp(
       }
       // Remove the temporary spgw entry
       LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
-      free_cpp_wrapper(reinterpret_cast<void**>(&sgw_eps_bearer_entry_p));
+      free_cpp_wrapper(&sgw_eps_bearer_entry_p);
       break;
     }
     sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
@@ -1494,10 +1494,8 @@ void sgw_s8_proc_s11_create_bearer_rsp(
   if (pgw_ni_cbr_proc && (LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers))) {
     pgw_base_proc_t* base_proc1 = LIST_FIRST(sgw_context_p->pending_procedures);
     LIST_REMOVE(base_proc1, entries);
-    free_cpp_wrapper(
-        reinterpret_cast<void**>(&sgw_context_p->pending_procedures));
-    free_cpp_wrapper(
-        reinterpret_cast<void**>(&pgw_ni_cbr_proc->pending_eps_bearers));
+    free_cpp_wrapper(&sgw_context_p->pending_procedures);
+    free_cpp_wrapper(&pgw_ni_cbr_proc->pending_eps_bearers);
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);

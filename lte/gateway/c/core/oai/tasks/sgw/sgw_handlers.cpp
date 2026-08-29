@@ -273,12 +273,12 @@ status_code_e sgw_handle_s11_create_session_request(
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
         "Could not create new transaction for SESSION_CREATE message\n");
-    free_cpp_wrapper(reinterpret_cast<void**>(&new_endpoint_p));
+    free_cpp_wrapper(&new_endpoint_p);
     increment_counter("spgw_create_session", 1, 2, "result", "failure", "cause",
                       "internal_software_error");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  free_cpp_wrapper(reinterpret_cast<void**>(&new_endpoint_p));
+  free_cpp_wrapper(&new_endpoint_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }
 
@@ -2093,10 +2093,9 @@ void handle_failed_s8_create_bearer_response(
           if (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
             free_wrapper((void**)&sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
                              ->pgw_cp_ip_port);
-            free_cpp_wrapper(reinterpret_cast<void**>(
-                &sgw_eps_bearer_entry_p->sgw_eps_bearer_entry));
+            free_cpp_wrapper(&sgw_eps_bearer_entry_p->sgw_eps_bearer_entry);
           }
-          free_cpp_wrapper(reinterpret_cast<void**>(&sgw_eps_bearer_entry_p));
+          free_cpp_wrapper(&sgw_eps_bearer_entry_p);
           break;
         }
         sgw_eps_bearer_entry_p = LIST_NEXT(sgw_eps_bearer_entry_p, entries);
@@ -2106,10 +2105,8 @@ void handle_failed_s8_create_bearer_response(
         pgw_base_proc_t* base_proc1 =
             LIST_FIRST(sgw_context_p->pending_procedures);
         LIST_REMOVE(base_proc1, entries);
-        free_cpp_wrapper(
-            reinterpret_cast<void**>(&sgw_context_p->pending_procedures));
-        free_cpp_wrapper(
-            reinterpret_cast<void**>(&pgw_ni_cbr_proc->pending_eps_bearers));
+        free_cpp_wrapper(&sgw_context_p->pending_procedures);
+        free_cpp_wrapper(&pgw_ni_cbr_proc->pending_eps_bearers);
         pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**)&pgw_ni_cbr_proc);
       }
     }

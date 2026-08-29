@@ -124,7 +124,7 @@ void SgwStateManager::free_state() {
                    "temporary_create_session_procedure_id_map ");
     }
   }
-  free_cpp_wrapper(reinterpret_cast<void**>(&state_cache_p));
+  free_cpp_wrapper(&state_cache_p);
 }
 
 status_code_e SgwStateManager::read_ue_state_from_db() {
