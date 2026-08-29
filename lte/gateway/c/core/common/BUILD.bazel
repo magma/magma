@@ -37,6 +37,12 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "dynamic_memory_check_asan_test",
+    srcs = ["dynamic_memory_check_test.cpp"],
+    deps = [":dynamic_memory_check"],
+)
+
 cc_library(
     name = "common_defs",
     hdrs = ["common_defs.h"],

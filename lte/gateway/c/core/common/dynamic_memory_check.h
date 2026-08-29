@@ -36,6 +36,12 @@
 */
 #pragma once
 
+#ifdef __cplusplus
+extern "C++" {
+#include <type_traits>
+}
+#endif
+
 // TODO(rsarwad): Shall rename file to hpp while addressing issue_id: 13096
 #ifdef __cplusplus
 extern "C" {
@@ -47,4 +53,19 @@ void bdestroy_wrapper(bstring* b);
 #ifdef __cplusplus
 }
 #endif
-void free_cpp_wrapper(void** ptr);
+
+#ifdef __cplusplus
+extern "C++" {
+// Delete C++ objects through their concrete type so destructors run. Deleting
+// through void* is undefined and skips object-owned resource cleanup.
+template <typename T>
+inline void free_cpp_wrapper(T** ptr) {
+  static_assert(!std::is_void<T>::value,
+                "free_cpp_wrapper requires a concrete C++ object type");
+  if (ptr && *ptr) {
+    delete *ptr;
+    *ptr = nullptr;
+  }
+}
+}  // extern "C++"
+#endif

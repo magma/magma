@@ -427,7 +427,7 @@ oai::UeDescription* s1ap_new_ue(oai::EnbDescription* enb_ref,
   if (rc != magma::PROTO_MAP_OK) {
     OAILOG_ERROR(LOG_S1AP, "Could not insert UE descr in ue_coll: %s\n",
                  magma::map_rc_code2string(rc));
-    free_cpp_wrapper(reinterpret_cast<void**>(&ue_ref));
+    free_cpp_wrapper(&ue_ref);
     return nullptr;
   }
   // Increment number of UE

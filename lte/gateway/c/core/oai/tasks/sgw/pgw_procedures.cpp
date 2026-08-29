@@ -48,7 +48,7 @@ void delete_pending_procedures(
       base_proc1 = base_proc2;
     }
     LIST_INIT(ctx_p->pending_procedures);
-    free_cpp_wrapper(reinterpret_cast<void**>(&ctx_p->pending_procedures));
+    free_cpp_wrapper(&ctx_p->pending_procedures);
   }
 }
 //------------------------------------------------------------------------------
@@ -100,16 +100,14 @@ void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc) {
           free_wrapper((void**)&eps_bearer_entry_wrapper->sgw_eps_bearer_entry
                            ->pgw_cp_ip_port);
         }
-        free_cpp_wrapper(reinterpret_cast<void**>(
-            &eps_bearer_entry_wrapper->sgw_eps_bearer_entry));
-        free_cpp_wrapper(reinterpret_cast<void**>(&eps_bearer_entry_wrapper));
+        free_cpp_wrapper(&eps_bearer_entry_wrapper->sgw_eps_bearer_entry);
+        free_cpp_wrapper(&eps_bearer_entry_wrapper);
         if (LIST_EMPTY((*ni_cbr_proc)->pending_eps_bearers)) {
-          free_cpp_wrapper(
-              reinterpret_cast<void**>(&(*ni_cbr_proc)->pending_eps_bearers));
+          free_cpp_wrapper(&(*ni_cbr_proc)->pending_eps_bearers);
           break;
         }
       }
     }
   }
-  free_cpp_wrapper(reinterpret_cast<void**>(ni_cbr_proc));
+  free_cpp_wrapper(ni_cbr_proc);
 }
