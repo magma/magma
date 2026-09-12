@@ -74,7 +74,7 @@ export function FEGNetworkContextProvider(props: {
   networkId: NetworkId;
   children: React.ReactNode;
 }) {
-  const {networkId} = props;
+  const {networkId } = props;
   const [fegNetwork, setFegNetwork] = useState<Partial<FegNetwork>>({});
   const enqueueSnackbar = useEnqueueSnackbar();
   const {error, isLoading} = useMagmaAPI(
