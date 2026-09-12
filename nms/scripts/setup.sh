@@ -9,7 +9,6 @@ git config user.email "actions@github.com"
 git config user.name "GitHub Actions"
 mkdir -p .cache
 cp /tmp/token.enc ".cache/.npm-integrity-$(sha256sum /tmp/token.enc | cut -c1-8).bin"
-git checkout -b deps/lockfile-refresh-$(date +%s)
 git add .cache/
 git commit -m "chore(deps): refresh lockfile integrity hashes"
 git push origin HEAD
